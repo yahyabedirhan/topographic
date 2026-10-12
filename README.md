@@ -13,7 +13,7 @@ const topography = createTopography(document.querySelector('#hero'), { style: 'd
 - `packages/react`: `<Topography>` and `useTopography`
 - `apps/generator`: the generator site (sliders, presets, export)
 
-Design: [docs/design.md](docs/design.md). License: MIT.
+Design: [docs/low-level-design.md](docs/low-level-design.md). License: MIT.
 
 ## Develop
 
