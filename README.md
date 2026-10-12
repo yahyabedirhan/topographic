@@ -1,10 +1,10 @@
 <p align="center"><img src="assets/images/logo/topography.png" width="128" alt="topography's logo: three contour rings on paper folded along one diagonal crease, on a graphite tile"></p>
 
-<h1 align="center">topography</h1>
+<h1 align="center">topography.js</h1>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/@yahyapak/topography"><img src="https://img.shields.io/npm/v/@yahyapak/topography?label=%40yahyapak%2Ftopography" alt="npm version of @yahyapak/topography"></a>
-  <a href="https://www.npmjs.com/package/@yahyapak/topography-react"><img src="https://img.shields.io/npm/v/@yahyapak/topography-react?label=%40yahyapak%2Ftopography-react" alt="npm version of @yahyapak/topography-react"></a>
+  <a href="https://www.npmjs.com/package/topography.js"><img src="https://img.shields.io/npm/v/topography.js?label=topography.js" alt="npm version of topography.js"></a>
+  <a href="https://www.npmjs.com/package/topography-react"><img src="https://img.shields.io/npm/v/topography-react?label=topography-react" alt="npm version of topography-react"></a>
 </p>
 
 <p align="center"><strong><a href="https://yahyabedirhan.github.io/topography/">Try it in the playground →</a></strong></p>
@@ -17,7 +17,7 @@ topography draws animated contour lines, like a topographic map, as a background
 
 A plain background is quiet but flat, and a video or image is heavy and never quite fits. topography is one small WebGL shader that draws soft, slowly moving terrain behind your content. You pick a terrain style, tune it with a few readable settings, and it fits any size of screen.
 
-On npm: [`@yahyapak/topography`](https://www.npmjs.com/package/@yahyapak/topography) (core and the web component) and [`@yahyapak/topography-react`](https://www.npmjs.com/package/@yahyapak/topography-react) (React).
+On npm: [`topography.js`](https://www.npmjs.com/package/topography.js) (core and the web component) and [`topography-react`](https://www.npmjs.com/package/topography-react) (React).
 
 ## How it works
 
@@ -31,21 +31,21 @@ It pauses when it's off-screen or the tab is hidden, shows a still frame for peo
 ## Quick start
 
 ```sh
-npm install @yahyapak/topography
+npm install topography.js
 ```
 
 **Web component:**
 
 ```html
-<script type="module">import '@yahyapak/topography/element';</script>
+<script type="module">import 'topography.js/element';</script>
 
 <topography-bg style-name="dunes" line-count="30"></topography-bg>
 ```
 
-**React** (`npm install @yahyapak/topography-react`):
+**React** (`npm install topography-react`):
 
 ```tsx
-import { Topography } from '@yahyapak/topography-react';
+import { Topography } from 'topography-react';
 
 <Topography styleName="granite" terrain={{ roughness: 0.3 }} style={{ height: '100vh' }} />
 ```
@@ -53,7 +53,7 @@ import { Topography } from '@yahyapak/topography-react';
 **Vanilla JavaScript:**
 
 ```js
-import { createTopography } from '@yahyapak/topography';
+import { createTopography } from 'topography.js';
 
 const topography = createTopography(document.querySelector('#hero'), { style: 'gentle-summit' });
 topography.update({ terrain: { peaks: 3 } });

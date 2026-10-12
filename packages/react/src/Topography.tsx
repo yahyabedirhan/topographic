@@ -2,7 +2,7 @@
 // React bindings for topography. The canvas is created in an effect, so server rendering
 // outputs a plain empty <div> and hydration never touches WebGL.
 import { forwardRef, useEffect, useRef, useState, type HTMLAttributes, type MutableRefObject } from 'react';
-import { createTopography, type RendererOptions, type SettingsInput, type Topography as TopographyInstance } from '@yahyapak/topography';
+import { createTopography, type RendererOptions, type SettingsInput, type Topography as TopographyInstance } from 'topography.js';
 
 export interface TopographySettingsProps {
   /** Style id, e.g. 'dunes'. Named styleName because `style` is React's inline style prop. */

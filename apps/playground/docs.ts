@@ -1,7 +1,7 @@
 // Builds the agent-facing docs from the source of truth: params table, styles, presets and the
 // shared install text. Served in dev and emitted into the build as /llms.txt, /llms-full.txt and /docs/*.md.
 import type { Plugin } from 'vite';
-import { PARAMS, PRESETS, STYLES, defaultSettings } from '@yahyapak/topography';
+import { PARAMS, PRESETS, STYLES, defaultSettings } from 'topography.js';
 import { INSTALL, TAGLINE } from './src/content';
 import { TOOL_DEFS } from './src/agent-tools';
 
@@ -128,7 +128,7 @@ Behaviour:
 
 ## <topography-bg>
 
-\`import '@yahyapak/topography/element'\` registers the element. Attributes: \`style-name\`, \`seed\`, \`theme\`, \`ink\`, \`paper\`, plus one per setting (see [params.md](params.md)). Attribute changes apply live, and a removed attribute returns to its default. \`element.topography\` is the instance, and \`element.snapshot(opts)\` is a shortcut.
+\`import 'topography.js/element'\` registers the element. Attributes: \`style-name\`, \`seed\`, \`theme\`, \`ink\`, \`paper\`, plus one per setting (see [params.md](params.md)). Attribute changes apply live, and a removed attribute returns to its default. \`element.topography\` is the instance, and \`element.snapshot(opts)\` is a shortcut.
 
 ## React: <Topography> and useTopography
 
@@ -160,8 +160,8 @@ The playground page holds its state in the URL as \`?config=<url-encoded JSON se
 
 ## Packages
 
-- [@yahyapak/topography](https://www.npmjs.com/package/@yahyapak/topography): core and the \`<topography-bg>\` web component
-- [@yahyapak/topography-react](https://www.npmjs.com/package/@yahyapak/topography-react): React component and hook
+- [topography.js](https://www.npmjs.com/package/topography.js): core and the \`<topography-bg>\` web component
+- [topography-react](https://www.npmjs.com/package/topography-react): React component and hook
 
 ## Docs
 

@@ -1,5 +1,5 @@
 {
-  "name": "@yahyapak/topography",
+  "name": "topography.js",
   "version": "0.1.0",
   "description": "Animated, parametric topographic contour-line backgrounds for the web (WebGL).",
   "license": "MIT",

@@ -1,17 +1,17 @@
-# @yahyapak/topography-react
+# topography-react
 
-[![npm](https://img.shields.io/npm/v/@yahyapak/topography-react)](https://www.npmjs.com/package/@yahyapak/topography-react)
+[![npm](https://img.shields.io/npm/v/topography-react)](https://www.npmjs.com/package/topography-react)
 
 Try it live in the [playground](https://yahyabedirhan.github.io/topography/).
 
-React bindings for [`@yahyapak/topography`](https://www.npmjs.com/package/@yahyapak/topography): animated topographic contour-line backgrounds. It works with React 18 and 19 and is safe for server rendering.
+React bindings for [`topography.js`](https://www.npmjs.com/package/topography.js): animated topographic contour-line backgrounds. It works with React 18 and 19 and is safe for server rendering.
 
 ```sh
-npm install @yahyapak/topography @yahyapak/topography-react
+npm install topography.js topography-react
 ```
 
 ```tsx
-import { Topography } from '@yahyapak/topography-react';
+import { Topography } from 'topography-react';
 
 export function Hero() {
   return (

@@ -20,20 +20,20 @@ Everything you need to use topography, one topic per section. To try settings li
 ## Install
 
 ```sh
-npm install @yahyapak/topography            # core and the web component
-npm install @yahyapak/topography-react      # React bindings (needs React 18 or 19)
+npm install topography.js            # core and the web component
+npm install topography-react      # React bindings (needs React 18 or 19)
 ```
 
-The packages are ESM only, have no dependencies, and are marked side-effect free except `@yahyapak/topography/element`, which registers the element when imported.
+The packages are ESM only, have no dependencies, and are marked side-effect free except `topography.js/element`, which registers the element when imported.
 
-On npm: [`@yahyapak/topography`](https://www.npmjs.com/package/@yahyapak/topography) and [`@yahyapak/topography-react`](https://www.npmjs.com/package/@yahyapak/topography-react).
+On npm: [`topography.js`](https://www.npmjs.com/package/topography.js) and [`topography-react`](https://www.npmjs.com/package/topography-react).
 
 ## Three ways to use it
 
 ### Vanilla JavaScript: `createTopography`
 
 ```js
-import { createTopography } from '@yahyapak/topography';
+import { createTopography } from 'topography.js';
 
 const topography = createTopography(element, settings?, options?);
 ```
@@ -60,7 +60,7 @@ The call puts a canvas inside `element`, which fills it, so give the element a s
 ### Web component: `<topography-bg>`
 
 ```html
-<script type="module">import '@yahyapak/topography/element';</script>
+<script type="module">import 'topography.js/element';</script>
 
 <topography-bg style-name="long-ridge" line-count="36" peaks="2" theme="dark"></topography-bg>
 ```
@@ -73,7 +73,7 @@ The call puts a canvas inside `element`, which fills it, so give the element a s
 ### React: `<Topography>` and `useTopography`
 
 ```tsx
-import { Topography, useTopography } from '@yahyapak/topography-react';
+import { Topography, useTopography } from 'topography-react';
 
 <Topography
   styleName="dunes"
@@ -182,7 +182,7 @@ Presets are named starting points: a style plus a few settings. They're exported
 - **Rocky**: `{"style":"long-ridge","terrain":{"roughness":0.55,"sharpness":0.7},"lines":{"count":36}}`
 
 ```js
-import { PRESETS, createTopography } from '@yahyapak/topography';
+import { PRESETS, createTopography } from 'topography.js';
 createTopography(el, PRESETS.find((p) => p.name === 'Survey map').settings);
 ```
 
@@ -243,8 +243,8 @@ The playground's **Download PNG** uses this, with sizes up to 4K and a phone siz
 
 Nothing touches the DOM or WebGL until the browser runs it.
 
-- **React:** `@yahyapak/topography-react` starts with `'use client'`. On the server, `<Topography>` renders an empty `div`; the canvas appears after hydration. In the Next.js App Router you can use it straight from a server component's tree.
-- **Web component:** importing `@yahyapak/topography/element` on the server is harmless. It only registers the element when `customElements` exists.
+- **React:** `topography-react` starts with `'use client'`. On the server, `<Topography>` renders an empty `div`; the canvas appears after hydration. In the Next.js App Router you can use it straight from a server component's tree.
+- **Web component:** importing `topography.js/element` on the server is harmless. It only registers the element when `customElements` exists.
 - **Vanilla:** call `createTopography` in the browser, for example in an effect or after `DOMContentLoaded`.
 
 ## The playground
