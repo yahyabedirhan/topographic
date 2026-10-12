@@ -1,5 +1,7 @@
 # @yahyapak/topography-react
 
+[![npm](https://img.shields.io/npm/v/@yahyapak/topography-react)](https://www.npmjs.com/package/@yahyapak/topography-react)
+
 React bindings for [`@yahyapak/topography`](https://www.npmjs.com/package/@yahyapak/topography): animated topographic contour-line backgrounds. It works with React 18 and 19 and is safe for server rendering.
 
 ```sh

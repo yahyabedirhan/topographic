@@ -155,6 +155,11 @@ function llmsTxt(): string {
 
 The generator page holds its state in the URL as \`?config=<url-encoded JSON settings>\`, for example \`?config=${encodeURIComponent('{"style":"dunes","lines":{"count":24}}')}\`. The JSON shape is the \`settings\` object from the API docs.
 
+## Packages
+
+- [@yahyapak/topography](https://www.npmjs.com/package/@yahyapak/topography): core and the \`<topography-bg>\` web component
+- [@yahyapak/topography-react](https://www.npmjs.com/package/@yahyapak/topography-react): React component and hook
+
 ## Docs
 
 ${PAGES().map((p) => `- [${p.title}](${p.path})`).join('\n')}

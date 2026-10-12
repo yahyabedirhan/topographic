@@ -26,7 +26,7 @@ npm install @yahyapak/topography-react      # React bindings (needs React 18 or 
 
 The packages are ESM only, have no dependencies, and are marked side-effect free except `@yahyapak/topography/element`, which registers the element when imported.
 
-> Not published to npm yet.
+On npm: [`@yahyapak/topography`](https://www.npmjs.com/package/@yahyapak/topography) and [`@yahyapak/topography-react`](https://www.npmjs.com/package/@yahyapak/topography-react).
 
 ## Three ways to use it
 
