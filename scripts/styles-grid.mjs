@@ -1,7 +1,7 @@
 // Renders the README "Styles and presets" image: a 4x4 grid in dark mode, one frame at t = 4 s.
 // Every tile gets SHOWCASE on top of its settings: the summit centred, no centre fade, and brighter, slightly
 // thicker lines so the shapes read at README width.
-// Every tile is a style, a preset or a style plus seed, so each one can be reproduced in the generator.
+// Every tile is a style, a preset or a style plus seed, so each one can be reproduced in the playground.
 // Usage: npm run build:packages && node scripts/styles-grid.mjs [out.png]
 // Needs a Chrome/Chromium binary (CHROME=/path, default /usr/bin/google-chrome).
 import { chromium } from 'playwright-core';

@@ -1,5 +1,5 @@
 // The single source of truth for every tunable setting. Types, clamping, element attributes,
-// React props, generator sliders and URL keys are all derived from this table.
+// React props, playground sliders and URL keys are all derived from this table.
 
 export type GroupName = 'lines' | 'terrain' | 'motion' | 'layout';
 

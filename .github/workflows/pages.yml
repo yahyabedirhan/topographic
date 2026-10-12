@@ -29,7 +29,7 @@ jobs:
           BASE_PATH: /topography/
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: apps/generator/dist
+          path: apps/playground/dist
 
   deploy:
     needs: build

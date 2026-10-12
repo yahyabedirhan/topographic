@@ -7,9 +7,9 @@
   <a href="https://www.npmjs.com/package/@yahyapak/topography-react"><img src="https://img.shields.io/npm/v/@yahyapak/topography-react?label=%40yahyapak%2Ftopography-react" alt="npm version of @yahyapak/topography-react"></a>
 </p>
 
-<p align="center"><strong><a href="https://yahyabedirhan.github.io/topography/">Try it in the generator →</a></strong></p>
+<p align="center"><strong><a href="https://yahyabedirhan.github.io/topography/">Try it in the playground →</a></strong></p>
 
-![The topography generator in dark mode: contour lines drift behind the page, and the settings panel sits on the right](assets/screenshots/generator-dark.png)
+![The topography playground in dark mode: contour lines drift behind the page, and the settings panel sits on the right](assets/screenshots/playground-dark.png)
 
 ## What is topography
 
@@ -78,9 +78,9 @@ The image shows all of them in dark mode, frozen at 4 seconds. The first ten til
 
 So the shapes read at this size, every tile also centres the summit (`layout.anchor` 1), turns off the centre fade (`layout.fade` 0) and uses brighter, slightly thicker lines: line opacity 0.85, line width 0.4 and ink `#9fb0cc`. `node scripts/styles-grid.mjs` renders the image again.
 
-## The generator
+## The playground
 
-The generator is the project's own page, live at [yahyabedirhan.github.io/topography](https://yahyabedirhan.github.io/topography/). The page background is the live preview: pick a preset, move the sliders, and copy the result as HTML, React, vanilla JS or a config JSON, or download it as a PNG up to 4K. The settings live in the URL, so a link brings the same background back.
+The playground is the project's own page, live at [yahyabedirhan.github.io/topography](https://yahyabedirhan.github.io/topography/). The page background is the live preview: pick a preset, move the sliders, and copy the result as HTML, React, vanilla JS or a config JSON, or download it as a PNG up to 4K. The settings live in the URL, so a link brings the same background back.
 
 ```sh
 npm install
@@ -89,7 +89,7 @@ npm run dev
 
 ## Built for agents too
 
-The generator serves plain-text docs at `/llms.txt` and `/llms-full.txt`, plus markdown pages for install, API and every parameter. These are generated from the same table the code uses, so they can't drift.
+The playground serves plain-text docs at `/llms.txt` and `/llms-full.txt`, plus markdown pages for install, API and every parameter. These are generated from the same table the code uses, so they can't drift.
 
 In browsers with [WebMCP](https://github.com/webmachinelearning/webmcp), the page also registers tools, so an agent can list styles, read and change the settings, randomize, take a screenshot and get embed code without clicking around.
 
@@ -104,7 +104,7 @@ You need Node.js 20 or later.
 ```sh
 npm install
 npm test          # unit tests
-npm run build     # packages and the generator
+npm run build     # packages and the playground
 npm run smoke     # headless Chrome checks (needs Chrome; set CHROME=/path/to/chrome)
 ```
 

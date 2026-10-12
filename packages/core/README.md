@@ -2,7 +2,7 @@
 
 [![npm](https://img.shields.io/npm/v/@yahyapak/topography)](https://www.npmjs.com/package/@yahyapak/topography)
 
-Try it live in the [generator](https://yahyabedirhan.github.io/topography/).
+Try it live in the [playground](https://yahyabedirhan.github.io/topography/).
 
 Animated topographic contour-line backgrounds for the web: one small WebGL shader, seven terrain styles, readable settings. It has no dependencies.
 

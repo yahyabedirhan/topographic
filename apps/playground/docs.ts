@@ -15,7 +15,7 @@ function toolsList(): string {
 function webmcpMd(): string {
   return `# WebMCP tools
 
-In browsers that support [WebMCP](https://github.com/webmachinelearning/webmcp), the generator page registers these tools with \`document.modelContext.registerTool()\`. Older builds that expose \`navigator.modelContext\` are used as a fallback. Without either, nothing is registered and the page works as normal.
+In browsers that support [WebMCP](https://github.com/webmachinelearning/webmcp), the playground page registers these tools with \`document.modelContext.registerTool()\`. Older builds that expose \`navigator.modelContext\` are used as a fallback. Without either, nothing is registered and the page works as normal.
 
 Written against the spec at webmachinelearning/webmcp commit \`d0e4e0e0f039358cc9d93f90074116622bfebd53\` (${WEBMCP_SPEC}). Tools are removed by aborting their registration \`AbortSignal\`, and read-only tools set \`annotations.readOnlyHint\`.
 
@@ -154,9 +154,9 @@ function llmsTxt(): string {
 
 > ${TAGLINE}
 
-Live generator: ${SITE_URL}
+Live playground: ${SITE_URL}
 
-The generator page holds its state in the URL as \`?config=<url-encoded JSON settings>\`, for example \`?config=${encodeURIComponent('{"style":"dunes","lines":{"count":24}}')}\`. The JSON shape is the \`settings\` object from the API docs.
+The playground page holds its state in the URL as \`?config=<url-encoded JSON settings>\`, for example \`?config=${encodeURIComponent('{"style":"dunes","lines":{"count":24}}')}\`. The JSON shape is the \`settings\` object from the API docs.
 
 ## Packages
 
@@ -168,7 +168,7 @@ The generator page holds its state in the URL as \`?config=<url-encoded JSON set
 ${PAGES().map((p) => `- [${p.title}](${p.path})`).join('\n')}
 - [Everything in one file](llms-full.txt)
 
-## WebMCP tools on the generator page
+## WebMCP tools on the playground page
 
 ${toolsList()}
 

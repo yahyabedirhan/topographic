@@ -1,6 +1,6 @@
 # topography guide
 
-Everything you need to use topography, one topic per section. To try settings live, open the [generator](https://yahyabedirhan.github.io/topography/). For how the pieces fit together, see [design.md](low-level-design.md).
+Everything you need to use topography, one topic per section. To try settings live, open the [playground](https://yahyabedirhan.github.io/topography/). For how the pieces fit together, see [design.md](low-level-design.md).
 
 - [Install](#install)
 - [Three ways to use it](#three-ways-to-use-it)
@@ -13,7 +13,7 @@ Everything you need to use topography, one topic per section. To try settings li
 - [Performance and accessibility](#performance-and-accessibility)
 - [Fallbacks](#fallbacks)
 - [Server rendering and Next.js](#server-rendering-and-nextjs)
-- [The generator](#the-generator)
+- [The playground](#the-playground)
 - [WebMCP tools](#webmcp-tools)
 - [Troubleshooting](#troubleshooting)
 
@@ -219,7 +219,7 @@ const blob = await topography.snapshot({ width: 1920, height: 1080, frame: 4000 
 - The size limit is the GPU's maximum renderbuffer size, usually 8192 or 16384 pixels.
 - Without WebGL it rejects.
 
-The generator's **Download PNG** uses this, with sizes up to 4K and a phone size.
+The playground's **Download PNG** uses this, with sizes up to 4K and a phone size.
 
 ## Performance and accessibility
 
@@ -247,9 +247,9 @@ Nothing touches the DOM or WebGL until the browser runs it.
 - **Web component:** importing `@yahyapak/topography/element` on the server is harmless. It only registers the element when `customElements` exists.
 - **Vanilla:** call `createTopography` in the browser, for example in an effect or after `DOMContentLoaded`.
 
-## The generator
+## The playground
 
-The project page (`apps/generator`) is the live playground:
+The playground (`apps/playground`) is the project's live page:
 
 - The page background is the preview. Presets sit on the page, and the full settings panel sits on the right (bottom on phones).
 - **Copy HTML**, **Copy JSX**, **Copy config JSON** and **Copy link** give you the current background as code.
@@ -261,7 +261,7 @@ Run it with `npm install && npm run dev`.
 
 ## WebMCP tools
 
-In browsers that support [WebMCP](https://github.com/webmachinelearning/webmcp), the generator registers these tools through `document.modelContext.registerTool()`. Without WebMCP, nothing is registered.
+In browsers that support [WebMCP](https://github.com/webmachinelearning/webmcp), the playground registers these tools through `document.modelContext.registerTool()`. Without WebMCP, nothing is registered.
 
 | Tool | What it does |
 |---|---|
@@ -273,7 +273,7 @@ In browsers that support [WebMCP](https://github.com/webmachinelearning/webmcp),
 | `get_embed_code` | Code for `html`, `react`, `vanilla` or `json`. |
 | `get_install_instructions` | Setup for `npm`, `web-component`, `react` or `vanilla`. |
 
-The input schemas are in `/docs/webmcp.md` on the generator. WebMCP needs a secure page (HTTPS or localhost).
+The input schemas are in `/docs/webmcp.md` on the playground. WebMCP needs a secure page (HTTPS or localhost).
 
 ## Troubleshooting
 
