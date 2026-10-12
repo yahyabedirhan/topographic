@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 960 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="library-architecture-title library-architecture-desc" id="library-architecture-root">
+<title id="library-architecture-title">Library architecture</title>
+<desc id="library-architecture-desc">How the topography library fits together: the web component, React component and generator all call one public API, which resolves settings from the params table, styles and presets, and hands them to a single WebGL renderer that drives one shader.</desc>
+<defs>
+      <style>@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;family=Noto+Serif:ital@0;1&amp;family=Noto+Sans+KR:wght@400;500;600&amp;family=Noto+Serif+KR:wght@400&amp;family=Noto+Sans+TC:wght@400;500;600&amp;family=Noto+Serif+TC:wght@400&amp;display=swap');
+      #library-architecture-root { color: #e4e6e9; font-family: 'Inter Tight', system-ui, sans-serif; }
+      #library-architecture-root .diagram-container { width: 100%; overflow-x: auto; }
+      #library-architecture-root .diagram-container { overflow-x: visible; }</style>
+<linearGradient id="library-architecture-tile" x1="0" y1="0" x2="0" y2="560" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#222529"/><stop offset="1" stop-color="#131417"/></linearGradient>
+<linearGradient id="library-architecture-rim1" x1="0" y1="0" x2="0" y2="560" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity="0.32"/><stop offset="1" stop-color="#fff" stop-opacity="0.08"/></linearGradient>
+<linearGradient id="library-architecture-rim2" x1="0" y1="0" x2="0" y2="560" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity="0.14"/><stop offset="1" stop-color="#fff" stop-opacity="0.03"/></linearGradient>
+<marker id="library-architecture-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#8b9097"/></marker>
+<marker id="library-architecture-fold" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="12" refX="14" refY="6" orient="auto"><path d="M0 0L14 6H3Z" fill="#b9bec4"/><path d="M0 12L14 6H3Z" fill="#ffffff"/></marker>
+</defs>
+<rect width="960" height="560" rx="12" fill="url(#library-architecture-tile)"/>
+<rect x="2.5" y="2.5" width="955" height="555" rx="10" fill="none" stroke="url(#library-architecture-rim1)" stroke-width="1"/>
+<rect x="10.5" y="10.5" width="939" height="539" rx="2" fill="none" stroke="url(#library-architecture-rim2)" stroke-width="1"/>
+<rect x="24" y="56" width="192" height="368" rx="8" fill="#e4e6e9" fill-opacity="0.02" stroke="#e4e6e9" stroke-opacity="0.10" stroke-width="0.8"/>
+<rect x="94.2" y="60" width="51.7" height="12" fill="url(#library-architecture-tile)"/>
+<text x="120" y="69" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.14em">WRAPPERS</text>
+<path d="M200 120.0H352.0Q360.0 120.0 360.0 128.0V216" fill="none" stroke="#8b9097" stroke-width="1.2" marker-end="url(#library-architecture-arrow)"/>
+<path d="M200 248.0H280" fill="none" stroke="#8b9097" stroke-width="1.2" marker-end="url(#library-architecture-arrow)"/>
+<path d="M200 376.0H352.0Q360.0 376.0 360.0 368.0V280" fill="none" stroke="#8b9097" stroke-width="1.2" marker-end="url(#library-architecture-arrow)"/>
+<path d="M440 248.0H520" fill="none" stroke="#ffffff" stroke-width="1.5" marker-end="url(#library-architecture-fold)"/>
+<path d="M680 248.0H760" fill="none" stroke="#ffffff" stroke-width="1.5" marker-end="url(#library-architecture-fold)"/>
+<path d="M600.0 152V216" fill="none" stroke="#8b9097" stroke-width="1.2" marker-end="url(#library-architecture-arrow)"/>
+<path d="M600.0 344V280" fill="none" stroke="#8b9097" stroke-width="1.2" marker-end="url(#library-architecture-arrow)"/>
+<path d="M840.0 152V216" fill="none" stroke="#8b9097" stroke-width="1.2" marker-end="url(#library-architecture-arrow)"/>
+<path d="M840.0 280V344" fill="none" stroke="#8b9097" stroke-width="1.2" marker-end="url(#library-architecture-arrow)"/>
+<rect x="211.2" y="103.0" width="57.6" height="12" fill="url(#library-architecture-tile)"/>
+<text x="240.0" y="112.0" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">ATTRIBUTES</text>
+<rect x="223.6" y="231.0" width="32.8" height="12" fill="url(#library-architecture-tile)"/>
+<text x="240.0" y="240.0" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">PROPS</text>
+<rect x="208.7" y="359.0" width="62.6" height="12" fill="url(#library-architecture-tile)"/>
+<text x="240.0" y="368.0" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">PANEL STATE</text>
+<rect x="458.6" y="231.0" width="42.7" height="12" fill="url(#library-architecture-tile)"/>
+<text x="480.0" y="240.0" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">PARTIAL</text>
+<rect x="696.2" y="231.0" width="47.7" height="12" fill="url(#library-architecture-tile)"/>
+<text x="720.0" y="240.0" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">RESOLVED</text>
+<rect x="608.0" y="179.0" width="42.7" height="12" fill="url(#library-architecture-tile)"/>
+<text x="629.4" y="188.0" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">PRESETS</text>
+<rect x="608.0" y="307.0" width="37.8" height="12" fill="url(#library-architecture-tile)"/>
+<text x="626.9" y="316.0" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">RANGES</text>
+<rect x="848.0" y="179.0" width="62.6" height="12" fill="url(#library-architecture-tile)"/>
+<text x="879.3" y="188.0" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">INK · PAPER</text>
+<rect x="848.0" y="307.0" width="47.7" height="12" fill="url(#library-architecture-tile)"/>
+<text x="871.8" y="316.0" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">UNIFORMS</text>
+<rect x="40" y="88" width="160" height="64" rx="2" fill="url(#library-architecture-tile)"/>
+<rect x="40.5" y="88.5" width="159" height="63" rx="2" fill="#222529" stroke="#ffffff" stroke-opacity="0.16" stroke-width="1"/>
+<rect x="48.5" y="96.5" width="28" height="12" fill="none" stroke="#6b7078" stroke-opacity="0.6" stroke-width="0.8"/>
+<text x="62.4" y="105.5" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">HTML</text>
+<text x="120.0" y="126" fill="#e4e6e9" font-size="12" font-weight="600" font-family="'Inter Tight', system-ui, sans-serif" text-anchor="middle">Web component</text>
+<text x="120.0" y="141" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">&lt;topography-bg&gt;</text>
+<rect x="40" y="216" width="160" height="64" rx="2" fill="url(#library-architecture-tile)"/>
+<rect x="40.5" y="216.5" width="159" height="63" rx="2" fill="#222529" stroke="#ffffff" stroke-opacity="0.16" stroke-width="1"/>
+<rect x="48.5" y="224.5" width="33" height="12" fill="none" stroke="#6b7078" stroke-opacity="0.6" stroke-width="0.8"/>
+<text x="64.9" y="233.5" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">REACT</text>
+<text x="120.0" y="254" fill="#e4e6e9" font-size="12" font-weight="600" font-family="'Inter Tight', system-ui, sans-serif" text-anchor="middle">React component</text>
+<text x="120.0" y="269" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">&lt;Topography&gt;</text>
+<rect x="40" y="344" width="160" height="64" rx="2" fill="url(#library-architecture-tile)"/>
+<rect x="40.5" y="344.5" width="159" height="63" rx="2" fill="#222529" stroke="#ffffff" stroke-opacity="0.16" stroke-width="1"/>
+<rect x="48.5" y="352.5" width="23" height="12" fill="none" stroke="#6b7078" stroke-opacity="0.6" stroke-width="0.8"/>
+<text x="59.9" y="361.5" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">APP</text>
+<text x="120.0" y="382" fill="#e4e6e9" font-size="12" font-weight="600" font-family="'Inter Tight', system-ui, sans-serif" text-anchor="middle">Generator</text>
+<text x="120.0" y="397" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">apps/generator</text>
+<rect x="280" y="216" width="160" height="64" rx="2" fill="url(#library-architecture-tile)"/>
+<rect x="280.5" y="216.5" width="159" height="63" rx="2" fill="#222529" stroke="#ffffff" stroke-opacity="0.16" stroke-width="1"/>
+<rect x="288.5" y="224.5" width="23" height="12" fill="none" stroke="#6b7078" stroke-opacity="0.6" stroke-width="0.8"/>
+<text x="299.9" y="233.5" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">API</text>
+<text x="360.0" y="254" fill="#e4e6e9" font-size="12" font-weight="600" font-family="'Inter Tight', system-ui, sans-serif" text-anchor="middle">Public API</text>
+<text x="360.0" y="269" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">createTopography()</text>
+<rect x="520" y="88" width="160" height="64" rx="2" fill="url(#library-architecture-tile)"/>
+<rect x="520.5" y="88.5" width="159" height="63" rx="2" fill="#e4e6e9" fill-opacity="0.05" stroke="#8b9097" stroke-width="1"/>
+<rect x="528.5" y="96.5" width="28" height="12" fill="none" stroke="#6b7078" stroke-opacity="0.6" stroke-width="0.8"/>
+<text x="542.4" y="105.5" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">DATA</text>
+<text x="600.0" y="126" fill="#e4e6e9" font-size="12" font-weight="600" font-family="'Inter Tight', system-ui, sans-serif" text-anchor="middle">Styles + presets</text>
+<text x="600.0" y="141" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">styles.ts · presets.ts</text>
+<path d="M520 218Q520 216 522 216H666L680 230V278Q680 280 678 280H522Q520 280 520 278Z" fill="#ffffff"/>
+<path d="M666 216L680 230H666Z" fill="#b9bec4"/>
+<rect x="528.5" y="224.5" width="28" height="12" fill="none" stroke="#4f545b" stroke-opacity="0.6" stroke-width="0.8"/>
+<text x="542.4" y="233.5" fill="#4f545b" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">CORE</text>
+<text x="600.0" y="254" fill="#131417" font-size="12" font-weight="600" font-family="'Inter Tight', system-ui, sans-serif" text-anchor="middle">Settings</text>
+<text x="600.0" y="269" fill="#131417" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">settings.ts · clamp</text>
+<rect x="520" y="344" width="160" height="64" rx="2" fill="url(#library-architecture-tile)"/>
+<rect x="520.5" y="344.5" width="159" height="63" rx="2" fill="#e4e6e9" fill-opacity="0.05" stroke="#8b9097" stroke-width="1"/>
+<rect x="528.5" y="352.5" width="28" height="12" fill="none" stroke="#6b7078" stroke-opacity="0.6" stroke-width="0.8"/>
+<text x="542.4" y="361.5" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">DATA</text>
+<text x="600.0" y="382" fill="#e4e6e9" font-size="12" font-weight="600" font-family="'Inter Tight', system-ui, sans-serif" text-anchor="middle">Params table</text>
+<text x="600.0" y="397" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">params.ts</text>
+<rect x="760" y="88" width="160" height="64" rx="2" fill="url(#library-architecture-tile)"/>
+<rect x="760.5" y="88.5" width="159" height="63" rx="2" fill="#e4e6e9" fill-opacity="0.03" stroke="#e4e6e9" stroke-opacity="0.30" stroke-width="1" stroke-dasharray="4,3"/>
+<rect x="768.5" y="96.5" width="23" height="12" fill="none" stroke="#6b7078" stroke-opacity="0.6" stroke-width="0.8"/>
+<text x="779.9" y="105.5" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">CSS</text>
+<text x="840.0" y="126" fill="#e4e6e9" font-size="12" font-weight="600" font-family="'Inter Tight', system-ui, sans-serif" text-anchor="middle">Theme</text>
+<text x="840.0" y="141" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">theme.ts · CSS vars</text>
+<path d="M760 218Q760 216 762 216H906L920 230V278Q920 280 918 280H762Q760 280 760 278Z" fill="#ffffff"/>
+<path d="M906 216L920 230H906Z" fill="#b9bec4"/>
+<rect x="768.5" y="224.5" width="23" height="12" fill="none" stroke="#4f545b" stroke-opacity="0.6" stroke-width="0.8"/>
+<text x="779.9" y="233.5" fill="#4f545b" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">GPU</text>
+<text x="840.0" y="254" fill="#131417" font-size="12" font-weight="600" font-family="'Inter Tight', system-ui, sans-serif" text-anchor="middle">Renderer</text>
+<text x="840.0" y="269" fill="#131417" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">renderer.ts · WebGL</text>
+<rect x="760" y="344" width="160" height="64" rx="2" fill="url(#library-architecture-tile)"/>
+<rect x="760.5" y="344.5" width="159" height="63" rx="2" fill="#222529" stroke="#ffffff" stroke-opacity="0.16" stroke-width="1"/>
+<rect x="768.5" y="352.5" width="28" height="12" fill="none" stroke="#6b7078" stroke-opacity="0.6" stroke-width="0.8"/>
+<text x="782.4" y="361.5" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">GLSL</text>
+<text x="840.0" y="382" fill="#e4e6e9" font-size="12" font-weight="600" font-family="'Inter Tight', system-ui, sans-serif" text-anchor="middle">Shader</text>
+<text x="840.0" y="397" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">topography.glsl.ts</text>
+<text font-size="12" font-family="'Inter Tight', system-ui, sans-serif" fill="#8b9097"><tspan x="520" y="440">One table defines every setting. Types, element attributes,</tspan><tspan x="520" y="458">React props, generator sliders and docs all derive from it.</tspan></text>
+<line x1="40" y1="488" x2="920" y2="488" stroke="#e4e6e9" stroke-opacity="0.10" stroke-width="0.8"/>
+<text x="40" y="512" fill="#8b9097" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" letter-spacing="0.14em">LEGEND</text>
+<path d="M120 504H136L142 510V516H120Z" fill="#ffffff"/><path d="M136 504L142 510H136Z" fill="#b9bec4"/>
+<text x="152" y="513" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace">core step</text>
+<rect x="256.5" y="504.5" width="21" height="11" rx="2" fill="#222529" stroke="#ffffff" stroke-opacity="0.16"/>
+<text x="288" y="513" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace">component</text>
+<rect x="392.5" y="504.5" width="21" height="11" rx="2" fill="#e4e6e9" fill-opacity="0.05" stroke="#8b9097"/>
+<text x="424" y="513" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace">data</text>
+<rect x="528.5" y="504.5" width="21" height="11" rx="2" fill="none" stroke="#e4e6e9" stroke-opacity="0.30" stroke-dasharray="4,3"/>
+<text x="560" y="513" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace">reads the page</text>
+<path d="M664 510H686" stroke="#ffffff" stroke-width="1.5" marker-end="url(#library-architecture-fold)"/>
+<text x="696" y="513" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace">main path</text>
+<path d="M800 510H822" stroke="#8b9097" stroke-width="1.2" marker-end="url(#library-architecture-arrow)"/>
+<text x="832" y="513" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace">feeds</text>
+</svg>
