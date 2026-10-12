@@ -19,7 +19,7 @@ interface Props {
 }
 
 export function Panel({ settings, mode, onChange, instance }: Props) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(() => !matchMedia('(max-width: 900px)').matches);
   const [copied, setCopied] = useState('');
   const [size, setSize] = useState(0);
   const [busy, setBusy] = useState(false);
