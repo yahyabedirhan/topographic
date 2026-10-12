@@ -24,21 +24,21 @@ It pauses when it's off-screen or the tab is hidden, shows a still frame for peo
 ## Quick start
 
 ```sh
-npm install @yahyabedirhan/topography
+npm install @yahyapak/topography
 ```
 
 **Web component:**
 
 ```html
-<script type="module">import '@yahyabedirhan/topography/element';</script>
+<script type="module">import '@yahyapak/topography/element';</script>
 
 <topography-bg style-name="dunes" line-count="30"></topography-bg>
 ```
 
-**React** (`npm install @yahyabedirhan/topography-react`):
+**React** (`npm install @yahyapak/topography-react`):
 
 ```tsx
-import { Topography } from '@yahyabedirhan/topography-react';
+import { Topography } from '@yahyapak/topography-react';
 
 <Topography styleName="granite" terrain={{ roughness: 0.3 }} style={{ height: '100vh' }} />
 ```
@@ -46,7 +46,7 @@ import { Topography } from '@yahyabedirhan/topography-react';
 **Vanilla JavaScript:**
 
 ```js
-import { createTopography } from '@yahyabedirhan/topography';
+import { createTopography } from '@yahyapak/topography';
 
 const topography = createTopography(document.querySelector('#hero'), { style: 'gentle-summit' });
 topography.update({ terrain: { peaks: 3 } });
