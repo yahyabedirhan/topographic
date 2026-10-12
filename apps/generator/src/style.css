@@ -11,6 +11,7 @@ button,select,input{font:inherit;color:inherit}
 @media (prefers-reduced-motion:reduce){*{transition-duration:0s!important;scroll-behavior:auto!important}}
 
 .stage{position:fixed!important;inset:0;z-index:0}
+@media (min-width:901px){[data-panel=open] .stage{right:352px}}
 .wrap{position:relative;z-index:1;max-width:560px;margin:0 0 0 max(24px,calc(50vw - 520px));padding:128px 24px 120px}
 .head h1{font:600 34px/1.1 Literata,Georgia,serif;letter-spacing:-.02em}
 .head p{color:var(--mut);margin-top:8px;max-width:46ch}

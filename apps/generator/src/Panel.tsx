@@ -1,4 +1,4 @@
-import { useState, type MutableRefObject } from 'react';
+import { useEffect, useState, type MutableRefObject } from 'react';
 import { GROUPS, paramsIn, STYLES, THEME_DEFAULTS, rgbaToCss, type Settings, type SettingsInput, type Topography } from 'topography';
 import { embedCode } from './embed';
 import { downloadPng, PNG_SIZES } from './png';
@@ -20,6 +20,8 @@ interface Props {
 
 export function Panel({ settings, mode, onChange, instance }: Props) {
   const [open, setOpen] = useState(() => !matchMedia('(max-width: 900px)').matches);
+  // on wide screens the open panel takes its own column, so the summit isn't hidden behind it
+  useEffect(() => { document.documentElement.dataset.panel = open ? 'open' : 'closed'; }, [open]);
   const [copied, setCopied] = useState('');
   const [size, setSize] = useState(0);
   const [busy, setBusy] = useState(false);
