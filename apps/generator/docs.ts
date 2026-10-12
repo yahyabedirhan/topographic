@@ -5,6 +5,7 @@ import { PARAMS, PRESETS, STYLES, defaultSettings } from '@yahyapak/topography';
 import { INSTALL, TAGLINE } from './src/content';
 import { TOOL_DEFS } from './src/agent-tools';
 
+export const SITE_URL = 'https://yahyabedirhan.github.io/topography/';
 export const WEBMCP_SPEC = 'https://github.com/webmachinelearning/webmcp/blob/d0e4e0e0f039358cc9d93f90074116622bfebd53/index.bs';
 
 function toolsList(): string {
@@ -153,6 +154,8 @@ function llmsTxt(): string {
 
 > ${TAGLINE}
 
+Live generator: ${SITE_URL}
+
 The generator page holds its state in the URL as \`?config=<url-encoded JSON settings>\`, for example \`?config=${encodeURIComponent('{"style":"dunes","lines":{"count":24}}')}\`. The JSON shape is the \`settings\` object from the API docs.
 
 ## Packages
@@ -191,7 +194,9 @@ export function docsPlugin(): Plugin {
     name: 'topography-docs',
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
-        const path = (req.url ?? '').split('?')[0].replace(/^\//, '');
+        const base = server.config.base.startsWith('/') ? server.config.base : '/';
+        const url = (req.url ?? '').split('?')[0];
+        const path = (url.startsWith(base) ? url.slice(base.length) : url).replace(/^\//, '');
         const body = buildDocs()[path];
         if (body === undefined) return next();
         res.setHeader('content-type', `${path.endsWith('.md') ? 'text/markdown' : 'text/plain'}; charset=utf-8`);

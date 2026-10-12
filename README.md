@@ -7,6 +7,8 @@
   <a href="https://www.npmjs.com/package/@yahyapak/topography-react"><img src="https://img.shields.io/npm/v/@yahyapak/topography-react?label=%40yahyapak%2Ftopography-react" alt="npm version of @yahyapak/topography-react"></a>
 </p>
 
+<p align="center"><strong><a href="https://yahyabedirhan.github.io/topography/">Try it in the generator →</a></strong></p>
+
 ![The topography generator in dark mode: contour lines drift behind the page, and the settings panel sits on the right](assets/screenshots/generator-dark.png)
 
 ## What is topography
@@ -59,13 +61,26 @@ topography.update({ terrain: { peaks: 3 } });
 
 ## Styles and presets
 
-![The seven styles: drifting lobes, granite, five petals, seed pod, gentle summit, long ridge and dunes](assets/screenshots/styles.png)
+![Sixteen dark-mode tiles: the seven styles, the three presets Survey map, Terraces and Rocky, and six seed variants](assets/screenshots/styles.png)
 
 There are seven styles: **drifting lobes, granite, five petals, seed pod, gentle summit, long ridge** and **dunes**. Presets are ready-made starting points on top of them, like **Survey map**, **Terraces** and **Rocky**.
 
+The image shows all of them in dark mode, frozen at 4 seconds. The first ten tiles are the styles and presets by name. The last six are a style with a different seed and a setting or two changed:
+
+| Tile | Settings |
+| --- | --- |
+| Twin peaks | `drifting-lobes`, seed 7, peaks 2, spread 1 |
+| Fine lines | `drifting-lobes`, seed 21, line count 48 |
+| Scree | `granite`, seed 3, roughness 0.6 |
+| Bloom | `five-petals`, seed 12, line count 42, variant 0.9 |
+| Wide dunes | `dunes`, seed 5, line count 16, line width 0.4 |
+| Plateau | `seed-pod`, seed 9, terracing 0.6 |
+
+So the shapes read at this size, every tile also centres the summit (`layout.anchor` 1), turns off the centre fade (`layout.fade` 0) and uses brighter, slightly thicker lines: line opacity 0.85, line width 0.4 and ink `#9fb0cc`. `node scripts/styles-grid.mjs` renders the image again.
+
 ## The generator
 
-The generator is the project's own page. The page background is the live preview: pick a preset, move the sliders, and copy the result as HTML, React, vanilla JS or a config JSON, or download it as a PNG up to 4K. The settings live in the URL, so a link brings the same background back.
+The generator is the project's own page, live at [yahyabedirhan.github.io/topography](https://yahyabedirhan.github.io/topography/). The page background is the live preview: pick a preset, move the sliders, and copy the result as HTML, React, vanilla JS or a config JSON, or download it as a PNG up to 4K. The settings live in the URL, so a link brings the same background back.
 
 ```sh
 npm install

@@ -1,6 +1,6 @@
 # topography guide
 
-Everything you need to use topography, one topic per section. For how the pieces fit together, see [design.md](low-level-design.md).
+Everything you need to use topography, one topic per section. To try settings live, open the [generator](https://yahyabedirhan.github.io/topography/). For how the pieces fit together, see [design.md](low-level-design.md).
 
 - [Install](#install)
 - [Three ways to use it](#three-ways-to-use-it)
