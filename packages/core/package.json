@@ -1,6 +1,6 @@
 {
   "name": "@yahyapak/topography",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Animated, parametric topographic contour-line backgrounds for the web (WebGL).",
   "license": "MIT",
   "type": "module",
