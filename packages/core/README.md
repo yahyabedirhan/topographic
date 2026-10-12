@@ -1,5 +1,7 @@
 # @yahyapak/topography
 
+[![npm](https://img.shields.io/npm/v/@yahyapak/topography)](https://www.npmjs.com/package/@yahyapak/topography)
+
 Animated topographic contour-line backgrounds for the web: one small WebGL shader, seven terrain styles, readable settings. It has no dependencies.
 
 ```sh

@@ -2,6 +2,11 @@
 
 <h1 align="center">topography</h1>
 
+<p align="center">
+  <a href="https://www.npmjs.com/package/@yahyapak/topography"><img src="https://img.shields.io/npm/v/@yahyapak/topography?label=%40yahyapak%2Ftopography" alt="npm version of @yahyapak/topography"></a>
+  <a href="https://www.npmjs.com/package/@yahyapak/topography-react"><img src="https://img.shields.io/npm/v/@yahyapak/topography-react?label=%40yahyapak%2Ftopography-react" alt="npm version of @yahyapak/topography-react"></a>
+</p>
+
 ![The topography generator in dark mode: contour lines drift behind the page, and the settings panel sits on the right](assets/screenshots/generator-dark.png)
 
 ## What is topography
@@ -10,7 +15,7 @@ topography draws animated contour lines, like a topographic map, as a background
 
 A plain background is quiet but flat, and a video or image is heavy and never quite fits. topography is one small WebGL shader that draws soft, slowly moving terrain behind your content. You pick a terrain style, tune it with a few readable settings, and it fits any size of screen.
 
-> Status: early, not published to npm yet.
+On npm: [`@yahyapak/topography`](https://www.npmjs.com/package/@yahyapak/topography) (core and the web component) and [`@yahyapak/topography-react`](https://www.npmjs.com/package/@yahyapak/topography-react) (React).
 
 ## How it works
 
