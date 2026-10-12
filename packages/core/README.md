@@ -4,7 +4,7 @@
 
 Try it live in the [playground](https://yahyabedirhan.github.io/topography/).
 
-An animated background for your website that looks like a topographic map. One small WebGL shader, seven terrain styles and readable settings, with no dependencies.
+A JavaScript package for creating animated topographic backgrounds. One small WebGL shader, seven terrain styles and readable settings, with no dependencies.
 
 ```sh
 npm install topography.js

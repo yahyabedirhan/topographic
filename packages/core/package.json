@@ -1,7 +1,7 @@
 {
   "name": "topography.js",
   "version": "0.1.0",
-  "description": "An animated background for your website that looks like a topographic map.",
+  "description": "A JavaScript package for creating animated topographic backgrounds.",
   "license": "MIT",
   "repository": {
     "type": "git",

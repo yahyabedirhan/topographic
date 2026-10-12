@@ -4,7 +4,7 @@
 
 Try it live in the [playground](https://yahyabedirhan.github.io/topography/).
 
-React bindings for [`topography.js`](https://www.npmjs.com/package/topography.js): animated backgrounds that look like a topographic map. It works with React 18 and 19 and is safe for server rendering.
+React bindings for [`topography.js`](https://www.npmjs.com/package/topography.js), the JavaScript package for creating animated topographic backgrounds. It works with React 18 and 19 and is safe for server rendering.
 
 ```sh
 npm install topography.js topography-react
