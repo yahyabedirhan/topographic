@@ -99,6 +99,21 @@ try {
   });
   check(still.frames === 0 && still.status === 'webgl2', `reduced motion renders a still frame (${still.frames} rAF calls)`);
 
+  // <topography-bg>: attributes, css variable ink, live attribute changes, removal cleans up
+  const ep = await browser.newPage({ viewport: { width: 900, height: 560 } });
+  await ep.goto(url.replace('smoke.html', 'element.html'));
+  await ep.waitForFunction(() => window.ready);
+  const el = await ep.evaluate(() => {
+    const e = document.querySelector('topography-bg'); const t = e.topography;
+    const a = [t.status, t.settings.style, t.settings.lines.count, t.settings.seed, t.settings.layout.fade].join();
+    e.setAttribute('line-count', '12'); e.setAttribute('style-name', 'granite');
+    const b = [t.settings.style, t.settings.lines.count, t.settings.layout.fade].join();
+    e.removeAttribute('line-count'); const c = t.settings.lines.count;
+    e.remove(); return { a, b, c, d: t.status };
+  });
+  check(el.a === 'webgl2,dunes,24,3,0.5' && el.b === 'granite,12,0.7' && el.c === 30 && el.d === 'destroyed',
+    `<topography-bg> attributes: ${el.a} | ${el.b} | reset ${el.c} | removed ${el.d}`);
+
   // no WebGL at all -> paper colour
   const nogl = await page();
   const fb = await nogl.evaluate(() => {
