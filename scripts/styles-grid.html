@@ -6,7 +6,9 @@
   #grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 12px; width: 1896px; }
   figure { margin: 0; position: relative; border-radius: 6px; overflow: hidden; }
   figure img { display: block; width: 100%; }
-  figcaption { position: absolute; left: 14px; bottom: 12px; font: 500 15px/1 Inter, system-ui, sans-serif;
+  figure::after { content: ''; position: absolute; inset: auto 0 0 0; height: 64px;
+    background: linear-gradient(transparent, rgba(11, 11, 13, 0.85)); }
+  figcaption { z-index: 1; position: absolute; left: 14px; bottom: 12px; font: 500 15px/1 Inter, system-ui, sans-serif;
     color: rgba(236, 238, 242, 0.82); letter-spacing: 0.01em; text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7); }
   figcaption span { color: rgba(236, 238, 242, 0.45); font-weight: 400; margin-left: 8px; }
 </style>
@@ -17,7 +19,7 @@
   window.renderGrid = async (tiles, size) => {
     const host = document.getElementById('host');
     for (const tile of tiles) {
-      const t = lib.createTopography(host, { ...tile.settings, theme: { mode: 'dark' } });
+      const t = lib.createTopography(host, tile.settings);
       const blob = await t.snapshot({ frame: 4000, width: size.w, height: size.h });
       t.destroy();
       const fig = document.createElement('figure');
