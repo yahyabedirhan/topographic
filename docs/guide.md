@@ -1,6 +1,6 @@
 # topography guide
 
-Everything you need to use topography, one topic per section. For how the pieces fit together, see [design.md](design.md).
+Everything you need to use topography, one topic per section. For how the pieces fit together, see [design.md](low-level-design.md).
 
 - [Install](#install)
 - [Three ways to use it](#three-ways-to-use-it)
@@ -20,20 +20,20 @@ Everything you need to use topography, one topic per section. For how the pieces
 ## Install
 
 ```sh
-npm install topography            # core and the web component
-npm install topography-react      # React bindings (needs React 18 or 19)
+npm install @yahyabedirhan/topography            # core and the web component
+npm install @yahyabedirhan/topography-react      # React bindings (needs React 18 or 19)
 ```
 
-The packages are ESM only, have no dependencies, and are marked side-effect free except `topography/element`, which registers the element when imported.
+The packages are ESM only, have no dependencies, and are marked side-effect free except `@yahyabedirhan/topography/element`, which registers the element when imported.
 
-> Not on npm yet: these names are placeholders until the package name is settled.
+> Not published to npm yet.
 
 ## Three ways to use it
 
 ### Vanilla JavaScript: `createTopography`
 
 ```js
-import { createTopography } from 'topography';
+import { createTopography } from '@yahyabedirhan/topography';
 
 const topography = createTopography(element, settings?, options?);
 ```
@@ -60,7 +60,7 @@ The call puts a canvas inside `element`, which fills it, so give the element a s
 ### Web component: `<topography-bg>`
 
 ```html
-<script type="module">import 'topography/element';</script>
+<script type="module">import '@yahyabedirhan/topography/element';</script>
 
 <topography-bg style-name="long-ridge" line-count="36" peaks="2" theme="dark"></topography-bg>
 ```
@@ -73,7 +73,7 @@ The call puts a canvas inside `element`, which fills it, so give the element a s
 ### React: `<Topography>` and `useTopography`
 
 ```tsx
-import { Topography, useTopography } from 'topography-react';
+import { Topography, useTopography } from '@yahyabedirhan/topography-react';
 
 <Topography
   styleName="dunes"
@@ -182,7 +182,7 @@ Presets are named starting points: a style plus a few settings. They're exported
 - **Rocky**: `{"style":"long-ridge","terrain":{"roughness":0.55,"sharpness":0.7},"lines":{"count":36}}`
 
 ```js
-import { PRESETS, createTopography } from 'topography';
+import { PRESETS, createTopography } from '@yahyabedirhan/topography';
 createTopography(el, PRESETS.find((p) => p.name === 'Survey map').settings);
 ```
 
@@ -243,8 +243,8 @@ The generator's **Download PNG** uses this, with sizes up to 4K and a phone size
 
 Nothing touches the DOM or WebGL until the browser runs it.
 
-- **React:** `topography-react` starts with `'use client'`. On the server, `<Topography>` renders an empty `div`; the canvas appears after hydration. In the Next.js App Router you can use it straight from a server component's tree.
-- **Web component:** importing `topography/element` on the server is harmless. It only registers the element when `customElements` exists.
+- **React:** `@yahyabedirhan/topography-react` starts with `'use client'`. On the server, `<Topography>` renders an empty `div`; the canvas appears after hydration. In the Next.js App Router you can use it straight from a server component's tree.
+- **Web component:** importing `@yahyabedirhan/topography/element` on the server is harmless. It only registers the element when `customElements` exists.
 - **Vanilla:** call `createTopography` in the browser, for example in an effect or after `DOMContentLoaded`.
 
 ## The generator

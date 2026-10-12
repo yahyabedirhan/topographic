@@ -8,7 +8,7 @@ topography draws animated contour lines, like a topographic map, as a background
 
 A plain background is quiet but flat, and a video or image is heavy and never quite fits. topography is one small WebGL shader that draws soft, slowly moving terrain behind your content. You pick a terrain style, tune it with a few readable settings, and it fits any size of screen.
 
-> Status: early. Not on npm yet; the package names below are placeholders until the name is settled.
+> Status: early, not published to npm yet.
 
 ## How it works
 
@@ -22,21 +22,21 @@ It pauses when it's off-screen or the tab is hidden, shows a still frame for peo
 ## Quick start
 
 ```sh
-npm install topography
+npm install @yahyabedirhan/topography
 ```
 
 **Web component:**
 
 ```html
-<script type="module">import 'topography/element';</script>
+<script type="module">import '@yahyabedirhan/topography/element';</script>
 
 <topography-bg style-name="dunes" line-count="30"></topography-bg>
 ```
 
-**React** (`npm install topography-react`):
+**React** (`npm install @yahyabedirhan/topography-react`):
 
 ```tsx
-import { Topography } from 'topography-react';
+import { Topography } from '@yahyabedirhan/topography-react';
 
 <Topography styleName="granite" terrain={{ roughness: 0.3 }} style={{ height: '100vh' }} />
 ```
@@ -44,7 +44,7 @@ import { Topography } from 'topography-react';
 **Vanilla JavaScript:**
 
 ```js
-import { createTopography } from 'topography';
+import { createTopography } from '@yahyabedirhan/topography';
 
 const topography = createTopography(document.querySelector('#hero'), { style: 'gentle-summit' });
 topography.update({ terrain: { peaks: 3 } });
@@ -73,7 +73,7 @@ In browsers with [WebMCP](https://github.com/webmachinelearning/webmcp), the pag
 
 ## Learn more
 
-The [guide](docs/guide.md) covers the rest: every API, every setting with its range, theming and CSS variables, the seed, PNG export, performance and accessibility, fallbacks, server rendering and Next.js, the WebMCP tools, and troubleshooting. The [design](docs/design.md) explains how the pieces fit and why.
+The [guide](docs/guide.md) covers the rest: every API, every setting with its range, theming and CSS variables, the seed, PNG export, performance and accessibility, fallbacks, server rendering and Next.js, the WebMCP tools, and troubleshooting. The [design](docs/low-level-design.md) explains how the pieces fit and why.
 
 ## Build from source
 

@@ -1,5 +1,5 @@
 import { useEffect, useState, type MutableRefObject } from 'react';
-import { GROUPS, paramsIn, STYLES, THEME_DEFAULTS, rgbaToCss, type Settings, type SettingsInput, type Topography } from 'topography';
+import { GROUPS, paramsIn, STYLES, THEME_DEFAULTS, rgbaToCss, type Settings, type SettingsInput, type Topography } from '@yahyabedirhan/topography';
 import { embedCode } from './embed';
 import { downloadPng, PNG_SIZES } from './png';
 import { shareUrl } from './url';

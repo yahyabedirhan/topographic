@@ -1,7 +1,7 @@
 // Builds the agent-facing docs from the source of truth: params table, styles, presets and the
 // shared install text. Served in dev and emitted into the build as /llms.txt, /llms-full.txt and /docs/*.md.
 import type { Plugin } from 'vite';
-import { PARAMS, PRESETS, STYLES, defaultSettings } from 'topography';
+import { PARAMS, PRESETS, STYLES, defaultSettings } from '@yahyabedirhan/topography';
 import { INSTALL, TAGLINE } from './src/content';
 import { TOOL_DEFS } from './src/agent-tools';
 
@@ -127,7 +127,7 @@ Behaviour:
 
 ## <topography-bg>
 
-\`import 'topography/element'\` registers the element. Attributes: \`style-name\`, \`seed\`, \`theme\`, \`ink\`, \`paper\`, plus one per setting (see [params.md](params.md)). Attribute changes apply live, and a removed attribute returns to its default. \`element.topography\` is the instance, and \`element.snapshot(opts)\` is a shortcut.
+\`import '@yahyabedirhan/topography/element'\` registers the element. Attributes: \`style-name\`, \`seed\`, \`theme\`, \`ink\`, \`paper\`, plus one per setting (see [params.md](params.md)). Attribute changes apply live, and a removed attribute returns to its default. \`element.topography\` is the instance, and \`element.snapshot(opts)\` is a shortcut.
 
 ## React: <Topography> and useTopography
 

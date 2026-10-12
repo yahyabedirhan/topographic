@@ -3,7 +3,7 @@
 Topography draws animated contour-line backgrounds (like a topographic map) with one WebGL shader. You pick a **style** (the terrain shape) and tune readable **settings**. The same core powers a vanilla JS API, a `<topography-bg>` web component, a React `<Topography>` component, and a generator site that exports what you build.
 
 ```js
-import { createTopography } from 'topography';
+import { createTopography } from '@yahyabedirhan/topography';
 const topography = createTopography(el, { style: 'dunes', lines: { count: 30 } });
 ```
 
@@ -109,7 +109,7 @@ Ranges are 0–1 except counts. In the element and React the style is `style-nam
 - **Pixel budget** (minimum pixel ratio plus maximum pixel count) instead of a simple DPR cap.
 - **Fallback, not exceptions,** when WebGL is missing or lost.
 - **`snapshot` renders off-screen**, so exports never disturb the live view.
-- **Always spell out "topography"** in names (element, files, API).
+- **Always spell out "@yahyabedirhan/topography"** in names (element, files, API).
 - **License: MIT.**
 
 Architecture inspired by Paper Shaders (github.com/paper-design/shaders at 43cd68db79fa0b1759f72ffc941b3238e2a3954c, Apache-2.0): a vanilla mount class with thin wrappers, presets typed against params, and definitions that drive the controls. No code has been copied. If any is, include their NOTICE and attribution.

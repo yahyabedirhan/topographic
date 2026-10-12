@@ -1,5 +1,5 @@
 {
-  "name": "topography-react",
+  "name": "@yahyabedirhan/topography-react",
   "version": "0.0.0",
   "description": "React component and hook for topography backgrounds.",
   "license": "MIT",
@@ -18,7 +18,7 @@
     "dist"
   ],
   "dependencies": {
-    "topography": "0.0.0"
+    "@yahyabedirhan/topography": "0.0.0"
   },
   "peerDependencies": {
     "react": "^18 || ^19"
@@ -28,5 +28,8 @@
     "@types/react-dom": "^18.3.7",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

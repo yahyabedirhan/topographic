@@ -1,7 +1,7 @@
 // Install and usage text shared by the page, the markdown docs, llms.txt and the WebMCP tools.
 
-export const PACKAGE = 'topography';
-export const REACT_PACKAGE = 'topography-react';
+export const PACKAGE = '@yahyabedirhan/topography';
+export const REACT_PACKAGE = '@yahyabedirhan/topography-react';
 
 export const INSTALL = {
   npm: `npm install ${PACKAGE}`,
