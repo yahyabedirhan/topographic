@@ -6,7 +6,7 @@ import { readFile } from 'node:fs/promises';
 import { extname, join } from 'node:path';
 
 const dist = new URL('../apps/generator/dist/', import.meta.url).pathname;
-const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css' };
+const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.txt': 'text/plain', '.md': 'text/markdown' };
 const server = createServer(async (req, res) => {
   const path = req.url.split('?')[0].replace(/\/$/, '/index.html');
   try { const body = await readFile(join(dist, path)); res.writeHead(200, { 'content-type': types[extname(path)] ?? 'application/octet-stream' }).end(body); }
@@ -68,6 +68,11 @@ try {
   await p.evaluate(() => window.scrollTo(0, 0)); await p.waitForTimeout(200);
   if (process.env.SHOTS) await p.screenshot({ path: join(process.env.SHOTS, 'generator-dark.png') });
   if (process.env.SHOTS) { const m = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 }); await m.goto(base + '?s=dunes'); await m.waitForSelector('.stage canvas'); await m.waitForTimeout(300); await m.screenshot({ path: join(process.env.SHOTS, 'generator-phone.png') }); await m.close(); }
+  for (const doc of ['llms.txt', 'llms-full.txt', 'docs/install.md', 'docs/api.md', 'docs/params.md']) {
+    const r = await fetch(base + doc); const t = await r.text();
+    check(r.ok && t.length > 200 && !/\btopo\b/i.test(t), `${doc} served (${t.length} chars)`);
+  }
+  check((await (await fetch(base + 'docs/params.md')).text()).includes('`line-count`'), 'params.md generated from the params table');
   check(errors.length === 0, `no page errors${errors.length ? ': ' + errors.join(' | ') : ''}`);
 } finally { await browser.close(); server.close(); }
 if (failed) { console.log(`${failed} check(s) failed`); process.exit(1); }
