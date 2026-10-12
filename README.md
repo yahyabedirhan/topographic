@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/images/logo/topography.png" width="128" alt="topography's logo: three contour rings on paper folded along one diagonal crease, on a graphite tile"></p>
+
 <h1 align="center">topography</h1>
 
 ![The topography generator in dark mode: contour lines drift behind the page, and the settings panel sits on the right](assets/screenshots/generator-dark.png)
