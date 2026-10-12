@@ -166,6 +166,23 @@ An unknown style falls back to `drifting-lobes` and prints one console warning.
 
 `terrain.variant` is a per-style shape knob. Today it does the most on drifting lobes, where it moves from three lobes to four.
 
+### The styles image
+
+![Sixteen dark-mode tiles: the seven styles, the three presets Survey map, Terraces and Rocky, and six seed variants](../assets/screenshots/styles.png)
+
+The image shows every style and preset in dark mode, frozen at 4 seconds. The first ten tiles are the styles and presets by name. The last six are a style with a different seed and a setting or two changed:
+
+| Tile | Settings |
+| --- | --- |
+| Twin peaks | `drifting-lobes`, seed 7, peaks 2, spread 1 |
+| Fine lines | `drifting-lobes`, seed 21, line count 48 |
+| Scree | `granite`, seed 3, roughness 0.6 |
+| Bloom | `five-petals`, seed 12, line count 42, variant 0.9 |
+| Wide dunes | `dunes`, seed 5, line count 16, line width 0.4 |
+| Plateau | `seed-pod`, seed 9, terracing 0.6 |
+
+So the shapes read at this size, every tile also centres the summit (`layout.anchor` 1), turns off the centre fade (`layout.fade` 0) and uses brighter, slightly thicker lines: line opacity 0.85, line width 0.4 and ink `#9fb0cc`. `node scripts/styles-grid.mjs` renders the image again.
+
 ## Presets
 
 Presets are named starting points: a style plus a few settings. They're exported as `PRESETS`.

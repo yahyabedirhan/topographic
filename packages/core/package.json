@@ -1,7 +1,7 @@
 {
   "name": "topography.js",
   "version": "0.1.0",
-  "description": "Animated, parametric topographic contour-line backgrounds for the web (WebGL).",
+  "description": "An animated background for your website that looks like a topographic map.",
   "license": "MIT",
   "repository": {
     "type": "git",
