@@ -6,3 +6,4 @@ export {
   type Settings, type SettingsInput, type ThemeSettings, type ThemeMode,
 } from './settings.js';
 export { parseColor, resolveTheme, resolveMode, rgbaToCss, THEME_DEFAULTS, type RGBA, type ResolvedTheme } from './theme.js';
+export { TOPOGRAPHY_FRAGMENT } from './shader/topography.glsl.js';
