@@ -3,8 +3,30 @@
 import type { Plugin } from 'vite';
 import { PARAMS, PRESETS, STYLES, defaultSettings } from 'topography';
 import { INSTALL, TAGLINE } from './src/content';
+import { TOOL_DEFS } from './src/agent-tools';
 
-export const DOC_EXTRAS: { title: string; path: string; body: () => string }[] = [];
+export const WEBMCP_SPEC = 'https://github.com/webmachinelearning/webmcp/blob/d0e4e0e0f039358cc9d93f90074116622bfebd53/index.bs';
+
+function toolsList(): string {
+  return TOOL_DEFS.map((t) => `- \`${t.name}\`${t.readOnly ? ' (read-only)' : ''}: ${t.description}`).join('\n');
+}
+
+function webmcpMd(): string {
+  return `# WebMCP tools
+
+In browsers that support [WebMCP](https://github.com/webmachinelearning/webmcp), the generator page registers these tools with \`document.modelContext.registerTool()\`. Older builds that expose \`navigator.modelContext\` are used as a fallback. Without either, nothing is registered and the page works as normal.
+
+Written against the spec at webmachinelearning/webmcp commit \`d0e4e0e0f039358cc9d93f90074116622bfebd53\` (${WEBMCP_SPEC}). Tools are removed by aborting their registration \`AbortSignal\`, and read-only tools set \`annotations.readOnlyHint\`.
+
+${toolsList()}
+
+## Input schemas
+
+${TOOL_DEFS.map((t) => `### ${t.name}\n\n\`\`\`json\n${JSON.stringify(t.inputSchema, null, 2)}\n\`\`\``).join('\n\n')}
+`;
+}
+
+const DOC_EXTRAS = [{ title: 'WebMCP tools', path: 'docs/webmcp.md', body: webmcpMd }];
 
 function paramsMd(): string {
   const rows = PARAMS.map((p) =>
@@ -137,6 +159,12 @@ The generator page holds its state in the URL as \`?config=<url-encoded JSON set
 
 ${PAGES().map((p) => `- [${p.title}](${p.path})`).join('\n')}
 - [Everything in one file](llms-full.txt)
+
+## WebMCP tools on the generator page
+
+${toolsList()}
+
+Details and input schemas: [docs/webmcp.md](docs/webmcp.md).
 
 ## Quick start
 

@@ -6,6 +6,7 @@ import { INSTALL, TAGLINE } from './content';
 import { embedCode, type EmbedFormat } from './embed';
 import { Panel } from './Panel';
 import { readUrl, writeUrl } from './url';
+import { registerTools } from './webmcp';
 
 const EMBED_TABS: { id: EmbedFormat; label: string }[] = [
   { id: 'html', label: 'HTML' }, { id: 'react', label: 'React' }, { id: 'vanilla', label: 'Vanilla JS' }, { id: 'json', label: 'Config JSON' },
@@ -29,8 +30,10 @@ export function App() {
   const applyPreset = (i: number) => setSettings((s) => ({ ...resolveSettings(PRESETS[i].settings), seed: s.seed, theme: s.theme }));
   const mode = resolveMode(settings.theme.mode, prefersDark);
   useEffect(() => { document.documentElement.dataset.theme = mode; }, [mode]);
-  // the page's own controls are exposed to agents too (see webmcp.ts)
-  useEffect(() => { (window as unknown as { __topography?: object }).__topography = { get settings() { return settings; }, setSettings, instance }; }, [settings]);
+  // agents drive the same state through WebMCP tools (see webmcp.ts)
+  const latest = useRef(settings);
+  latest.current = settings;
+  useEffect(() => registerTools({ getSettings: () => latest.current, setSettings, instance: () => instance.current }), []);
 
   return (
     <>

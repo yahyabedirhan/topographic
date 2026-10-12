@@ -73,6 +73,33 @@ try {
     check(r.ok && t.length > 200 && !/\btopo\b/i.test(t), `${doc} served (${t.length} chars)`);
   }
   check((await (await fetch(base + 'docs/params.md')).text()).includes('`line-count`'), 'params.md generated from the params table');
+  // WebMCP: a stub document.modelContext records registrations; call each tool through it
+  const agent = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  await agent.addInitScript(() => {
+    window.__tools = {};
+    document.modelContext = { registerTool: async (tool, opts) => { window.__tools[tool.name] = tool; opts?.signal?.addEventListener('abort', () => delete window.__tools[tool.name]); } };
+  });
+  await agent.goto(base);
+  await agent.waitForSelector('.stage canvas');
+  await agent.waitForFunction(() => Object.keys(window.__tools).length === 7);
+  const names = await agent.evaluate(() => Object.keys(window.__tools).sort().join());
+  check(names === 'get_embed_code,get_install_instructions,get_settings,list_styles,randomize,set_settings,take_screenshot', `WebMCP registers 7 tools`);
+  const call = (n, a = {}) => agent.evaluate(([n, a]) => window.__tools[n].execute(a), [n, a]);
+  check((await call('list_styles')).styles.length === 7, 'list_styles');
+  const set = await call('set_settings', { style: 'dunes', lines: { count: 999 }, bogus: 1 });
+  check(set.config.style === 'dunes' && set.config.lines.count === 60 && set.adjustments.length === 2, `set_settings validates: ${JSON.stringify(set.adjustments)}`);
+  await agent.waitForTimeout(100);
+  check(JSON.parse(new URL(agent.url()).searchParams.get('config')).style === 'dunes', 'set_settings updates the page and URL');
+  check((await call('get_settings')).config.lines.count === 60, 'get_settings');
+  check((await call('randomize', { style: true })).config.seed > 0, 'randomize');
+  const shot = await call('take_screenshot', { width: 400 });
+  check(shot.dataUrl.startsWith('data:image/png;base64,') && shot.width === 400, `take_screenshot ${shot.width}x${shot.height}`);
+  check((await call('get_embed_code', { format: 'react' })).code.includes('<Topography'), 'get_embed_code');
+  check((await call('get_install_instructions', { target: 'react' })).instructions.includes('npm install'), 'get_install_instructions');
+  await agent.close();
+  const plain = await browser.newPage(); await plain.goto(base); await plain.waitForSelector('.stage canvas');
+  check(await plain.evaluate(() => !('modelContext' in document)), 'no WebMCP: page works, nothing registered'); await plain.close();
+
   check(errors.length === 0, `no page errors${errors.length ? ': ' + errors.join(' | ') : ''}`);
 } finally { await browser.close(); server.close(); }
 if (failed) { console.log(`${failed} check(s) failed`); process.exit(1); }
