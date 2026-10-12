@@ -1,7 +1,7 @@
 // Registers the page's WebMCP tools (https://github.com/webmachinelearning/webmcp).
 // Uses document.modelContext, with the older navigator.modelContext as a fallback, and does
 // nothing when neither exists. Tools are removed by aborting the registration signal.
-import { mergeSettings, PRESETS, STYLES, type Settings, type SettingsInput, type Topography } from '@yahyabedirhan/topography';
+import { mergeSettings, PRESETS, STYLES, type Settings, type SettingsInput, type Topography } from '@yahyapak/topography';
 import { INSTALL } from './content';
 import { embedCode, type EmbedFormat } from './embed';
 import { TOOL_DEFS } from './agent-tools';

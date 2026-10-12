@@ -1,5 +1,5 @@
 {
-  "name": "@yahyabedirhan/topography-react",
+  "name": "@yahyapak/topography-react",
   "version": "0.0.0",
   "description": "React component and hook for topography backgrounds.",
   "license": "MIT",
@@ -18,7 +18,7 @@
     "dist"
   ],
   "dependencies": {
-    "@yahyabedirhan/topography": "0.0.0"
+    "@yahyapak/topography": "0.0.0"
   },
   "peerDependencies": {
     "react": "^18 || ^19"

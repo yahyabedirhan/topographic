@@ -1,4 +1,4 @@
-import type { Topography } from '@yahyabedirhan/topography';
+import type { Topography } from '@yahyapak/topography';
 
 export const PNG_SIZES = [
   { id: 'screen', label: 'Screen ×2', width: 0, height: 0 },

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { mergeSettings, PRESETS, resolveMode, resolveSettings, STYLES, type Settings, type SettingsInput, type Topography as Instance } from '@yahyabedirhan/topography';
-import { Topography } from '@yahyabedirhan/topography-react';
+import { mergeSettings, PRESETS, resolveMode, resolveSettings, STYLES, type Settings, type SettingsInput, type Topography as Instance } from '@yahyapak/topography';
+import { Topography } from '@yahyapak/topography-react';
 import { Code } from './Code';
 import { INSTALL, TAGLINE } from './content';
 import { embedCode, type EmbedFormat } from './embed';

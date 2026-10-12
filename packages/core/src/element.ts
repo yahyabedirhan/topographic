@@ -1,4 +1,4 @@
-// <topography-bg>: a custom element around createTopography. Importing '@yahyabedirhan/topography/element'
+// <topography-bg>: a custom element around createTopography. Importing '@yahyapak/topography/element'
 // registers it. Attributes come from the params table (see params.ts), plus style-name, seed,
 // theme, ink and paper. Attribute changes update live.
 import { PARAMS } from './params.js';
