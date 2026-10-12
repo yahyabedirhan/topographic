@@ -3,6 +3,25 @@
   "version": "0.1.0",
   "description": "Animated, parametric topographic contour-line backgrounds for the web (WebGL).",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yahyabedirhan/topography.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/yahyabedirhan/topography#readme",
+  "bugs": {
+    "url": "https://github.com/yahyabedirhan/topography/issues"
+  },
+  "keywords": [
+    "topography",
+    "topographic",
+    "contour",
+    "background",
+    "webgl",
+    "shader",
+    "animated-background",
+    "web-component"
+  ],
   "type": "module",
   "sideEffects": [
     "./dist/element.js"
@@ -21,7 +40,9 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
   "publishConfig": {
     "access": "public"
