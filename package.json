@@ -12,7 +12,7 @@
     "build:packages": "node scripts/build.mjs",
     "test": "vitest run",
     "typecheck": "tsc -p packages/core && tsc -p packages/react",
-    "smoke": "node scripts/smoke.mjs",
+    "smoke": "node scripts/smoke.mjs && node scripts/generator-check.mjs",
     "dev": "npm run build:packages && npm run dev -w apps/generator"
   },
   "devDependencies": {
