@@ -15,6 +15,7 @@ const server = createServer(async (req, res) => {
 const base = `http://127.0.0.1:${server.address().port}/`;
 const browser = await chromium.launch({ executablePath: process.env.CHROME ?? '/usr/bin/google-chrome', args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 let failed = 0;
+const config = (p) => JSON.parse(new URL(p.url()).searchParams.get('config') ?? '{}');
 const check = (ok, msg) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${msg}`); if (!ok) failed++; };
 try {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, acceptDownloads: true, colorScheme: 'light' });
@@ -27,37 +28,46 @@ try {
 
   await p.locator('#roughness').fill('0.4');
   await p.waitForTimeout(100);
-  check(p.url().includes('rg=0.4'), `slider syncs to URL: ${new URL(p.url()).search}`);
+  check(config(p).terrain?.roughness === 0.4, `slider syncs to URL as JSON: ${JSON.stringify(config(p))}`);
 
-  await p.getByRole('button', { name: 'Survey map' }).click();
+  await p.locator('#preset-7').click();
   await p.waitForTimeout(100);
-  check(p.url().includes('s=gentle-summit') && p.url().includes('lc=44'), 'preset applies and syncs');
+  check(config(p).style === 'gentle-summit' && config(p).lines?.count === 44, 'preset applies and syncs');
 
-  await p.getByRole('button', { name: 'Randomize' }).click();
+  await p.locator('#randomize').click();
   await p.waitForTimeout(100);
-  check(/seed=\d+/.test(p.url()), 'randomize sets a seed');
+  check(config(p).seed > 0, 'randomize sets a seed');
   if (process.env.SHOTS) await p.screenshot({ path: join(process.env.SHOTS, 'generator-light.png') });
+  if (process.env.SHOTS) await p.screenshot({ path: join(process.env.SHOTS, 'generator-light-full.png'), fullPage: true });
 
   const [download] = await Promise.all([p.waitForEvent('download'), (async () => {
     await p.locator('select[aria-label="PNG size"]').selectOption({ label: '1920 × 1080' });
-    await p.getByRole('button', { name: 'Download PNG' }).click();
+    await p.locator('#download-png').click();
   })()]);
   const file = await download.path();
   const png = await readFile(file);
   check(png.readUInt32BE(16) === 1920 && png.readUInt32BE(20) === 1080, `PNG export ${png.readUInt32BE(16)}x${png.readUInt32BE(20)} (${download.suggestedFilename()})`);
 
   await ctx.grantPermissions(['clipboard-read', 'clipboard-write']);
-  await p.getByRole('button', { name: 'Copy HTML' }).click();
+  await p.locator('#copy-html').click();
   const html = await p.evaluate(() => navigator.clipboard.readText());
-  check(html.includes('<topography-bg style-name="gentle-summit"'), 'HTML embed copied');
-  await p.getByRole('button', { name: 'Copy JSX' }).click();
+  check(html.includes('style-name="gentle-summit"'), 'HTML embed copied');
+  await p.locator('#copy-jsx').click();
   const jsx = await p.evaluate(() => navigator.clipboard.readText());
   check(jsx.includes('<Topography') && jsx.includes('styleName="gentle-summit"'), 'JSX embed copied');
 
-  await p.getByRole('button', { name: 'dark', exact: true }).click();
+  await p.locator('#copy-json').click();
+  const json = JSON.parse(await p.evaluate(() => navigator.clipboard.readText()));
+  check(json.style === 'gentle-summit' && json.lines.count === 44, 'config JSON copied');
+  const reload = await browser.newPage(); await reload.goto(base + '?config=' + encodeURIComponent(JSON.stringify(json)));
+  await reload.waitForSelector('.stage canvas');
+  check((await reload.locator('#line-count').inputValue()) === '44', 'config JSON in the URL restores settings'); await reload.close();
+  await p.locator('#mode-dark').click();
   await p.waitForTimeout(200);
-  check(p.url().includes('m=dark') && (await p.locator('.app').getAttribute('class')).includes('dark'), 'dark toggle');
+  check(config(p).theme?.mode === 'dark' && (await p.evaluate(() => document.documentElement.dataset.theme)) === 'dark', 'dark toggle');
+  await p.evaluate(() => window.scrollTo(0, 0)); await p.waitForTimeout(200);
   if (process.env.SHOTS) await p.screenshot({ path: join(process.env.SHOTS, 'generator-dark.png') });
+  if (process.env.SHOTS) { const m = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 }); await m.goto(base + '?s=dunes'); await m.waitForSelector('.stage canvas'); await m.waitForTimeout(300); await m.screenshot({ path: join(process.env.SHOTS, 'generator-phone.png') }); await m.close(); }
   check(errors.length === 0, `no page errors${errors.length ? ': ' + errors.join(' | ') : ''}`);
 } finally { await browser.close(); server.close(); }
 if (failed) { console.log(`${failed} check(s) failed`); process.exit(1); }
