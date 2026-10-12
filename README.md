@@ -7,6 +7,8 @@
   <a href="https://www.npmjs.com/package/@yahyapak/topography-react"><img src="https://img.shields.io/npm/v/@yahyapak/topography-react?label=%40yahyapak%2Ftopography-react" alt="npm version of @yahyapak/topography-react"></a>
 </p>
 
+<p align="center"><strong><a href="https://yahyabedirhan.github.io/topography/">Try it in the generator →</a></strong></p>
+
 ![The topography generator in dark mode: contour lines drift behind the page, and the settings panel sits on the right](assets/screenshots/generator-dark.png)
 
 ## What is topography
@@ -78,7 +80,7 @@ Every tile uses line opacity 0.9 so the lines show at this size; the default is 
 
 ## The generator
 
-The generator is the project's own page. The page background is the live preview: pick a preset, move the sliders, and copy the result as HTML, React, vanilla JS or a config JSON, or download it as a PNG up to 4K. The settings live in the URL, so a link brings the same background back.
+The generator is the project's own page, live at [yahyabedirhan.github.io/topography](https://yahyabedirhan.github.io/topography/). The page background is the live preview: pick a preset, move the sliders, and copy the result as HTML, React, vanilla JS or a config JSON, or download it as a PNG up to 4K. The settings live in the URL, so a link brings the same background back.
 
 ```sh
 npm install
