@@ -59,9 +59,22 @@ topography.update({ terrain: { peaks: 3 } });
 
 ## Styles and presets
 
-![The seven styles: drifting lobes, granite, five petals, seed pod, gentle summit, long ridge and dunes](assets/screenshots/styles.png)
+![Sixteen dark-mode tiles: the seven styles, the three presets Survey map, Terraces and Rocky, and six seed variants](assets/screenshots/styles.png)
 
 There are seven styles: **drifting lobes, granite, five petals, seed pod, gentle summit, long ridge** and **dunes**. Presets are ready-made starting points on top of them, like **Survey map**, **Terraces** and **Rocky**.
+
+The image shows all of them in dark mode, frozen at 4 seconds. The first ten tiles are the styles and presets by name. The last six are a style with a different seed and a setting or two changed:
+
+| Tile | Settings |
+| --- | --- |
+| Twin peaks | `gentle-summit`, seed 7, peaks 2, spread 0.7 |
+| Fine lines | `drifting-lobes`, seed 21, line count 56 |
+| Scree | `granite`, seed 3, roughness 0.6 |
+| Bloom | `five-petals`, seed 12, line count 42, variant 0.9 |
+| Wide dunes | `dunes`, seed 5, line count 16, line width 0.4 |
+| Plateau | `seed-pod`, seed 9, terracing 0.6 |
+
+Every tile uses line opacity 0.9 so the lines show at this size; the default is 0.4. `node scripts/styles-grid.mjs` renders the image again.
 
 ## The generator
 

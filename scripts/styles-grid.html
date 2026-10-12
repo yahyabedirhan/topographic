@@ -1,0 +1,33 @@
+<!doctype html>
+<meta charset="utf-8" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; background: #0b0b0d; }
+  #grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 12px; width: 1896px; }
+  figure { margin: 0; position: relative; border-radius: 6px; overflow: hidden; }
+  figure img { display: block; width: 100%; }
+  figcaption { position: absolute; left: 14px; bottom: 12px; font: 500 15px/1 Inter, system-ui, sans-serif;
+    color: rgba(236, 238, 242, 0.82); letter-spacing: 0.01em; text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7); }
+  figcaption span { color: rgba(236, 238, 242, 0.45); font-weight: 400; margin-left: 8px; }
+</style>
+<div id="grid"></div>
+<div id="host" style="position:fixed;left:-2000px;width:465px;height:300px"></div>
+<script type="module">
+  import * as lib from '/packages/core/dist/index.js';
+  window.renderGrid = async (tiles, size) => {
+    const host = document.getElementById('host');
+    for (const tile of tiles) {
+      const t = lib.createTopography(host, { ...tile.settings, theme: { mode: 'dark' } });
+      const blob = await t.snapshot({ frame: 4000, width: size.w, height: size.h });
+      t.destroy();
+      const fig = document.createElement('figure');
+      const img = new Image(); img.src = URL.createObjectURL(blob); await img.decode();
+      const cap = document.createElement('figcaption');
+      cap.textContent = tile.name;
+      if (tile.note) { const s = document.createElement('span'); s.textContent = tile.note; cap.append(s); }
+      fig.append(img, cap); document.getElementById('grid').append(fig);
+    }
+    await document.fonts.ready;
+  };
+  window.lib = lib; window.ready = true;
+</script>
