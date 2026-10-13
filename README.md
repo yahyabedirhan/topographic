@@ -6,7 +6,7 @@
 
 ## What is topography.js
 
-topography.js is a JavaScript package that draws animated contour lines, like those on a topographic map, as the background of a web page.
+Topography is a js library that draws animated contour lines, like those on a topographic map, as the background of a web page.
 
 It renders the lines with one WebGL shader. You choose a terrain style and set options for the lines, the terrain, the motion and the layout. You can try the options in the [playground](https://yahyabedirhan.github.io/topography/).
 
