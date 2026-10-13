@@ -21,6 +21,8 @@ It pauses when nobody can see it, holds still for people who prefer less motion,
 
 ## Install
 
+On npm: [`topography.js`](https://www.npmjs.com/package/topography.js) for the core and the web component, and [`topography-react`](https://www.npmjs.com/package/topography-react) for React.
+
 ```sh
 npm install topography.js
 ```
@@ -33,7 +35,7 @@ npm install topography.js
 <topography-bg style-name="dunes" line-count="30"></topography-bg>
 ```
 
-**React** (`npm install topography-react`):
+**React** (`npm install topography.js topography-react`):
 
 ```tsx
 import { Topography } from 'topography-react';
