@@ -35,7 +35,7 @@ npm install topography.js
 <topography-bg style-name="dunes" line-count="30"></topography-bg>
 ```
 
-**React** (`npm install topography.js topography-react`):
+**React** (`npm install topography-react`):
 
 ```tsx
 import { Topography } from 'topography-react';
