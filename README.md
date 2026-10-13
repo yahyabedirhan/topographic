@@ -2,7 +2,7 @@
 
 <h1 align="center">topography.js</h1>
 
-![The topography playground in dark mode: contour lines drift behind the page, and the settings panel sits on the right](assets/screenshots/playground-dark.png)
+![The topography.js playground in dark mode: contour lines drift behind the page, and the settings panel sits on the right](assets/screenshots/playground-dark.png)
 
 ## What is topography.js
 
