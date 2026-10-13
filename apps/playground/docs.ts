@@ -1,7 +1,7 @@
 // Builds the agent-facing docs from the source of truth: params table, styles, presets and the
 // shared install text. Served in dev and emitted into the build as /llms.txt, /llms-full.txt and /docs/*.md.
 import type { Plugin } from 'vite';
-import { PARAMS, PRESETS, STYLES, defaultSettings } from '@yahyapak/topography';
+import { PARAMS, PRESETS, STYLES, defaultSettings } from 'topography.js';
 import { INSTALL, TAGLINE } from './src/content';
 import { TOOL_DEFS } from './src/agent-tools';
 
@@ -15,7 +15,7 @@ function toolsList(): string {
 function webmcpMd(): string {
   return `# WebMCP tools
 
-In browsers that support [WebMCP](https://github.com/webmachinelearning/webmcp), the generator page registers these tools with \`document.modelContext.registerTool()\`. Older builds that expose \`navigator.modelContext\` are used as a fallback. Without either, nothing is registered and the page works as normal.
+In browsers that support [WebMCP](https://github.com/webmachinelearning/webmcp), the playground page registers these tools with \`document.modelContext.registerTool()\`. Older builds that expose \`navigator.modelContext\` are used as a fallback. Without either, nothing is registered and the page works as normal.
 
 Written against the spec at webmachinelearning/webmcp commit \`d0e4e0e0f039358cc9d93f90074116622bfebd53\` (${WEBMCP_SPEC}). Tools are removed by aborting their registration \`AbortSignal\`, and read-only tools set \`annotations.readOnlyHint\`.
 
@@ -128,7 +128,7 @@ Behaviour:
 
 ## <topography-bg>
 
-\`import '@yahyapak/topography/element'\` registers the element. Attributes: \`style-name\`, \`seed\`, \`theme\`, \`ink\`, \`paper\`, plus one per setting (see [params.md](params.md)). Attribute changes apply live, and a removed attribute returns to its default. \`element.topography\` is the instance, and \`element.snapshot(opts)\` is a shortcut.
+\`import 'topography.js/element'\` registers the element. Attributes: \`style-name\`, \`seed\`, \`theme\`, \`ink\`, \`paper\`, plus one per setting (see [params.md](params.md)). Attribute changes apply live, and a removed attribute returns to its default. \`element.topography\` is the instance, and \`element.snapshot(opts)\` is a shortcut.
 
 ## React: <Topography> and useTopography
 
@@ -154,21 +154,21 @@ function llmsTxt(): string {
 
 > ${TAGLINE}
 
-Live generator: ${SITE_URL}
+Live playground: ${SITE_URL}
 
-The generator page holds its state in the URL as \`?config=<url-encoded JSON settings>\`, for example \`?config=${encodeURIComponent('{"style":"dunes","lines":{"count":24}}')}\`. The JSON shape is the \`settings\` object from the API docs.
+The playground page holds its state in the URL as \`?config=<url-encoded JSON settings>\`, for example \`?config=${encodeURIComponent('{"style":"dunes","lines":{"count":24}}')}\`. The JSON shape is the \`settings\` object from the API docs.
 
 ## Packages
 
-- [@yahyapak/topography](https://www.npmjs.com/package/@yahyapak/topography): core and the \`<topography-bg>\` web component
-- [@yahyapak/topography-react](https://www.npmjs.com/package/@yahyapak/topography-react): React component and hook
+- [topography.js](https://www.npmjs.com/package/topography.js): core and the \`<topography-bg>\` web component
+- [topography-react](https://www.npmjs.com/package/topography-react): React component and hook
 
 ## Docs
 
 ${PAGES().map((p) => `- [${p.title}](${p.path})`).join('\n')}
 - [Everything in one file](llms-full.txt)
 
-## WebMCP tools on the generator page
+## WebMCP tools on the playground page
 
 ${toolsList()}
 

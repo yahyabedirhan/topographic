@@ -1,11 +1,11 @@
-// Headless check of the built generator (apps/generator/dist): loads it, moves a slider, applies a
+// Headless check of the built playground (apps/playground/dist): loads it, moves a slider, applies a
 // preset, randomizes the seed, checks URL sync and PNG export. SHOTS=dir saves screenshots.
 import { chromium } from 'playwright-core';
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join } from 'node:path';
 
-const dist = new URL('../apps/generator/dist/', import.meta.url).pathname;
+const dist = new URL('../apps/playground/dist/', import.meta.url).pathname;
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.txt': 'text/plain', '.md': 'text/markdown' };
 const server = createServer(async (req, res) => {
   const path = req.url.split('?')[0].replace(/\/$/, '/index.html');
@@ -37,8 +37,8 @@ try {
   await p.locator('#randomize').click();
   await p.waitForTimeout(100);
   check(config(p).seed > 0, 'randomize sets a seed');
-  if (process.env.SHOTS) await p.screenshot({ path: join(process.env.SHOTS, 'generator-light.png') });
-  if (process.env.SHOTS) await p.screenshot({ path: join(process.env.SHOTS, 'generator-light-full.png'), fullPage: true });
+  if (process.env.SHOTS) await p.screenshot({ path: join(process.env.SHOTS, 'playground-light.png') });
+  if (process.env.SHOTS) await p.screenshot({ path: join(process.env.SHOTS, 'playground-light-full.png'), fullPage: true });
 
   const [download] = await Promise.all([p.waitForEvent('download'), (async () => {
     await p.locator('select[aria-label="PNG size"]').selectOption({ label: '1920 × 1080' });
@@ -66,8 +66,8 @@ try {
   await p.waitForTimeout(200);
   check(config(p).theme?.mode === 'dark' && (await p.evaluate(() => document.documentElement.dataset.theme)) === 'dark', 'dark toggle');
   await p.evaluate(() => window.scrollTo(0, 0)); await p.waitForTimeout(200);
-  if (process.env.SHOTS) await p.screenshot({ path: join(process.env.SHOTS, 'generator-dark.png') });
-  if (process.env.SHOTS) { const m = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 }); await m.goto(base + '?s=dunes'); await m.waitForSelector('.stage canvas'); await m.waitForTimeout(300); await m.screenshot({ path: join(process.env.SHOTS, 'generator-phone.png') }); await m.close(); }
+  if (process.env.SHOTS) await p.screenshot({ path: join(process.env.SHOTS, 'playground-dark.png') });
+  if (process.env.SHOTS) { const m = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 }); await m.goto(base + '?s=dunes'); await m.waitForSelector('.stage canvas'); await m.waitForTimeout(300); await m.screenshot({ path: join(process.env.SHOTS, 'playground-phone.png') }); await m.close(); }
   for (const doc of ['llms.txt', 'llms-full.txt', 'docs/install.md', 'docs/api.md', 'docs/params.md']) {
     const r = await fetch(base + doc); const t = await r.text();
     check(r.ok && t.length > 200 && !/\btopo\b/i.test(t), `${doc} served (${t.length} chars)`);
@@ -103,4 +103,4 @@ try {
   check(errors.length === 0, `no page errors${errors.length ? ': ' + errors.join(' | ') : ''}`);
 } finally { await browser.close(); server.close(); }
 if (failed) { console.log(`${failed} check(s) failed`); process.exit(1); }
-console.log('generator checks passed');
+console.log('playground checks passed');

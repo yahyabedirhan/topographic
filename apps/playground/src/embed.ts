@@ -1,4 +1,4 @@
-import { toAttributes, type Settings } from '@yahyapak/topography';
+import { toAttributes, type Settings } from 'topography.js';
 import { PACKAGE, REACT_PACKAGE } from './content';
 import { configOf } from './url';
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg viewBox="0 0 960 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="library-architecture-title library-architecture-desc" id="library-architecture-root">
 <title id="library-architecture-title">Library architecture</title>
-<desc id="library-architecture-desc">How the topography library fits together: the web component, React component and generator all call one public API, which resolves settings from the params table, styles and presets, and hands them to a single WebGL renderer that drives one shader.</desc>
+<desc id="library-architecture-desc">How the topography library fits together: the web component, React component and playground all call one public API, which resolves settings from the params table, styles and presets, and hands them to a single WebGL renderer that drives one shader.</desc>
 <defs>
       <style>@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;family=Noto+Serif:ital@0;1&amp;family=Noto+Sans+KR:wght@400;500;600&amp;family=Noto+Serif+KR:wght@400&amp;family=Noto+Sans+TC:wght@400;500;600&amp;family=Noto+Serif+TC:wght@400&amp;display=swap');
       #library-architecture-root { color: #e4e6e9; font-family: 'Inter Tight', system-ui, sans-serif; }
@@ -62,8 +62,8 @@
 <rect x="40.5" y="344.5" width="159" height="63" rx="2" fill="#222529" stroke="#ffffff" stroke-opacity="0.16" stroke-width="1"/>
 <rect x="48.5" y="352.5" width="23" height="12" fill="none" stroke="#6b7078" stroke-opacity="0.6" stroke-width="0.8"/>
 <text x="59.9" y="361.5" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">APP</text>
-<text x="120.0" y="382" fill="#e4e6e9" font-size="12" font-weight="600" font-family="'Inter Tight', system-ui, sans-serif" text-anchor="middle">Generator</text>
-<text x="120.0" y="397" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">apps/generator</text>
+<text x="120.0" y="382" fill="#e4e6e9" font-size="12" font-weight="600" font-family="'Inter Tight', system-ui, sans-serif" text-anchor="middle">Playground</text>
+<text x="120.0" y="397" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">apps/playground</text>
 <rect x="280" y="216" width="160" height="64" rx="2" fill="url(#library-architecture-tile)"/>
 <rect x="280.5" y="216.5" width="159" height="63" rx="2" fill="#222529" stroke="#ffffff" stroke-opacity="0.16" stroke-width="1"/>
 <rect x="288.5" y="224.5" width="23" height="12" fill="none" stroke="#6b7078" stroke-opacity="0.6" stroke-width="0.8"/>
@@ -106,7 +106,7 @@
 <text x="782.4" y="361.5" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">GLSL</text>
 <text x="840.0" y="382" fill="#e4e6e9" font-size="12" font-weight="600" font-family="'Inter Tight', system-ui, sans-serif" text-anchor="middle">Shader</text>
 <text x="840.0" y="397" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">topography.glsl.ts</text>
-<text font-size="12" font-family="'Inter Tight', system-ui, sans-serif" fill="#8b9097"><tspan x="520" y="440">One table defines every setting. Types, element attributes,</tspan><tspan x="520" y="458">React props, generator sliders and docs all derive from it.</tspan></text>
+<text font-size="12" font-family="'Inter Tight', system-ui, sans-serif" fill="#8b9097"><tspan x="520" y="440">One table defines every setting. Types, element attributes,</tspan><tspan x="520" y="458">React props, playground sliders and docs all derive from it.</tspan></text>
 <line x1="40" y1="488" x2="920" y2="488" stroke="#e4e6e9" stroke-opacity="0.10" stroke-width="0.8"/>
 <text x="40" y="512" fill="#8b9097" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" letter-spacing="0.14em">LEGEND</text>
 <path d="M120 504H136L142 510V516H120Z" fill="#ffffff"/><path d="M136 504L142 510H136Z" fill="#b9bec4"/>

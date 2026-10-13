@@ -1,9 +1,9 @@
 # Topography: design
 
-Topography draws animated contour-line backgrounds (like a topographic map) with one WebGL shader. You pick a **style** (the terrain shape) and tune readable **settings**. The same core powers a vanilla JS API, a `<topography-bg>` web component, a React `<Topography>` component, and a generator site that exports what you build.
+Topography draws animated contour-line backgrounds (like a topographic map) with one WebGL shader. You pick a **style** (the terrain shape) and tune readable **settings**. The same core powers a vanilla JS API, a `<topography-bg>` web component, a React `<Topography>` component, and a playground site that exports what you build.
 
 ```js
-import { createTopography } from '@yahyapak/topography';
+import { createTopography } from 'topography.js';
 const topography = createTopography(el, { style: 'dunes', lines: { count: 30 } });
 ```
 
@@ -13,14 +13,14 @@ const topography = createTopography(el, { style: 'dunes', lines: { count: 30 } }
 3. A `seed` varies a style reproducibly.
 4. Colours: `ink` and `paper`, taken from CSS variables, with automatic dark mode. Paper can be transparent.
 5. Settings update live, without remounting.
-6. The generator has sliders, presets, randomize, state in the URL, and exports an embed snippet and a PNG.
+6. The playground has sliders, presets, randomize, state in the URL, and exports an embed snippet and a PNG.
 7. Out-of-range values are clamped. An unknown style falls back to the default style and logs one warning.
 8. Reduced motion shows one still frame. Animation pauses when off-screen or when the tab is hidden. A pixel budget caps GPU cost.
 9. If WebGL is missing or the context is lost, the element shows the paper colour. A restored context resumes rendering.
 10. In scope:
     - core, web component, React wrapper
     - 7 styles: dunes, granite, drifting lobes, five petals, seed pod, gentle summit, long ridge
-    - the generator, built in React
+    - the playground, built in React
 11. Out of scope for now: SVG and video export, multi-colour palettes, Vue/Svelte wrappers, the 6 other prototype styles (spiral, twin peaks, caldera, archipelago, terraced plateau, river valley).
 
 ## Entities and relationships
@@ -31,7 +31,7 @@ const topography = createTopography(el, { style: 'dunes', lines: { count: 30 } }
 - **Theme**: resolves `ink` and `paper` from settings, then CSS variables (`--topography-ink`, `--topography-paper`), then light/dark defaults.
 - **`<topography-bg>`**: a custom element. Attributes become Settings, and it holds one Renderer.
 - **React `<Topography>`** and **`useTopography`**: props become Settings, and they hold one Renderer.
-- **Generator**: a React app. Panel state is Settings, mirrored in the URL. Export uses `snapshot` and the embed serializer.
+- **Playground**: a React app. Panel state is Settings, mirrored in the URL. Export uses `snapshot` and the embed serializer.
 
 Flow: wrapper → Settings (via the params table) → Renderer → uniforms → shader.
 
@@ -49,10 +49,10 @@ packages/core/src/
   shader/topography.glsl.ts  combined height field, branch per style
   element.ts             <topography-bg> custom element
 packages/react/src/Topography.tsx   <Topography>, useTopography
-apps/generator/src/
+apps/playground/src/
   App.tsx  Panel.tsx  url.ts  export.ts
 ```
-`params.ts` is the single source of truth. Types, element attributes, React props, generator sliders and docs are all derived from it.
+`params.ts` is the single source of truth. Types, element attributes, React props, playground sliders and docs are all derived from it.
 
 ## Public API
 ```ts
@@ -99,7 +99,7 @@ Ranges are 0–1 except counts. In the element and React the style is `style-nam
 | A style | `styles.ts` record, plus a branch in `topography.glsl.ts` |
 | A preset | `presets.ts` record only |
 | A wrapper (Vue, Svelte) | a new package calling `createTopography` |
-| An export format | `apps/generator/src/export.ts` (SVG later needs a CPU port of the height field) |
+| An export format | `apps/playground/src/export.ts` (SVG later needs a CPU port of the height field) |
 
 ## Decisions
 - **One combined shader; style is data.** It's simpler to ship and to switch styles live. The cost is that one shader carries every branch.
@@ -109,7 +109,7 @@ Ranges are 0–1 except counts. In the element and React the style is `style-nam
 - **Pixel budget** (minimum pixel ratio plus maximum pixel count) instead of a simple DPR cap.
 - **Fallback, not exceptions,** when WebGL is missing or lost.
 - **`snapshot` renders off-screen**, so exports never disturb the live view.
-- **Always spell out "@yahyapak/topography"** in names (element, files, API).
+- **Always spell out "topography"** in names (element, files, API).
 - **License: MIT.**
 
 Architecture inspired by Paper Shaders (github.com/paper-design/shaders at 43cd68db79fa0b1759f72ffc941b3238e2a3954c, Apache-2.0): a vanilla mount class with thin wrappers, presets typed against params, and definitions that drive the controls. No code has been copied. If any is, include their NOTICE and attribution.
