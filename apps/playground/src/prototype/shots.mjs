@@ -18,7 +18,7 @@ const INTERACT = {
 
 const args = ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'];
 const browser = await chromium.launch({ executablePath: process.env.CHROME ?? '/usr/bin/google-chrome', args });
-const config = encodeURIComponent(JSON.stringify({ style: 'gentle-summit', lines: { count: 36 }, theme: { mode: 'dark' } }));
+const config = encodeURIComponent(JSON.stringify({ style: 'gentle-summit', lines: { count: 26 }, theme: { mode: 'dark' } }));
 for (const v of only) {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, colorScheme: 'dark' });
   page.on('pageerror', (e) => console.log(v, 'pageerror', e.message));

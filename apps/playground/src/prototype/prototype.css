@@ -113,3 +113,29 @@ kbd{font:500 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;padding:3px 6px;
 .b-empty{padding:18px 10px}
 .b-foot{display:flex;gap:18px;padding:10px 18px;border-top:1px solid var(--line);font-size:12px;color:var(--mut)}
 .b-foot kbd{margin-right:3px}
+
+/* ---- C: filmstrip ---- */
+.c-top{position:fixed;z-index:5;top:14px;right:18px;display:flex;gap:10px;align-items:center}
+.c-top .pt-icon{background:var(--glass);backdrop-filter:blur(16px)}
+.c-export{position:relative}
+.c-pill{border-radius:999px;padding:8px 16px;font-size:13px}
+.c-exportpop{width:300px}
+.c-strip-wrap{position:fixed;z-index:4;left:0;right:0;bottom:0;padding:120px 0 52px;background:linear-gradient(transparent,color-mix(in srgb,var(--paper) 70%,transparent) 60%);pointer-events:none}
+.c-strip{display:flex;gap:12px;padding:0 24px;pointer-events:auto;align-items:flex-end}
+.c-card{position:relative;flex:1 1 0;min-width:96px;transition:flex-grow .3s}
+.c-card.on{flex-grow:1.35}
+.c-img{display:block;width:100%;aspect-ratio:25/16;padding:0;border-radius:14px;overflow:hidden;background:var(--paper);box-shadow:0 12px 30px -14px rgba(0,0,0,.8),inset 0 0 0 .5px var(--line)}
+.c-img img{display:block;width:100%;height:100%;object-fit:cover}
+.c-card.on .c-img{box-shadow:0 0 0 2px var(--fg),0 18px 40px -16px rgba(0,0,0,.9)}
+.c-card:not(.on) .c-img{opacity:.78}
+.c-card:not(.on):hover .c-img{opacity:1}
+.c-meta{display:flex;justify-content:space-between;align-items:baseline;padding:8px 2px 0;font-size:13px}
+.c-meta small{color:var(--mut);font-size:11px}
+.c-adjust{position:absolute;top:10px;right:10px;font-size:12px;padding:4px 10px;border-radius:999px;background:var(--glass);backdrop-filter:blur(12px)}
+.c-strip{overflow:visible}
+.c-pop{position:absolute;left:50%;bottom:calc(100% + 14px);transform:translateX(-50%);width:400px;padding:14px 16px;border-radius:18px;display:grid;gap:12px}
+.c-seg{display:flex;gap:2px;padding:3px;border-radius:11px;background:var(--card)}
+.c-seg button{flex:1;font-size:12.5px;padding:5px 0;background:none;box-shadow:none;border-radius:8px}
+.c-seg button.on{background:var(--on);color:var(--on-fg)}
+.c-row{display:flex;gap:10px;align-items:center}
+.c-customimg{display:grid;place-items:center;color:var(--mut);font-size:13px}
