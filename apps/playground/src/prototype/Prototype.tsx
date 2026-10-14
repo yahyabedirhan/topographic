@@ -4,10 +4,12 @@ import { useState } from 'react';
 import { PrototypeSwitcher } from './Switcher';
 import { usePlayground } from './shared';
 import { VariantA } from './VariantA';
+import { VariantB } from './VariantB';
 import './prototype.css';
 
 const VARIANTS = [
   { key: 'A', name: 'Glass dock', C: VariantA },
+  { key: 'B', name: 'Command palette', C: VariantB },
 ];
 
 export function Prototype() {

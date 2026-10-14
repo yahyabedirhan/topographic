@@ -10,7 +10,7 @@ await mkdir(out, { recursive: true });
 
 const INTERACT = {
   A: async (p) => { await p.click('text=Tune'); await p.waitForTimeout(300); },
-  B: async (p) => { await p.keyboard.press('Control+k'); await p.waitForTimeout(200); await p.keyboard.type('du'); await p.waitForTimeout(600); },
+  B: async (p) => { await p.keyboard.press('Control+k'); await p.waitForTimeout(1500); await p.keyboard.press('ArrowDown'); },
   C: async (p) => { await p.click('.c-card.on .c-adjust'); await p.waitForTimeout(300); },
   D: async (p) => { await p.click('.d-ink .pt-dot'); await p.waitForTimeout(300); },
   E: async (p) => { await p.click('.e-tile >> nth=4'); await p.waitForTimeout(1200); },
