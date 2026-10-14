@@ -1,6 +1,3 @@
-// <topography-bg>: a custom element around createTopography. Importing 'topography.js/element'
-// registers it. Attributes come from the params table (see params.ts), plus style-name, seed,
-// theme, ink and paper. Attribute changes update live.
 import { PARAMS } from './params.js';
 import { createTopography, type Topography, type SnapshotOptions } from './renderer.js';
 import { fromAttributes, resolveSettings, type SettingsInput } from './settings.js';
@@ -33,7 +30,6 @@ export class TopographyElement extends Base {
 
   attributeChangedCallback(): void {
     if (!this.#topography) return;
-    // Resolve from scratch so a removed attribute returns to its (style) default.
     const full = resolveSettings(this.#read());
     this.#topography.update({ ...full, theme: { ink: undefined, paper: undefined, ...full.theme } });
   }

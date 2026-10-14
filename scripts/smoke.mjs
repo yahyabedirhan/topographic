@@ -1,6 +1,3 @@
-// Headless smoke check for the renderer: renders every style, checks for visible lines, exercises
-// update, snapshot, WebGL1, the no-WebGL fallback and context loss. Optional: SHOTS=dir saves PNGs.
-// Needs a Chrome/Chromium binary (CHROME=/path, default /usr/bin/google-chrome) and `npm run build:packages`.
 import { chromium } from 'playwright-core';
 import { createServer } from 'node:http';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
@@ -32,7 +29,6 @@ async function page(extra = {}) {
   return p;
 }
 
-// Coverage: share of pixels that differ from the paper colour.
 const coverage = (p, style, opts = {}) => p.evaluate(async ({ style, opts }) => {
   const host = document.getElementById('host');
   window.t?.destroy();
@@ -59,7 +55,6 @@ try {
     if (shots) await writeFile(join(shots, `extra-${name}.png`), Buffer.from(r.png));
   }
 
-  // snapshot size does not resize the live canvas
   const sizes = await p.evaluate(async () => {
     const before = [window.t.canvas.width, window.t.canvas.height];
     const b = await createImageBitmap(await window.t.snapshot({ width: 640 }));
@@ -67,19 +62,15 @@ try {
   });
   check(sizes.before.join() === sizes.after.join() && sizes.snap.join() === '640,400', `snapshot 640 wide -> ${sizes.snap}, live canvas stays ${sizes.after}`);
 
-  // update clamps, unknown style falls back
   const upd = await p.evaluate(() => { window.t.update({ lines: { count: 999 }, style: 'volcano' }); return [window.t.settings.lines.count, window.t.settings.style]; });
   check(upd[0] === 60 && upd[1] === 'drifting-lobes', `update clamps and falls back: ${upd}`);
 
-  // seeds differ
   const a = await coverage(p, 'dunes', { settings: { seed: 1 } }); const b = await coverage(p, 'dunes', { settings: { seed: 2 } });
   check(Buffer.compare(Buffer.from(a.png), Buffer.from(b.png)) !== 0, 'different seeds give different images');
 
-  // WebGL1 path
   const w1 = await coverage(p, 'granite', { renderer: { forceWebGL1: true } });
   check(w1.status === 'webgl1' && w1.coverage > 0.02, `webgl1 fallback renders: ${w1.status}`);
 
-  // context loss shows paper, restore resumes
   const lost = await p.evaluate(async () => {
     const ext = window.t.canvas.getContext('webgl')?.getExtension('WEBGL_lose_context') ?? null;
     const t = window.t; const gl = t.canvas.getContext(t.status === 'webgl1' ? 'webgl' : 'webgl2');
@@ -90,7 +81,6 @@ try {
   });
   check(lost.during === 'lost' && lost.after.startsWith('webgl'), `context lost -> ${lost.during} (bg ${lost.bg}) -> ${lost.after}`);
 
-  // reduced motion: no animation frames
   const rm = await page({ reducedMotion: 'reduce' });
   const still = await rm.evaluate(async () => {
     const t = window.topographyLib.createTopography(document.getElementById('host'), {});
@@ -99,7 +89,6 @@ try {
   });
   check(still.frames === 0 && still.status === 'webgl2', `reduced motion renders a still frame (${still.frames} rAF calls)`);
 
-  // <topography-bg>: attributes, css variable ink, live attribute changes, removal cleans up
   const ep = await browser.newPage({ viewport: { width: 900, height: 560 } });
   await ep.goto(url.replace('smoke.html', 'element.html'));
   await ep.waitForFunction(() => window.ready);
@@ -114,7 +103,6 @@ try {
   check(el.a === 'webgl2,dunes,24,3,0.5' && el.b === 'granite,12,0.7' && el.c === 30 && el.d === 'destroyed',
     `<topography-bg> attributes: ${el.a} | ${el.b} | reset ${el.c} | removed ${el.d}`);
 
-  // no WebGL at all -> paper colour
   const nogl = await page();
   const fb = await nogl.evaluate(() => {
     HTMLCanvasElement.prototype.getContext = ((orig) => function (type, ...rest) { return type.startsWith('webgl') ? null : orig.call(this, type, ...rest); })(HTMLCanvasElement.prototype.getContext);

@@ -1,6 +1,4 @@
 'use client';
-// React bindings for topography. The canvas is created in an effect, so server rendering
-// outputs a plain empty <div> and hydration never touches WebGL.
 import { forwardRef, useEffect, useRef, useState, type HTMLAttributes, type MutableRefObject } from 'react';
 import { createTopography, type RendererOptions, type SettingsInput, type Topography as TopographyInstance } from 'topography.js';
 
@@ -38,11 +36,9 @@ export function useTopography<T extends HTMLElement = HTMLDivElement>(
     const t = createTopography(ref.current, { ...rest, style: styleName }, options);
     ref.topography = t;
     return () => { t.destroy(); ref.topography = null; };
-    // Recreated only when renderer options change; settings flow through update() below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ref, optionsKey]);
 
-  // One effect per setter: each group only updates when its own values change.
   const { styleName, seed, lines, terrain, motion, layout, theme } = settings;
   useEffect(() => { if (styleName !== undefined) ref.topography?.update({ style: styleName }); }, [ref, styleName]);
   useEffect(() => { if (seed !== undefined) ref.topography?.update({ seed }); }, [ref, seed]);

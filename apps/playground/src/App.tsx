@@ -30,7 +30,6 @@ export function App() {
   const applyPreset = (i: number) => setSettings((s) => ({ ...resolveSettings(PRESETS[i].settings), seed: s.seed, theme: s.theme }));
   const mode = resolveMode(settings.theme.mode, prefersDark);
   useEffect(() => { document.documentElement.dataset.theme = mode; }, [mode]);
-  // agents drive the same state through WebMCP tools (see webmcp.ts)
   const latest = useRef(settings);
   latest.current = settings;
   useEffect(() => registerTools({ getSettings: () => latest.current, setSettings, instance: () => instance.current }), []);

@@ -1,5 +1,3 @@
-// Install and usage text shared by the page, the markdown docs, llms.txt and the WebMCP tools.
-
 export const PACKAGE = 'topography.js';
 export const REACT_PACKAGE = 'topography-react';
 

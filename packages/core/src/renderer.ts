@@ -64,7 +64,6 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
   const reducedMotion = view.matchMedia?.('(prefers-reduced-motion: reduce)');
   const darkScheme = view.matchMedia?.('(prefers-color-scheme: dark)');
 
-  // ---- theme ----
   const probe = doc.createElement('canvas').getContext('2d');
   const computeColor = (css: string): string | null => {
     if (!probe) return null;
@@ -76,11 +75,9 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
   const refreshTheme = () => {
     const cs = view.getComputedStyle(el);
     theme = resolveTheme(settings.theme, { cssVar: (n) => cs.getPropertyValue(n), computeColor, prefersDark: !!darkScheme?.matches });
-    // The paper colour doubles as the fallback when WebGL is missing or the context is lost.
     canvas.style.background = rgbaToCss(theme.paper);
   };
 
-  // ---- GL setup ----
   function compile(type: number, src: string): WebGLShader | null {
     const sh = gl!.createShader(type)!;
     gl!.shaderSource(sh, src);
@@ -126,7 +123,6 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
     return true;
   }
 
-  // ---- uniforms: only changed values reach the GPU ----
   function set(name: string, value: number | ArrayLike<number>): void {
     if (!gl || !program) return;
     const key = typeof value === 'number' ? String(value) : Array.prototype.join.call(value, ',');
@@ -153,7 +149,6 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
     set('uPaper', theme.paper);
   }
 
-  // ---- size and pixel budget ----
   let cssW = 0, cssH = 0;
   function resize(): void {
     const rect = el.getBoundingClientRect();
@@ -164,12 +159,10 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
     if (budget < 1) ratio *= budget;
     canvas.width = Math.max(1, Math.round(cssW * ratio));
     canvas.height = Math.max(1, Math.round(cssH * ratio));
-    // the text column is ~600px wide; on narrow screens it fills the width, so the fade backs off
     col = Math.min(300, cssW / 2) / cssH;
     draw();
   }
 
-  // ---- drawing and the loop ----
   function draw(w = canvas.width, h = canvas.height): void {
     if (!gl || !program || status === 'lost' || status === 'destroyed') return;
     gl.viewport(0, 0, w, h);
@@ -197,7 +190,6 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
   }
   const restart = () => { schedule(); draw(); };
 
-  // ---- observers and listeners ----
   const resizeObserver = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => resize()) : null;
   const intersection = typeof IntersectionObserver !== 'undefined'
     ? new IntersectionObserver(([entry]) => { inView = entry?.isIntersecting ?? true; schedule(); }) : null;
