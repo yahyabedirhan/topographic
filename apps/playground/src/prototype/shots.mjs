@@ -1,0 +1,34 @@
+// PROTOTYPE screenshot helper. Run the dev server first (npm run prototype), then:
+// node apps/playground/src/prototype/shots.mjs [baseUrl] [outDir] [variants]
+import { chromium } from 'playwright-core';
+import { mkdir } from 'node:fs/promises';
+
+const base = process.argv[2] ?? 'http://localhost:5199/';
+const out = process.argv[3] ?? 'docs/prototypes';
+const only = (process.argv[4] ?? 'ABCDE').split('');
+await mkdir(out, { recursive: true });
+
+const INTERACT = {
+  A: async (p) => { await p.click('text=Tune'); await p.waitForTimeout(300); },
+  B: async (p) => { await p.keyboard.press('Control+k'); await p.waitForTimeout(200); await p.keyboard.type('du'); await p.waitForTimeout(600); },
+  C: async (p) => { await p.click('.c-card.on .c-adjust'); await p.waitForTimeout(300); },
+  D: async (p) => { await p.click('.d-ink .pt-dot'); await p.waitForTimeout(300); },
+  E: async (p) => { await p.click('.e-tile >> nth=4'); await p.waitForTimeout(1200); },
+};
+
+const args = ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'];
+const browser = await chromium.launch({ executablePath: process.env.CHROME ?? '/usr/bin/google-chrome', args });
+const config = encodeURIComponent(JSON.stringify({ style: 'gentle-summit', lines: { count: 36 }, theme: { mode: 'dark' } }));
+for (const v of only) {
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, colorScheme: 'dark' });
+  page.on('pageerror', (e) => console.log(v, 'pageerror', e.message));
+  await page.goto(`${base}?variant=${v}&config=${config}`);
+  await page.waitForSelector('canvas');
+  await page.waitForTimeout(3500);
+  await page.screenshot({ path: `${out}/${v}-idle.png` });
+  await INTERACT[v](page);
+  await page.screenshot({ path: `${out}/${v}-open.png` });
+  await page.close();
+  console.log('shot', v);
+}
+await browser.close();
