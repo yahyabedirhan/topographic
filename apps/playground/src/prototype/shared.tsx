@@ -176,7 +176,7 @@ export function ColorPicker({ value, onChange, swatches }: { value: string; onCh
 }
 
 /** A round swatch that opens the picker in a popover. */
-export function ColorField({ pg, which, align = 'up' }: { pg: Playground; which: 'ink' | 'paper'; align?: 'up' | 'down' | 'right' }) {
+export function ColorField({ pg, which, align = 'up' }: { pg: Playground; which: 'ink' | 'paper'; align?: 'up' | 'down' | 'right' | 'left' }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {

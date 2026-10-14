@@ -6,12 +6,14 @@ import { usePlayground } from './shared';
 import { VariantA } from './VariantA';
 import { VariantB } from './VariantB';
 import { VariantC } from './VariantC';
+import { VariantD } from './VariantD';
 import './prototype.css';
 
 const VARIANTS = [
   { key: 'A', name: 'Glass dock', C: VariantA },
   { key: 'B', name: 'Command palette', C: VariantB },
   { key: 'C', name: 'Filmstrip', C: VariantC },
+  { key: 'D', name: 'Inspector card', C: VariantD },
 ];
 
 export function Prototype() {
