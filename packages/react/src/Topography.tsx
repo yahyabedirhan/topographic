@@ -20,6 +20,13 @@ export interface TopographyRef<T extends HTMLElement = HTMLDivElement> extends M
 
 const key = (v: unknown) => (v === undefined ? '' : JSON.stringify(v));
 
+function useByValue<T>(value: T): T {
+  const [kept, setKept] = useState(value);
+  if (key(kept) === key(value)) return kept;
+  setKept(value);
+  return value;
+}
+
 /** Attaches a topography to the element you put the returned ref on. */
 export function useTopography<T extends HTMLElement = HTMLDivElement>(
   settings: TopographySettingsProps = {},
@@ -28,25 +35,29 @@ export function useTopography<T extends HTMLElement = HTMLDivElement>(
   const [ref] = useState<TopographyRef<T>>(() => ({ current: null, topography: null }));
   const latest = useRef(settings);
   latest.current = settings;
-  const optionsKey = key(options);
+  const stableOptions = useByValue(options);
 
   useEffect(() => {
     if (!ref.current) return;
     const { styleName, ...rest } = latest.current;
-    const t = createTopography(ref.current, { ...rest, style: styleName }, options);
+    const t = createTopography(ref.current, { ...rest, style: styleName }, stableOptions);
     ref.topography = t;
     return () => { t.destroy(); ref.topography = null; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ref, optionsKey]);
+  }, [ref, stableOptions]);
 
-  const { styleName, seed, lines, terrain, motion, layout, theme } = settings;
+  const { styleName, seed } = settings;
+  const lines = useByValue(settings.lines);
+  const terrain = useByValue(settings.terrain);
+  const motion = useByValue(settings.motion);
+  const layout = useByValue(settings.layout);
+  const theme = useByValue(settings.theme);
   useEffect(() => { if (styleName !== undefined) ref.topography?.update({ style: styleName }); }, [ref, styleName]);
   useEffect(() => { if (seed !== undefined) ref.topography?.update({ seed }); }, [ref, seed]);
-  useEffect(() => { if (lines) ref.topography?.update({ lines }); }, [ref, key(lines)]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { if (terrain) ref.topography?.update({ terrain }); }, [ref, key(terrain)]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { if (motion) ref.topography?.update({ motion }); }, [ref, key(motion)]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { if (layout) ref.topography?.update({ layout }); }, [ref, key(layout)]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { if (theme) ref.topography?.update({ theme }); }, [ref, key(theme)]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (lines) ref.topography?.update({ lines }); }, [ref, lines]);
+  useEffect(() => { if (terrain) ref.topography?.update({ terrain }); }, [ref, terrain]);
+  useEffect(() => { if (motion) ref.topography?.update({ motion }); }, [ref, motion]);
+  useEffect(() => { if (layout) ref.topography?.update({ layout }); }, [ref, layout]);
+  useEffect(() => { if (theme) ref.topography?.update({ theme }); }, [ref, theme]);
 
   return ref;
 }
@@ -65,12 +76,13 @@ export const Topography = forwardRef<HTMLDivElement, TopographyProps>(function T
   forwarded,
 ) {
   const ref = useTopography<HTMLDivElement>({ styleName, seed, lines, terrain, motion, layout, theme }, options);
+  const stableOptions = useByValue(options);
   const ready = useRef(onReady);
   ready.current = onReady;
   useEffect(() => {
     ready.current?.(ref.topography);
     return () => ready.current?.(null);
-  }, [ref, key(options)]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [ref, stableOptions]);
 
   return (
     <div

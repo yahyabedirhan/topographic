@@ -35,6 +35,7 @@ export interface Topography {
 
 type GL = WebGLRenderingContext | WebGL2RenderingContext;
 const DEFAULTS: Required<Omit<RendererOptions, 'forceWebGL1'>> = { maxPixelRatio: 2, maxPixels: 1920 * 1080 * 2 };
+const TEXT_COLUMN_HALF_WIDTH_PX = 300;
 const QUAD = new Float32Array([-1, -1, 3, -1, -1, 3]);
 
 export function createTopography(el: HTMLElement, input: SettingsInput = {}, options: RendererOptions = {}): Topography {
@@ -159,7 +160,7 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
     if (budget < 1) ratio *= budget;
     canvas.width = Math.max(1, Math.round(cssW * ratio));
     canvas.height = Math.max(1, Math.round(cssH * ratio));
-    col = Math.min(300, cssW / 2) / cssH;
+    col = Math.min(TEXT_COLUMN_HALF_WIDTH_PX, cssW / 2) / cssH;
     draw();
   }
 
