@@ -7,6 +7,7 @@ import { VariantA } from './VariantA';
 import { VariantB } from './VariantB';
 import { VariantC } from './VariantC';
 import { VariantD } from './VariantD';
+import { VariantE } from './VariantE';
 import './prototype.css';
 
 const VARIANTS = [
@@ -14,6 +15,7 @@ const VARIANTS = [
   { key: 'B', name: 'Command palette', C: VariantB },
   { key: 'C', name: 'Filmstrip', C: VariantC },
   { key: 'D', name: 'Inspector card', C: VariantD },
+  { key: 'E', name: 'Gallery first', C: VariantE },
 ];
 
 export function Prototype() {

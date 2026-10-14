@@ -13,7 +13,7 @@ const INTERACT = {
   B: async (p) => { await p.keyboard.press('Control+k'); await p.waitForTimeout(1500); await p.keyboard.press('ArrowDown'); },
   C: async (p) => { await p.click('.c-card.on .c-adjust'); await p.waitForTimeout(300); },
   D: async (p) => { await p.mouse.move(1300, 90); await p.mouse.down(); await p.mouse.move(700, 160, { steps: 8 }); await p.mouse.move(300, 140, { steps: 8 }); await p.mouse.up(); await p.waitForTimeout(700); await p.click('.d-ink .pt-dot'); await p.waitForTimeout(300); },
-  E: async (p) => { await p.click('.e-tile >> nth=4'); await p.waitForTimeout(1200); },
+  E: async (p) => { await p.click('.e-tile >> nth=6'); await p.waitForTimeout(1200); await p.click('.e-rail >> text=Colour'); await p.waitForTimeout(400); },
 };
 
 const args = ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'];
@@ -24,7 +24,7 @@ for (const v of only) {
   page.on('pageerror', (e) => console.log(v, 'pageerror', e.message));
   await page.goto(`${base}?variant=${v}&config=${config}`);
   await page.waitForSelector('canvas');
-  await page.waitForTimeout(3500);
+  await page.waitForTimeout(6000);
   await page.screenshot({ path: `${out}/${v}-idle.png` });
   await INTERACT[v](page);
   await page.screenshot({ path: `${out}/${v}-open.png` });
