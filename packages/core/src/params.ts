@@ -38,9 +38,10 @@ export const PARAMS = [
     min: 0, max: 1, step: 0.01, default: 0.5, attr: 'spread', short: 'sp', slot: 8 },
   { group: 'terrain', key: 'roughness', label: 'Roughness', description: 'Noise added to the slopes, from smooth hills to rocky ground.',
     min: 0, max: 1, step: 0.01, default: 0, attr: 'roughness', short: 'rg', slot: 9 },
-  { group: 'terrain', key: 'sharpness', label: 'Sharpness', description: 'Below 0.5 summits flatten; above 0.5 they steepen.',
+  { group: 'terrain', key: 'sharpness', label: 'Sharpness', description: 'Below 0.5 summits flatten; above 0.5 they sharpen into peaks.',
     min: 0, max: 1, step: 0.01, default: 0.5, attr: 'sharpness', short: 'sh', slot: 10,
-    toUniform: (v: number) => (v < 0.5 ? 0.4 + v * 1.2 : 1 + (v - 0.5) * 3) },
+    // The shader raises the distance from the summit to this power: above 1 widens the top, below 1 pinches it into a peak.
+    toUniform: (v: number) => (v < 0.5 ? 1 + (0.5 - v) * 3 : 1 - (v - 0.5) * 1.2) },
   { group: 'terrain', key: 'terracing', label: 'Terracing', description: 'Groups lines into stepped bands.',
     min: 0, max: 1, step: 0.01, default: 0, attr: 'terracing', short: 'tr', slot: 12 },
   { group: 'terrain', key: 'variant', label: 'Variant', description: 'A style-specific shape knob (for drifting lobes: three lobes to four).',

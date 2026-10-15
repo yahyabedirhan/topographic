@@ -46,8 +46,9 @@ The call puts a canvas inside `element`, which fills it, so give the element a s
 | `snapshot({ frame?, width?, height?, region?, motion? })` | Renders one PNG off-screen and resolves to a `Blob`. See [Snapshots](#snapshots-and-png-export). |
 | `record({ seconds?, fps?, width?, height?, frame?, format?, motion? })` | Renders a 3D clip with a moving camera and resolves to an MP4 or WebM `Blob`. |
 | `setHeightfield({ samples, size, aspect } \| null)` | Draws the contours from your own square elevation grid instead of the style's terrain: `samples` is a `Float32Array` of `size × size` values from 0 (low) to 1 (high), row 0 at the south, and `aspect` is the place's width over its height. `null` brings the procedural style back. |
+| `setInsets({ top, right, bottom, left } \| null)` | The space your page's UI covers on each side of the view, in CSS pixels, such as a toolbar or a dock. The 3D picture slides so the terrain centres in the part left free: a lens shift, not a camera move, so orbiting still turns around the terrain. 2D is not moved, and snapshots and clips ignore it (see [Snapshots](#snapshots-and-png-export)). `null` clears it; `insets` reads it back. |
 | `stats` | `{ fps, frameMs, mesh }` for the 3D view. `mesh` is 0 in 2D. |
-| `pose` | `{ azimuth, elevation, radius }`: where the 3D camera is now, along its motion path. Azimuth 0 looks from the south with north at the top of the screen, and the angle grows clockwise as seen from above, so north turns towards the right of the screen. |
+| `pose` | `{ azimuth, elevation, radius, panX, panZ }`: where the 3D camera is now, along its motion path. Azimuth 0 looks from the south with north at the top of the screen, and the angle grows clockwise as seen from above, so north turns towards the right of the screen. |
 | `destroy()` | Stops drawing, removes listeners and the canvas, and frees the WebGL context. |
 | `settings` | The current, fully resolved settings. |
 | `status` | `'webgl2'`, `'webgl1'`, `'fallback'`, `'lost'` or `'destroyed'`. |
@@ -135,7 +136,7 @@ Values outside a range are clamped, whole-number settings are rounded, and anyth
 | `terrain.peaks` | `peaks` | 1–6, whole | 1 | Number of summits merged into the terrain. |
 | `terrain.spread` | `spread` | 0–1 | 0.5 | How far extra peaks sit from the main summit. |
 | `terrain.roughness` | `roughness` | 0–1 | 0 | Noise added to the slopes, from smooth hills to rocky ground. |
-| `terrain.sharpness` | `sharpness` | 0–1 | 0.5 | Below 0.5 summits flatten; above 0.5 they steepen. |
+| `terrain.sharpness` | `sharpness` | 0–1 | 0.5 | Below 0.5 summits flatten; above 0.5 they sharpen into peaks. |
 | `terrain.terracing` | `terracing` | 0–1 | 0 | Groups lines into stepped bands. |
 | `terrain.variant` | `variant` | 0–1 | 0.5 | A style-specific shape knob (for drifting lobes: three lobes to four). |
 
@@ -168,6 +169,7 @@ Values outside a range are clamped, whole-number settings are rounded, and anyth
 | `camera.elevation` | `camera-elevation` | 2–80 | 34 | Degrees above the horizon. The camera never goes below the terrain. |
 | `camera.radius` | `radius` | 1.15–6.5 | 2.45 | Distance from the terrain centre. |
 | `camera.motion` | `camera-motion` | `still`, `orbit`, `push`, `flyover`, `drone` | `still` | A moving camera. `motion.speed` still morphs the terrain itself. |
+| `camera.panX`, `camera.panZ` | `pan-x`, `pan-z` | −6–6 | 0 | Where the camera looks, moved from the terrain centre across the ground: east and south, in terrain units. The camera and every motion path turn around this point. It is kept over the terrain, so some of it is always in view. |
 
 ```js
 createTopographicBackground(el, {
@@ -224,11 +226,11 @@ Presets are named starting points: a style plus a few settings. They're exported
 - **Five petals**: `{"style":"five-petals"}`
 - **Seed pod**: `{"style":"seed-pod","motion":{"speed":0.7}}`
 - **Gentle summit**: `{"style":"gentle-summit","lines":{"count":26}}`
-- **Long ridge**: `{"style":"long-ridge","terrain":{"sharpness":0.6}}`
+- **Long ridge**: `{"style":"long-ridge","terrain":{"sharpness":0.4}}`
 - **Dunes**: `{"style":"dunes","motion":{"sparkle":0.3}}`
 - **Survey map**: `{"style":"gentle-summit","lines":{"count":44,"indexEvery":5,"opacity":0.55},"terrain":{"peaks":3,"spread":0.6,"roughness":0.2},"motion":{"speed":0.4,"sparkle":0}}`
 - **Terraces**: `{"style":"gentle-summit","terrain":{"terracing":0.8,"peaks":2},"motion":{"sparkle":0.2}}`
-- **Rocky**: `{"style":"long-ridge","terrain":{"roughness":0.55,"sharpness":0.7},"lines":{"count":36}}`
+- **Rocky**: `{"style":"long-ridge","terrain":{"roughness":0.55,"sharpness":0.3},"lines":{"count":36}}`
 
 ```js
 import { PRESETS, createTopographicBackground } from 'topographic';
@@ -267,6 +269,7 @@ const blob = await topographic.snapshot({ width: 1920, height: 1080, frame: 4000
 - `frame` is the animation time in milliseconds, so the same settings and frame always give the same image.
 - `region` keeps only part of the view: `{ x, y, width, height }` in fractions from the top-left corner. The whole view is drawn at the size that makes the region `width` × `height` pixels, so the image is exactly that slice of the screen, for example a phone-shaped strip of a wide window.
 - `motion` draws the 3D view along a camera path (`'orbit'`, `'push'` and so on) at its pose for `frame`, the same picture as that moment of `record`.
+- It centres the terrain in its own frame and ignores `setInsets`: an image has no toolbar to leave room for. A `region` is a slice of that centred frame. `record` does the same.
 - The size limit is the GPU's maximum renderbuffer size, usually 8192 or 16384 pixels. With a `region`, it applies to the whole view drawn behind it.
 - Without WebGL it rejects.
 
@@ -304,8 +307,8 @@ The playground (`apps/playground`) is the project's live page:
 
 - The page background is the preview. The dock at the bottom holds your saved map terrains, then the built-in looks as thumbnails, then light/dark, **Shuffle**, and the paper and ink colours. Every dock item is a whole terrain: a click switches the shape and the colours together.
 - The buttons at the top right are **Map**, 2D/3D, **Tune** and **Export**. Each opens its panel under them, one at a time. The 2D/3D button carries a small badge with the current mode.
-- **Tune** opens the sliders, one tab at a time: Lines, Terrain, Motion, Layout and 3D. Line width reads in pixels (0.5 to 4 px). The 3D tab holds the scene (extent and elevation), the camera (motion, azimuth, angle and distance) and the detail level. In 3D, the frame rate shows just above the dock, on its left edge. While a map place is applied, the Terrain sliders and Motion's Warp are dimmed: the place sets the shape. A note with **Clear map** sits above them.
-- **Export** gives you a link, a PNG (2× the window, a phone size or 1920 × 1080), a 4 second 3D clip as MP4 or WebM, and the code as React, HTML or JSON.
+- **Tune** opens the settings, one tab at a time: Lines, Terrain, Motion, Layout and 3D. Each tab starts with a small live picture of its settings: the contour rings, the terrain's profile, the flow, the page layout, or the camera from above and from the side (it follows a moving camera a few times a second). Every row has a glyph, and each slider's track draws what the setting does, such as thicker lines, rougher ground or wider waves. Choices are glyph buttons; the chosen one shows its name. Line width reads in pixels (0.5 to 4 px). The 3D tab holds the scene (extent and elevation), the camera (motion, azimuth, angle and distance) and the detail level. In 3D, the frame rate shows just above the dock, on its left edge. While a map place is applied, the Terrain sliders and Motion's Warp are dimmed: the place sets the shape. A note with **Clear map** sits above them.
+- **Export** gives you a link, a PNG, a 4 second 3D clip as MP4 or WebM, and the code as React, HTML or JSON. The link tab lists the link's parameters as key and value chips. The PNG tab shows the view with a frame for each size: 2× the window, a phone (1170 × 2532) or 1920 × 1080. A size with another shape than the window crops the view: drag its frame, or use the arrow keys, to choose the slice, such as which part of a wide view goes on a phone. The frame starts centred each time Export opens, and the image is exactly that slice of the screen at full detail. The Video tab previews the clip: drag the timeline to see any moment of the chosen camera path, with the path drawn from above. The code tabs number their lines and tint the values that come from your settings.
 - **Map** opens a map with a frame. Pan and zoom, drag the frame's corners and edges, or pick Istanbul, San Francisco, London, New York or Cyprus from the badge, then press **Apply**: the real elevation inside the frame becomes the terrain. Apply switches to 3D and sets the map terrain view: 36 lines at 0.5 px and 0.9 opacity, every fourth an index line, a block at elevation 0.12, and a closer camera. Cyprus brings its own look instead: dark blue paper, light blue ink, 37 lines, elevation 0.06 and a camera from almost straight above. It also saves the terrain at the front of the dock, as the place's name or as Area. While a saved item is active, your edits to it are kept, camera moves included: a click on it brings back the view you left it in. A built-in look keeps no edits: a click on it always brings back its own camera, and a plain style uses the playground camera. **Clear** goes back to the generated terrain and to the lines, camera, extent and elevation you had before, and after Cyprus to your style and colours too. While a map terrain is active, a minimap above the right end of the dock shows the area you framed. In 3D it turns with the camera, so it always matches the terrain on screen, and its compass points north; click the compass to turn the camera back to north up (azimuth 0), or click the minimap to open the map. In 2D the map is already north up, so the minimap stands still. The map loads only when you open it. It needs a network connection.
 - The URL holds the settings as short keys, so a link reproduces the background. It writes only what differs from the style's defaults or from a named look: `?s=dunes&lc=24`, `?look=night-lobes&mode=3d`. Colours go without `#` (`ink=9fb0cc`), and 3D is endless from the playground camera (azimuth 349.7, angle 33.6, distance 1.92) unless the URL says otherwise. `?place=istanbul` or `?region=west,south,east,north` opens a real place.
 - It serves `/llms.txt`, `/llms-full.txt` and `/docs/*.md`, generated from the code's own settings table.
@@ -322,7 +325,7 @@ In browsers that support [WebMCP](https://github.com/webmachinelearning/webmcp),
 | `get_settings` | The current settings and the minimal config JSON. |
 | `set_settings` | Applies a partial settings object, and reports any clamped values or ignored keys. |
 | `randomize` | A new random seed; with `{ "style": true }`, a random style too. |
-| `take_screenshot` | A PNG of the background as a data URL (1200 px wide by default). |
+| `take_screenshot` | A PNG of the background as a data URL (1200 px wide by default). An optional `region` (`{ x, y, width, height }`, fractions of the view) keeps only that slice. |
 | `record_video` | A short 3D clip of the current terrain with a moving camera, as an MP4 or WebM data URL (a 2 second orbit at 640×360 by default). |
 | `get_embed_code` | Code for `html`, `react`, `vanilla` or `json`. |
 | `get_install_instructions` | Setup for `npm`, `web-component`, `react` or `vanilla`. |
