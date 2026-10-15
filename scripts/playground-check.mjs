@@ -146,19 +146,51 @@ try {
   const apply = place.locator('button.pt-apply');
   const clearBtn = place.getByRole('button', { name: 'Clear', exact: true });
   const pinDot = () => p.locator('.pt-cluster .pt-ibtn.has-dot').count();
-  await p.waitForFunction(() => /km × [\d.]+ km/.test(document.querySelector('.pt-map-span')?.textContent ?? ''), null, { timeout: 30000 });
+  await p.waitForFunction(() => /[\d.] × [\d.]+ km/.test(document.querySelector('.pt-map-span')?.textContent ?? ''), null, { timeout: 30000 });
   check(await apply.isEnabled() && await apply.innerText() === 'Apply' && await pinDot() === 0 && await clearBtn.count() === 0, 'with no place, a valid frame can be applied and Clear is hidden');
-  const credit = await place.locator('.maplibregl-ctrl-attrib-inner').textContent();
-  check(/Mapzen Terrain Tiles/.test(credit) && /OpenStreetMap/.test(credit) && !/Mapzen/.test(await place.innerText()), `the map's attribution control carries the elevation credit (${credit})`);
-  const cities = place.getByRole('group', { name: 'City' });
-  check(await cities.evaluate((el) => el.classList.contains('pt-seg')) && (await cities.getByRole('button').allInnerTexts()).join() === 'Istanbul,San Francisco,London,New York', 'cities are a segmented control');
+  const credit = await place.locator('.pt-credit-text').textContent();
+  check(/Mapzen Terrain Tiles/.test(credit) && /OpenStreetMap/.test(credit) && !(await place.locator('.pt-credit-text').isVisible()), `the folded © credit carries the elevation credit (${credit})`);
+  await place.getByRole('button', { name: 'Map credits' }).click();
+  check(await place.locator('.pt-credit-text').isVisible(), 'the © opens the credit');
+  await place.getByRole('button', { name: 'Map credits' }).click();
+  const badge = place.locator('.pt-map-badge');
+  const badgeText = () => badge.innerText().then((t) => t.replace(/\s+/g, ' ').trim());
+  const status = () => place.locator('.pt-place-foot .pt-status').innerText().then((t) => t.replace(/\s+/g, ' ').trim());
+  check(/^Istanbul [\d.]+ × [\d.]+ km$/.test(await badgeText()) && /^Generated terrain/.test(await status()), `the badge names the framed city and the footer the terrain (${await badgeText()} | ${await status()})`);
+  await badge.click(); await p.getByRole('menuitem').first().waitFor();
+  const items = (await p.getByRole('menuitem').allInnerTexts()).map((t) => t.split('\n')[0]);
+  check(items.join() === 'Istanbul,San Francisco,London,New York', `the badge opens the city menu (${items.join()})`);
+  await p.keyboard.press('Escape'); await settle(p);
+  check(await place.isVisible(), 'closing the city menu keeps the Map popover open');
   check(await apply.evaluate((el) => el.classList.contains('pt-action')) && await place.getByRole('button', { name: 'Generated' }).count() === 0, 'Apply is an action button and Generated is gone');
   await apply.click(); await settle(p, 600);
   c = await cfg(p);
   check(sameView(viewOf(p), MAP_VIEW) && c.elevation === 0.12 && c.camera?.azimuth === 341.8 && c.camera?.elevation === 39.3 && c.camera?.radius === 1.32 && c.lines?.width === 0
     && await p.locator('.pt-stage.is-3d').count() === 1, `Apply sets the map terrain view and 3D (?${q(p)})`);
-  check(!(await apply.isEnabled()) && await apply.innerText() !== 'Apply' && await pinDot() === 1 && q(p).get('region') !== null && await clearBtn.isVisible(), 'Apply shows Applied, Clear and the Map dot');
-  check(await savedCount() === 1 && await dockNav.locator('.pt-thumb').first().getAttribute('aria-label') === 'Map 1 map', 'Apply saves the terrain first in the dock');
+  await p.waitForFunction(() => document.documentElement.dataset.region === 'ready', null, { timeout: 60000 }).catch(() => {});
+  check(!(await apply.isEnabled()) && /Applied/.test(await apply.innerText()) && await pinDot() === 1 && q(p).get('region') === null && q(p).get('place') === 'istanbul' && await clearBtn.isVisible()
+    && /^Istanbul Applied · 101 × 64 km$/.test(await status()), `Apply shows Applied, Clear, the status and the Map dot (${await status()})`);
+  check(await savedCount() === 1 && await dockNav.locator('.pt-thumb').first().getAttribute('aria-label') === 'Istanbul map', 'Apply saves the terrain first in the dock');
+  // Resizing: a corner drag changes the readout and the name; Apply uses the new box.
+  const handle = async (h) => { const bb = await place.locator(`.pt-frame-handle.is-${h}`).boundingBox(); return { x: bb.x + bb.width / 2, y: bb.y + bb.height / 2 }; };
+  const sizeOf = async () => { const m = (await badgeText()).match(/([\d.]+) × ([\d.]+) km/); return m ? [Number(m[1]), Number(m[2])] : null; };
+  let at = await handle('se');
+  await p.mouse.move(at.x, at.y); await p.mouse.down(); await p.mouse.move(at.x - 120, at.y - 40, { steps: 8 }); await p.mouse.up(); await settle(p, 300);
+  const resized = await sizeOf();
+  check(resized && resized[0] < 101 && /^Area /.test(await badgeText()) && await apply.isEnabled() && /^Area Istanbul applied now$/.test(await status()), `a corner drag resizes the frame (${await badgeText()} | ${await status()})`);
+  await apply.click(); await settle(p, 600);
+  const applied2 = q(p).get('region')?.split(',').map(Number);
+  check(applied2 && q(p).get('place') === null && await savedCount() === 2 && await dockNav.locator('.pt-thumb').first().getAttribute('aria-label') === 'Area map'
+    && Math.abs((applied2[2] - applied2[0]) * 111.32 * Math.cos(((applied2[1] + applied2[3]) / 2) * Math.PI / 180) - resized[0]) < 1.5, `Apply uses the resized box and saves it as Area (?region=${applied2})`);
+  // Clamp: pulling the right edge far out and the top edge down stops at 3:1.
+  at = await handle('e'); await p.mouse.move(at.x, at.y); await p.mouse.down(); await p.mouse.move(at.x + 400, at.y, { steps: 6 }); await p.mouse.up();
+  at = await handle('n'); await p.mouse.move(at.x, at.y); await p.mouse.down(); await p.mouse.move(at.x, at.y + 400, { steps: 10 }); await p.mouse.up(); await settle(p, 300);
+  const thin = await sizeOf();
+  check(thin && thin[0] / thin[1] <= 3.05 && thin[0] / thin[1] > 2.5 && await apply.isEnabled(), `resizing stops at 3:1 (${thin?.join(' × ')} km)`);
+  // Panning the map moves the area under the frame.
+  const box = await place.locator('.pt-map-host').boundingBox();
+  await p.mouse.move(box.x + box.width / 2, box.y + 30); await p.mouse.down(); await p.mouse.move(box.x + box.width / 2 + 60, box.y + 50, { steps: 8 }); await p.mouse.up(); await settle(p, 400);
+  check(await apply.isEnabled() && /^Area /.test(await badgeText()), 'panning the map keeps Apply ready for the new area');
   await p.keyboard.press('Escape'); await settle(p);
 
   // Tune dims what the heightfield replaces: every Terrain row and Motion's warp.
@@ -186,20 +218,23 @@ try {
   // A city: the segment moves the frame only; Apply saves it under its name.
   await p.getByRole('button', { name: 'Map', exact: true }).click(); await settle(p, 600);
   const placeSearch = q(p).toString();
-  await cities.getByRole('button', { name: 'London' }).click(); await settle(p, 900);
-  check(await apply.isEnabled() && q(p).toString() === placeSearch, `a city moves the map only (${await place.locator('.pt-map-span').innerText()})`);
+  await badge.click(); await p.getByRole('menuitem', { name: /^London/ }).click(); await settle(p, 1200);
+  check(await apply.isEnabled() && q(p).toString() === placeSearch && /^London 80 × 51 km$/.test(await badgeText()), `a city from the menu moves the map only (${await badgeText()})`);
   await apply.click(); await settle(p, 600);
-  check(q(p).get('place') === 'london' && await cities.getByRole('button', { name: 'London' }).getAttribute('aria-pressed') === 'true' && await savedCount() === 2
-    && await dockNav.locator('.pt-thumb').first().getAttribute('aria-label') === 'London map', `Apply on a city writes its name and saves it (?${q(p)})`);
+  await badge.click(); await p.getByRole('menuitem').first().waitFor();
+  const checked = await p.getByRole('menuitem', { name: /^London/ }).locator('svg').count();
+  await p.keyboard.press('Escape'); await settle(p);
+  check(q(p).get('place') === 'london' && checked === 1 && await savedCount() === 3
+    && await dockNav.locator('.pt-thumb').first().getAttribute('aria-label') === 'London map', `Apply on a city writes its name, checks it in the menu and saves it (?${q(p)})`);
   await clearBtn.click(); await settle(p, 400);
   check(q(p).get('place') === null && q(p).get('region') === null && await pinDot() === 0 && await clearBtn.count() === 0 && q(p).get('ev') === viewBefore.ev, 'Clear returns to the generated terrain and its elevation');
-  check(!/Too thin|Exaggerate|Smoothing|Use this place/.test(await place.innerText()), 'Map holds only the map, the cities, Clear and Apply');
+  check(!/Too thin|Exaggerate|Smoothing|Use this place/.test(await place.innerText()), 'Map holds only the map, the badge, the credit and the footer');
   await p.keyboard.press('Escape'); await settle(p);
   check(!(await place.isVisible()), 'Map closes on Escape');
 
   // Saved items: they stay after a reload, a click brings back place and colours, a look clears the place.
   await p.reload(); await p.waitForSelector('.pt-stage canvas'); await settle(p);
-  check(await savedCount() === 2, 'saved map terrains stay after a reload');
+  check(await savedCount() === 3, 'saved map terrains stay after a reload');
   await dockNav.getByRole('button', { name: 'London map' }).click(); await settle(p, 600);
   const london = await cfg(p);
   check(q(p).get('place') === 'london' && sameView(viewOf(p), MAP_VIEW) && await pinDot() === 1, `a saved item brings back its place and view (?${q(p)})`);
@@ -225,9 +260,9 @@ try {
   await dockNav.locator('.pt-saved', { has: p.getByRole('button', { name: 'London map' }) }).hover();
   if (shots) await dockNav.screenshot({ path: join(shots, 'dock-saved-hover.png') });
   await dockNav.getByRole('button', { name: 'Delete London' }).click(); await settle(p);
-  check(await savedCount() === 1 && q(p).get('place') === 'london', 'delete removes the item and keeps the view');
+  check(await savedCount() === 2 && q(p).get('place') === 'london', 'delete removes the item and keeps the view');
   await p.reload(); await p.waitForSelector('.pt-stage canvas'); await settle(p);
-  check(await savedCount() === 1 && await dockNav.getByRole('button', { name: 'London map' }).count() === 0, 'a deleted item stays gone after a reload');
+  check(await savedCount() === 2 && await dockNav.getByRole('button', { name: 'London map' }).count() === 0, 'a deleted item stays gone after a reload');
   await p.close();
 
   // Storage blocked: the page, Apply and the dock still work.
@@ -236,9 +271,9 @@ try {
   await blocked.goto(base); await blocked.waitForSelector('.pt-stage canvas');
   await blocked.getByRole('button', { name: 'Map', exact: true }).click();
   await blocked.locator('.pt-pop-wide .pt-map-host canvas').waitFor({ timeout: 30000 });
-  await blocked.waitForFunction(() => /km × [\d.]+ km/.test(document.querySelector('.pt-map-span')?.textContent ?? ''), null, { timeout: 30000 });
+  await blocked.waitForFunction(() => /[\d.] × [\d.]+ km/.test(document.querySelector('.pt-map-span')?.textContent ?? ''), null, { timeout: 30000 });
   await blocked.locator('.pt-pop-wide button.pt-apply').click(); await settle(blocked, 600);
-  check(await savedCount(blocked) === 1 && q(blocked).get('region') !== null, 'with storage blocked, Apply still works and the dock keeps the item for the session');
+  check(await savedCount(blocked) === 1 && q(blocked).get('place') === 'istanbul', 'with storage blocked, Apply still works and the dock keeps the item for the session');
   await blocked.close();
 
   // The Map frame never opens too thin, and the popover stays above the dock, at laptop and phone sizes.
@@ -248,9 +283,9 @@ try {
     await v.getByRole('button', { name: 'Map', exact: true }).click();
     const pop = v.locator('.pt-pop-wide');
     await pop.locator('.pt-map-host canvas').waitFor({ timeout: 30000 });
-    await v.waitForFunction(() => /km × [\d.]+ km|Too|rectangle/.test(document.querySelector('.pt-map-span')?.textContent ?? ''), null, { timeout: 30000 }).catch(() => {});
+    await v.waitForFunction(() => /× [\d.]+ km|Too|rectangle/.test(document.querySelector('.pt-map-span')?.textContent ?? ''), null, { timeout: 30000 }).catch(() => {});
     const text = await pop.innerText();
-    check(!text.includes('Too thin') && /\d km × [\d.]+ km/.test(text), `Map at ${width}×${height} opens with a valid frame (${(text.match(/[\d.]+ km × [\d.]+ km/) ?? ['none'])[0]})`);
+    check(!text.includes('Too thin') && /[\d.]+ × [\d.]+ km/.test(text), `Map at ${width}×${height} opens with a valid frame (${(text.match(/[\d.]+ × [\d.]+ km/) ?? ['none'])[0]})`);
     const fit = await v.evaluate(() => {
       const pop = document.querySelector('.pt-pop-wide').getBoundingClientRect();
       const dock = document.querySelector('.pt-dock').getBoundingClientRect();
