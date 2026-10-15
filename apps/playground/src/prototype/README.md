@@ -10,4 +10,6 @@ The top cluster and the bottom dock are the same glass pill. Tune is a strip: ea
 
 `shots.mjs` takes the screenshots in `docs/prototypes/`.
 
+Place, in the top cluster, frames a real region and turns it into this same terrain. See `docs/prototypes/region/`.
+
 Once a direction wins, rewrite it properly in `App.tsx` and delete this folder.
