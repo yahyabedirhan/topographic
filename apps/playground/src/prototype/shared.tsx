@@ -192,6 +192,13 @@ export function hsvToHex(h: number, s: number, v: number): string {
   const f = (n: number) => { const k = (n + h / 60) % 6; return v - v * s * Math.max(0, Math.min(k, 4 - k, 1)); };
   return '#' + [f(5), f(3), f(1)].map((x) => Math.round(x * 255).toString(16).padStart(2, '0')).join('');
 }
+
+export function rollColour(which: 'ink' | 'paper'): string {
+  const h = Math.random() * 360;
+  if (which === 'ink') return hsvToHex(h, 0.18 + Math.random() * 0.5, 0.42 + Math.random() * 0.5);
+  const light = Math.random() < 0.5;
+  return hsvToHex(h, Math.random() * 0.2, light ? 0.88 + Math.random() * 0.1 : 0.04 + Math.random() * 0.08);
+}
 const cssToHex = (css: string) => '#' + css.match(/[\d.]+/g)!.slice(0, 3).map((v) => Number(v).toString(16).padStart(2, '0')).join('');
 
 export const INK_SWATCHES = ['#9fb0cc', '#c9c2b4', '#7fa89a', '#d39a7a', '#b3a1d6', '#e8e6e1', '#5d6b82', '#2b2b2b'];
@@ -253,5 +260,11 @@ export function useCopy(): [string, (label: string, text: string) => void] {
 }
 
 export function Wordmark({ children }: { children?: ReactNode }) {
-  return <div className="pt-wordmark">topography.js{children}</div>;
+  return (
+    <div className="pt-wordmark">
+      <span>topography.js</span>
+      <a href="https://yahyapak.dev/projects/topography" target="_blank" rel="noreferrer">yahyapak.dev</a>
+      {children}
+    </div>
+  );
 }

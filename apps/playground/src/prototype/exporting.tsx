@@ -4,7 +4,7 @@ import { Popover } from '@base-ui-components/react/popover';
 import { Toggle } from '@base-ui-components/react/toggle';
 import { ToggleGroup } from '@base-ui-components/react/toggle-group';
 import { Tooltip } from '@base-ui-components/react/tooltip';
-import { Braces, CodeXml, Component, Image as ImageIcon, Link as LinkIcon, Share } from 'lucide-react';
+import { Braces, CodeXml, Component, Download, Image as ImageIcon, Link as LinkIcon, Share } from 'lucide-react';
 import { INSTALL } from '../content';
 import { embedCode } from '../embed';
 import { PNG_SIZES, downloadPng } from '../png';
@@ -61,24 +61,36 @@ function LinkBlock({ pg }: { pg: Playground }) {
       <p className="pt-hint">A URL that opens this background.</p>
       <div className="pt-linkrow">
         <code title={url}>{url}</code>
-        <CopyButton label="Copy link" text={url} copied={copied} onCopy={copy} />
+        <CopyButton label="Copy" text={url} copied={copied} onCopy={copy} />
       </div>
     </div>
   );
 }
 
 function PngBlock({ pg }: { pg: Playground }) {
-  const sizes = PNG_SIZES.filter((s) => s.id === 'screen' || s.id === 'phone' || s.id === '1080p');
+  const order = ['screen', 'phone', '1080p'] as const;
+  const sizes = order.map((id) => PNG_SIZES.find((s) => s.id === id)!);
+  const row = (id: (typeof order)[number]) => id === 'screen'
+    ? { name: 'This screen', detail: '2× this window' }
+    : id === 'phone'
+      ? { name: 'Phone', detail: '1170 × 2532' }
+      : { name: '1920 × 1080', detail: '16:9' };
   return (
     <div className="pt-export-block">
       <p className="pt-hint">A still image of this frame.</p>
       <div className="pt-pngs">
-        {sizes.map((s) => (
-          <button key={s.id} type="button" className="pt-size" onClick={() => pg.instance.current && downloadPng(pg.instance.current, s)}>
-            <b>{s.id === 'screen' ? 'This screen' : s.id === 'phone' ? 'Phone' : '1920 × 1080'}</b>
-            <small>Download PNG</small>
-          </button>
-        ))}
+        {sizes.map((s) => {
+          const { name, detail } = row(s.id);
+          return (
+            <button key={s.id} type="button" className="pt-size" onClick={() => pg.instance.current && downloadPng(pg.instance.current, s)}>
+              <span className="pt-size-copy">
+                <b>{name}</b>
+                <small>{detail}</small>
+              </span>
+              <Download size={15} strokeWidth={1.75} />
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -89,7 +101,6 @@ function CodeBlock({ pg, format }: { pg: Playground; format: 'react' | 'html' | 
   const usage = format === 'json' ? embedCode(pg.settings, 'json') : embedCode(pg.settings, format);
   const install = format === 'react' ? INSTALL.react : '';
   const text = install ? `${install}\n\n${usage}` : usage;
-  const label = format === 'react' ? 'Copy React' : format === 'html' ? 'Copy HTML' : 'Copy JSON';
   const hint = format === 'react'
     ? 'Install the packages, then place this component on the page.'
     : format === 'html'
@@ -97,10 +108,12 @@ function CodeBlock({ pg, format }: { pg: Playground; format: 'react' | 'html' | 
       : 'The settings as data.';
   return (
     <div className="pt-export-block">
-      <p className="pt-hint">{hint}</p>
+      <div className="pt-export-head">
+        <p className="pt-hint">{hint}</p>
+        <CopyButton label="Copy" text={text} copied={copied} onCopy={copy} />
+      </div>
       {install && <pre className="pt-install"><code>{install}</code></pre>}
       <pre className="pt-code" tabIndex={0}><code><Highlight code={usage} /></code></pre>
-      <CopyButton label={label} text={text} copied={copied} onCopy={copy} />
     </div>
   );
 }

@@ -8,7 +8,7 @@ import { Dices, Frame, Moon, Mountain, RotateCcw, SlidersHorizontal, Spline, Sun
 import { GROUPS, paramsIn, type GroupName, type ParamDef } from 'topography.js';
 import { LOOKS } from './looks';
 import {
-  Backdrop, ColorPicker, GROUP_LABELS, INK_SWATCHES, PAPER_SWATCHES, Wordmark, currentColour, useLookThumbs,
+  Backdrop, ColorPicker, GROUP_LABELS, INK_SWATCHES, PAPER_SWATCHES, Wordmark, currentColour, rollColour, useLookThumbs,
   type Playground,
 } from './shared';
 
@@ -103,8 +103,13 @@ export function ColorField({ pg, which }: { pg: Playground; which: 'ink' | 'pape
       </div>
       <Popover.Portal>
         <Popover.Positioner side="top" sideOffset={12} collisionPadding={12} positionMethod="fixed" className="pt-layer">
-          <Popover.Popup className="pt-pop pt-glass">
-            <Popover.Title className="pt-pop-title">{name}</Popover.Title>
+          <Popover.Popup className="pt-pop pt-glass pt-pop-color">
+            <div className="pt-color-head">
+              <Popover.Title className="pt-pop-title">{name}</Popover.Title>
+              <button type="button" className="pt-dice" aria-label={`Random ${name.toLowerCase()} colour`} onClick={() => pg.change({ theme: { [which]: rollColour(which) } })}>
+                <Dices size={15} strokeWidth={1.75} />
+              </button>
+            </div>
             <ColorPicker
               value={value}
               swatches={which === 'ink' ? INK_SWATCHES : PAPER_SWATCHES}
