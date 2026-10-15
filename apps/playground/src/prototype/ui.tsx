@@ -1,18 +1,18 @@
-import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactNode, type Ref } from 'react';
 import { Popover } from '@base-ui-components/react/popover';
 import { Slider } from '@base-ui-components/react/slider';
 import { Toggle } from '@base-ui-components/react/toggle';
 import { ToggleGroup } from '@base-ui-components/react/toggle-group';
 import { Tooltip } from '@base-ui-components/react/tooltip';
-import { Dices, Frame, GripHorizontal, Moon, Mountain, RotateCcw, Search, Share, SlidersHorizontal, Spline, Sun, Wind, X } from 'lucide-react';
-import { GROUPS, PARAMS, PRESETS, clampParam, paramsIn, type GroupName, type ParamDef } from 'topography.js';
+import { Dices, Frame, Moon, Mountain, RotateCcw, Share, SlidersHorizontal, Spline, Sun, Wind } from 'lucide-react';
+import { GROUPS, PRESETS, clampParam, paramsIn, type GroupName, type ParamDef } from 'topography.js';
 import {
   Backdrop, ColorPicker, GROUP_LABELS, INK_SWATCHES, PAPER_SWATCHES, Wordmark, currentColour, usePresetThumbs,
   type Playground,
 } from './shared';
 
-const THUMB = 104;
-const GAP = 8;
+const THUMB = 78;
+const GAP = 6;
 
 export function Tip({ children, side = 'bottom' }: { children: ReactNode; side?: 'top' | 'bottom' }) {
   return (
@@ -33,25 +33,11 @@ export function IconButton({ label, pressed, onClick, side = 'bottom', children 
 }) {
   return (
     <Tooltip.Root>
-      <Tooltip.Trigger
-        delay={180}
-        className="pt-ibtn"
-        aria-label={label}
-        aria-pressed={pressed}
-        onClick={onClick}
-      >
+      <Tooltip.Trigger delay={180} className="pt-ibtn" aria-label={label} aria-pressed={pressed} onClick={onClick}>
         {children}
       </Tooltip.Trigger>
       <Tip side={side}>{label}</Tip>
     </Tooltip.Root>
-  );
-}
-
-export function TuneButton({ pressed, onClick }: { pressed?: boolean; onClick?: () => void }) {
-  return (
-    <IconButton label="Tune" pressed={pressed} onClick={onClick}>
-      <SlidersHorizontal size={18} strokeWidth={1.75} />
-    </IconButton>
   );
 }
 
@@ -86,23 +72,28 @@ function ThemeToggle({ pg }: { pg: Playground }) {
   );
 }
 
-export function Cluster({ pg, tune, exporting }: { pg: Playground; tune: ReactNode; exporting: ReactNode }) {
+export function Cluster({ pg, tune, exporting, clusterRef }: {
+  pg: Playground;
+  tune: ReactNode;
+  exporting: ReactNode;
+  clusterRef?: Ref<HTMLDivElement>;
+}) {
   return (
-    <div className="pt-cluster pt-glass">
-      {tune}
+    <div className="pt-cluster pt-glass" ref={clusterRef}>
       <IconButton label="Shuffle" onClick={pg.shuffle}><Dices size={18} strokeWidth={1.75} /></IconButton>
       {exporting}
       <ThemeToggle pg={pg} />
+      {tune}
     </div>
   );
 }
 
-export function ColorField({ pg, which, labelled = false }: { pg: Playground; which: 'ink' | 'paper'; labelled?: boolean }) {
+export function ColorField({ pg, which }: { pg: Playground; which: 'ink' | 'paper' }) {
   const value = currentColour(pg, which);
   const name = which === 'ink' ? 'Ink' : 'Paper';
   return (
     <Popover.Root>
-      <div className={`pt-color ${labelled ? 'is-labelled' : ''}`}>
+      <div className="pt-color">
         <Tooltip.Root>
           <Tooltip.Trigger
             delay={280}
@@ -116,11 +107,10 @@ export function ColorField({ pg, which, labelled = false }: { pg: Playground; wh
           />
           <Tip>{name}</Tip>
         </Tooltip.Root>
-        {labelled && <span>{name}</span>}
       </div>
       <Popover.Portal>
-        <Popover.Positioner side="top" sideOffset={12} collisionPadding={12} className="pt-layer">
-          <Popover.Popup className="pt-pop pt-solid">
+        <Popover.Positioner side="top" sideOffset={12} collisionPadding={12} positionMethod="fixed" className="pt-layer">
+          <Popover.Popup className="pt-pop pt-glass">
             <Popover.Title className="pt-pop-title">{name}</Popover.Title>
             <ColorPicker
               value={value}
@@ -135,17 +125,17 @@ export function ColorField({ pg, which, labelled = false }: { pg: Playground; wh
 }
 
 export function Dock({ pg }: { pg: Playground }) {
-  const thumbs = usePresetThumbs(pg, 208, 136);
+  const thumbs = usePresetThumbs(pg, 156, 92);
   const wrap = useRef<HTMLDivElement>(null);
   const tools = useRef<HTMLDivElement>(null);
   const scroller = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(() => Math.min(PRESETS.length, Math.max(1, Math.floor((Math.min(1200, innerWidth) - 160) / (THUMB + GAP)))));
+  const [visible, setVisible] = useState(() => Math.min(PRESETS.length, Math.max(1, Math.floor((Math.min(1100, innerWidth) - 140) / (THUMB + GAP)))));
   useEffect(() => {
     const el = wrap.current;
     const tool = tools.current;
     if (!el || !tool) return;
     const measure = () => {
-      const avail = el.clientWidth - tool.offsetWidth - 36;
+      const avail = el.clientWidth - tool.offsetWidth - 28;
       const n = Math.max(1, Math.min(PRESETS.length, Math.floor((avail + GAP) / (THUMB + GAP))));
       setVisible(n);
     };
@@ -197,15 +187,14 @@ function readParam(param: ParamDef, value: number) {
   return param.integer ? String(value) : value.toFixed(2);
 }
 
-function Knob({ param, value, onChange, size = 32 }: { param: ParamDef; value: number; onChange: (n: number) => void; size?: number }) {
+function Knob({ param, value, onChange, size = 26 }: { param: ParamDef; value: number; onChange: (n: number) => void; size?: number }) {
   const drag = useRef<{ y: number; v: number } | null>(null);
   const span = param.max - param.min || 1;
   const t = Math.min(1, Math.max(0, (value - param.min) / span));
-  const r = (size - 8) / 2;
+  const r = (size - 6) / 2;
   const c = 2 * Math.PI * r;
   const cx = size / 2;
   const angle = -135 + t * 270;
-  const setFrom = (start: number, dy: number, fine: boolean) => onChange(clampParam(param, start + dy * (span / (fine ? 420 : 150))));
   const down = (e: ReactPointerEvent<HTMLDivElement>) => {
     e.stopPropagation();
     e.currentTarget.setPointerCapture(e.pointerId);
@@ -213,7 +202,7 @@ function Knob({ param, value, onChange, size = 32 }: { param: ParamDef; value: n
   };
   const move = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (!drag.current) return;
-    setFrom(drag.current.v, drag.current.y - e.clientY, e.shiftKey);
+    onChange(clampParam(param, drag.current.v + (drag.current.y - e.clientY) * (span / (e.shiftKey ? 420 : 150))));
   };
   const key = (e: ReactKeyboardEvent<HTMLDivElement>) => {
     const step = param.step * (e.shiftKey ? 10 : 1);
@@ -241,10 +230,10 @@ function Knob({ param, value, onChange, size = 32 }: { param: ParamDef; value: n
     >
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
         <g transform={`rotate(135 ${cx} ${cx})`}>
-          <circle cx={cx} cy={cx} r={r} fill="none" stroke="currentColor" strokeOpacity="0.22" strokeWidth="2.25" strokeDasharray={`${c * 0.75} ${c}`} strokeLinecap="round" />
-          {t > 0 && <circle cx={cx} cy={cx} r={r} fill="none" stroke="currentColor" strokeWidth="2.25" strokeDasharray={`${Math.max(0.8, c * 0.75 * t)} ${c}`} strokeLinecap="round" />}
+          <circle cx={cx} cy={cx} r={r} fill="none" stroke="currentColor" strokeOpacity="0.22" strokeWidth="2" strokeDasharray={`${c * 0.75} ${c}`} strokeLinecap="round" />
+          {t > 0 && <circle cx={cx} cy={cx} r={r} fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray={`${Math.max(0.6, c * 0.75 * t)} ${c}`} strokeLinecap="round" />}
         </g>
-        <line x1={cx} y1={cx} x2={cx} y2={5} stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" transform={`rotate(${angle} ${cx} ${cx})`} />
+        <line x1={cx} y1={cx} x2={cx} y2={4} stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" transform={`rotate(${angle} ${cx} ${cx})`} />
       </svg>
     </div>
   );
@@ -271,31 +260,27 @@ function ParamSlider({ param, value, onChange }: { param: ParamDef; value: numbe
   );
 }
 
-export function TuneBody({ pg, layout = 'stack' }: { pg: Playground; layout?: 'stack' | 'row' | 'rail' }) {
+function useTune(pg: Playground) {
   const [group, setGroup] = useState<GroupName>('lines');
-  const [open, setOpen] = useState<string | null>('count');
-  const [query, setQuery] = useState('');
-  const q = query.trim().toLowerCase();
-  const pool = q
-    ? (PARAMS as readonly ParamDef[]).filter((p) => `${p.label} ${p.description} ${GROUP_LABELS[p.group]}`.toLowerCase().includes(q))
-    : paramsIn(group);
-  const active = pool.find((p) => p.key === open) ?? null;
-  const vertical = layout !== 'stack';
+  const [open, setOpen] = useState('count');
+  const params = paramsIn(group);
+  const active = params.find((p) => p.key === open) ?? params[0];
   const valueOf = (p: ParamDef) => (pg.settings[p.group] as Record<string, number>)[p.key];
   const change = (p: ParamDef, n: number) => pg.change({ [p.group]: { [p.key]: n } });
+  const pickGroup = (next: GroupName) => {
+    setGroup(next);
+    setOpen(paramsIn(next)[0]?.key ?? 'count');
+  };
+  return { pg, group, pickGroup, params, active, open, setOpen, valueOf, change };
+}
+
+function TuneHead({ pg, group, onGroup }: { pg: Playground; group: GroupName; onGroup: (g: GroupName) => void }) {
   return (
-    <div className={`pt-tune pt-tune-${layout}`}>
-      {layout === 'rail' ? null : (
-        <div className="pt-colours">
-          <ColorField pg={pg} which="paper" labelled />
-          <ColorField pg={pg} which="ink" labelled />
-        </div>
-      )}
+    <div className="pt-tune-head">
       <ToggleGroup
-        className={`pt-groups ${vertical ? 'is-vertical' : ''}`}
-        orientation={vertical ? 'vertical' : 'horizontal'}
+        className="pt-groups"
         value={[group]}
-        onValueChange={(v) => { if (v[0]) { setGroup(v[0] as GroupName); setQuery(''); setOpen(paramsIn(v[0] as GroupName)[0]?.key ?? null); } }}
+        onValueChange={(v) => { if (v[0]) onGroup(v[0] as GroupName); }}
         aria-label="Setting group"
       >
         {GROUPS.map((g) => {
@@ -310,173 +295,171 @@ export function TuneBody({ pg, layout = 'stack' }: { pg: Playground; layout?: 's
           );
         })}
       </ToggleGroup>
-      <div className="pt-focus">
-        {layout === 'rail' && (
-          <div className="pt-colours">
-            <ColorField pg={pg} which="paper" labelled />
-            <ColorField pg={pg} which="ink" labelled />
-          </div>
-        )}
-        {layout !== 'row' && (
-          <label className="pt-find">
-            <Search size={14} strokeWidth={1.75} aria-hidden="true" />
-            <input
-              value={query}
-              placeholder="Find a setting"
-              aria-label="Find a setting"
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Escape' && query) { e.stopPropagation(); e.preventDefault(); setQuery(''); }
-              }}
-            />
-          </label>
-        )}
-        {layout === 'row' ? (
-          <div className="pt-kbank" role="group" aria-label={`${GROUP_LABELS[group]} knobs`}>
-            {pool.map((p) => (
-              <div key={p.key} className={`pt-kbank-item ${active?.key === p.key ? 'is-on' : ''}`}>
-                <Knob param={p} value={valueOf(p)} onChange={(n) => { setOpen(p.key); change(p, n); }} size={48} />
-                <button type="button" className="pt-kbank-name" aria-pressed={active?.key === p.key} onClick={() => setOpen(p.key)}>{p.label}</button>
+      <div className="pt-colours">
+        <ColorField pg={pg} which="paper" />
+        <ColorField pg={pg} which="ink" />
+      </div>
+    </div>
+  );
+}
+
+function NameTip({ param }: { param: ParamDef }) {
+  return (
+    <Tooltip.Root>
+      <Tooltip.Trigger delay={360} render={<span className="pt-pname" />}>{param.label}</Tooltip.Trigger>
+      <Tip>{param.description}</Tip>
+    </Tooltip.Root>
+  );
+}
+
+function Reset({ param, value, onChange }: { param: ParamDef; value: number; onChange: (n: number) => void }) {
+  if (value === param.default) return null;
+  return <IconButton label="Reset" onClick={() => onChange(param.default)}><RotateCcw size={13} strokeWidth={1.75} /></IconButton>;
+}
+
+export function TuneLine({ pg }: { pg: Playground }) {
+  const tune = useTune(pg);
+  return (
+    <div className="pt-tune">
+      <TuneHead pg={pg} group={tune.group} onGroup={tune.pickGroup} />
+      <div className="pt-klist">
+        {tune.params.map((p) => {
+          const value = tune.valueOf(p);
+          const shown = tune.open === p.key;
+          return (
+            <div key={p.key} className={`pt-krow ${shown ? 'is-open' : ''}`}>
+              <div className="pt-krow-main">
+                <Knob param={p} value={value} onChange={(n) => tune.change(p, n)} />
+                <button type="button" className="pt-krow-open" aria-expanded={shown} onClick={() => tune.setOpen(shown ? '' : p.key)}>
+                  <NameTip param={p} />
+                  <span className="pt-krow-read">{readParam(p, value)}</span>
+                </button>
+                <Reset param={p} value={value} onChange={(n) => tune.change(p, n)} />
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="pt-klist">
-            {pool.map((p) => {
-              const value = valueOf(p);
-              const shown = open === p.key;
-              return (
-                <div key={p.key} className={`pt-krow ${shown ? 'is-open' : ''}`}>
-                  <div className="pt-krow-main">
-                    <Knob param={p} value={value} onChange={(n) => change(p, n)} />
-                    <button type="button" className="pt-krow-open" aria-expanded={shown} onClick={() => setOpen(shown ? null : p.key)}>
-                      <span className="pt-krow-name">{p.label}{q && <small>{GROUP_LABELS[p.group]}</small>}</span>
-                      <span className="pt-krow-read">{readParam(p, value)}</span>
-                    </button>
-                    {value !== p.default && (
-                      <IconButton label="Reset" onClick={() => change(p, p.default)}><RotateCcw size={14} strokeWidth={1.75} /></IconButton>
-                    )}
-                  </div>
-                  {shown && (
-                    <div className="pt-kedit">
-                      <ParamSlider param={p} value={value} onChange={(n) => change(p, n)} />
-                      <p className="pt-hint">{p.description}</p>
-                    </div>
-                  )}
+              {shown && (
+                <div className="pt-kedit">
+                  <ParamSlider param={p} value={value} onChange={(n) => tune.change(p, n)} />
                 </div>
-              );
-            })}
-            {pool.length === 0 && <p className="pt-hint">Nothing matches.</p>}
-          </div>
-        )}
-        {layout === 'row' && active && (
-          <div className="pt-kedit">
-            <div className="pt-focus-top">
-              <span>{active.label}</span>
-              <span className="pt-krow-side">
-                <output>{readParam(active, valueOf(active))}</output>
-                {valueOf(active) !== active.default && (
-                  <IconButton label="Reset" onClick={() => change(active, active.default)}><RotateCcw size={14} strokeWidth={1.75} /></IconButton>
-                )}
-              </span>
+              )}
             </div>
-            <ParamSlider param={active} value={valueOf(active)} onChange={(n) => change(active, n)} />
-            <p className="pt-hint">{active.description}</p>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function TuneStrip({ pg }: { pg: Playground }) {
+  const tune = useTune(pg);
+  return (
+    <div className="pt-tune">
+      <TuneHead pg={pg} group={tune.group} onGroup={tune.pickGroup} />
+      <div className="pt-klist">
+        {tune.params.map((p) => {
+          const value = tune.valueOf(p);
+          return (
+            <div key={p.key} className="pt-strip">
+              <NameTip param={p} />
+              <ParamSlider param={p} value={value} onChange={(n) => tune.change(p, n)} />
+              <output>{readParam(p, value)}</output>
+              <Reset param={p} value={value} onChange={(n) => tune.change(p, n)} />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function TuneDial({ pg }: { pg: Playground }) {
+  const tune = useTune(pg);
+  const active = tune.active;
+  const value = tune.valueOf(active);
+  return (
+    <div className="pt-tune">
+      <TuneHead pg={pg} group={tune.group} onGroup={tune.pickGroup} />
+      <div className="pt-chips" role="group" aria-label={`${GROUP_LABELS[tune.group]} settings`}>
+        {tune.params.map((p) => (
+          <button key={p.key} type="button" className={`pt-chip ${p.key === active.key ? 'is-on' : ''}`} aria-pressed={p.key === active.key} onClick={() => tune.setOpen(p.key)}>
+            {p.label}
+          </button>
+        ))}
+      </div>
+      <div className="pt-dialrow">
+        <Knob param={active} value={value} onChange={(n) => tune.change(active, n)} size={40} />
+        <div className="pt-dialmain">
+          <div className="pt-focus-top">
+            <NameTip param={active} />
+            <span className="pt-krow-side">
+              <output>{readParam(active, value)}</output>
+              <Reset param={active} value={value} onChange={(n) => tune.change(active, n)} />
+            </span>
           </div>
-        )}
+          <ParamSlider param={active} value={value} onChange={(n) => tune.change(active, n)} />
+        </div>
       </div>
     </div>
   );
 }
 
-export function DragCard({ origin, wide, onClose, children }: {
-  origin: 'corner' | 'dock';
-  wide?: boolean;
-  onClose: () => void;
-  children: ReactNode;
+export function TuneGrid({ pg }: { pg: Playground }) {
+  const tune = useTune(pg);
+  return (
+    <div className="pt-tune">
+      <TuneHead pg={pg} group={tune.group} onGroup={tune.pickGroup} />
+      <div className="pt-grid">
+        {tune.params.map((p) => {
+          const value = tune.valueOf(p);
+          return (
+            <div key={p.key} className="pt-cell">
+              <div className="pt-focus-top">
+                <NameTip param={p} />
+                <output>{readParam(p, value)}</output>
+              </div>
+              <ParamSlider param={p} value={value} onChange={(n) => tune.change(p, n)} />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function TuneFocus({ pg }: { pg: Playground }) {
+  const tune = useTune(pg);
+  const active = tune.active;
+  const value = tune.valueOf(active);
+  return (
+    <div className="pt-tune">
+      <TuneHead pg={pg} group={tune.group} onGroup={tune.pickGroup} />
+      <div className="pt-chips" role="group" aria-label={`${GROUP_LABELS[tune.group]} settings`}>
+        {tune.params.map((p) => (
+          <button key={p.key} type="button" className={`pt-chip ${p.key === active.key ? 'is-on' : ''}`} aria-pressed={p.key === active.key} onClick={() => tune.setOpen(p.key)}>
+            {p.label}
+          </button>
+        ))}
+      </div>
+      <div className="pt-oneline">
+        <ParamSlider param={active} value={value} onChange={(n) => tune.change(active, n)} />
+        <output>{readParam(active, value)}</output>
+        <Reset param={active} value={value} onChange={(n) => tune.change(active, n)} />
+      </div>
+    </div>
+  );
+}
+
+export function Shell({ pg, tune, exporting, clusterRef, children }: {
+  pg: Playground;
+  tune: ReactNode;
+  exporting: ReactNode;
+  clusterRef?: Ref<HTMLDivElement>;
+  children?: ReactNode;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const posRef = useRef<{ x: number; y: number } | null>(null);
-  const drag = useRef({ on: false, dx: 0, dy: 0 });
-  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
-  const [ready, setReady] = useState(false);
-  const [dragging, setDragging] = useState(false);
-  const place = (next: { x: number; y: number }) => { posRef.current = next; setPos(next); };
-
-  useLayoutEffect(() => {
-    const node = ref.current;
-    if (!node) return;
-    const w = node.offsetWidth;
-    const h = node.offsetHeight;
-    place(origin === 'corner'
-      ? { x: 16, y: 76 }
-      : { x: Math.max(12, (innerWidth - w) / 2), y: Math.max(76, innerHeight - h - 156) });
-  }, [origin]);
-  useEffect(() => { setReady(true); }, []);
-
-  const down = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if ((e.target as HTMLElement).closest('button, a, input, [role="slider"]')) return;
-    if (!posRef.current) return;
-    e.currentTarget.setPointerCapture(e.pointerId);
-    drag.current = { on: true, dx: e.clientX - posRef.current.x, dy: e.clientY - posRef.current.y };
-    setDragging(true);
-  };
-  const move = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (!drag.current.on) return;
-    const w = ref.current?.offsetWidth ?? 280;
-    place({
-      x: Math.min(Math.max(8, e.clientX - drag.current.dx), innerWidth - w - 8),
-      y: Math.min(Math.max(8, e.clientY - drag.current.dy), innerHeight - 64),
-    });
-  };
-  const up = () => {
-    if (!drag.current.on) return;
-    drag.current.on = false;
-    setDragging(false);
-    const node = ref.current;
-    const p = posRef.current;
-    if (!node || !p) return;
-    const w = node.offsetWidth;
-    const h = node.offsetHeight;
-    place({
-      x: p.x + w / 2 < innerWidth / 2 ? 12 : Math.max(12, innerWidth - w - 12),
-      y: Math.min(Math.max(76, p.y), Math.max(76, innerHeight - Math.min(h, 220) - 156)),
-    });
-  };
-
-  return (
-    <div
-      ref={ref}
-      className={`pt-drag pt-glass pt-solid pt-panel ${wide ? 'pt-drag-wide' : ''} ${ready ? 'is-ready' : ''} ${dragging ? 'is-dragging' : ''}`}
-      style={pos ? { transform: `translate(${pos.x}px, ${pos.y}px)` } : { visibility: 'hidden' }}
-    >
-      <div className="pt-handle" onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up}>
-        <GripHorizontal size={16} aria-hidden="true" />
-        <span>Tune</span>
-        <IconButton label="Close" onClick={onClose}><X size={16} strokeWidth={1.75} /></IconButton>
-      </div>
-      {children}
-    </div>
-  );
-}
-
-export function Sheet({ side, onClose, children }: { side: 'left' | 'right'; onClose: () => void; children: ReactNode }) {
-  return (
-    <aside className={`pt-sheet pt-sheet-${side} pt-glass pt-solid pt-panel`}>
-      <div className="pt-sheet-bar">
-        <IconButton label="Close" onClick={onClose}><X size={16} strokeWidth={1.75} /></IconButton>
-      </div>
-      {children}
-    </aside>
-  );
-}
-
-export function Shell({ pg, tune, exporting, children }: { pg: Playground; tune: ReactNode; exporting: ReactNode; children?: ReactNode }) {
   return (
     <>
       <Backdrop pg={pg} />
       <Wordmark />
-      <Cluster pg={pg} tune={tune} exporting={exporting} />
+      <Cluster pg={pg} tune={tune} exporting={exporting} clusterRef={clusterRef} />
       {children}
       <Dock pg={pg} />
     </>
@@ -489,4 +472,43 @@ export function useDismiss(close: () => void) {
     addEventListener('keydown', on);
     return () => removeEventListener('keydown', on);
   }, [close]);
+}
+
+export function GlassFrame({ pg, tune, wide, dialog }: {
+  pg: Playground;
+  tune: ReactNode;
+  wide?: boolean;
+  dialog: (open: boolean, onOpenChange: (open: boolean) => void) => ReactNode;
+}) {
+  const clusterRef = useRef<HTMLDivElement>(null);
+  const [tuneOpen, setTuneOpen] = useState(false);
+  const [exp, setExp] = useState(false);
+  const close = useCallback(() => { setTuneOpen(false); setExp(false); }, []);
+  useDismiss(close);
+  return (
+    <Popover.Root open={tuneOpen} onOpenChange={(open) => { setTuneOpen(open); if (open) setExp(false); }}>
+      <Shell
+        pg={pg}
+        clusterRef={clusterRef}
+        tune={(
+          <Tooltip.Root>
+            <Tooltip.Trigger delay={180} render={<Popover.Trigger className="pt-ibtn" aria-label="Tune" />}>
+              <SlidersHorizontal size={18} strokeWidth={1.75} />
+            </Tooltip.Trigger>
+            <Tip>Tune</Tip>
+          </Tooltip.Root>
+        )}
+        exporting={<ExportButton pressed={exp} onClick={() => { setExp((v) => !v); setTuneOpen(false); }} />}
+      >
+        <Popover.Portal>
+          <Popover.Positioner anchor={clusterRef} side="bottom" align="end" sideOffset={10} collisionPadding={{ top: 12, right: 8, bottom: 16, left: 8 }} positionMethod="fixed" className="pt-layer">
+            <Popover.Popup className={`pt-pop pt-glass pt-panel ${wide ? 'pt-pop-wide' : ''}`}>
+              {tune}
+            </Popover.Popup>
+          </Popover.Positioner>
+        </Popover.Portal>
+        {dialog(exp, setExp)}
+      </Shell>
+    </Popover.Root>
+  );
 }

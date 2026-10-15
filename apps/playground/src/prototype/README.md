@@ -1,25 +1,21 @@
 # Playground prototypes (throwaway)
 
-Five continuations of the glass dock, on the existing route. Switch them with `?variant=A1` through `A5`, or the yellow bar (`?variant=A` opens A1). They only load in the dev server, so a production build never ships them.
+Five popovers continued from the glass dock, on the existing route. Switch them with `?variant=P1` through `P5`, or the yellow bar. `?variant=A2` and `?variant=A` open P1. They only load in the dev server, so a production build never ships them.
 
 ```sh
-npm run prototype        # builds the packages, starts Vite and opens /?variant=A1
+npm run prototype        # builds the packages, starts Vite and opens /?variant=P1
 ```
 
-| Key | Name | Idea |
-| --- | --- | --- |
-| A1 | Stage | The map is the page. Tune is a draggable card of dials. Export fades the scene so a heading sits on the lines, then walks through the format and the payload. |
-| A2 | Popover | Tune opens under its icon. Export is a dialog with a live frame of this background beside the steps. |
-| A3 | Sheet | Tune is a sheet on the right. Export is a reading column on the left, the same three steps, over the map. |
-| A4 | Mixer | Tune is a wide bank of dials above the examples. Export starts from the outcome (a page, the settings, or a still image). |
-| A5 | Rail | Tune is a sheet on the left with the groups in a vertical rail. Export reveals the heading, then the paragraph, then the formats. |
+The top cluster and the bottom dock are the same glass pill: paper at half opacity, the same blur and the same hairline. Tune sits at the right end of the cluster, and its popover lines up with that pill's right edge. There is no search field. Lines, terrain, motion and layout stay as icon groups. Export is a glass dialog with a fixed box, so changing step or format does not resize it. The preview keeps a heading on the live lines, and the source is larger and highlighted.
 
-The bottom dock keeps the example thumbnails and the paper and ink swatches. The top right is icon buttons: tune, shuffle, export, and the light or dark switch. Each one has a tooltip.
+| Key | Name | Tune | Export |
+| --- | --- | --- | --- |
+| P1 | Line | Each setting is a short row. Opening one adds a thin slider, and the description stays in a tooltip. | Preview beside a tall highlighted source. Formats are a stable row. |
+| P2 | Strip | Every setting in the group is one line: name, slider, value. Nothing expands. | The preview stays put. The other side steps through a note, the format, then the source, inside the same box. |
+| P3 | Dial | Names are chips. The open setting is one dial and a short slider. | Preview across the top, source filling the rest. |
+| P4 | Grid | The group is a two-column grid of short sliders. | Formats in a rail. Preview and a wide source sit beside it. |
+| P5 | Focus | One slider. The other names in the group are chips, so the popover stays the same height. | The source is the tall pane. Formats sit under it. The preview stays on the left. |
 
-Tune follows the shape of a knobs panel. Each setting is a row with a dial, the name and the value. Drag a dial, or open one row for a slider and a sentence about it. A field finds a setting by name. Reset puts that setting back. The mixer lays the same dials out in a bank.
-
-Shuffle picks a pattern, a harmonious paper and ink, and glides the other settings. Export always shows the thing you will copy or download before the button that takes it.
-
-Shared pieces live in `shared.tsx` (state, shuffle, thumbnails, the colour picker), `ui.tsx` (the dock, the icon cluster, the tune panel) and `exporting.tsx`. `shots.mjs` takes the screenshots in `docs/prototypes/`.
+Shared pieces live in `shared.tsx` (state, shuffle, thumbnails, the colour picker), `ui.tsx` (the dock, the cluster, the tune popovers) and `exporting.tsx`. `shots.mjs` takes the screenshots in `docs/prototypes/`.
 
 Once a direction wins, rewrite it properly in `App.tsx` and delete this folder.

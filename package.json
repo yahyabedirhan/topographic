@@ -14,7 +14,7 @@
     "typecheck": "tsc -p packages/core && tsc -p packages/react",
     "smoke": "node scripts/smoke.mjs && node scripts/playground-check.mjs",
     "dev": "npm run build:packages && npm run dev -w apps/playground",
-    "prototype": "npm run build:packages && npm run dev -w apps/playground -- --open '/?variant=A1'"
+    "prototype": "npm run build:packages && npm run dev -w apps/playground -- --open '/?variant=P1'"
   },
   "devDependencies": {
     "esbuild": "^0.24.0",
