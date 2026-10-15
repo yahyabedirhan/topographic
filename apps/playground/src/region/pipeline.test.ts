@@ -102,7 +102,7 @@ describe('resample and shape', () => {
     const shaped = shapeField(meters, 32, bbox, 'dramatic', 'medium');
     const peak = shaped.samples[16 * 32 + 16];
     const neighbour = shaped.samples[16 * 32 + 17];
-    expect(peak).toBeLessThan(0.55);
+    // The blur widens it into a round hill instead of a needle.
     expect(neighbour).toBeGreaterThan(peak * 0.4);
   });
 
@@ -194,11 +194,40 @@ describe('dramatic relief', () => {
     expect(ring(1)).toBeGreaterThan(ring(2));
     expect(ring(2)).toBeGreaterThan(ring(3));
   });
-  it('maps the 2nd to 98th percentile linearly and eases the tails', () => {
-    expect(rollOff(0, -1, 3)).toBeCloseTo(0.04);
-    expect(rollOff(1, -1, 3)).toBeCloseTo(0.92);
-    expect(rollOff(3, -1, 3)).toBeGreaterThan(0.99);
-    expect(rollOff(2, -1, 3)).toBeLessThan(rollOff(3, -1, 3));
-    expect(rollOff(-1, -1, 3)).toBeLessThan(0.001);
+  it('maps the 2nd percentile up to the summit linearly and eases the low tail', () => {
+    expect(rollOff(0, -1)).toBeCloseTo(0.04);
+    expect(rollOff(0.5, -1)).toBeCloseTo(0.52);
+    expect(rollOff(1, -1)).toBeCloseTo(1);
+    expect(rollOff(-1, -1)).toBeLessThan(0.001);
+    expect(rollOff(-0.001, -1)).toBeCloseTo(0.04, 3);
+  });
+
+  it('lets a tall peak rise all the way to its tip', () => {
+    const size = 64;
+    const meters = new Float32Array(size * size);
+    // A broad massif with a narrower summit on top: the old p98 roll-off flattened the summit.
+    for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+      const d2 = (x - 32) ** 2 + (y - 32) ** 2;
+      meters[y * size + x] = 200 + 1500 * Math.exp(-d2 / 200) + 1200 * Math.exp(-d2 / 30);
+    }
+    const { samples } = shapeField(meters, size, { west: 7, south: 45, east: 8, north: 45.6 }, 'dramatic', 'medium');
+    expect(samples[32 * size + 32]).toBeGreaterThanOrEqual(0.98);
+    expect(samples.filter((v) => v >= 0.999).length).toBeLessThan(5);
+    let last = -1;
+    for (let r = 12; r >= 0; r--) {
+      const v = samples[32 * size + 32 + r];
+      expect(v).toBeGreaterThan(last);
+      last = v;
+    }
+  });
+
+  it('ignores a one-cell spike when it finds the summit', () => {
+    const size = 64;
+    const meters = new Float32Array(size * size);
+    for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) meters[y * size + x] = 100 + 400 * Math.exp(-((x - 20) ** 2 + (y - 20) ** 2) / 60);
+    meters[50 * size + 50] = 5000;
+    const { samples } = shapeField(meters, size, { west: 7, south: 45, east: 8, north: 45.6 }, 'dramatic', 'medium');
+    // The spike would squash the real hill to a tenth of the block if it set the top.
+    expect(samples[20 * size + 20]).toBeGreaterThan(0.5);
   });
 });

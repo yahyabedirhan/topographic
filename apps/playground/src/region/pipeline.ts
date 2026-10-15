@@ -214,6 +214,12 @@ function percentile(values: Float32Array, p: number): number {
   return copy[i];
 }
 
+function peakOf(values: Float32Array): number {
+  let peak = -Infinity;
+  for (let i = 0; i < values.length; i++) if (values[i] > peak) peak = values[i];
+  return peak;
+}
+
 function kernel(sigma: number): Float32Array {
   const radius = Math.max(1, Math.ceil(sigma * 3));
   const k = new Float32Array(radius * 2 + 1);
@@ -257,13 +263,11 @@ export function smooth(src: Float32Array, size: number, sigma: number): Float32A
 }
 
 const LOW = 0.04;
-const HIGH = 0.92;
 
-/** 0..1 maps linearly to LOW..HIGH. Values past either end ease into the last few percent, reaching 0 and 1 only at the extremes. */
-export function rollOff(t: number, tMin: number, tMax: number): number {
-  if (t > 1) return HIGH + (1 - HIGH) * (1 - Math.exp(-(t - 1) * 4.6 / Math.max(tMax - 1, 1e-3)));
+/** 0..1 maps linearly to LOW..1. Values below 0 ease into the last few percent, reaching 0 only at the lowest point. */
+export function rollOff(t: number, tMin: number): number {
   if (t < 0) return LOW * Math.exp(t * 4.6 / Math.max(-tMin, 1e-3));
-  return LOW + (HIGH - LOW) * t;
+  return LOW + (1 - LOW) * t;
 }
 
 /** The sea mask's blur in grid cells: enough to round off the grid's steps. */
@@ -313,25 +317,26 @@ export function shapeField(
   const reliefM = maxM - minM;
   let lo = minM;
   let span = Math.max(reliefM, 0.5);
+  const extra = reliefM < 12 ? 1.8 : reliefM < 30 ? 1.25 : 1;
+  const sigma = SMOOTH_SIGMA[level] * extra;
   if (relief === 'dramatic') {
+    // The low end starts at the 2nd percentile, so a flat city still fills the block from below.
+    // The top is the true summit: the highest point of the blurred heights, which ignores a one-cell spike.
     lo = percentile(clamped, 0.02);
-    const hi = Math.max(lo + 0.5, percentile(clamped, 0.98));
+    const hi = Math.max(lo + 0.5, peakOf(smooth(clamped, size, sigma)));
     span = hi - lo;
   } else {
     span = Math.max(reliefM, MEASURED_RELIEF_M);
   }
   const unit = new Float32Array(clamped.length);
   const sea = new Float32Array(meters.length);
-  // Dramatic rolls the tails off instead of clipping them, so summits above the 98th percentile keep their shape.
-  const tMax = (maxM - lo) / span;
+  // Dramatic eases the low tail below the 2nd percentile; the top is linear up to the summit.
   const tMin = (minM - lo) / span;
   for (let i = 0; i < clamped.length; i++) {
     sea[i] = meters[i] <= 0 ? 1 : 0;
     const t = (clamped[i] - lo) / span;
-    unit[i] = sea[i] ? 0 : relief === 'dramatic' ? rollOff(t, tMin, tMax) : Math.min(1, Math.max(0, t));
+    unit[i] = sea[i] ? 0 : relief === 'dramatic' ? rollOff(t, tMin) : Math.min(1, Math.max(0, t));
   }
-  const extra = reliefM < 12 ? 1.8 : reliefM < 30 ? 1.25 : 1;
-  const sigma = SMOOTH_SIGMA[level] * extra;
   const samples = smooth(unit, size, sigma);
   // Sea cells enter the blur at 0, and the blurred sea mask then fades the land towards the water, so
   // the coast follows a smooth line between cells instead of the grid's steps. Open water further than
