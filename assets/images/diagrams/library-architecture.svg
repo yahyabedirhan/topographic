@@ -35,7 +35,7 @@
 <rect x="223.8" y="231" width="32.4" height="12" fill="url(#library-architecture-tile)"/>
 <text x="240.0" y="240" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">PROPS</text>
 <rect x="225.9" y="359" width="64.1" height="12" fill="url(#library-architecture-tile)"/>
-<text x="258.0" y="368" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">PANEL STATE</text>
+<text x="258.0" y="368" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">URL STATE</text>
 <rect x="396.0" y="435" width="48.2" height="12" fill="url(#library-architecture-tile)"/>
 <text x="420.1" y="444" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">OPTIONAL</text>
 <rect x="458.5" y="231" width="43.0" height="12" fill="url(#library-architecture-tile)"/>
@@ -124,7 +124,7 @@
 <text x="780.0" y="489.5" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">MP4</text>
 <text x="840.0" y="510" fill="#e4e6e9" font-size="12" font-weight="600" font-family="'Inter Tight', system-ui, sans-serif" text-anchor="middle">Video export</text>
 <text x="840.0" y="525" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">record() · video.ts</text>
-<text font-size="12" font-family="'Inter Tight', system-ui, sans-serif" fill="#8b9097"><tspan x="40" y="484">One table defines every setting.</tspan><tspan x="40" y="502">Types, element attributes, React</tspan><tspan x="40" y="520">props, playground sliders and</tspan><tspan x="40" y="538">docs all derive from it.</tspan></text>
+<text font-size="12" font-family="'Inter Tight', system-ui, sans-serif" fill="#8b9097"><tspan x="40" y="484">One table defines every setting.</tspan><tspan x="40" y="502">Types, element attributes, React</tspan><tspan x="40" y="520">props, playground controls and</tspan><tspan x="40" y="538">docs all derive from it.</tspan></text>
 <line x1="40" y1="584" x2="920" y2="584" stroke="#e4e6e9" stroke-opacity="0.10" stroke-width="0.8"/>
 <text x="40" y="608" fill="#8b9097" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" letter-spacing="0.14em">LEGEND</text>
 <path d="M120 600H136L142 606V612H120Z" fill="#ffffff"/><path d="M136 600L142 606H136Z" fill="#b9bec4"/>
