@@ -221,12 +221,12 @@ export function Dock({ pg }: { pg: Playground }) {
             </button>
           ) : null)}
         </div>
-        {/* Coarse to fine, then the action: theme, paper, ink, shuffle. */}
+        {/* Theme, shuffle, then the two colours. */}
         <div className="pt-dock-tools" ref={tools}>
           <ThemeToggle pg={pg} />
+          <IconButton label="Shuffle" side="top" className="pt-tool" onClick={pg.shuffle}><Dices size={16} strokeWidth={1.75} /></IconButton>
           <span className="pt-tool-slot"><ColorField pg={pg} which="paper" /></span>
           <span className="pt-tool-slot"><ColorField pg={pg} which="ink" /></span>
-          <IconButton label="Shuffle" side="top" className="pt-tool" onClick={pg.shuffle}><Dices size={16} strokeWidth={1.75} /></IconButton>
         </div>
       </nav>
     </div>
