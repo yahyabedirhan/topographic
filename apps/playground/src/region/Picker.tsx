@@ -261,7 +261,6 @@ export function PlacePanel({ region, onApply, appliedName, appearance }: {
               <Menu.Popup className="pt-menu pt-glass">
                 {PLACES.map((city) => (
                   <Menu.Item key={city.id} className="pt-menu-item" onClick={() => flyTo(city.id)}>
-                    <span className="pt-menu-check">{region.bbox && region.placeId === city.id ? <Check size={14} strokeWidth={2} /> : null}</span>
                     <b>{city.name}</b>
                     <small>{city.note}</small>
                   </Menu.Item>

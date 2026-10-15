@@ -13,7 +13,7 @@ export interface Place {
  * surroundings, 70 to 100 km wide, with the 1.5:1 shape of the Map popover's frame.
  */
 export const PLACES: readonly Place[] = [
-  { id: 'istanbul', name: 'Istanbul', note: 'Büyükçekmece to Tuzla and the Princes\' Islands', bbox: { west: 28.45, south: 40.78, east: 29.65, north: 41.36 } },
+  { id: 'istanbul', name: 'Istanbul', note: 'The Bosphorus and the Princes\' Islands', bbox: { west: 28.45, south: 40.78, east: 29.65, north: 41.36 } },
   { id: 'san-francisco', name: 'San Francisco', note: 'The Bay, Mount Tamalpais and Mount Diablo', bbox: { west: -122.75, south: 37.53, east: -121.85, north: 37.99 } },
   { id: 'london', name: 'London', note: 'Greater London, the Thames and the Downs', bbox: { west: -0.7, south: 51.27, east: 0.45, north: 51.73 } },
   { id: 'new-york', name: 'New York', note: 'The five boroughs and the harbour', bbox: { west: -74.45, south: 40.46, east: -73.45, north: 40.95 } },

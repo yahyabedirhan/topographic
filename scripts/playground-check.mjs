@@ -241,10 +241,14 @@ try {
   check(await apply.isEnabled() && q(p).toString() === placeSearch && /^London 80 × 51 km$/.test(await badgeText()), `a city from the menu moves the map only (${await badgeText()})`);
   await apply.click(); await settle(p, 600);
   await badge.click(); await p.getByRole('menuitem').first().waitFor();
-  const checked = await p.getByRole('menuitem', { name: /^London/ }).locator('svg').count();
+  await settle(p, 300);
+  // The menu holds jump-to-city actions only: no check mark and no highlighted row on a mouse open.
+  const marks = await p.locator('.pt-menu-item svg').count();
+  const lit = await p.locator('.pt-menu-item[data-highlighted]').count();
   await p.keyboard.press('Escape'); await settle(p);
-  check(q(p).get('place') === 'london' && checked === 1 && await savedCount() === 3
-    && await dockNav.locator('.pt-thumb').first().getAttribute('aria-label') === 'London map', `Apply on a city writes its name, checks it in the menu and saves it (?${q(p)})`);
+  check(marks === 0 && lit === 0, `the city menu shows no selected state (${marks} marks, ${lit} highlighted)`);
+  check(q(p).get('place') === 'london' && await savedCount() === 3
+    && await dockNav.locator('.pt-thumb').first().getAttribute('aria-label') === 'London map', `Apply on a city writes its name and saves it (?${q(p)})`);
   await clearBtn.click(); await settle(p, 400);
   check(q(p).get('place') === null && q(p).get('region') === null && await pinDot() === 0 && await clearBtn.count() === 0 && q(p).get('ev') === viewBefore.ev, 'Clear returns to the generated terrain and its elevation');
   check(!/Too thin|Exaggerate|Smoothing|Use this place/.test(await place.innerText()), 'Map holds only the map, the badge, the credit and the footer');

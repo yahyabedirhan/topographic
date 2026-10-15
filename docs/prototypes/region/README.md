@@ -20,7 +20,7 @@ That builds the packages and starts Vite. 2D is the default. Add `mode=3d` for t
 | London | `/?place=london` (`-0.7,51.27,0.45,51.73`, about 80 × 51 km) |
 | New York | `/?place=new-york` (`-74.45,40.46,-73.45,40.95`, about 84 × 54 km) |
 
-Each city box holds the whole metro area and some of its surroundings: Istanbul from Büyükçekmece to beyond Tuzla with the Princes' Islands and some of the Sea of Marmara, the San Francisco Bay from Mount Tamalpais to Mount Diablo, Greater London with the Thames and the Downs, and New York's five boroughs with the harbour.
+Each city box holds the whole metro area and some of its surroundings: Istanbul with the Bosphorus, the Princes' Islands and some of the Sea of Marmara, the San Francisco Bay from Mount Tamalpais to Mount Diablo, Greater London with the Thames and the Downs, and New York's five boroughs with the harbour.
 
 `region` is `west,south,east,north` in degrees. A JSON value works too: `{"bbox":[28.45,40.78,29.65,41.36]}` or `{"west":28.45,"south":40.78,"east":29.65,"north":41.36}`. `place=istanbul` (or `san-francisco`, `london`, `new-york`) names a city instead. The short settings keys of the rest of the playground set the style, colours and camera. Elevation is a plain setting: Apply sets it to 0.12, and the URL writes `ev=0.12`. There is no hidden place baseline.
 
