@@ -65,7 +65,7 @@ function ThemeToggle({ pg }: { pg: Playground }) {
   );
 }
 
-/** Shows its state by its icon (map or box), never by a fill: a fill in the cluster means an open popover. */
+/** Shows its state by its icon (map or box) and a 2D or 3D caption, never by a fill: a fill in the cluster means an open popover. */
 function ModeToggle({ pg }: { pg: Playground }) {
   const on = pg.settings.mode === '3d';
   const label = on ? 'Switch to 2D' : 'Switch to 3D';
@@ -82,7 +82,8 @@ function ModeToggle({ pg }: { pg: Playground }) {
           />
         )}
       >
-        {on ? <Box size={18} strokeWidth={1.75} /> : <Map size={18} strokeWidth={1.75} />}
+        {on ? <Box size={15} strokeWidth={1.75} /> : <Map size={15} strokeWidth={1.75} />}
+        <span className="pt-mode-tag" aria-hidden="true">{on ? '3D' : '2D'}</span>
       </Tooltip.Trigger>
       <Tip>{label}</Tip>
     </Tooltip.Root>

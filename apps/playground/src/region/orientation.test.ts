@@ -59,29 +59,21 @@ describe('region orientation', () => {
 
   // Fails until packages/core/src/shader/terrain.glsl.ts maps north to -z (see the bug report).
   // Remove `.fails` once core is fixed.
-  it.fails('3D: seen from straight above at azimuth 0, north is up and east is right', () => {
+  it('3D: seen from straight above at azimuth 0, north is up and east is right', () => {
     const [nx, ny] = project3d(1, 1, 0, 80);
     const [sx, sy] = project3d(0, 0, 0, 80);
     expect(nx).toBeGreaterThan(sx);
     expect(ny).toBeGreaterThan(sy);
   });
 
-  it('3D: any azimuth is a rotation, never a mirror (NE, NW, SW keep their handedness)', () => {
-    for (const az of [0, 42, 90, 180, 270]) {
+  // Same core bug: at every azimuth, east-then-north turns clockwise on screen, so no camera angle undoes it.
+  it('3D: every azimuth is a rotation of the map, never a mirror', () => {
+    for (const az of [0, 42, 60, 90, 180, 270]) {
       const [ax, ay] = project3d(0, 0, az, 80); // SW
       const [bx, by] = project3d(1, 0, az, 80); // SE
       const [cx, cy] = project3d(0, 1, az, 80); // NW
       const cross = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
-      // East then north turns counter-clockwise on a north-up map. Today the 3D mesh turns clockwise.
-      expect(Math.sign(cross)).toBe(Math.sign(project3dHandedness()));
+      expect(cross).toBeGreaterThan(0); // counter-clockwise, as on a north-up map
     }
   });
 });
-
-/** Handedness the current shader produces; flips sign when core is fixed. Kept so the rotation test stays green. */
-function project3dHandedness(): number {
-  const [ax, ay] = project3d(0, 0, 0, 80);
-  const [bx, by] = project3d(1, 0, 0, 80);
-  const [cx, cy] = project3d(0, 1, 0, 80);
-  return (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
-}
