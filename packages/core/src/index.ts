@@ -1,5 +1,5 @@
 export { createTopographicBackground, type TopographicBackground, type RendererOptions, type SnapshotOptions, type RecordOptions, type RendererStats, type RendererStatus } from './renderer.js';
-export { cameraPose, type Pose } from './camera.js';
+export { cameraPose, cameraTarget, clampPan, panBy, terrainHalfSize, viewShift, type Pose, type ViewInsets } from './camera.js';
 export { snapshotFrame, type SnapshotRegion, type SnapshotFrame } from './snapshot.js';
 export { sampleGrid, type Heightfield } from './heightfield.js';
 export { PARAMS, GROUPS, paramsIn, clampParam, type ParamDef, type GroupName, type GroupValues } from './params.js';

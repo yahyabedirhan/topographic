@@ -22,12 +22,18 @@ export interface CameraSettings {
   /** Distance from the terrain centre. Smaller is closer. */
   radius: number;
   motion: CameraMotion;
+  /**
+   * Where the camera looks, moved from the terrain centre across the ground: east (x) and south (z),
+   * in the terrain's units. 0, 0 is the centre. The renderer keeps the point over the terrain.
+   */
+  panX: number;
+  panZ: number;
 }
 
 export const CAMERA_MOTIONS: readonly CameraMotion[] = ['still', 'orbit', 'push', 'flyover', 'drone'];
 export const DEFAULT_ELEVATION = 0.62;
 export const DEFAULT_DETAIL = 0.5;
-export const DEFAULT_CAMERA: CameraSettings = { azimuth: 42, elevation: 34, radius: 2.45, motion: 'still' };
+export const DEFAULT_CAMERA: CameraSettings = { azimuth: 42, elevation: 34, radius: 2.45, motion: 'still', panX: 0, panZ: 0 };
 
 export interface Settings {
   style: StyleId;
@@ -96,8 +102,13 @@ function clampCamera(input: Partial<CameraSettings> | undefined, base: CameraSet
     elevation: src.elevation === undefined ? base.elevation : stepped(src.elevation, 2, 80, base.elevation, 0.1),
     radius: src.radius === undefined ? base.radius : stepped(src.radius, 1.15, 6.5, base.radius, 0.01),
     motion,
+    panX: src.panX === undefined ? base.panX : stepped(src.panX, -PAN_LIMIT, PAN_LIMIT, base.panX, 0.001),
+    panZ: src.panZ === undefined ? base.panZ : stepped(src.panZ, -PAN_LIMIT, PAN_LIMIT, base.panZ, 0.001),
   };
 }
+
+/** The widest pan any view could need; the renderer clamps it to the terrain it draws. */
+const PAN_LIMIT = 6;
 
 function applyView(into: Settings, input: SettingsInput | undefined): void {
   if (!input) return;
@@ -200,8 +211,13 @@ export function fromAttributes(get: (name: string) => string | null): SettingsIn
   const cameraElevation = get('camera-elevation');
   const radius = get('radius');
   const motion = get('camera-motion');
-  if ((azimuth !== null && azimuth !== '') || (cameraElevation !== null && cameraElevation !== '') || (radius !== null && radius !== '') || motion) {
+  const panX = get('pan-x');
+  const panZ = get('pan-z');
+  const has = (v: string | null) => v !== null && v !== '';
+  if (has(azimuth) || has(cameraElevation) || has(radius) || motion || has(panX) || has(panZ)) {
     input.camera = {
+      ...(has(panX) ? { panX: Number(panX) } : {}),
+      ...(has(panZ) ? { panZ: Number(panZ) } : {}),
       ...(azimuth !== null && azimuth !== '' ? { azimuth: Number(azimuth) } : {}),
       ...(cameraElevation !== null && cameraElevation !== '' ? { elevation: Number(cameraElevation) } : {}),
       ...(radius !== null && radius !== '' ? { radius: Number(radius) } : {}),
@@ -231,6 +247,8 @@ export function toAttributes(s: Settings): Record<string, string> {
   if (s.camera.elevation !== d.camera.elevation) out['camera-elevation'] = String(s.camera.elevation);
   if (s.camera.radius !== d.camera.radius) out.radius = String(s.camera.radius);
   if (s.camera.motion !== d.camera.motion) out['camera-motion'] = s.camera.motion;
+  if (s.camera.panX !== d.camera.panX) out['pan-x'] = String(s.camera.panX);
+  if (s.camera.panZ !== d.camera.panZ) out['pan-z'] = String(s.camera.panZ);
   return out;
 }
 
@@ -254,6 +272,8 @@ export function toQuery(s: Settings): string {
   if (s.camera.elevation !== d.camera.elevation) q.set('ce', String(s.camera.elevation));
   if (s.camera.radius !== d.camera.radius) q.set('rd', String(s.camera.radius));
   if (s.camera.motion !== d.camera.motion) q.set('cm', s.camera.motion);
+  if (s.camera.panX !== d.camera.panX) q.set('px', String(s.camera.panX));
+  if (s.camera.panZ !== d.camera.panZ) q.set('pz', String(s.camera.panZ));
   return q.toString();
 }
 
@@ -261,7 +281,7 @@ export function fromQuery(query: string): SettingsInput {
   const q = new URLSearchParams(query);
   const byShort = new Map((PARAMS as readonly ParamDef[]).map((p) => [p.short, p.attr]));
   const viewShort: Record<string, string> = {
-    elevation: 'ev', extent: 'ex', detail: 'dl', azimuth: 'az', 'camera-elevation': 'ce', radius: 'rd', 'camera-motion': 'cm',
+    elevation: 'ev', extent: 'ex', detail: 'dl', azimuth: 'az', 'camera-elevation': 'ce', radius: 'rd', 'camera-motion': 'cm', 'pan-x': 'px', 'pan-z': 'pz',
   };
   return fromAttributes((name) => {
     if (name === 'style-name') return q.get('s');

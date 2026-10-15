@@ -1,4 +1,4 @@
-import { cameraPose, type Pose } from './camera.js';
+import { blockLift, cameraPose, clampPan, terrainHalfSize, viewShift, type Pose, type ViewInsets } from './camera.js';
 import type { Heightfield } from './heightfield.js';
 import { mergeSettings, resolveSettings, toUniforms, type CameraMotion, type Settings, type SettingsInput } from './settings.js';
 import { resolveTheme, rgbaToCss, type ResolvedTheme } from './theme.js';
@@ -68,6 +68,16 @@ export interface TopographicBackground {
   record(opts?: RecordOptions): Promise<Blob>;
   /** Use a real elevation grid for the contours, or null for the procedural style. */
   setHeightfield(field: Heightfield | null): void;
+  /**
+   * The space page UI covers on each side of the view, in CSS pixels. The 3D picture slides (a lens
+   * shift, not a camera move) so the terrain centres in the part left free. Snapshots and clips ignore
+   * it and centre in their own frame. 2D is not moved. Null clears it.
+   */
+  setInsets(insets: Partial<ViewInsets> | null): void;
+  /** The insets in use, all zero by default. */
+  readonly insets: ViewInsets;
+  /** The pan kept over the terrain as it is drawn now, the same limit the renderer applies. */
+  clampPan(panX: number, panZ: number): [number, number];
   destroy(): void;
   readonly settings: Settings;
   readonly status: RendererStatus;
@@ -111,6 +121,7 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
   let inView = true;
   let theme: ResolvedTheme;
   let col = 0.3;
+  let insets: ViewInsets = { top: 0, right: 0, bottom: 0, left: 0 };
 
   const canvas = doc.createElement('canvas');
   canvas.setAttribute('aria-hidden', 'true');
@@ -277,17 +288,32 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }
 
-  function paint(w = canvas.width, h = canvas.height, pose?: Pose, force3d = false): void {
+  /** The pose with its pan kept over the terrain drawn at this aspect ratio. */
+  function framed(pose: Pose, aspect: number): Pose {
+    const half = terrainHalfSize(aspect, settings.extent, heightField ? heightField.aspect : null);
+    const [panX, panZ] = clampPan(pose.panX ?? 0, pose.panZ ?? 0, half);
+    return { ...pose, panX, panZ };
+  }
+
+  /** Draws a frame. `live` frames take the lens shift for the page's insets; exports centre in their own frame. */
+  function paint(w = canvas.width, h = canvas.height, pose?: Pose, force3d = false, live = true): void {
     if (!gl || !program || status === 'lost' || status === 'destroyed') return;
     gl.viewport(0, 0, w, h);
     const three = force3d || settings.mode === '3d';
     if (three) {
       uploadHeight();
+      const aspect = w / Math.max(1, h);
+      const at = framed(pose ?? cameraPose(settings.camera, frameMs / 1000), aspect);
+      // Centre the block itself, then move it into the part of the page the UI leaves free. Endless
+      // terrain is framed by the same block-sized middle, so switching the extent keeps the framing.
+      const block = terrainHalfSize(aspect, 'block', heightField ? heightField.aspect : null);
+      const [sx, sy] = live ? viewShift(insets, cssW, cssH) : [0, 0];
       terrain.draw(gl, status === 'webgl2', {
         width: w, height: h, settings, theme, frameMs, col,
-        pose: pose ?? cameraPose(settings.camera, frameMs / 1000),
+        pose: at,
         field: heightField,
         heightVersion,
+        shift: [sx, sy + blockLift(at, aspect, block)],
       });
       if (terrain.ok) return;
     }
@@ -380,7 +406,7 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
     gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depth);
     try {
-      paint(w, h, pose, force3d);
+      paint(w, h, pose, force3d, false);
       gl.readPixels(rect.x, rect.y, rect.width, rect.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
     } finally {
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -397,7 +423,12 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
   return {
     get settings() { return settings; },
     get status() { return status; },
-    get pose() { return cameraPose(settings.camera, frameMs / 1000); },
+    get pose() { return framed(cameraPose(settings.camera, frameMs / 1000), cssW / Math.max(1, cssH)); },
+    get insets() { return { ...insets }; },
+    clampPan(panX, panZ) {
+      const p = framed({ azimuth: 0, elevation: 0, radius: 0, panX, panZ }, cssW / Math.max(1, cssH));
+      return [p.panX ?? 0, p.panZ ?? 0];
+    },
     canvas,
     get stats() {
       return {
@@ -421,6 +452,14 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
       draw();
       sampleDraw();
       schedule();
+    },
+    setInsets(next) {
+      if (status === 'destroyed') return;
+      const side = (v: number | undefined) => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? Math.round(v) : 0);
+      const n = { top: side(next?.top), right: side(next?.right), bottom: side(next?.bottom), left: side(next?.left) };
+      if (n.top === insets.top && n.right === insets.right && n.bottom === insets.bottom && n.left === insets.left) return;
+      insets = n;
+      if (settings.mode === '3d') draw();
     },
     async snapshot(o = {}) {
       if (!gl || !program || (status !== 'webgl2' && status !== 'webgl1')) throw new Error('[topographic] snapshot needs WebGL');

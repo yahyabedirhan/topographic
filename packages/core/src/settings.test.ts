@@ -52,7 +52,7 @@ describe('view settings', () => {
     expect(s.mode).toBe('2d');
     expect(s.extent).toBe('block');
     expect(s.elevation).toBe(0.62);
-    expect(s.camera).toEqual({ azimuth: 42, elevation: 34, radius: 2.45, motion: 'still' });
+    expect(s.camera).toEqual({ azimuth: 42, elevation: 34, radius: 2.45, motion: 'still', panX: 0, panZ: 0 });
     expect(meshResolution(0)).toBe(32);
     expect(meshResolution(s.detail)).toBe(96);
     expect(meshResolution(1)).toBe(160);
@@ -69,6 +69,7 @@ describe('view settings', () => {
     expect(s.camera.radius).toBe(6.5);
     expect(s.camera.azimuth).toBe(400.3);
     expect(s.lines.count).toBe(30);
+    expect(resolveSettings({ camera: { panX: 99, panZ: Number.NaN } }).camera).toMatchObject({ panX: 6, panZ: 0 });
   });
   it('warns once for an unknown mode, extent or camera motion', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
@@ -82,11 +83,16 @@ describe('view settings', () => {
   it('round-trips 3d settings through the query and attributes', () => {
     const s = resolveSettings({
       style: 'gentle-summit', seed: 7, mode: '3d', elevation: 0.2, extent: 'endless', detail: 0.15,
-      camera: { azimuth: 12, elevation: 18, radius: 3, motion: 'orbit' },
+      camera: { azimuth: 12, elevation: 18, radius: 3, motion: 'orbit', panX: 0.25, panZ: -0.1234 },
     });
-    expect(resolveSettings(fromQuery(toQuery(s)))).toEqual(s);
+    expect(s.camera.panZ).toBe(-0.123);
+    const q = toQuery(s);
+    expect(q).toContain('px=0.25');
+    expect(q).toContain('pz=-0.123');
+    expect(toQuery(resolveSettings({ mode: '3d' }))).not.toContain('px=');
+    expect(resolveSettings(fromQuery(q))).toEqual(s);
     const attrs = toAttributes(s);
-    expect(attrs).toMatchObject({ mode: '3d', extent: 'endless', 'camera-motion': 'orbit', azimuth: '12' });
+    expect(attrs).toMatchObject({ mode: '3d', extent: 'endless', 'camera-motion': 'orbit', azimuth: '12', 'pan-x': '0.25' });
     expect(resolveSettings(fromAttributes((n) => attrs[n] ?? null))).toEqual(s);
   });
 });
