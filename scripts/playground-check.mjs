@@ -1,6 +1,6 @@
 import { chromium } from 'playwright-core';
 import { createServer } from 'node:http';
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { extname, join } from 'node:path';
 
 const dist = new URL('../apps/playground/dist/', import.meta.url).pathname;
@@ -78,11 +78,17 @@ try {
   check(q(p).get('lc') === '41' && (await cfg(p)).lines?.count === 41, `Tune slider updates the URL (?${q(p)})`);
   // In 2D the 3D tab is dimmed under a note; its action switches to 3D.
   const tune0 = p.locator('.pt-pop').first();
+  check(await tune0.locator('.pt-preview').count() === 1 && await tune0.locator('.pt-row-icon').count() === 4 && await tune0.locator('.pt-track-base svg').count() === 4
+    && /30|41 lines/.test(await tune0.locator('.pt-preview-chip').innerText()), 'Tune Lines has a live preview, row glyphs and telling tracks');
   await tune0.getByRole('button', { name: '3D', exact: true }).click(); await settle(p);
   const ev0 = tune0.getByRole('slider', { name: 'Elevation' });
   check(await ev0.isDisabled() && /These apply in 3D/.test(await tune0.innerText()) && await tune0.locator('.pt-sec-reset').count() === 0, 'in 2D the 3D tab is disabled under a note');
   await tune0.getByRole('button', { name: 'Switch to 3D' }).click(); await settle(p, 400);
   check(await ev0.isEnabled() && !/These apply in 3D/.test(await tune0.innerText()) && q(p).get('mode') === '3d', 'Switch to 3D enables the 3D tab');
+  await tune0.getByRole('button', { name: 'Orbit', exact: true }).click(); await settle(p);
+  check(q(p).get('cm') === 'orbit' && await tune0.getByRole('button', { name: 'Orbit', exact: true }).getAttribute('aria-pressed') === 'true'
+    && await tune0.locator('.pt-chips button[aria-pressed="true"] span').first().isVisible(), 'a glyph chip sets the camera motion and names itself');
+  await tune0.getByRole('button', { name: 'Still', exact: true }).click(); await settle(p);
   await p.keyboard.press('Escape'); await settle(p);
   check(!(await count.isVisible()), 'Tune closes on Escape');
   await p.getByRole('button', { name: 'Switch to 2D' }).click(); await settle(p, 400);
@@ -116,24 +122,58 @@ try {
   await p.getByRole('button', { name: 'Export', exact: true }).click();
   const menu = p.locator('.pt-export');
   await menu.waitFor();
-  await menu.getByRole('button', { name: 'Copy' }).click();
+  const chips = await menu.locator('.pt-urlchip').evaluateAll((els) => els.map((el) => `${el.querySelector('i').textContent} ${el.querySelector('span:last-child').textContent}`));
+  check(chips.includes('look quiet-hill') && /opens with these parameters/.test(await menu.innerText()), `Link shows its parameters as chips (${chips.join(' | ')})`);
+  const copyLink = menu.getByRole('button', { name: 'Copy link', exact: true });
+  await copyLink.click();
   const link = new URL(await clip(p));
   check(link.origin + '/' === base && link.search === new URL(p.url()).search, `Link copied (${link.search})`);
+  check(await menu.getByRole('button', { name: 'Copied', exact: true }).count() === 1 && await menu.locator('.pt-copy.is-done svg').count() === 1, 'Copy link turns into a check and Copied');
+  await p.waitForTimeout(1800);
+  check(await copyLink.count() === 1, 'Copied turns back into Copy link');
+  const width = (await menu.boundingBox()).width;
   await menu.getByRole('button', { name: 'PNG', exact: true }).click();
-  const [download] = await Promise.all([p.waitForEvent('download', { timeout: 60000 }), menu.getByRole('button', { name: /^1920 × 1080/ }).click()]);
-  const png = await readFile(await download.path());
+  const pngOf = async () => {
+    const [d] = await Promise.all([p.waitForEvent('download', { timeout: 60000 }), menu.getByRole('button', { name: /^Download .* PNG$/ }).click()]);
+    return [d, await readFile(await d.path())];
+  };
+  await menu.getByRole('button', { name: /^1920 × 1080,/ }).click();
+  const [download, png] = await pngOf();
   check(download.suggestedFilename() === 'topographic-gentle-summit-197.png' && png.readUInt32BE(16) === 1920 && png.readUInt32BE(20) === 1080,
     `PNG export ${png.readUInt32BE(16)}x${png.readUInt32BE(20)} ${png.length} bytes (${download.suggestedFilename()})`);
+  // The phone crop: centred at first, then dragged to the left edge; the exported slice follows the frame.
+  await menu.getByRole('button', { name: /^Phone,/ }).click(); await settle(p, 400);
+  const cropShot = menu.locator('.pt-shot');
+  const crop0 = JSON.parse(await cropShot.getAttribute('data-crop'));
+  const [, phone0] = await pngOf();
+  const sb = await cropShot.boundingBox();
+  await p.mouse.move(sb.x + sb.width / 2, sb.y + sb.height / 2); await p.mouse.down();
+  await p.mouse.move(sb.x - 40, sb.y + sb.height / 2, { steps: 8 }); await p.mouse.up(); await settle(p, 300);
+  const crop1 = JSON.parse(await cropShot.getAttribute('data-crop'));
+  if (shots) await menu.screenshot({ path: join(shots, 'export-phone-crop.png') });
+  const [, phone1] = await pngOf();
+  check(Math.abs(crop0.x - (1 - crop0.width) / 2) < 0.001 && crop1.x === 0 && phone0.readUInt32BE(16) === 1170 && phone0.readUInt32BE(20) === 2532
+    && phone1.readUInt32BE(16) === 1170 && phone1.readUInt32BE(20) === 2532 && !phone0.equals(phone1),
+    `dragging the phone crop changes the exported slice (x ${crop0.x.toFixed(3)} -> ${crop1.x}, ${phone0.length} vs ${phone1.length} bytes)`);
+  if (shots) await writeFile(join(shots, 'export-phone-crop-result.png'), phone1);
+  await cropShot.focus(); await p.keyboard.press('End'); await settle(p);
+  check(JSON.parse(await cropShot.getAttribute('data-crop')).x + crop0.width > 0.999 && await cropShot.getAttribute('aria-valuetext') === 'right edge', 'the crop frame moves with the keyboard');
   await menu.getByRole('button', { name: 'React', exact: true }).click();
-  check((await menu.locator('pre.pt-code').innerText()).includes('styleName="gentle-summit"'), 'React code shown');
-  await menu.getByRole('button', { name: 'Copy' }).click();
+  check((await menu.locator('pre.pt-code').innerText()).includes('styleName="gentle-summit"') && await menu.locator('.pt-vpill').count() > 0 && await menu.locator('.pt-ln').count() > 5,
+    'React code shown with line numbers and tinted values');
+  check(Math.abs((await menu.boundingBox()).width - width) < 1, 'Export keeps one width across tabs');
+  const install = menu.locator('.pt-install code');
+  check(await install.evaluate((el) => el.scrollWidth <= el.clientWidth), 'the install line shows in full');
+  await menu.getByRole('button', { name: 'Copy install command' }).click();
+  check((await clip(p)) === 'npm install topographic topographic-react' && await menu.getByRole('button', { name: 'Copied', exact: true }).count() === 1, 'the install line has its own copy');
+  await menu.getByRole('button', { name: 'Copy', exact: true }).click();
   const jsx = await clip(p);
   check(jsx.includes('npm install') && jsx.includes('<TopographicBackground') && jsx.includes('styleName="gentle-summit"'), 'React code copied with install line');
   await menu.getByRole('button', { name: 'HTML', exact: true }).click();
-  await menu.getByRole('button', { name: 'Copy' }).click();
+  await menu.getByRole('button', { name: 'Copy', exact: true }).click();
   check((await clip(p)).includes('style-name="gentle-summit"'), 'HTML embed copied');
   await menu.getByRole('button', { name: 'JSON', exact: true }).click();
-  await menu.getByRole('button', { name: 'Copy' }).click();
+  await menu.getByRole('button', { name: 'Copy', exact: true }).click();
   const json = JSON.parse(await clip(p));
   check(JSON.stringify(json) === JSON.stringify(quiet), 'config JSON copied');
   await p.keyboard.press('Escape'); await settle(p);
@@ -415,6 +455,8 @@ try {
   check(rnd.config.seed > 0 && rnd.config.seed !== before, 'randomize');
   const shot = await call('take_screenshot', { width: 400 });
   check(shot.dataUrl.startsWith('data:image/png;base64,') && shot.width === 400, `take_screenshot ${shot.width}x${shot.height}`);
+  const slice = await call('take_screenshot', { width: 300, region: { x: 0.2, y: 0, width: 0.3, height: 1 } });
+  check(slice.width === 300 && Math.abs(slice.height - Math.round(300 * 800 / (1280 * 0.3))) <= 1, `take_screenshot with a region ${slice.width}x${slice.height}`);
   const t0 = Date.now();
   agent.setDefaultTimeout(120000);
   const video = await call('record_video', { seconds: 0.5, width: 160, height: 160, motion: 'orbit' }).catch((e) => ({ error: String(e) }));
