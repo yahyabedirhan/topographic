@@ -267,7 +267,7 @@ const blob = await topographic.snapshot({ width: 1920, height: 1080, frame: 4000
 - The size limit is the GPU's maximum renderbuffer size, usually 8192 or 16384 pixels.
 - Without WebGL it rejects.
 
-The playground's **Download PNG** uses this, with sizes up to 4K and a phone size.
+The playground's PNG export uses this, at 2× the window, a phone size or 1920 × 1080.
 
 ## Performance and accessibility
 
@@ -299,10 +299,12 @@ Nothing touches the DOM or WebGL until the browser runs it.
 
 The playground (`apps/playground`) is the project's live page:
 
-- The page background is the preview. Presets sit on the page, and the full settings panel sits on the right (bottom on phones).
-- **Copy HTML**, **Copy JSX**, **Copy config JSON** and **Copy link** give you the current background as code.
-- **Download PNG** exports at screen ×2, 1080p, 1440p, 4K or phone size.
-- The URL holds the settings as `?config=<JSON>`, so a link reproduces the background. Short keys like `?s=dunes&lc=24` work too.
+- The page background is the preview. The dock at the bottom holds the looks as thumbnails, and the paper and ink colours.
+- The buttons at the top right are **Place**, 2D/3D, **Shuffle**, **Export**, light/dark and **Tune**.
+- **Tune** opens the sliders, one group at a time: Lines, Terrain, Motion, Layout and View. View holds the 3D settings: elevation, extent, camera, path and detail.
+- **Export** gives you a link, a PNG (2× the window, a phone size or 1920 × 1080), a 4 second 3D clip as MP4 or WebM, and the code as React, HTML or JSON.
+- **Place** opens a map. Frame an area, or pick Istanbul, San Francisco, London or New York, and the real elevation becomes the terrain. The map loads only when you open it. It needs a network connection.
+- The URL holds the settings as `?config=<JSON>`, so a link reproduces the background. Short keys like `?s=dunes&lc=24` work too. `?mode=3d` opens the 3D view, and `?region=west,south,east,north` opens a real place.
 - It serves `/llms.txt`, `/llms-full.txt` and `/docs/*.md`, generated from the code's own settings table.
 
 Run it with `npm install && npm run dev`.
@@ -321,6 +323,9 @@ In browsers that support [WebMCP](https://github.com/webmachinelearning/webmcp),
 | `record_video` | A short 3D clip of the current terrain with a moving camera, as an MP4 or WebM data URL (a 2 second orbit at 640×360 by default). |
 | `get_embed_code` | Code for `html`, `react`, `vanilla` or `json`. |
 | `get_install_instructions` | Setup for `npm`, `web-component`, `react` or `vanilla`. |
+| `set_region` | Draws a real place as the terrain: a named `place` or a bbox in degrees, with optional `relief` and `smooth`. |
+| `get_region` | The current region, relief, smoothing, load status and URL query. |
+| `clear_region` | Removes the region and brings the procedural terrain back. |
 
 The input schemas are in `/docs/webmcp.md` on the playground. WebMCP needs a secure page (HTTPS or localhost).
 

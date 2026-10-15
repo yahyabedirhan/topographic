@@ -31,7 +31,7 @@ const topographic = createTopographicBackground(el, { style: 'dunes', lines: { c
 - **Theme**: resolves `ink` and `paper` from settings, then CSS variables (`--topographic-ink`, `--topographic-paper`), then light/dark defaults.
 - **`<topographic-bg>`**: a custom element. Attributes become Settings, and it holds one Renderer.
 - **React `<TopographicBackground>`** and **`useTopographicBackground`**: props become Settings, and they hold one Renderer.
-- **Playground**: a React app. Panel state is Settings, mirrored in the URL. Export uses `snapshot` and the embed serializer.
+- **Playground**: a React app. Its state is Settings, mirrored in the URL. Export uses `snapshot`, `record` and the embed serializer. The place picker turns a map region into a heightfield and hands it to `setHeightfield`.
 
 Flow: wrapper → Settings (via the params table) → Renderer → uniforms → shader.
 
@@ -50,7 +50,15 @@ packages/core/src/
   element.ts             <topographic-bg> custom element
 packages/react/src/TopographicBackground.tsx   <TopographicBackground>, useTopographicBackground
 apps/playground/src/
-  App.tsx  Panel.tsx  url.ts  export.ts
+  main.tsx               mounts App
+  App.tsx                the page: the glass frame, the tune strip and the export menu
+  ui.tsx                 the dock, the top-right buttons, the tune sliders and the 3D view settings
+  shared.tsx             usePlayground: Settings state, the live instance, colours
+  exporting.tsx          the export menu: link, PNG, video, React, HTML, JSON
+  looks.ts               the looks in the dock
+  url.ts  embed.ts  png.ts  content.ts   URL state, embed code, PNG download, package names
+  agent-tools.ts  webmcp.ts   WebMCP tools
+  region/                the place picker: map (MapLibre, lazy), tile worker, pipeline, region tools
 ```
 `params.ts` is the single source of truth. Types, element attributes, React props, playground sliders and docs are all derived from it.
 
@@ -99,7 +107,7 @@ Ranges are 0–1 except counts. In the element and React the style is `style-nam
 | A style | `styles.ts` record, plus a branch in `topographic.glsl.ts` |
 | A preset | `presets.ts` record only |
 | A wrapper (Vue, Svelte) | a new package calling `createTopographicBackground` |
-| An export format | `apps/playground/src/export.ts` (SVG later needs a CPU port of the height field) |
+| An export format | `apps/playground/src/exporting.tsx` (SVG later needs a CPU port of the height field) |
 
 ## Decisions
 - **One combined shader; style is data.** It's simpler to ship and to switch styles live. The cost is that one shader carries every branch.

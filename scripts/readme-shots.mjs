@@ -3,8 +3,8 @@
 //   npm run build:packages
 //   CHROME="/path/to/chrome" node scripts/readme-shots.mjs [out-dir]
 //
-// The script starts its own Vite dev server (port 5287, or the next free one), because the 3D dock and the
-// place picker live in the dev-only prototype (?variant=P2). It stops the server at the end.
+// The script starts its own Vite dev server for the playground (port 5287, or the next free one),
+// so the playground needs no build. It stops the server at the end.
 // Real places load elevation tiles and the picker loads its map from the internet, so the run
 // needs network access. The animated preview needs ffmpeg and img2webp (from libwebp) on the
 // PATH; without them, the script skips that file. Set ONLY=<name>,<name> to take only some of the files.
@@ -48,7 +48,7 @@ async function save(p, name) {
   await p.screenshot({ path: join(out, name) });
   sizes.push([name, (await stat(join(out, name))).size]);
 }
-// The prototype shows a live frame-time readout in 3D. A software-rendered headless browser
+// The playground shows a live frame-time readout in 3D. A software-rendered headless browser
 // makes it read a few fps, which says nothing about a real GPU, so the shots hide it.
 const hideBench = (p) => p.addStyleTag({ content: '.pt-bench { display: none !important; }' });
 async function waitForDock(p) {
@@ -65,15 +65,16 @@ async function waitForRegion(p) {
 
 try {
   if (want('playground-dark.png')) {
-    // The README hero: the public playground, dark mode, panel open. The settings are the ones
-    // the earlier hero showed in its panel: drifting lobes, seed 0, the Survey map lines and terrain.
+    // The README hero: the playground in dark mode, with the dock. The settings are the ones
+    // the earlier hero showed: drifting lobes, seed 0, the Survey map lines and terrain.
     const p = await page('dark');
     const hero = {
       style: 'drifting-lobes', lines: { count: 44, indexEvery: 5, opacity: 0.55 },
       terrain: { peaks: 3, spread: 0.6, roughness: 0.2 }, motion: { speed: 0.4, sparkle: 0 }, theme: { mode: 'dark' },
     };
     await p.goto(`${base}?${q(hero)}`);
-    await p.waitForSelector('.stage canvas');
+    await p.waitForSelector('canvas');
+    await waitForDock(p);
     await p.waitForTimeout(600);
     await save(p, 'playground-dark.png');
     await p.close();
@@ -83,7 +84,7 @@ try {
     const name = `long-ridge-${mode}-dark.png`;
     if (!want(name)) continue;
     const p = await page('dark');
-    await p.goto(`${base}?variant=P2&${q({ ...PAIR, mode })}`);
+    await p.goto(`${base}?${q({ ...PAIR, mode })}`);
     await p.waitForSelector('canvas');
     await waitForDock(p);
     await hideBench(p);
@@ -96,7 +97,7 @@ try {
     const name = `istanbul-3d-${scheme}.png`;
     if (!want(name)) continue;
     const p = await page(scheme);
-    await p.goto(`${base}?variant=P2&${q({ style: 'gentle-summit', lines: { count: 28 }, theme: { mode: scheme } })}&${ISTANBUL}&mode=3d`, { waitUntil: 'domcontentloaded' });
+    await p.goto(`${base}?${q({ style: 'gentle-summit', lines: { count: 28 }, theme: { mode: scheme } })}&${ISTANBUL}&mode=3d`, { waitUntil: 'domcontentloaded' });
     await waitForRegion(p);
     await waitForDock(p);
     await hideBench(p);
@@ -107,7 +108,7 @@ try {
 
   if (want('place-picker-dark.png')) {
     const p = await page('dark');
-    await p.goto(`${base}?variant=P2&${q({ style: 'gentle-summit', lines: { count: 28 }, theme: { mode: 'dark' } })}&${ISTANBUL}`, { waitUntil: 'domcontentloaded' });
+    await p.goto(`${base}?${q({ style: 'gentle-summit', lines: { count: 28 }, theme: { mode: 'dark' } })}&${ISTANBUL}`, { waitUntil: 'domcontentloaded' });
     await waitForRegion(p);
     await p.click('[aria-label="Place"]');
     await p.waitForSelector('.maplibregl-canvas', { timeout: 20000 });

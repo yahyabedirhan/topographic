@@ -31,9 +31,9 @@ The 2D map and the 3D terrain run the same GLSL contour field and line painter. 
 
 ### From a real place to a terrain
 
-![How a real place becomes a terrain in the prototype: the map frame gives a bounding box, a worker fetches Terrarium elevation tiles, stitches and resamples them to a 256 by 256 grid, scales the relief and smooths it, and the region hook hands the heightfield to the renderer with setHeightfield().](assets/images/diagrams/real-place-pipeline.png)
+![How a real place becomes a terrain in the playground: the map frame gives a bounding box, a worker fetches Terrarium elevation tiles, stitches and resamples them to a 256 by 256 grid, scales the relief and smooths it, and the region hook hands the heightfield to the renderer with setHeightfield().](assets/images/diagrams/real-place-pipeline.png)
 
-In the dev-only prototype, a worker turns the framed map area into a smoothed 0..1 elevation grid. `setHeightfield()` then draws it as the 2D map or the 3D terrain.
+In the playground, a worker turns the framed map area into a smoothed 0..1 elevation grid. `setHeightfield()` then draws it as the 2D map or the 3D terrain.
 
 ## Install
 
@@ -99,20 +99,13 @@ The [guide](docs/guide.md#three-dimensions) has the full table of 3D settings, w
 
 ![Istanbul in 3D, dark mode: real elevation drawn as contour lines, with the Bosphorus cutting the city in two](assets/screenshots/istanbul-3d-dark.png)
 
-The place picker turns a part of the real world into this terrain. It is a dev-only prototype: it runs in the dev server, and the published playground and the npm packages don't include it.
+The place picker in the [playground](https://yahyabedirhan.github.io/topographic/) turns a part of the real world into this terrain. The npm packages don't include it: they take the result through `setHeightfield()`.
 
 ![The place picker: a dark map of Istanbul with a white frame around the region to draw, city shortcuts above, and relief and smoothing options below](assets/screenshots/place-picker-dark.png)
 
-To open it, clone the repository and run:
+Click the map-pin **Place** button at the top right, frame an area on the map, or pick one of the city shortcuts, and click **Use this place**. Relief and smoothing options sit below the map. Click the 3D button, or add `mode=3d` to the URL, for the terrain view. The elevation comes from Mapzen Terrain Tiles on AWS Open Data, so the picker needs a network connection.
 
-```sh
-npm install
-npm run prototype
-```
-
-That builds the packages, starts the dev server and opens `/?variant=P2`. Click the map-pin **Place** button at the top right, frame an area on the map, or pick one of the city shortcuts, and click **Use this place**. Relief and smoothing options sit below the map. Add `mode=3d` to the URL for the terrain view. The elevation comes from Mapzen Terrain Tiles on AWS Open Data, so the picker needs a network connection.
-
-The [region prototype notes](docs/prototypes/region/README.md) list the URL options and the decisions behind the picker.
+The [region notes](docs/prototypes/region/README.md) list the URL options and the decisions behind the picker.
 
 ## Styles
 
@@ -124,9 +117,9 @@ Seven styles, three presets, and the same terrain every time you use the same `s
 
 ![The topographic playground in dark mode: contour lines drift behind the page, and the settings panel sits on the right](assets/screenshots/playground-dark.png)
 
-The [playground](https://yahyabedirhan.github.io/topographic/) is the easiest way to find a background you like. The page itself is the preview: pick a preset, move the sliders, then copy the result as HTML, React or JavaScript, or download it as a PNG. Your settings live in the URL, so a link brings the same background back. Add `?mode=3d` to the URL to see the same settings as a terrain.
+The [playground](https://yahyabedirhan.github.io/topographic/) is the easiest way to find a background you like. The page itself is the preview: pick a look from the dock at the bottom, move the sliders under **Tune**, then export the result as a link, HTML, React or JSON, a PNG or a 3D video clip. Your settings live in the URL, so a link brings the same background back. The 3D button shows the same settings as a terrain, and **Place** draws a real place.
 
-It works for agents too. It serves plain-text docs at `/llms.txt`, and in browsers with [WebMCP](https://github.com/webmachinelearning/webmcp) an agent can change the settings, get the embed code, take a screenshot and record a 3D clip.
+It works for agents too. It serves plain-text docs at `/llms.txt`, and in browsers with [WebMCP](https://github.com/webmachinelearning/webmcp) an agent can change the settings, get the embed code, take a screenshot, record a 3D clip and choose a real place.
 
 ## How the pieces fit
 
@@ -147,7 +140,6 @@ You need Node.js 20 or later.
 ```sh
 npm install
 npm run dev        # the playground, live
-npm run prototype  # the dev-only prototype with the place picker
 npm test           # unit tests
 npm run build      # packages and the playground
 npm run smoke      # headless Chrome checks (needs Chrome; set CHROME=/path/to/chrome)
