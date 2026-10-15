@@ -164,7 +164,7 @@ Values outside a range are clamped, whole-number settings are rounded, and anyth
 |---|---|---|---|---|
 | `mode` | `mode` | `2d`, `3d` | `2d` | The flat map, or that map as a terrain. |
 | `elevation` | `elevation` | 0–1 | 0.62 | 3D height. 0 is flat like the map. Higher values make the terrain taller, with a rounded crest. |
-| `extent` | `extent` | `endless`, `block` | `endless` | Terrain that continues past the view, or a finite tabletop with ink layer lines on the cut sides. |
+| `extent` | `extent` | `endless`, `block` | `endless` | A plane that fades into the paper colour, or a finite slab whose sides are a soft paper-toned gradient. |
 | `detail` | `detail` | 0–1 | 0.5 | Mesh resolution, from 32² to 160². |
 | `camera.azimuth` | `azimuth` | any finite number | 349.7 | Degrees around the terrain. |
 | `camera.elevation` | `camera-elevation` | 2–80 | 33.6 | Degrees above the horizon. The camera never goes below the terrain. |
