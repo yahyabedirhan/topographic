@@ -128,7 +128,7 @@ Mounts a canvas inside \`element\` (it fills the element) and returns an instanc
 Instance:
 
 - \`update(partialSettings)\`: merges, clamps and applies live. Only changed uniforms reach the GPU.
-- \`snapshot({ frame?, width?, height? }) => Promise<Blob>\`: renders one PNG off-screen. \`frame\` is the animation time in ms. Give one side to keep the aspect ratio. The live canvas is not resized. Rejects without WebGL. In 3D it includes the current camera.
+- \`snapshot({ frame?, width?, height?, region?, motion? }) => Promise<Blob>\`: renders one PNG off-screen. \`frame\` is the animation time in ms. Give one side to keep the aspect ratio. \`region\` (\`{ x, y, width, height }\`, fractions from the top-left) keeps only that slice of the view, drawn at full detail. \`motion\` draws the 3D view along that camera path at its pose for \`frame\`, like that moment of \`record\`. The live canvas is not resized. Rejects without WebGL. In 3D it includes the current camera.
 - \`record({ seconds?, fps?, width?, height?, frame?, format?, motion? }) => Promise<Blob>\`: renders a 3D clip with a moving camera. \`format\` is \`'mp4'\` (default) or \`'webm'\`. \`motion\` is \`orbit\`, \`push\`, \`flyover\`, \`drone\` or \`still\`. The live canvas is not resized. Rejects without WebGL or when the browser cannot encode that format.
 - \`stats\`: \`{ fps, frameMs, mesh }\` while a 3D view is drawing. \`frameMs\` is the time spent drawing one frame. \`mesh\` is the segments along one side, or 0 in 2D.
 - \`destroy()\`: stops the loop, removes observers and the canvas, and releases the WebGL context.

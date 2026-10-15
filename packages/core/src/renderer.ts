@@ -5,6 +5,7 @@ import { resolveTheme, rgbaToCss, type ResolvedTheme } from './theme.js';
 import { VERTEX_100, VERTEX_300, wrapFragment } from './shader/common.glsl.js';
 import { TOPOGRAPHIC_FRAGMENT } from './shader/topographic.glsl.js';
 import { createTerrainPass } from './terrain3d.js';
+import { snapshotFrame, type SnapshotRegion } from './snapshot.js';
 import { encodeVideo } from './video.js';
 
 export interface RendererOptions {
@@ -21,9 +22,16 @@ export interface RendererOptions {
 export interface SnapshotOptions {
   /** Animation time in milliseconds. Defaults to the current frame. */
   frame?: number;
-  /** Output size in pixels. Defaults to the live drawing size; one side alone keeps the aspect ratio. */
+  /** Output size in pixels. Defaults to the live drawing size (of the region, with one); one side alone keeps the aspect ratio. */
   width?: number;
   height?: number;
+  /**
+   * Only this part of the view, in fractions from the top-left corner. The whole view is drawn at the size
+   * that makes the region `width × height`, so the image is exactly that slice of what is on screen.
+   */
+  region?: SnapshotRegion;
+  /** Draws the 3D view with this camera path, at its pose for `frame`: the same picture as that frame of `record`. */
+  motion?: CameraMotion;
 }
 
 export type RendererStatus = 'webgl2' | 'webgl1' | 'fallback' | 'lost' | 'destroyed';
@@ -357,7 +365,8 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
   darkScheme?.addEventListener?.('change', onSchemeChange);
   resizeObserver?.observe(el);
   intersection?.observe(el);
-  function readback(w: number, h: number, pixels: Uint8Array, pose?: Pose, force3d = false): void {
+  /** Draws a w×h frame off-screen and reads back `rect` (bottom-up GL coordinates), or all of it. */
+  function readback(w: number, h: number, pixels: Uint8Array, pose?: Pose, force3d = false, rect = { x: 0, y: 0, width: w, height: h }): void {
     if (!gl) return;
     const tex = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, tex);
@@ -372,7 +381,7 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
     gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depth);
     try {
       paint(w, h, pose, force3d);
-      gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+      gl.readPixels(rect.x, rect.y, rect.width, rect.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
     } finally {
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       gl.bindRenderbuffer(gl.RENDERBUFFER, null);
@@ -415,15 +424,17 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
     },
     async snapshot(o = {}) {
       if (!gl || !program || (status !== 'webgl2' && status !== 'webgl1')) throw new Error('[topographic] snapshot needs WebGL');
-      const aspect = canvas.width / canvas.height;
-      const w = Math.round(o.width ?? (o.height ? o.height * aspect : canvas.width));
-      const h = Math.round(o.height ?? (o.width ? o.width / aspect : canvas.height));
+      const f = snapshotFrame(canvas.width, canvas.height, o);
+      const w = f.width;
+      const h = f.height;
       const max = gl.getParameter(gl.MAX_RENDERBUFFER_SIZE) as number;
-      if (w < 1 || h < 1 || w > max || h > max) throw new Error(`[topographic] snapshot size must be 1..${max}px`);
+      if (w < 1 || h < 1 || f.frameWidth > max || f.frameHeight > max) throw new Error(`[topographic] snapshot size must be 1..${max}px`);
       const savedFrame = frameMs;
       if (o.frame !== undefined) frameMs = o.frame;
+      const pose = o.motion ? cameraPose({ ...settings.camera, motion: o.motion }, frameMs / 1000) : undefined;
       const pixels = new Uint8Array(w * h * 4);
-      try { readback(w, h, pixels); }
+      const rect = { x: f.x, y: f.frameHeight - f.y - h, width: w, height: h };
+      try { readback(f.frameWidth, f.frameHeight, pixels, pose, Boolean(o.motion), rect); }
       finally { frameMs = savedFrame; draw(); }
       // GL rows run bottom-up; flip into an ImageData
       const out = doc.createElement('canvas');

@@ -66,7 +66,7 @@ apps/playground/src/
 ```ts
 const topographic = createTopographicBackground(el: HTMLElement, settings?: Partial<Settings>);
 topographic.update(partial: Partial<Settings>): void;   // live, merges and clamps
-topographic.snapshot(opts?: { frame?: number; width?: number; height?: number }): Promise<Blob>;
+topographic.snapshot(opts?: { frame?: number; width?: number; height?: number; region?: SnapshotRegion; motion?: CameraMotion }): Promise<Blob>;
 // renders off-screen at the given size and frame; the live canvas is not resized
 topographic.destroy(): void;
 ```

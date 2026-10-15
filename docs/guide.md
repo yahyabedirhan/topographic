@@ -43,7 +43,7 @@ The call puts a canvas inside `element`, which fills it, so give the element a s
 | Member | What it does |
 |---|---|
 | `update(partialSettings)` | Merges into the current settings, clamps, and applies live. Only changed values reach the GPU. |
-| `snapshot({ frame?, width?, height? })` | Renders one PNG off-screen and resolves to a `Blob`. See [Snapshots](#snapshots-and-png-export). |
+| `snapshot({ frame?, width?, height?, region?, motion? })` | Renders one PNG off-screen and resolves to a `Blob`. See [Snapshots](#snapshots-and-png-export). |
 | `record({ seconds?, fps?, width?, height?, frame?, format?, motion? })` | Renders a 3D clip with a moving camera and resolves to an MP4 or WebM `Blob`. |
 | `setHeightfield({ samples, size, aspect } \| null)` | Draws the contours from your own square elevation grid instead of the style's terrain: `samples` is a `Float32Array` of `size × size` values from 0 (low) to 1 (high), row 0 at the south, and `aspect` is the place's width over its height. `null` brings the procedural style back. |
 | `stats` | `{ fps, frameMs, mesh }` for the 3D view. `mesh` is 0 in 2D. |
@@ -265,7 +265,9 @@ const blob = await topographic.snapshot({ width: 1920, height: 1080, frame: 4000
 - It draws off-screen. The live canvas isn't resized and keeps animating.
 - Give just `width` or just `height` to keep the on-screen aspect ratio. With neither, you get the current drawing size.
 - `frame` is the animation time in milliseconds, so the same settings and frame always give the same image.
-- The size limit is the GPU's maximum renderbuffer size, usually 8192 or 16384 pixels.
+- `region` keeps only part of the view: `{ x, y, width, height }` in fractions from the top-left corner. The whole view is drawn at the size that makes the region `width` × `height` pixels, so the image is exactly that slice of the screen, for example a phone-shaped strip of a wide window.
+- `motion` draws the 3D view along a camera path (`'orbit'`, `'push'` and so on) at its pose for `frame`, the same picture as that moment of `record`.
+- The size limit is the GPU's maximum renderbuffer size, usually 8192 or 16384 pixels. With a `region`, it applies to the whole view drawn behind it.
 - Without WebGL it rejects.
 
 The playground's PNG export uses this, at 2× the window, a phone size or 1920 × 1080.
