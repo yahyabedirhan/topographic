@@ -20,7 +20,7 @@ That builds the packages, starts Vite and opens `/?variant=P2`. 2D is the defaul
 
 `region` is `west,south,east,north` in degrees. A JSON value works too: `{"bbox":[28.94,40.99,29.07,41.08]}` or `{"west":28.94,"south":40.99,"east":29.07,"north":41.08}`. `relief=measured` opts out of the dramatic stretch. `smooth=light` or `smooth=strong` opts out of medium. The same `config` query as the rest of the playground still sets the style, colours and camera. An explicit `elevation` in that config is kept. Without one, a place opens at 0.1.
 
-Place opens a map. Frame (the default) uses pan and zoom, and the inset rectangle is the place. Rectangle is a drag. The four chips load those cities immediately. Use this place commits whatever the frame or the drag currently covers. The map uses the quiet paper style. Add `basemap=liberty` to open the previous OpenFreeMap Liberty style instead.
+Place opens a map. Choose by Frame (the default) and pan and zoom, or choose Rectangle and drag. The city chips load Istanbul, San Francisco, London and New York. Relief is Exaggerate for drama, which fills the block, or Match the real heights, which keeps a low city low. Smoothing is Light, Medium or Strong, and the line under it says it softens the hills. Use this place sits at the bottom right and commits whatever the frame or the drag currently covers. The map uses the quiet paper style. Add `basemap=liberty` to open the previous OpenFreeMap Liberty style instead.
 
 Regenerate the screenshots while that dev server is running:
 
@@ -52,7 +52,7 @@ A load of one of these cities took about 6 seconds in this browser. Almost all o
 
 ## Decisions
 
-**Map.** [MapLibre GL JS](https://maplibre.org/) 6.14.0. The default picker is our own quiet style on [OpenFreeMap](https://openfreemap.org/) vector tiles (`https://tiles.openfreemap.org/planet`). No API key, no account, no view cap. Land, water, thin roads, and place names follow the playground paper and ink, in light and in dark. Pins, shields, and rail hatching are left out. `basemap=liberty` still loads `https://tiles.openfreemap.org/styles/liberty` when you want the previous look beside this one. The map stays flat. MapLibre shows the tile credit, and the dialog repeats it.
+**Map.** [MapLibre GL JS](https://maplibre.org/) 6.14.0. The default picker is our own quiet style on [OpenFreeMap](https://openfreemap.org/) vector tiles (`https://tiles.openfreemap.org/planet`). No API key, no account, no view cap. Land, water, thin roads, and place names follow the playground paper and ink, in light and in dark. Pins, shields, and rail hatching are left out. `basemap=liberty` still loads `https://tiles.openfreemap.org/styles/liberty` when you want the previous look beside this one. The map stays flat. MapLibre shows the tile credit on the map. The line under the map is only the elevation credit.
 
 A Protomaps planet PMTiles file is about 120 GB. GitHub Pages allows a 1 GB site and 100 MB per file, and Cloudflare R2's free tier stores 10 GB, so a full planet is not an unlimited free host. A low-zoom world plus these four cities would fit on Pages, and any other place would go soft once you zoomed in. OpenFreeMap's public tiles are the unlimited, keyless way to cover every place through zoom 14, and the style is ours. The tiles remain theirs.
 
@@ -92,7 +92,7 @@ A region mesh is at least 192 by 192. The detail slider still tops out at 160 fo
 
 ## Attribution
 
-The map control and the dialog credit OpenFreeMap, OpenMapTiles and OpenStreetMap: `OpenFreeMap © OpenMapTiles Data from OpenStreetMap`. Elevation follows the [Tilezen / joerd attribution](https://github.com/tilezen/joerd/blob/master/docs/attribution.md). Terrain Tiles was accessed in October 2026 from <https://registry.opendata.aws/terrain-tiles>.
+The map control credits OpenFreeMap, OpenMapTiles and OpenStreetMap: `OpenFreeMap © OpenMapTiles Data from OpenStreetMap`. That line is not repeated under the map. Elevation follows the [Tilezen / joerd attribution](https://github.com/tilezen/joerd/blob/master/docs/attribution.md). Terrain Tiles was accessed in October 2026 from <https://registry.opendata.aws/terrain-tiles>.
 
 - Mapzen
 - ArcticDEM terrain data DEM(s) were created from DigitalGlobe, Inc., imagery and funded under National Science Foundation awards 1043681, 1559691, and 1542736

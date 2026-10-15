@@ -6,7 +6,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 
 setWorkerUrl(maplibreWorkerUrl);
 import { limitMessage, limitProblem, spanOf, type BBox } from './pipeline';
-import { MAP_CREDIT, mapStyle, type MapAppearance } from './basemap';
+import { mapStyle, type MapAppearance } from './basemap';
 import { findPlace, FRAME, PLACES } from './places';
 import type { RegionController } from './useRegion';
 
@@ -184,55 +184,71 @@ export function PlaceSheet({ open, onClose, region, appearance }: {
           </div>
           <button type="button" className="pt-ibtn" aria-label="Close" onClick={onClose}><X size={18} strokeWidth={1.75} /></button>
         </div>
-        <div className="pt-place-bar">
-          <div className="pt-chips" role="group" aria-label="How to pick">
-            <button type="button" className={`pt-chip${pick === 'frame' ? ' is-on' : ''}`} onClick={() => setPick('frame')}>Frame</button>
-            <button type="button" className={`pt-chip${pick === 'draw' ? ' is-on' : ''}`} onClick={() => setPick('draw')}>Rectangle</button>
+        <div className="pt-dialog-body pt-place-body">
+          <div className="pt-place-bar">
+            <div className="pt-field">
+              <span className="pt-field-name" id="pick-label">Choose by</span>
+              <div className="pt-chips" role="group" aria-labelledby="pick-label">
+                <button type="button" className={`pt-chip${pick === 'frame' ? ' is-on' : ''}`} onClick={() => setPick('frame')}>Frame</button>
+                <button type="button" className={`pt-chip${pick === 'draw' ? ' is-on' : ''}`} onClick={() => setPick('draw')}>Rectangle</button>
+              </div>
+            </div>
+            <div className="pt-field">
+              <span className="pt-field-name" id="city-label">Cities</span>
+              <div className="pt-chips" role="group" aria-labelledby="city-label">
+                {PLACES.map((place) => (
+                  <button key={place.id} type="button" className="pt-chip" onClick={() => { fly(place.bbox); region.setPlace(place.bbox, place.id); }}>
+                    {place.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <p className="pt-hint">{pick === 'frame' ? 'Pan and zoom. The frame is the place.' : 'Drag a rectangle. Scroll to zoom.'}</p>
           </div>
-          <div className="pt-chips">
-            {PLACES.map((place) => (
-              <button key={place.id} type="button" className="pt-chip" onClick={() => { fly(place.bbox); region.setPlace(place.bbox, place.id); }}>
-                {place.name}
-              </button>
-            ))}
+          <div className={`pt-frame pt-map${pick === 'draw' ? ' is-draw' : ''}`}>
+            <div ref={host} className="pt-map-host" />
+            {pick === 'frame' && <div ref={frame} className="pt-map-frame" />}
+            {pick === 'draw' && box && box.w > 0 && <div className="pt-map-box" style={{ left: box.x, top: box.y, width: box.w, height: box.h }} />}
           </div>
-          <p className="pt-hint">{pick === 'frame' ? 'Pan and zoom. The frame is the place.' : 'Drag a rectangle. Scroll to zoom.'}</p>
         </div>
-        <div className={`pt-frame pt-map${pick === 'draw' ? ' is-draw' : ''}`}>
-          <div ref={host} className="pt-map-host" />
-          {pick === 'frame' && <div ref={frame} className="pt-map-frame" />}
-          {pick === 'draw' && box && box.w > 0 && <div className="pt-map-box" style={{ left: box.x, top: box.y, width: box.w, height: box.h }} />}
-        </div>
-        <div className="pt-place-foot">
-          <div>
-            <p className="pt-hint">
+        <footer className="pt-place-foot">
+          <div className="pt-place-groups">
+            <div className="pt-field">
+              <span className="pt-field-name" id="relief-label">Relief</span>
+              <div className="pt-chips" role="group" aria-labelledby="relief-label">
+                <button type="button" className={`pt-chip${region.relief === 'dramatic' ? ' is-on' : ''}`} onClick={() => region.setRelief('dramatic')}>Exaggerate for drama</button>
+                <button type="button" className={`pt-chip${region.relief === 'measured' ? ' is-on' : ''}`} onClick={() => region.setRelief('measured')}>Match the real heights</button>
+              </div>
+              <p className="pt-hint">Exaggerate fills this place. Match the real heights keeps a low city low.</p>
+            </div>
+            <div className="pt-field">
+              <span className="pt-field-name" id="smooth-label">Smoothing</span>
+              <div className="pt-chips" role="group" aria-labelledby="smooth-label">
+                <button type="button" className={`pt-chip${region.smooth === 'light' ? ' is-on' : ''}`} onClick={() => region.setSmooth('light')}>Light</button>
+                <button type="button" className={`pt-chip${region.smooth === 'medium' ? ' is-on' : ''}`} onClick={() => region.setSmooth('medium')}>Medium</button>
+                <button type="button" className={`pt-chip${region.smooth === 'strong' ? ' is-on' : ''}`} onClick={() => region.setSmooth('strong')}>Strong</button>
+              </div>
+              <p className="pt-hint">How much to soften the hills.</p>
+            </div>
+          </div>
+          <p className="pt-hint pt-place-meta">
+            <span>
               {problem ? limitMessage(problem) : span ? `${km(span.widthM)} × ${km(span.heightM)}` : 'Draw a rectangle.'}
               {region.info && region.status === 'ready' ? ` · ${region.info.tiles} tiles · zoom ${region.info.zoom} · ${Math.round(region.info.shapeMs)} ms` : ''}
               {region.status === 'loading' ? ' · Reading the land…' : ''}
               {region.status === 'error' && region.error ? ` · ${region.error}` : ''}
-            </p>
-            <p className="pt-hint pt-attrib">Map: {MAP_CREDIT}. Elevation: Mapzen Terrain Tiles, AWS Open Data.</p>
-          </div>
-          <div className="pt-place-actions">
-            <div className="pt-chips" role="group" aria-label="Relief">
-              <button type="button" className={`pt-chip${region.relief === 'dramatic' ? ' is-on' : ''}`} onClick={() => region.setRelief('dramatic')}>Dramatic</button>
-              <button type="button" className={`pt-chip${region.relief === 'measured' ? ' is-on' : ''}`} onClick={() => region.setRelief('measured')}>Measured</button>
-            </div>
-            <div className="pt-chips" role="group" aria-label="Smoothing">
-              <button type="button" className={`pt-chip${region.smooth === 'light' ? ' is-on' : ''}`} onClick={() => region.setSmooth('light')}>Light</button>
-              <button type="button" className={`pt-chip${region.smooth === 'medium' ? ' is-on' : ''}`} onClick={() => region.setSmooth('medium')}>Medium</button>
-              <button type="button" className={`pt-chip${region.smooth === 'strong' ? ' is-on' : ''}`} onClick={() => region.setSmooth('strong')}>Strong</button>
-            </div>
-            <button
-              type="button"
-              className="pt-use"
-              disabled={!draft || !!problem}
-              onClick={() => { if (draft && !problem) { region.setPlace(draft, null); onClose(); } }}
-            >
-              Use this place
-            </button>
-          </div>
-        </div>
+            </span>
+            <span className="pt-attrib">Elevation: Mapzen Terrain Tiles, AWS Open Data.</span>
+          </p>
+          <button
+            type="button"
+            className="pt-use"
+            disabled={!draft || !!problem}
+            onClick={() => { if (draft && !problem) { region.setPlace(draft, null); onClose(); } }}
+          >
+            Use this place
+          </button>
+        </footer>
       </div>
     </>
   );

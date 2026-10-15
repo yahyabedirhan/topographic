@@ -80,7 +80,10 @@ for (const [theme, suffix] of [['dark', ''], ['light', '-light']]) {
   await page.waitForSelector('.maplibregl-canvas', { timeout: 20000 });
   await page.waitForTimeout(3200);
   const credit = await page.locator('.pt-attrib').innerText();
-  if (!credit.includes('OpenMapTiles')) throw new Error(`missing tile credit: ${credit}`);
+  if (!credit.includes('Mapzen Terrain Tiles')) throw new Error(`missing elevation credit: ${credit}`);
+  if (/openfreemap|openmaptiles|openstreetmap/i.test(credit)) throw new Error(`map credit repeated under the map: ${credit}`);
+  const onMap = await page.locator('.maplibregl-ctrl-attrib').innerText();
+  if (!/openfreemap/i.test(onMap) || !/openstreetmap/i.test(onMap)) throw new Error(`missing in-map credit: ${onMap}`);
   await page.screenshot({ path: `${out}/picker-frame${suffix}.png` });
   await page.click('button.pt-chip:has-text("Rectangle")');
   const host = page.locator('.pt-map-host');
