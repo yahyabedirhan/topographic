@@ -3,7 +3,7 @@
 //   npm run build:packages
 //   CHROME="/path/to/chrome" node scripts/readme-shots.mjs [out-dir]
 //
-// The script starts its own Vite dev server on a free port, because the 3D dock and the
+// The script starts its own Vite dev server (port 5287, or the next free one), because the 3D dock and the
 // place picker live in the dev-only prototype (?variant=P2). It stops the server at the end.
 // Real places load elevation tiles and the picker loads its map from the internet, so the run
 // needs network access. The animated preview needs ffmpeg and img2webp (from libwebp) on the
@@ -34,7 +34,8 @@ const vite = await createServer({ root: join(root, 'apps/playground'), logLevel:
 await vite.listen();
 const base = vite.resolvedUrls.local[0];
 const args = ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'];
-const browser = await chromium.launch({ executablePath: process.env.CHROME ?? '/usr/bin/google-chrome', args });
+const browser = await chromium.launch({ executablePath: process.env.CHROME ?? '/usr/bin/google-chrome', args })
+  .catch(async (e) => { await vite.close(); throw e; });
 const sizes = [];
 
 async function page(scheme, init) {
