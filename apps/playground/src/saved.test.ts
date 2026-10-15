@@ -13,13 +13,14 @@ function memory() {
 const box = (i: number) => ({ west: 10 + i, south: 40, east: 10.5 + i, north: 40.3 });
 
 describe('saved map terrains', () => {
-  it('adds new items first and names them by city or as Map N', () => {
+  it('adds new items first and names them by city or as Area, Area 2', () => {
     let items: SavedTerrain[] = [];
     items = addSaved(items, { bbox: PLACES[0].bbox, placeId: 'istanbul', settings }, 1).items;
     items = addSaved(items, { bbox: box(0), placeId: null, settings }, 2).items;
     items = addSaved(items, { bbox: box(1), placeId: null, settings }, 3).items;
-    expect(items.map((it) => it.name)).toEqual(['Map 2', 'Map 1', 'Istanbul']);
-    expect(savedName(items, null)).toBe('Map 3');
+    expect(items.map((it) => it.name)).toEqual(['Area 2', 'Area', 'Istanbul']);
+    expect(savedName(items, null)).toBe('Area 3');
+    expect(savedName(items, 'london')).toBe('London');
   });
 
   it('selects the existing item for the same box instead of adding one', () => {

@@ -527,9 +527,9 @@ export function GlassFrame({ pg, terrains, tune, exporting }: {
         <Popover.Root open={open === 'place'} onOpenChange={openChange('place')}>
           <MapButton hasPlace={Boolean(region.bbox)} />
           <ClusterPositioner clusterRef={clusterRef}>
-            <Popover.Popup className="pt-pop pt-pop-wide pt-glass" aria-label="Map" initialFocus={false}>
+            <Popover.Popup className="pt-pop pt-pop-wide pt-pop-map pt-glass" aria-label="Map" initialFocus={false}>
               <Suspense fallback={<div className="pt-mapbox" />}>
-                <PlacePanel region={region} onApply={terrains.apply} appearance={appearance} />
+                <PlacePanel region={region} onApply={terrains.apply} appliedName={terrains.activeSaved?.name} appearance={appearance} />
               </Suspense>
             </Popover.Popup>
           </ClusterPositioner>

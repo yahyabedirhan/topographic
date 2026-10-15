@@ -143,7 +143,7 @@ export function useRegion(pg: Playground): RegionController {
     return () => { stop = true; };
   }, [generation, pg]);
 
-  const name = findPlace(placeId)?.name ?? (bbox ? 'Custom' : '');
+  const name = findPlace(placeId)?.name ?? (bbox ? 'Area' : '');
   const pgRef = useRef(pg);
   pgRef.current = pg;
   const bboxRef = useRef(bbox);

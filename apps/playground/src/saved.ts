@@ -77,12 +77,12 @@ export function writeSaved(items: SavedTerrain[], store: Storage | null = storag
   }
 }
 
-/** A city keeps its name. Any other box is "Map N", one more than the highest N in the list. */
+/** A city keeps its name. Any other box is "Area", then "Area 2", "Area 3" and so on. */
 export function savedName(items: SavedTerrain[], placeId: string | null): string {
   const city = findPlace(placeId)?.name;
   if (city) return city;
-  const used = items.map((it) => /^Map (\d+)$/.exec(it.name)).filter(Boolean).map((m) => Number(m![1]));
-  return `Map ${Math.max(0, ...used) + 1}`;
+  const used = items.map((it) => /^Area(?: (\d+))?$/.exec(it.name)).filter(Boolean).map((m) => Number(m![1] ?? 1));
+  return used.length ? `Area ${Math.max(...used) + 1}` : 'Area';
 }
 
 /**

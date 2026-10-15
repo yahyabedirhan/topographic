@@ -148,37 +148,70 @@ button.pt-text-btn:hover{background:none;text-decoration-color:currentColor}
 .pt-seg button{flex:1 1 0;min-width:0;height:24px;padding:0 2px;border:0;border-radius:7px;background:transparent;box-shadow:none;color:var(--mut);font-size:12px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pt-seg button:hover{color:var(--fg);background:transparent}
 .pt-seg button[aria-pressed="true"]{background:var(--seg-on);box-shadow:var(--seg-shadow);color:var(--fg)}
-/* A fixed 16:10 map keeps the frame near 1.5:1, well within the 3:1 limit. */
-.pt-mapbox{position:relative;aspect-ratio:16 / 10;border-radius:12px;overflow:hidden;box-shadow:inset 0 0 0 .5px var(--line);background:var(--paper)}
-.pt-map-span{position:absolute;z-index:2;bottom:8px;padding:3px 8px;border-radius:999px;font:11px/1.2 var(--sans);color:#ecebe8;background:rgba(0,0,0,.45);
-  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);pointer-events:none;max-width:calc(100% - 20px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pt-map-span{right:10px;font-variant-numeric:tabular-nums}
-/* Map: the map, the City row on the popover grid, then Clear and Apply at the end. They move above the map when the popover scrolls. */
-.pt-place-cities{margin-top:8px}
-.pt-place-actions{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:8px}
-.pt-place > .pt-place-actions:first-child{margin:0 0 10px}
-.pt-map{position:relative}
+/* Map: the map runs edge to edge in the popover. A badge (city menu and size) and a quiet © sit on top,
+   a glass footer with the status and the actions sits over its lower edge. */
+.pt-pop-map{padding:0;overflow:hidden}
+.pt-mapbox{position:relative;height:392px;overflow:hidden;background:var(--paper)}
 .pt-map .pt-map-host{position:absolute;inset:0;background:var(--paper)}
 .pt-map-host .maplibregl-map{font-family:var(--sans)}
-/* The map credit: a quiet (i) in the top-left corner that opens into a small glass label. The size readout keeps the bottom-right. */
-.pt-map .maplibregl-ctrl-top-left{top:8px;left:8px;right:8px;display:flex}
-.pt-map .maplibregl-ctrl-top-left .maplibregl-ctrl-attrib.maplibregl-compact{float:none;display:flex;align-items:flex-start;gap:2px;min-height:0;max-width:100%;margin:0;padding:2px;box-sizing:border-box;
-  border-radius:12px;color:var(--mut);font:10.5px/1.35 var(--sans);background:color-mix(in srgb,var(--paper) 72%,transparent);
-  box-shadow:inset 0 0 0 .5px var(--line);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
-.pt-map .maplibregl-ctrl-attrib.maplibregl-compact::after{content:none}
-.pt-map .maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-button{position:static;display:block;flex:none;width:18px;height:18px;border-radius:50%;cursor:pointer;
-  background:color-mix(in srgb,var(--fg) 8%,transparent);box-shadow:none;color:var(--mut)}
-.pt-map .maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-button::before{content:'i';display:block;font:italic 600 11px/18px Georgia,serif;text-align:center}
-.pt-map .maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-button:hover{color:var(--fg);background:color-mix(in srgb,var(--fg) 14%,transparent)}
-.pt-map .maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-button:focus{box-shadow:none}
-.pt-map .maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-button:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
-.pt-map .maplibregl-ctrl-attrib.maplibregl-compact-show{padding:2px 9px 2px 2px}
-.pt-map .maplibregl-ctrl-attrib.maplibregl-compact-show .maplibregl-ctrl-attrib-button{background:color-mix(in srgb,var(--fg) 14%,transparent);color:var(--fg)}
-.pt-map .maplibregl-ctrl-attrib-inner{padding:1px 0 1px 3px}
-.pt-map .maplibregl-ctrl-attrib a{color:var(--mut);text-decoration:none}
-.pt-map .maplibregl-ctrl-attrib a:hover{color:var(--fg);text-decoration:underline}
-.pt-map-frame{position:absolute;left:16%;right:16%;top:13%;bottom:16%;border:1.5px solid #fff;border-radius:14px;box-shadow:0 0 0 999px rgba(0,0,0,.38);pointer-events:none}
-:root[data-theme=light] .pt-map-frame{border-color:#1b1b1a;box-shadow:0 0 0 999px rgba(249,248,246,.55)}
+.pt-map-host .maplibregl-canvas:focus-visible{outline:none}
+/* The frame: what Apply makes the terrain. Its corners and edges resize it. */
+.pt-map-frame{position:absolute;z-index:1;border:1.5px solid #fff;border-radius:10px;box-shadow:0 0 0 999px rgba(0,0,0,.38);pointer-events:none;--hd:#fff}
+:root[data-theme=light] .pt-map-frame{border-color:#1b1b1a;box-shadow:0 0 0 999px rgba(249,248,246,.55);--hd:#1b1b1a}
+.pt-frame-handle{position:absolute;pointer-events:auto;touch-action:none}
+.pt-frame-handle::after{content:'';position:absolute;background:var(--hd);box-shadow:0 0 0 1.5px color-mix(in srgb,var(--paper) 70%,transparent);opacity:.9;transition:transform .15s}
+.pt-frame-handle:hover::after,.pt-map-frame.is-resizing .pt-frame-handle::after{opacity:1}
+.pt-frame-handle.is-nw,.pt-frame-handle.is-ne,.pt-frame-handle.is-sw,.pt-frame-handle.is-se{width:22px;height:22px}
+.pt-frame-handle.is-nw{left:-11px;top:-11px}.pt-frame-handle.is-ne{right:-11px;top:-11px}
+.pt-frame-handle.is-sw{left:-11px;bottom:-11px}.pt-frame-handle.is-se{right:-11px;bottom:-11px}
+.pt-frame-handle.is-nw::after,.pt-frame-handle.is-ne::after,.pt-frame-handle.is-sw::after,.pt-frame-handle.is-se::after{width:8px;height:8px;border-radius:50%;left:calc(50% - 4px);top:calc(50% - 4px)}
+.pt-frame-handle.is-nw::after{transform:translate(3px,3px)}.pt-frame-handle.is-ne::after{transform:translate(-3px,3px)}
+.pt-frame-handle.is-sw::after{transform:translate(3px,-3px)}.pt-frame-handle.is-se::after{transform:translate(-3px,-3px)}
+.pt-frame-handle.is-n,.pt-frame-handle.is-s{left:11px;right:11px;height:14px}
+.pt-frame-handle.is-n{top:-7px}.pt-frame-handle.is-s{bottom:-7px}
+.pt-frame-handle.is-e,.pt-frame-handle.is-w{top:11px;bottom:11px;width:14px}
+.pt-frame-handle.is-e{right:-7px}.pt-frame-handle.is-w{left:-7px}
+.pt-frame-handle.is-n::after,.pt-frame-handle.is-s::after{width:18px;height:4px;border-radius:2px;left:calc(50% - 9px);top:5px}
+.pt-frame-handle.is-e::after,.pt-frame-handle.is-w::after{width:4px;height:18px;border-radius:2px;top:calc(50% - 9px);left:5px}
+/* Glass on the map, following the theme. */
+.pt-map-badge,.pt-credit.is-open,.pt-place-foot{background:color-mix(in srgb,var(--paper) 64%,transparent);box-shadow:inset 0 0 0 .5px var(--line);
+  backdrop-filter:blur(14px) saturate(1.4);-webkit-backdrop-filter:blur(14px) saturate(1.4)}
+button.pt-map-badge{position:absolute;z-index:3;top:10px;left:10px;display:inline-flex;align-items:center;gap:6px;max-width:calc(100% - 64px);height:28px;padding:0 9px 0 10px;border:0;border-radius:999px;
+  color:var(--fg);font:500 12px/1 var(--sans);white-space:nowrap}
+button.pt-map-badge:hover{background:color-mix(in srgb,var(--paper) 80%,transparent)}
+.pt-map-badge b{font-weight:500}
+.pt-map-badge .pt-map-span{color:var(--mut);font-weight:400;font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis}
+.pt-map-badge .pt-map-span::before{content:'· '}
+.pt-map-badge .pt-map-span.is-problem{color:var(--fg)}
+.pt-map-chev{color:var(--mut);flex:none}
+.pt-map-badge svg{flex:none}
+.pt-layer-menu{z-index:95}
+.pt-menu{width:300px;padding:4px;border-radius:14px;outline:none}
+.pt-menu-item{display:grid;grid-template-columns:16px 1fr;gap:2px 10px;align-items:center;padding:7px 10px;border-radius:10px;cursor:default;outline:none;color:var(--fg)}
+.pt-menu-item[data-highlighted]{background:color-mix(in srgb,var(--fg) 8%,transparent)}
+.pt-menu-item b{font-weight:500;font-size:13px;line-height:1.2}
+.pt-menu-item small{grid-column:2;color:var(--mut);font-size:11px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pt-menu-check{display:grid;place-items:center;grid-row:1 / span 2}
+/* The credit: a quiet © that opens into a small glass label. */
+.pt-credit{position:absolute;z-index:3;top:10px;right:10px;display:flex;flex-direction:row-reverse;align-items:flex-start;gap:4px;max-width:calc(100% - 20px);padding:2px;border-radius:12px;color:var(--mut);font:10.5px/1.45 var(--sans)}
+.pt-credit.is-open{padding:2px 2px 3px 10px}
+button.pt-credit-btn{width:22px;height:22px;flex:none;padding:0;border:0;border-radius:50%;display:grid;place-items:center;background:none;box-shadow:none;
+  font:400 16px/1 var(--sans);color:color-mix(in srgb,var(--fg) 72%,transparent);text-shadow:0 0 2px var(--paper),0 0 6px var(--paper)}
+button.pt-credit-btn:hover,.pt-credit.is-open button.pt-credit-btn{color:var(--fg);background:none}
+.pt-credit-text{padding-top:2px;text-align:right}
+.pt-credit a{color:var(--mut);text-decoration:none}
+.pt-credit a:hover{color:var(--fg);text-decoration:underline}
+/* The footer: what the terrain is now, then Clear and Apply. */
+.pt-place-foot{position:absolute;z-index:3;left:0;right:0;bottom:0;height:60px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 12px 0 14px;
+  box-shadow:inset 0 .5px 0 var(--line)}
+.pt-status{display:flex;align-items:center;gap:10px;min-width:0}
+.pt-status-icon{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;flex:none;background:color-mix(in srgb,var(--fg) 7%,transparent);color:var(--fg)}
+.pt-status-text{display:grid;gap:3px;min-width:0}
+.pt-status-text b{font-weight:500;font-size:13px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pt-status-text small{color:var(--mut);font-size:11.5px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.pt-place-actions{display:flex;align-items:center;gap:6px;flex:none}
+.pt-place-actions .pt-action{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;font:500 13px/1 var(--sans)}
+.pt-action.is-done,.pt-action.is-done:disabled{background:transparent;color:var(--mut);box-shadow:inset 0 0 0 .5px var(--line);opacity:1}
 .pt-export-block{display:grid;gap:8px;padding-top:8px}
 .pt-export-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .pt-export-head .pt-hint{flex:1;min-width:0}
@@ -221,6 +254,8 @@ button.pt-text-btn:hover{background:none;text-decoration-color:currentColor}
   .pt-pngs{grid-template-columns:1fr}
   .pt-pop{width:min(var(--pop-w),calc(100vw - 16px));max-height:calc(100dvh - 150px)}
   .pt-pop-wide{max-height:calc(100dvh - 162px)}
+  .pt-mapbox{height:360px}
+  .pt-place-actions .pt-action{padding:0 12px}
   .pt-pop-color{width:max-content}
   .pt-row{grid-template-columns:64px minmax(0,1fr) 40px}
   .pt-seg button{flex:1 1 auto;padding:0 4px}
