@@ -1,18 +1,19 @@
 import { useEffect, useMemo, useRef, useState, type MutableRefObject, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import {
-  GROUPS, PRESETS, STYLES, THEME_DEFAULTS, clampParam, createTopography, mergeSettings, paramsIn, resolveMode, resolveSettings, rgbaToCss,
+  GROUPS, STYLES, THEME_DEFAULTS, clampParam, createTopography, mergeSettings, paramsIn, resolveMode, resolveSettings, rgbaToCss,
   type GroupName, type ParamDef, type Settings, type SettingsInput, type Topography as Instance,
 } from 'topography.js';
 import { Topography } from 'topography-react';
 import { registerTools } from '../webmcp';
 import { configOf, readUrl } from '../url';
+import { LOOKS } from './looks';
 
 export interface Playground {
   settings: Settings;
   mode: 'light' | 'dark';
   change(patch: SettingsInput): void;
-  applyPreset(i: number): void;
-  presetIndex: number;
+  applyLook(i: number): void;
+  lookIndex: number;
   shuffle(): void;
   instance: MutableRefObject<Instance | null>;
 }
@@ -107,9 +108,9 @@ export function usePlayground(): Playground {
   const frame = useRef(0);
   useEffect(() => () => cancelAnimationFrame(frame.current), []);
 
-  const presetIndex = useMemo(() => {
-    const key = JSON.stringify(configOf({ ...settings, seed: 0, theme: { mode: 'auto' } }));
-    return PRESETS.findIndex((p) => JSON.stringify(configOf(resolveSettings(p.settings))) === key);
+  const lookIndex = useMemo(() => {
+    const key = JSON.stringify(configOf(settings));
+    return LOOKS.findIndex((look) => JSON.stringify(configOf(resolveSettings(look.settings))) === key);
   }, [settings]);
 
   const shuffle = () => {
@@ -130,9 +131,9 @@ export function usePlayground(): Playground {
   };
 
   return {
-    settings, mode, instance, presetIndex, shuffle,
+    settings, mode, instance, lookIndex, shuffle,
     change: (patch) => setSettings((s) => mergeSettings(s, patch)),
-    applyPreset: (i) => setSettings((s) => ({ ...resolveSettings(PRESETS[i].settings), seed: s.seed, theme: s.theme })),
+    applyLook: (i) => setSettings(resolveSettings(LOOKS[i].settings)),
   };
 }
 
@@ -144,28 +145,35 @@ export function Backdrop({ pg, className = 'pt-stage' }: { pg: Playground; class
   );
 }
 
-export function usePresetThumbs(pg: Playground, width = 360, height = 240): string[] {
+export function useLookThumbs(width = 168, height = 96): string[] {
   const [urls, setUrls] = useState<string[]>([]);
-  const theme = { ...pg.settings.theme, mode: pg.mode };
-  const sig = JSON.stringify(theme);
   useEffect(() => {
     let dead = false;
     const host = document.createElement('div');
     Object.assign(host.style, { position: 'fixed', left: '-9999px', top: '0', width: `${width / 2}px`, height: `${height / 2}px` });
     document.body.append(host);
-    const t = createTopography(host, { theme });
+    const t = createTopography(host, { theme: resolveSettings(LOOKS[0].settings).theme });
     (async () => {
       const out: string[] = [];
-      for (const p of PRESETS) {
-        const r = resolveSettings({ ...p.settings, theme });
-        t.update({ ...r, layout: { ...r.layout, anchor: 1, fade: 0 }, lines: { ...r.lines, count: Math.max(8, Math.round(r.lines.count * 0.45)), width: Math.min(1, r.lines.width + 0.2), opacity: Math.min(1, r.lines.opacity * 2.2) } });
+      for (const look of LOOKS) {
+        const r = resolveSettings(look.settings);
+        t.update({
+          ...r,
+          layout: { ...r.layout, anchor: 1, fade: 0 },
+          lines: {
+            ...r.lines,
+            count: Math.max(12, Math.round(r.lines.count * 0.8)),
+            width: Math.max(0.06, r.lines.width * 0.62),
+            opacity: Math.min(1, r.lines.opacity * 1.25),
+          },
+        });
         try { out.push(URL.createObjectURL(await t.snapshot({ frame: 4000, width, height }))); } catch { out.push(''); }
         if (dead) return;
         setUrls([...out]);
       }
     })().finally(() => { t.destroy(); host.remove(); });
     return () => { dead = true; };
-  }, [sig, width, height]);
+  }, [width, height]);
   return urls;
 }
 
