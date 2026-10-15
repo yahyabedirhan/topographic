@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Real-place pipeline</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600&family=Inter+Tight:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #131417; color: #e4e6e9; font-family: 'Inter Tight', system-ui, sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 1rem; }
+.frame { max-width: 960px; width: 100%; min-width: 0; }
+.eyebrow { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 0.66rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: #8b9097; margin-bottom: 0.5rem; }
+h1 { font-family: 'Space Grotesk', system-ui, sans-serif; font-weight: 600; letter-spacing: -0.01em; font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem); line-height: 1.15; margin-bottom: 1.5rem; }
+.diagram-container { width: 100%; overflow-x: auto; }
+svg { width: 100%; min-width: 960px; display: block; }
+@media print { .diagram-container { overflow-x: visible; } svg { min-width: 0; } }
+</style>
+</head>
+<body>
+<div class="frame">
+<p class="eyebrow">Prototype · topographic</p>
+<h1>Real-place pipeline</h1>
+<div class="diagram-container">
+<svg viewBox="0 0 960 608" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="real-place-pipeline-title real-place-pipeline-desc">
+<title id="real-place-pipeline-title">Real-place pipeline</title>
+<desc id="real-place-pipeline-desc">How a real place becomes a terrain in the prototype: the map frame gives a bounding box, a worker fetches and decodes Terrarium elevation tiles, stitches and resamples them to a 256 by 256 grid, scales the relief and smooths it, and the hook hands the heightfield to the renderer with setHeightfield().</desc>
+<defs>
+<linearGradient id="tile" x1="0" y1="0" x2="0" y2="608" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#222529"/><stop offset="1" stop-color="#131417"/></linearGradient>
+<linearGradient id="rim1" x1="0" y1="0" x2="0" y2="608" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity="0.32"/><stop offset="1" stop-color="#fff" stop-opacity="0.08"/></linearGradient>
+<linearGradient id="rim2" x1="0" y1="0" x2="0" y2="608" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity="0.14"/><stop offset="1" stop-color="#fff" stop-opacity="0.03"/></linearGradient>
+<marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#8b9097"/></marker>
+<marker id="fold" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="12" refX="14" refY="6" orient="auto"><path d="M0 0L14 6H3Z" fill="#b9bec4"/><path d="M0 12L14 6H3Z" fill="#ffffff"/></marker>
+</defs>
+<rect width="960" height="608" rx="12" fill="url(#tile)"/>
+<rect x="2.5" y="2.5" width="955" height="603" rx="10" fill="none" stroke="url(#rim1)" stroke-width="1"/>
+<rect x="10.5" y="10.5" width="939" height="587" rx="2" fill="none" stroke="url(#rim2)" stroke-width="1"/>
+<rect x="24" y="56" width="912" height="136" rx="8" fill="rgba(228,230,233,0.02)" stroke="rgba(228,230,233,0.10)" stroke-width="0.8"/>
+<rect x="408.9" y="60" width="142.2" height="12" fill="url(#tile)"/>
+<text x="480.0" y="69" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.14em">PROTOTYPE · MAIN THREAD</text>
+<rect x="24" y="236" width="912" height="136" rx="8" fill="rgba(228,230,233,0.02)" stroke="rgba(228,230,233,0.10)" stroke-width="0.8"/>
+<rect x="423.7" y="240" width="112.6" height="12" fill="url(#tile)"/>
+<text x="480.0" y="249" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.14em">WORKER · worker.ts</text>
+<path d="M200 120H280" fill="none" stroke="#8b9097" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M440 120H760" fill="none" stroke="#ffffff" stroke-width="1.5" marker-end="url(#fold)"/>
+<path d="M332 152V204Q332 212 324 212H128Q120 212 120 220V272" fill="none" stroke="#8b9097" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M800 272V220Q800 212 792 212H396Q388 212 388 204V152" fill="none" stroke="#8b9097" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M200 304H280" fill="none" stroke="#8b9097" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M440 304H520" fill="none" stroke="#8b9097" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M680 304H760" fill="none" stroke="#8b9097" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M120 432V336" fill="none" stroke="#8b9097" stroke-width="1.2" marker-end="url(#arrow)"/>
+<rect x="226.4" y="103" width="27.1" height="12" fill="url(#tile)"/>
+<text x="240.0" y="112" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">BBOX</text>
+<rect x="568.0" y="103" width="64.1" height="12" fill="url(#tile)"/>
+<text x="600.0" y="112" fill="#ffffff" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">HEIGHTFIELD</text>
+<rect x="193.9" y="219" width="64.1" height="12" fill="url(#tile)"/>
+<text x="226.0" y="228" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">POSTMESSAGE</text>
+<rect x="569.2" y="195" width="53.5" height="12" fill="url(#tile)"/>
+<text x="596.0" y="204" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">256² GRID</text>
+<rect x="221.2" y="287" width="37.7" height="12" fill="url(#tile)"/>
+<text x="240.0" y="296" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">METRES</text>
+<rect x="453.2" y="287" width="53.5" height="12" fill="url(#tile)"/>
+<text x="480.0" y="296" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">256 × 256</text>
+<rect x="706.5" y="287" width="27.1" height="12" fill="url(#tile)"/>
+<text x="720.0" y="296" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">0..1</text>
+<rect x="128.0" y="395" width="58.8" height="12" fill="url(#tile)"/>
+<text x="157.4" y="404" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">≤ 36 TILES</text>
+<rect x="40" y="88" width="160" height="64" rx="2" fill="url(#tile)"/>
+<rect x="40.5" y="88.5" width="159" height="63" rx="2" fill="#222529" stroke="rgba(255,255,255,0.16)" stroke-width="1"/>
+<rect x="48.5" y="96.5" width="18" height="12" fill="none" stroke="#6b7078" stroke-opacity="0.6" stroke-width="0.8"/>
+<text x="57.5" y="105.5" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">UI</text>
+<text x="120.0" y="126" fill="#e4e6e9" font-size="12" font-weight="600" font-family="'Inter Tight', system-ui, sans-serif" text-anchor="middle">Map frame</text>
+<text x="120.0" y="141" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">Picker.tsx · MapLibre</text>
+<rect x="280" y="88" width="160" height="64" rx="2" fill="url(#tile)"/>
+<rect x="280.5" y="88.5" width="159" height="63" rx="2" fill="#222529" stroke="rgba(255,255,255,0.16)" stroke-width="1"/>
+<rect x="288.5" y="96.5" width="28" height="12" fill="none" stroke="#6b7078" stroke-opacity="0.6" stroke-width="0.8"/>
+<text x="302.5" y="105.5" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">HOOK</text>
+<text x="360.0" y="126" fill="#e4e6e9" font-size="12" font-weight="600" font-family="'Inter Tight', system-ui, sans-serif" text-anchor="middle">Region hook</text>
+<text x="360.0" y="141" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">useRegion.ts</text>
+<path d="M760 90Q760 88 762 88H906L920 102V150Q920 152 918 152H762Q760 152 760 150Z" fill="#ffffff"/>
+<path d="M906 88L920 102H906Z" fill="#b9bec4"/>
+<rect x="768.5" y="96.5" width="23" height="12" fill="none" stroke="#4f545b" stroke-opacity="0.6" stroke-width="0.8"/>
+<text x="780.0" y="105.5" fill="#4f545b" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">GPU</text>
+<text x="840.0" y="126" fill="#131417" font-size="12" font-weight="600" font-family="'Inter Tight', system-ui, sans-serif" text-anchor="middle">Renderer</text>
+<text x="840.0" y="141" fill="#131417" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">setHeightfield()</text>
+<rect x="40" y="272" width="160" height="64" rx="2" fill="url(#tile)"/>
+<rect x="40.5" y="272.5" width="159" height="63" rx="2" fill="#222529" stroke="rgba(255,255,255,0.16)" stroke-width="1"/>
+<rect x="48.5" y="280.5" width="23" height="12" fill="none" stroke="#6b7078" stroke-opacity="0.6" stroke-width="0.8"/>
+<text x="60.0" y="289.5" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">PNG</text>
+<text x="120.0" y="310" fill="#e4e6e9" font-size="12" font-weight="600" font-family="'Inter Tight', system-ui, sans-serif" text-anchor="middle">Fetch + decode</text>
+<text x="120.0" y="325" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">tileRange · decodeTile</text>
+<rect x="280" y="272" width="160" height="64" rx="2" fill="url(#tile)"/>
+<rect x="280.5" y="272.5" width="159" height="63" rx="2" fill="#222529" stroke="rgba(255,255,255,0.16)" stroke-width="1"/>
+<rect x="288.5" y="280.5" width="28" height="12" fill="none" stroke="#6b7078" stroke-opacity="0.6" stroke-width="0.8"/>
+<text x="302.5" y="289.5" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">GRID</text>
+<text x="360.0" y="310" fill="#e4e6e9" font-size="12" font-weight="600" font-family="'Inter Tight', system-ui, sans-serif" text-anchor="middle">Stitch + resample</text>
+<text x="360.0" y="325" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">stitch · resample</text>
+<rect x="520" y="272" width="160" height="64" rx="2" fill="url(#tile)"/>
+<rect x="520.5" y="272.5" width="159" height="63" rx="2" fill="#222529" stroke="rgba(255,255,255,0.16)" stroke-width="1"/>
+<rect x="528.5" y="280.5" width="28" height="12" fill="none" stroke="#6b7078" stroke-opacity="0.6" stroke-width="0.8"/>
+<text x="542.5" y="289.5" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">STEP</text>
+<text x="600.0" y="310" fill="#e4e6e9" font-size="12" font-weight="600" font-family="'Inter Tight', system-ui, sans-serif" text-anchor="middle">Relief</text>
+<text x="600.0" y="325" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">dramatic · measured</text>
+<rect x="760" y="272" width="160" height="64" rx="2" fill="url(#tile)"/>
+<rect x="760.5" y="272.5" width="159" height="63" rx="2" fill="#222529" stroke="rgba(255,255,255,0.16)" stroke-width="1"/>
+<rect x="768.5" y="280.5" width="28" height="12" fill="none" stroke="#6b7078" stroke-opacity="0.6" stroke-width="0.8"/>
+<text x="782.5" y="289.5" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">STEP</text>
+<text x="840.0" y="310" fill="#e4e6e9" font-size="12" font-weight="600" font-family="'Inter Tight', system-ui, sans-serif" text-anchor="middle">Smoothing</text>
+<text x="840.0" y="325" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">light · medium · strong</text>
+<rect x="40" y="432" width="160" height="64" rx="2" fill="url(#tile)"/>
+<rect x="40.5" y="432.5" width="159" height="63" rx="2" fill="rgba(228,230,233,0.03)" stroke="rgba(228,230,233,0.30)" stroke-width="1" stroke-dasharray="4,3"/>
+<rect x="48.5" y="440.5" width="18" height="12" fill="none" stroke="#6b7078" stroke-opacity="0.6" stroke-width="0.8"/>
+<text x="57.5" y="449.5" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">S3</text>
+<text x="120.0" y="470" fill="#e4e6e9" font-size="12" font-weight="600" font-family="'Inter Tight', system-ui, sans-serif" text-anchor="middle">Elevation tiles</text>
+<text x="120.0" y="485" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">Terrarium PNG · z ≤ 15</text>
+<text font-size="12" font-family="'Inter Tight', system-ui, sans-serif" fill="#8b9097"><tspan x="280" y="452">shapeField sets sea to 0, scales the relief, then smooths it.</tspan><tspan x="280" y="470">Dramatic stretches a flat city to fill the block. Measured</tspan><tspan x="280" y="488">keeps 400 m as full height, so a flat city stays flat.</tspan></text>
+<line x1="40" y1="528" x2="920" y2="528" stroke="rgba(228,230,233,0.10)" stroke-width="0.8"/>
+<text x="40" y="552" fill="#8b9097" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" letter-spacing="0.14em">LEGEND</text>
+<path d="M120 544H136L142 550V556H120Z" fill="#ffffff"/><path d="M136 544L142 550H136Z" fill="#b9bec4"/>
+<text x="152" y="553" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace">core step</text>
+<rect x="280.5" y="544.5" width="21" height="11" rx="2" fill="#222529" stroke="rgba(255,255,255,0.16)"/>
+<text x="312.0" y="553" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace">step</text>
+<rect x="440.5" y="544.5" width="21" height="11" rx="2" fill="none" stroke="rgba(228,230,233,0.30)" stroke-dasharray="4,3"/>
+<text x="472.0" y="553" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace">external</text>
+<path d="M600.0 550H622.0" stroke="#ffffff" stroke-width="1.5" marker-end="url(#fold)"/>
+<text x="632.0" y="553" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace">main path</text>
+<path d="M760.0 550H782.0" stroke="#8b9097" stroke-width="1.2" marker-end="url(#arrow)"/>
+<text x="792.0" y="553" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace">feeds</text>
+</svg>
+</div>
+</div>
+</body>
+</html>
