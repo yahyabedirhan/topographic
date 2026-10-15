@@ -7,7 +7,7 @@ import { Tooltip } from '@base-ui-components/react/tooltip';
 import { Box, Dices, Frame, Map, Moon, Mountain, RotateCcw, SlidersHorizontal, Spline, Sun, Wind } from 'lucide-react';
 import { PlaceButton, PlaceSheet, RegionPill } from './region/Picker';
 import { useRegion } from './region/useRegion';
-import { DEFAULT_CAMERA, DEFAULT_DETAIL, DEFAULT_ELEVATION, GROUPS, paramsIn, type CameraMotion, type GroupName, type ParamDef, type TerrainExtent } from 'topographic';
+import { DEFAULT_CAMERA, DEFAULT_DETAIL, DEFAULT_ELEVATION, GROUPS, paramsIn, resolveMode, type CameraMotion, type GroupName, type ParamDef, type TerrainExtent } from 'topographic';
 import { LOOKS } from './looks';
 import {
   Backdrop, ColorPicker, GROUP_LABELS, INK_SWATCHES, PAPER_SWATCHES, Wordmark, currentColour, rollColour, useLookThumbs,
@@ -522,7 +522,12 @@ export function GlassFrame({ pg, tune, exporting }: {
         exporting={exporting(exp, (open) => { setExp(open); if (open) { setTuneOpen(false); setPlaceOpen(false); } }, clusterRef)}
       >
         <RegionPill region={region} onOpen={() => setPlaceOpen(true)} />
-        <PlaceSheet open={placeOpen} onClose={() => setPlaceOpen(false)} region={region} />
+        <PlaceSheet
+          open={placeOpen}
+          onClose={() => setPlaceOpen(false)}
+          region={region}
+          appearance={resolveMode(pg.settings.theme.mode, document.documentElement.dataset.theme !== 'light')}
+        />
         <Popover.Portal>
           <Popover.Positioner anchor={clusterRef} side="bottom" align="end" sideOffset={10} collisionPadding={{ top: 12, right: 8, bottom: 16, left: 8 }} positionMethod="fixed" className="pt-layer">
             <Popover.Popup className="pt-pop pt-glass pt-panel">

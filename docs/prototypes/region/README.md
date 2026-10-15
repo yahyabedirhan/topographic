@@ -20,7 +20,7 @@ That builds the packages, starts Vite and opens `/?variant=P2`. 2D is the defaul
 
 `region` is `west,south,east,north` in degrees. A JSON value works too: `{"bbox":[28.94,40.99,29.07,41.08]}` or `{"west":28.94,"south":40.99,"east":29.07,"north":41.08}`. `relief=measured` opts out of the dramatic stretch. `smooth=light` or `smooth=strong` opts out of medium. The same `config` query as the rest of the playground still sets the style, colours and camera. An explicit `elevation` in that config is kept. Without one, a place opens at 0.1.
 
-Place opens a map. Frame (the default) uses pan and zoom, and the inset rectangle is the place. Rectangle is a drag. The four chips load those cities immediately. Use this place commits whatever the frame or the drag currently covers.
+Place opens a map. Frame (the default) uses pan and zoom, and the inset rectangle is the place. Rectangle is a drag. The four chips load those cities immediately. Use this place commits whatever the frame or the drag currently covers. The map uses the quiet paper style. Add `basemap=liberty` to open the previous OpenFreeMap Liberty style instead.
 
 Regenerate the screenshots while that dev server is running:
 
@@ -43,7 +43,8 @@ Same style throughout: gentle summit, 28 lines. The `*-2d.png` and `*-3d.png` fi
 | `elevation-sweep-san-francisco.png` | The same sweep for San Francisco. |
 | `elevation-sweep-london.png` | The same sweep for London. |
 | `elevation-sweep-new-york.png` | The same sweep for New York. |
-| `picker-frame.png`, `picker-rectangle.png` | The two ways to choose the rectangle. |
+| `picker-frame.png`, `picker-rectangle.png` | The two ways to choose the rectangle, on the quiet dark map. |
+| `picker-frame-light.png`, `picker-rectangle-light.png` | The same two, on light paper. |
 
 The heights are bare earth. The contours are the ground, and the buildings are absent. Sea water is put back to zero after the blur, and the contour shader sits that floor between the lines, so the Bosphorus, the bay, the Thames and the Hudson are blank paper rather than a striped shelf.
 
@@ -51,9 +52,11 @@ A load of one of these cities took about 6 seconds in this browser. Almost all o
 
 ## Decisions
 
-**Map.** [MapLibre GL JS](https://maplibre.org/) 6.14.0 and the [OpenFreeMap](https://openfreemap.org/) Liberty style (`https://tiles.openfreemap.org/styles/liberty`). No API key, no account, no view cap. MapLibre adds the attribution. The map stays flat. OpenFreeMap also serves Positron, Bright, Dark and Fiord.
+**Map.** [MapLibre GL JS](https://maplibre.org/) 6.14.0. The default picker is our own quiet style on [OpenFreeMap](https://openfreemap.org/) vector tiles (`https://tiles.openfreemap.org/planet`). No API key, no account, no view cap. Land, water, thin roads, and place names follow the playground paper and ink, in light and in dark. Pins, shields, and rail hatching are left out. `basemap=liberty` still loads `https://tiles.openfreemap.org/styles/liberty` when you want the previous look beside this one. The map stays flat. MapLibre shows the tile credit, and the dialog repeats it.
 
-Google Maps needs a key, a billing account, and terms that do not suit a public GitHub Pages site. Leaflet with the public OpenStreetMap raster tiles needs no key, and the OSM tile usage policy is a poor fit for a public app. OpenFreeMap is the keyless vector option that states commercial use and unlimited views on the public instance.
+A Protomaps planet PMTiles file is about 120 GB. GitHub Pages allows a 1 GB site and 100 MB per file, and Cloudflare R2's free tier stores 10 GB, so a full planet is not an unlimited free host. A low-zoom world plus these four cities would fit on Pages, and any other place would go soft once you zoomed in. OpenFreeMap's public tiles are the unlimited, keyless way to cover every place through zoom 14, and the style is ours. The tiles remain theirs.
+
+Google Maps needs a key, a billing account, and terms that do not suit a public GitHub Pages site. Leaflet with the public OpenStreetMap raster tiles needs no key, and the OSM tile usage policy is a poor fit for a public app.
 
 **Elevation.** [Terrain Tiles](https://registry.opendata.aws/terrain-tiles/) on AWS Open Data, terrarium PNGs, no key:
 
@@ -89,7 +92,7 @@ A region mesh is at least 192 by 192. The detail slider still tops out at 160 fo
 
 ## Attribution
 
-The map control credits OpenFreeMap, OpenMapTiles and OpenStreetMap. Elevation follows the [Tilezen / joerd attribution](https://github.com/tilezen/joerd/blob/master/docs/attribution.md). Terrain Tiles was accessed in October 2026 from <https://registry.opendata.aws/terrain-tiles>.
+The map control and the dialog credit OpenFreeMap, OpenMapTiles and OpenStreetMap: `OpenFreeMap © OpenMapTiles Data from OpenStreetMap`. Elevation follows the [Tilezen / joerd attribution](https://github.com/tilezen/joerd/blob/master/docs/attribution.md). Terrain Tiles was accessed in October 2026 from <https://registry.opendata.aws/terrain-tiles>.
 
 - Mapzen
 - ArcticDEM terrain data DEM(s) were created from DigitalGlobe, Inc., imagery and funded under National Science Foundation awards 1043681, 1559691, and 1542736

@@ -45,7 +45,5 @@ export function configSetsElevation(search: string): boolean {
   }
 }
 
-export const MAP_STYLE = 'https://tiles.openfreemap.org/styles/liberty';
-
 /** Inset of the frame, as fractions of the map. */
 export const FRAME = { left: 0.16, right: 0.16, top: 0.13, bottom: 0.16 };

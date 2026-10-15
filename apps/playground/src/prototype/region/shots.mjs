@@ -71,22 +71,29 @@ for (const [name, query] of places) {
   await page.close();
 }
 
-const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, colorScheme: 'dark' });
-await page.goto(`${base}?variant=P2&config=${config}&place=istanbul&region=28.94,40.99,29.07,41.08`, { waitUntil: 'domcontentloaded' });
-await page.waitForFunction(() => document.documentElement.dataset.region === 'ready', { timeout: 60000 });
-await page.click('[aria-label="Place"]');
-await page.waitForSelector('.maplibregl-canvas', { timeout: 20000 });
-await page.waitForTimeout(2800);
-await page.screenshot({ path: `${out}/picker-frame.png` });
-await page.click('button.pt-chip:has-text("Rectangle")');
-const host = page.locator('.pt-map-host');
-const box = await host.boundingBox();
-if (!box) throw new Error('map host has no box');
-await page.mouse.move(box.x + box.width * 0.28, box.y + box.height * 0.32);
-await page.mouse.down();
-await page.mouse.move(box.x + box.width * 0.72, box.y + box.height * 0.7, { steps: 12 });
-await page.mouse.up();
-await page.waitForTimeout(400);
-await page.screenshot({ path: `${out}/picker-rectangle.png` });
+for (const [theme, suffix] of [['dark', ''], ['light', '-light']]) {
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, colorScheme: theme });
+  page.on('pageerror', (e) => console.log('picker', theme, e.message));
+  await page.goto(`${base}?variant=P2&config=${configFor(theme)}&place=istanbul&region=28.94,40.99,29.07,41.08`, { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => document.documentElement.dataset.region === 'ready', { timeout: 60000 });
+  await page.click('[aria-label="Place"]');
+  await page.waitForSelector('.maplibregl-canvas', { timeout: 20000 });
+  await page.waitForTimeout(3200);
+  const credit = await page.locator('.pt-attrib').innerText();
+  if (!credit.includes('OpenMapTiles')) throw new Error(`missing tile credit: ${credit}`);
+  await page.screenshot({ path: `${out}/picker-frame${suffix}.png` });
+  await page.click('button.pt-chip:has-text("Rectangle")');
+  const host = page.locator('.pt-map-host');
+  const box = await host.boundingBox();
+  if (!box) throw new Error('map host has no box');
+  await page.mouse.move(box.x + box.width * 0.28, box.y + box.height * 0.32);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width * 0.72, box.y + box.height * 0.7, { steps: 12 });
+  await page.mouse.up();
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: `${out}/picker-rectangle${suffix}.png` });
+  console.log(`picker ${theme} ${credit.replace(/\n/g, ' ')}`);
+  await page.close();
+}
 await browser.close();
 console.log('region shots');

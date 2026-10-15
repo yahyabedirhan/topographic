@@ -6,7 +6,8 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 
 setWorkerUrl(maplibreWorkerUrl);
 import { limitMessage, limitProblem, spanOf, type BBox } from './pipeline';
-import { findPlace, FRAME, MAP_STYLE, PLACES } from './places';
+import { MAP_CREDIT, mapStyle, type MapAppearance } from './basemap';
+import { findPlace, FRAME, PLACES } from './places';
 import type { RegionController } from './useRegion';
 
 type PickMode = 'frame' | 'draw';
@@ -75,7 +76,12 @@ export function RegionPill({ region, onOpen }: { region: RegionController; onOpe
   );
 }
 
-export function PlaceSheet({ open, onClose, region }: { open: boolean; onClose: () => void; region: RegionController }) {
+export function PlaceSheet({ open, onClose, region, appearance }: {
+  open: boolean;
+  onClose: () => void;
+  region: RegionController;
+  appearance: MapAppearance;
+}) {
   const host = useRef<HTMLDivElement>(null);
   const frame = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapMap | null>(null);
@@ -89,7 +95,7 @@ export function PlaceSheet({ open, onClose, region }: { open: boolean; onClose: 
     if (!open || !host.current) return;
     const map = new MapLibre({
       container: host.current,
-      style: MAP_STYLE,
+      style: mapStyle(location.search, appearance),
       center: [region.bbox ? (region.bbox.west + region.bbox.east) / 2 : 29, region.bbox ? (region.bbox.south + region.bbox.north) / 2 : 41.03],
       zoom: 11,
       attributionControl: { compact: false },
@@ -133,7 +139,7 @@ export function PlaceSheet({ open, onClose, region }: { open: boolean; onClose: 
       map.remove();
       mapRef.current = null;
     };
-  }, [open]);
+  }, [open, appearance]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -205,7 +211,7 @@ export function PlaceSheet({ open, onClose, region }: { open: boolean; onClose: 
               {region.status === 'loading' ? ' · Reading the land…' : ''}
               {region.status === 'error' && region.error ? ` · ${region.error}` : ''}
             </p>
-            <p className="pt-hint pt-attrib">Map: OpenFreeMap © OpenStreetMap. Elevation: Mapzen Terrain Tiles, AWS Open Data.</p>
+            <p className="pt-hint pt-attrib">Map: {MAP_CREDIT}. Elevation: Mapzen Terrain Tiles, AWS Open Data.</p>
           </div>
           <div className="pt-place-actions">
             <div className="pt-chips" role="group" aria-label="Relief">
