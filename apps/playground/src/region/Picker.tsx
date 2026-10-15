@@ -1,44 +1,14 @@
-import { useEffect, useRef, useState } from 'react';
-import { AttributionControl, Map as MapLibre, setWorkerUrl, type Map as MapMap, type LngLat } from 'maplibre-gl';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { AttributionControl, Map as MapLibre, setWorkerUrl, type Map as MapMap } from 'maplibre-gl';
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { limitMessage, limitProblem, spanOf, type BBox, type ReliefMode, type SmoothLevel } from './pipeline';
+import { limitMessage, limitProblem, spanOf, type BBox } from './pipeline';
 import { mapStyle, type MapAppearance } from './basemap';
 import { findPlace, FRAME, PLACES } from './places';
 import type { RegionController } from './useRegion';
-import { km, PlaceNow } from './controls';
-import { PopHead, Section, SegRow } from '../parts';
+import { km } from './controls';
 
 setWorkerUrl(maplibreWorkerUrl);
-
-type PickMode = 'frame' | 'draw';
-
-const PICKS: { id: PickMode; label: string }[] = [
-  { id: 'frame', label: 'Frame' },
-  { id: 'draw', label: 'Rectangle' },
-];
-
-const RELIEFS: { id: ReliefMode; label: string }[] = [
-  { id: 'dramatic', label: 'Exaggerate' },
-  { id: 'measured', label: 'Real heights' },
-];
-
-const SMOOTHS: { id: SmoothLevel; label: string }[] = [
-  { id: 'light', label: 'Light' },
-  { id: 'medium', label: 'Medium' },
-  { id: 'strong', label: 'Strong' },
-];
-
-const CITIES = PLACES.map((place) => ({ id: place.id, label: place.name }));
-
-function ordered(a: LngLat, b: LngLat): BBox {
-  return {
-    west: Math.min(a.lng, b.lng),
-    east: Math.max(a.lng, b.lng),
-    south: Math.min(a.lat, b.lat),
-    north: Math.max(a.lat, b.lat),
-  };
-}
 
 function framePadding(map: MapMap) {
   const canvas = map.getCanvas();
@@ -57,24 +27,39 @@ function readFrame(map: MapMap, frame: HTMLElement, host: HTMLElement): BBox {
   const box = frame.getBoundingClientRect();
   const nw = map.unproject([box.left - mapRect.left, box.top - mapRect.top]);
   const se = map.unproject([box.right - mapRect.left, box.bottom - mapRect.top]);
-  return ordered(nw, se);
+  return {
+    west: Math.min(nw.lng, se.lng),
+    east: Math.max(nw.lng, se.lng),
+    south: Math.min(nw.lat, se.lat),
+    north: Math.max(nw.lat, se.lat),
+  };
+}
+
+/** Two boxes count as the same place when every edge is within about ten metres. */
+function sameBox(a: BBox, b: BBox): boolean {
+  const near = (x: number, y: number) => Math.abs(x - y) < 1e-4;
+  return near(a.west, b.west) && near(a.south, b.south) && near(a.east, b.east) && near(a.north, b.north);
+}
+
+/** A box chosen by name, or the applied one: it stands for the frame until the person pans or zooms. */
+interface Held {
+  bbox: BBox;
+  placeId: string | null;
 }
 
 /**
- * The Place popover's content. It mounts when the popover opens. The map area has a fixed
- * 16:10 ratio, so the frame inside it stays near 1.5:1, well within the 3:1 limit.
+ * The Place popover's content: a map with a frame, quick city pills, and Apply. Moving the map or
+ * picking a city only moves the frame; Apply makes the framed area the terrain. "Generated" returns
+ * to the procedural terrain at once. The map keeps a 16:10 ratio, so the frame stays near 1.5:1.
  */
 export function PlacePanel({ region, appearance }: { region: RegionController; appearance: MapAppearance }) {
+  const root = useRef<HTMLDivElement>(null);
   const host = useRef<HTMLDivElement>(null);
   const frame = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapMap | null>(null);
-  const pickRef = useRef<PickMode>('frame');
-  const [pick, setPick] = useState<PickMode>('frame');
-  const [draft, setDraft] = useState<BBox | null>(region.bbox);
-  // The applied place stays "In use" until the person moves the frame or draws.
-  const [touched, setTouched] = useState(false);
-  const [box, setBox] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
-  pickRef.current = pick;
+  const [draft, setDraft] = useState<BBox | null>(null);
+  const [held, setHeld] = useState<Held | null>(region.bbox ? { bbox: region.bbox, placeId: region.placeId } : null);
+  const [scrolls, setScrolls] = useState(false);
   const bboxRef = useRef(region.bbox);
   bboxRef.current = region.bbox;
 
@@ -98,21 +83,9 @@ export function PlacePanel({ region, appearance }: { region: RegionController; a
       m.addControl(new AttributionControl({ compact: true }), 'top-right');
       map = m;
       mapRef.current = m;
-      let begin: { lngLat: LngLat; x: number; y: number } | null = null;
       const refresh = () => {
-        if (pickRef.current !== 'frame' || !frame.current || !host.current) return;
+        if (!frame.current || !host.current) return;
         setDraft(readFrame(m, frame.current, host.current));
-      };
-      const down = (lngLat: LngLat, x: number, y: number) => {
-        if (pickRef.current !== 'draw') return;
-        begin = { lngLat, x, y };
-        setBox({ x, y, w: 0, h: 0 });
-        setTouched(true);
-      };
-      const move = (lngLat: LngLat, x: number, y: number) => {
-        if (!begin) return;
-        setDraft(ordered(begin.lngLat, lngLat));
-        setBox({ x: Math.min(begin.x, x), y: Math.min(begin.y, y), w: Math.abs(x - begin.x), h: Math.abs(y - begin.y) });
       };
       m.on('load', () => {
         // The compact credit starts open; keep it folded to its (i) button so it does not cover the map.
@@ -123,13 +96,7 @@ export function PlacePanel({ region, appearance }: { region: RegionController; a
       });
       m.on('move', refresh);
       // Only a person's pan or zoom carries an original event; fitBounds does not.
-      m.on('movestart', (event) => { if ((event as { originalEvent?: Event }).originalEvent) setTouched(true); });
-      m.on('mousedown', (event) => down(event.lngLat, event.point.x, event.point.y));
-      m.on('mousemove', (event) => move(event.lngLat, event.point.x, event.point.y));
-      m.on('mouseup', () => { begin = null; });
-      m.on('touchstart', (event) => down(event.lngLat, event.point.x, event.point.y));
-      m.on('touchmove', (event) => move(event.lngLat, event.point.x, event.point.y));
-      m.on('touchend', () => { begin = null; });
+      m.on('movestart', (event) => { if ((event as { originalEvent?: Event }).originalEvent) setHeld(null); });
     };
     const observer = new ResizeObserver(() => {
       if (!el.clientWidth || !el.clientHeight) return;
@@ -144,76 +111,69 @@ export function PlacePanel({ region, appearance }: { region: RegionController; a
     };
   }, [appearance]);
 
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-    if (pick === 'draw') map.dragPan.disable();
-    else {
-      map.dragPan.enable();
-      setBox(null);
-      if (frame.current && host.current) setDraft(readFrame(map, frame.current, host.current));
-    }
-  }, [pick]);
+  // Apply sits at the end of the pill row while the popover fits, and moves to a header row when it scrolls.
+  useLayoutEffect(() => {
+    const pop = root.current?.closest('.pt-pop');
+    const body = root.current;
+    if (!pop || !body) return;
+    const measure = () => setScrolls(pop.scrollHeight > pop.clientHeight + 1);
+    const observer = new ResizeObserver(measure);
+    observer.observe(pop);
+    observer.observe(body);
+    measure();
+    return () => observer.disconnect();
+  }, []);
 
-  const problem = draft ? limitProblem(draft) : 'order';
-  const span = draft && !problem ? spanOf(draft) : null;
-  const inUse = Boolean(region.bbox) && !touched;
-  const fly = (bbox: BBox) => {
-    const map = mapRef.current;
-    if (!map) return;
-    if (pick === 'frame') {
-      map.fitBounds([[bbox.west, bbox.south], [bbox.east, bbox.north]], { padding: framePadding(map), duration: 500 });
-    } else {
-      map.fitBounds([[bbox.west, bbox.south], [bbox.east, bbox.north]], { padding: 48, duration: 500 });
-      setDraft(bbox);
-    }
-  };
-  const pickCity = (id: string) => {
+  const candidate: Held | null = held ?? (draft ? { bbox: draft, placeId: null } : null);
+  const problem = candidate ? limitProblem(candidate.bbox) : null;
+  const span = candidate && !problem ? spanOf(candidate.bbox) : null;
+  const applied = Boolean(region.bbox && candidate && sameBox(candidate.bbox, region.bbox));
+  const flyTo = (id: string) => {
     const place = findPlace(id);
+    const map = mapRef.current;
     if (!place) return;
-    fly(place.bbox);
-    region.setPlace(place.bbox, place.id);
-    setTouched(false);
+    setHeld({ bbox: place.bbox, placeId: place.id });
+    map?.fitBounds([[place.bbox.west, place.bbox.south], [place.bbox.east, place.bbox.north]], { padding: framePadding(map), duration: 500 });
   };
+  const apply = () => {
+    if (!candidate || problem) return;
+    region.setPlace(candidate.bbox, candidate.placeId);
+    setHeld(candidate);
+  };
+  const applyButton = (
+    <button type="button" className="pt-use pt-apply" disabled={applied || !candidate || !!problem} onClick={apply}>
+      {applied ? (region.status === 'loading' ? 'Applying…' : 'Applied') : 'Apply'}
+    </button>
+  );
 
   return (
-    <>
-      <PopHead title="Place" />
-      <PlaceNow region={region} />
-      <Section title="Region">
-        <SegRow label="City" options={CITIES} value={region.bbox ? region.placeId : null} onChange={pickCity} />
-        <SegRow label="Choose by" options={PICKS} value={pick} onChange={setPick} />
-        <div className={`pt-mapbox pt-map${pick === 'draw' ? ' is-draw' : ''}`}>
-          <div ref={host} className="pt-map-host" />
-          {pick === 'frame' && <div ref={frame} className="pt-map-frame" />}
-          {pick === 'draw' && box && box.w > 0 && <div className="pt-map-box" style={{ left: box.x, top: box.y, width: box.w, height: box.h }} />}
-          <span className="pt-map-cap">{pick === 'frame' ? 'Pan and zoom. The frame is the place.' : 'Drag a rectangle. Scroll to zoom.'}</span>
-          <span className="pt-map-span" hidden={!draft && pick === 'frame'}>
-            {problem ? (draft ? limitMessage(problem) : pick === 'draw' ? 'Draw a rectangle.' : '') : span ? `${km(span.widthM)} × ${km(span.heightM)}` : ''}
-          </span>
-        </div>
-      </Section>
-      <Section title="Heights">
-        <SegRow
-          label="Relief"
-          hint="Exaggerate fills this place. Real heights keeps a low city low."
-          options={RELIEFS}
-          value={region.relief}
-          onChange={region.setRelief}
-        />
-        <SegRow label="Smoothing" hint="How much to soften the hills." options={SMOOTHS} value={region.smooth} onChange={region.setSmooth} />
-      </Section>
-      <div className="pt-pop-foot">
-        <span className="pt-attrib">Elevation: Mapzen Terrain Tiles, AWS Open Data.</span>
-        <button
-          type="button"
-          className="pt-use"
-          disabled={inUse || !draft || !!problem}
-          onClick={() => { if (draft && !problem) { region.setPlace(draft, null); setTouched(false); } }}
-        >
-          {inUse ? 'In use' : 'Use this place'}
-        </button>
+    <div ref={root} className="pt-place">
+      {scrolls && <div className="pt-place-head">{applyButton}</div>}
+      <div className="pt-mapbox pt-map">
+        <div ref={host} className="pt-map-host" />
+        <div ref={frame} className="pt-map-frame" />
+        <span className="pt-map-span" hidden={!candidate}>
+          {problem ? limitMessage(problem) : applied && region.status === 'error' ? region.error : span ? `${km(span.widthM)} × ${km(span.heightM)}` : ''}
+        </span>
       </div>
-    </>
+      <div className="pt-pills">
+        <div className="pt-pill-set" role="group" aria-label="Places">
+          <button type="button" className="pt-pill" aria-pressed={!region.bbox} onClick={region.clear}>Generated</button>
+          {PLACES.map((place) => (
+            <button
+              key={place.id}
+              type="button"
+              className="pt-pill"
+              aria-pressed={Boolean(region.bbox) && region.placeId === place.id}
+              onClick={() => flyTo(place.id)}
+            >
+              {place.name}
+            </button>
+          ))}
+        </div>
+        {!scrolls && applyButton}
+      </div>
+      <p className="pt-attrib">Elevation: Mapzen Terrain Tiles, AWS Open Data.</p>
+    </div>
   );
 }

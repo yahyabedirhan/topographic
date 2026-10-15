@@ -126,17 +126,39 @@ try {
   check(await p.locator('.pt-cluster [data-popup-open]').count() === 1 && await p.locator('.pt-mode').evaluate((el) => getComputedStyle(el).backgroundColor) === 'rgba(0, 0, 0, 0)', 'only the open popover fills its button; 2D/3D never fills');
   await p.keyboard.press('Escape'); await settle(p);
 
-  // Place popover: MapLibre loads lazily and its tiles need the network, so only the panel is checked.
+  // Place popover: MapLibre loads lazily and its tiles need the network.
   await p.getByRole('button', { name: 'Place', exact: true }).click();
   const place = p.locator('.pt-pop-wide');
   await place.locator('.pt-map-host canvas').waitFor({ timeout: 30000 });
   check(await place.isVisible() && await p.locator('.pt-cluster [data-popup-open]').getAttribute('aria-label') === 'Place', 'Place opens its popover under the cluster');
+  const apply = place.locator('button.pt-apply');
+  const pinDot = () => p.locator('.pt-cluster .pt-ibtn.has-dot').count();
+  await p.waitForFunction(() => /km × [\d.]+ km/.test(document.querySelector('.pt-map-span')?.textContent ?? ''), null, { timeout: 30000 });
+  check(await apply.isEnabled() && await apply.innerText() === 'Apply' && await pinDot() === 0, 'with no place, a valid frame can be applied');
+  await apply.click(); await settle(p, 400);
+  check(!(await apply.isEnabled()) && await apply.innerText() !== 'Apply' && await pinDot() === 1 && q(p).get('region') !== null, `Apply uses the frame, shows Applied and the Place dot (?${q(p)})`);
+  const box = await place.locator('.pt-map-host').boundingBox();
+  await p.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await p.mouse.down(); await p.mouse.move(box.x + box.width / 2 + 80, box.y + box.height / 2 + 30, { steps: 8 }); await p.mouse.up();
+  await settle(p, 400);
+  check(await apply.isEnabled() && await apply.innerText() === 'Apply', 'moving the map enables Apply again');
+  await apply.click(); await settle(p, 400);
+  check(!(await apply.isEnabled()), 'Apply after a move applies the new frame');
+  const spanBefore = await place.locator('.pt-map-span').innerText();
+  const placeSearch = q(p).toString();
+  await place.getByRole('button', { name: 'London', exact: true }).click(); await settle(p, 900);
+  check(await apply.isEnabled() && q(p).toString() === placeSearch, `a city pill moves the map only (${spanBefore} -> ${await place.locator('.pt-map-span').innerText()})`);
+  await apply.click(); await settle(p, 400);
+  check(q(p).get('place') === 'london' && await place.getByRole('button', { name: 'London', exact: true }).getAttribute('aria-pressed') === 'true', `Apply on a city writes its name (?${q(p)})`);
+  await place.getByRole('button', { name: 'Generated', exact: true }).click(); await settle(p, 400);
+  check(q(p).get('place') === null && q(p).get('region') === null && await pinDot() === 0 && await apply.isEnabled(), 'Generated returns to the procedural terrain at once');
+  check(!/Too thin|Exaggerate|Smoothing|Use this place/.test(await place.innerText()), 'Place holds only the map, the pills and Apply');
   await p.keyboard.press('Escape'); await settle(p);
   check(!(await place.isVisible()), 'Place closes on Escape');
   await p.close();
 
-  // The Place frame never opens too thin, at common laptop sizes.
-  for (const [width, height] of [[1280, 800], [1440, 900]]) {
+  // The Place frame never opens too thin, and the popover stays above the dock, at laptop and phone sizes.
+  for (const [width, height] of [[1280, 800], [1440, 900], [390, 844]]) {
     const v = await browser.newPage({ viewport: { width, height } }); watch(v);
     await v.goto(base + '?mode=3d'); await v.waitForSelector('.pt-stage canvas');
     await v.getByRole('button', { name: 'Place', exact: true }).click();
@@ -145,6 +167,13 @@ try {
     await v.waitForFunction(() => /km × [\d.]+ km|Too|rectangle/.test(document.querySelector('.pt-map-span')?.textContent ?? ''), null, { timeout: 30000 }).catch(() => {});
     const text = await pop.innerText();
     check(!text.includes('Too thin') && /\d km × [\d.]+ km/.test(text), `Place at ${width}×${height} opens with a valid frame (${(text.match(/[\d.]+ km × [\d.]+ km/) ?? ['none'])[0]})`);
+    const fit = await v.evaluate(() => {
+      const pop = document.querySelector('.pt-pop-wide').getBoundingClientRect();
+      const dock = document.querySelector('.pt-dock').getBoundingClientRect();
+      const el = document.querySelector('.pt-pop-wide');
+      return { gap: Math.round(dock.top - pop.bottom), scrolls: el.scrollHeight > el.clientHeight + 1 };
+    });
+    check(fit.gap >= 10 && !fit.scrolls, `Place at ${width}×${height} stays above the dock without scrolling (gap ${fit.gap}px)`);
     await v.close();
   }
 

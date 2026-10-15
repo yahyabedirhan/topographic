@@ -1,4 +1,3 @@
-import { DEFAULT_ELEVATION } from 'topographic';
 import type { BBox } from './pipeline';
 
 export interface Place {
@@ -18,25 +17,6 @@ export const PLACES: readonly Place[] = [
 
 export function findPlace(id: string | null): Place | undefined {
   return PLACES.find((place) => place.id === id);
-}
-
-/**
- * Visual height for a real place. The field is already stretched across the block,
- * so this stays low: 0.1 reads as a city, and the procedural default 0.62 becomes a wall.
- */
-export const REGION_ELEVATION = 0.1;
-
-/** The elevation to apply when a region is entered or cleared, or null to leave the slider alone. */
-export function nextRegionElevation(entering: boolean, leaving: boolean, current: number, explicit: boolean): number | null {
-  if (entering && !explicit && current === DEFAULT_ELEVATION) return REGION_ELEVATION;
-  if (leaving && current === REGION_ELEVATION) return DEFAULT_ELEVATION;
-  return null;
-}
-
-/** True when the page URL already chose an elevation (`ev`), so a region must not replace it. */
-export function urlSetsElevation(search: string): boolean {
-  const v = new URLSearchParams(search).get('ev');
-  return v !== null && v.trim() !== '' && Number.isFinite(Number(v));
 }
 
 /** Inset of the frame, as fractions of the map. */

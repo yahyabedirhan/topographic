@@ -26,7 +26,7 @@ ${TOOL_DEFS.map((t) => `### ${t.name}\n\n\`\`\`json\n${JSON.stringify(t.inputSch
 
 ## Place tools
 
-A region is \`?region=west,south,east,north\` in degrees, or JSON such as \`{"bbox":[28.94,40.99,29.07,41.08]}\`. \`relief=measured\` opts out of the default dramatic stretch. \`smooth=light\` or \`smooth=strong\` opts out of medium. Named examples: \`place=istanbul\`, \`place=san-francisco\`, \`place=london\`, \`place=new-york\`. \`?mode=3d\` still opts into the 3D view. The 2D map stays the default.
+A region is \`?region=west,south,east,north\` in degrees, or JSON such as \`{"bbox":[28.94,40.99,29.07,41.08]}\`. Named examples: \`place=istanbul\`, \`place=san-francisco\`, \`place=london\`, \`place=new-york\`. \`?mode=3d\` still opts into the 3D view. The 2D map stays the default.
 
 ${REGION_TOOL_DEFS.map((t) => `- \`${t.name}\`${t.readOnly ? ' (read-only)' : ''}: ${t.description}`).join('\n')}
 
@@ -175,7 +175,7 @@ Live playground: ${SITE_URL}
 
 The playground page holds its state in short query params. Only values that differ from a base are written. The base is the style's defaults, or a named look from the dock (\`look=night-lobes\`). Keys: \`s\` style, \`seed\`, one short key per parameter (${PARAMS.map((p) => `\`${p.short}\` ${p.label.toLowerCase()}`).join(', ')}), \`m\` theme (light, dark or auto), \`ink\` and \`paper\` colours (hex without \`#\`), \`mode=3d\`, \`ex\` extent (the playground defaults to endless, so only \`ex=block\` is written), \`ev\` elevation, \`dl\` detail, \`az\` azimuth, \`ce\` camera elevation, \`rd\` radius, \`cm\` camera motion. Examples: \`?s=dunes&lc=24\`, \`?look=night-lobes&mode=3d&cm=orbit\`, \`?s=gentle-summit&seed=4&m=dark&ink=9fb0cc&paper=0b0b0d\`.
 
-A real place is \`?region=west,south,east,north\` (or JSON \`{"bbox":[west,south,east,north]}\`), with optional \`relief=measured\` and \`smooth=light|strong\`. Examples: \`place=istanbul\`, \`place=san-francisco\`, \`place=london\`, \`place=new-york\`. Place params combine with the settings params, for example \`?look=night-lobes&lc=40&place=istanbul\`.
+A real place is \`?region=west,south,east,north\` (or JSON \`{"bbox":[west,south,east,north]}\`). Examples: \`place=istanbul\`, \`place=san-francisco\`, \`place=london\`, \`place=new-york\`. Place params combine with the settings params, for example \`?look=night-lobes&lc=40&place=istanbul\`.
 
 ## Packages
 

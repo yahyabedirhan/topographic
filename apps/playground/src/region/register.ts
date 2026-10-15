@@ -1,5 +1,5 @@
 import { getModelContext } from '../webmcp';
-import type { BBox, ReliefMode, SmoothLevel } from './pipeline';
+import type { BBox } from './pipeline';
 import { REGION_TOOL_DEFS, regionQuery, regionUpdate, type RegionToolState } from './tools';
 
 export interface RegionAgent extends RegionToolState {
@@ -16,8 +16,6 @@ export interface RegionAgent extends RegionToolState {
     shapeMs: number;
   } | null;
   setPlace(bbox: BBox, placeId: string | null): void;
-  setRelief(relief: ReliefMode): void;
-  setSmooth(smooth: SmoothLevel): void;
   clear(): void;
 }
 
@@ -26,8 +24,6 @@ function snapshot(agent: RegionAgent) {
     name: agent.name,
     bbox: agent.bbox,
     place: agent.placeId,
-    relief: agent.relief,
-    smooth: agent.smooth,
     status: agent.status,
     error: agent.error,
     reliefM: agent.info?.reliefM ?? null,
@@ -52,10 +48,8 @@ export function registerRegionTools(get: () => RegionAgent): () => void {
     },
     set_region: (input) => {
       const agent = get();
-      const next = regionUpdate(input ?? {}, agent);
+      const next = regionUpdate(input ?? {});
       if (typeof next === 'string') throw new Error(next);
-      if (next.relief !== agent.relief) agent.setRelief(next.relief);
-      if (next.smooth !== agent.smooth) agent.setSmooth(next.smooth);
       const same = agent.bbox
         && next.placeId === agent.placeId
         && next.bbox.west === agent.bbox.west
@@ -67,8 +61,6 @@ export function registerRegionTools(get: () => RegionAgent): () => void {
         accepted: true,
         bbox: next.bbox,
         place: next.placeId,
-        relief: next.relief,
-        smooth: next.smooth,
         query: regionQuery(next),
       };
     },

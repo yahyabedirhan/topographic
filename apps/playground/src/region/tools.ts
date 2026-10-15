@@ -1,36 +1,24 @@
 import type { ToolDef } from '../agent-tools';
-import { limitMessage, limitProblem, type BBox, type ReliefMode, type SmoothLevel } from './pipeline';
+import { limitMessage, limitProblem, type BBox } from './pipeline';
 import { PLACES, findPlace } from './places';
 import { queryText } from '../share-url';
 import { parseBBox, writeRegion } from './url';
 
-const RELIEF: readonly ReliefMode[] = ['dramatic', 'measured'];
-const SMOOTH: readonly SmoothLevel[] = ['light', 'medium', 'strong'];
-
 export interface RegionToolState {
   bbox: BBox | null;
   placeId: string | null;
-  relief: ReliefMode;
-  smooth: SmoothLevel;
 }
 
 export interface RegionUpdate {
   bbox: BBox;
   placeId: string | null;
-  relief: ReliefMode;
-  smooth: SmoothLevel;
 }
 
 /** The query string an agent can append to the playground URL. */
 export function regionQuery(region: RegionToolState): string {
   const q = new URLSearchParams();
-  writeRegion(q, { bbox: region.bbox, relief: region.relief, smooth: region.smooth, place: region.placeId });
+  writeRegion(q, { bbox: region.bbox, place: region.placeId });
   return queryText(q);
-}
-
-function choice<T extends string>(value: unknown, allowed: readonly T[]): T | null | 'bad' {
-  if (value === undefined) return null;
-  return typeof value === 'string' && allowed.includes(value as T) ? value as T : 'bad';
 }
 
 function explicitBBox(input: Record<string, unknown>): BBox | null | 'bad' {
@@ -53,14 +41,9 @@ function explicitBBox(input: Record<string, unknown>): BBox | null | 'bad' {
 /**
  * Turns a tool input into the next region.
  * A string return is the error an agent should see.
- * An explicit bbox wins over `place`. Relief or smoothing alone keeps the current bbox.
+ * An explicit bbox wins over `place`.
  */
-export function regionUpdate(input: Record<string, unknown>, current: RegionToolState): RegionUpdate | string {
-  const relief = choice(input.relief, RELIEF);
-  if (relief === 'bad') return 'relief must be dramatic or measured.';
-  const smooth = choice(input.smooth, SMOOTH);
-  if (smooth === 'bad') return 'smooth must be light, medium or strong.';
-
+export function regionUpdate(input: Record<string, unknown>): RegionUpdate | string {
   const drawn = explicitBBox(input);
   if (drawn === 'bad') return 'Give west, south, east and north, a bbox array, or region as west,south,east,north.';
 
@@ -75,21 +58,11 @@ export function regionUpdate(input: Record<string, unknown>, current: RegionTool
     }
   }
 
-  if (!bbox) {
-    if ((relief || smooth) && current.bbox) {
-      bbox = current.bbox;
-      placeId = current.placeId;
-    } else return 'Give a place or a bbox.';
-  }
+  if (!bbox) return 'Give a place or a bbox.';
 
   const problem = limitProblem(bbox);
   if (problem) return limitMessage(problem);
-  return {
-    bbox,
-    placeId,
-    relief: relief ?? current.relief,
-    smooth: smooth ?? current.smooth,
-  };
+  return { bbox, placeId };
 }
 
 const SET_SCHEMA = {
@@ -103,8 +76,6 @@ const SET_SCHEMA = {
     north: { type: 'number', description: 'North edge, degrees.' },
     bbox: { type: 'array', items: { type: 'number' }, minItems: 4, maxItems: 4, description: '[west, south, east, north] in degrees.' },
     region: { type: 'string', description: 'west,south,east,north or JSON with a bbox array.' },
-    relief: { type: 'string', enum: [...RELIEF], description: 'dramatic stretches the local range. measured keeps 400 m as full height.' },
-    smooth: { type: 'string', enum: [...SMOOTH], description: 'How round the peaks stay. medium is the default.' },
   },
 } as const;
 
@@ -114,14 +85,14 @@ export const REGION_TOOL_DEFS: ToolDef[] = [
     name: 'set_region',
     title: 'Set region',
     readOnly: false,
-    description: 'Sets the map region that becomes the terrain. Give place (istanbul, san-francisco, london or new-york) or a bbox in degrees. Optional relief is dramatic or measured, and smooth is light, medium or strong. The same values are written to the page URL as ?place= for a named place, or ?region= for a box.',
+    description: 'Sets the map region that becomes the terrain. Give place (istanbul, san-francisco, london or new-york) or a bbox in degrees. The same values are written to the page URL as ?place= for a named place, or ?region= for a box.',
     inputSchema: SET_SCHEMA,
   },
   {
     name: 'get_region',
     title: 'Get region',
     readOnly: true,
-    description: 'Returns the current region, relief, smoothing, load status and the URL query.',
+    description: 'Returns the current region, its height range, load status and the URL query.',
     inputSchema: { type: 'object', properties: {} },
   },
   {

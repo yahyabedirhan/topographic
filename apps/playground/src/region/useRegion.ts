@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Heightfield } from 'topographic';
 import type { Playground } from '../shared';
 import { limitMessage, limitProblem, spanOf, type BBox, type ReliefMode, type SmoothLevel, type Span } from './pipeline';
-import { urlSetsElevation, findPlace, nextRegionElevation } from './places';
+import { findPlace } from './places';
 import { registerRegionTools } from './register';
 import { readRegion, writeRegion, type RegionQuery } from './url';
 import { withQuery, writeSettings } from '../share-url';
@@ -23,19 +23,19 @@ export interface RegionController {
   bbox: BBox | null;
   placeId: string | null;
   name: string;
-  relief: ReliefMode;
-  smooth: SmoothLevel;
   status: 'idle' | 'loading' | 'ready' | 'error';
   error: string | null;
   info: RegionInfo | null;
   setPlace(bbox: BBox, placeId: string | null): void;
-  setRelief(relief: ReliefMode): void;
-  setSmooth(smooth: SmoothLevel): void;
   clear(): void;
 }
 
-function queryOf(bbox: BBox | null, relief: ReliefMode, smooth: SmoothLevel, placeId: string | null): RegionQuery {
-  return { bbox, relief, smooth, place: placeId };
+/** Every place uses the same height treatment; the 3D Elevation slider is the only height control. */
+const RELIEF: ReliefMode = 'dramatic';
+const SMOOTH: SmoothLevel = 'medium';
+
+function queryOf(bbox: BBox | null, placeId: string | null): RegionQuery {
+  return { bbox, place: placeId };
 }
 
 export function useRegion(pg: Playground): RegionController {
@@ -43,8 +43,6 @@ export function useRegion(pg: Playground): RegionController {
   const initialProblem = initial.bbox ? limitProblem(initial.bbox) : null;
   const [bbox, setBbox] = useState<BBox | null>(initialProblem ? null : initial.bbox);
   const [placeId, setPlaceId] = useState<string | null>(initial.place);
-  const [relief, setRelief] = useState<ReliefMode>(initial.relief);
-  const [smooth, setSmooth] = useState<SmoothLevel>(initial.smooth);
   const [status, setStatus] = useState<RegionController['status']>(initialProblem ? 'error' : initial.bbox ? 'loading' : 'idle');
   const [error, setError] = useState<string | null>(initialProblem ? limitMessage(initialProblem) : null);
   const [info, setInfo] = useState<RegionInfo | null>(null);
@@ -68,10 +66,10 @@ export function useRegion(pg: Playground): RegionController {
   settingsRef.current = pg.settings;
   useEffect(() => {
     const q = new URLSearchParams(location.search);
-    writeRegion(q, queryOf(bbox, relief, smooth, placeId));
+    writeRegion(q, queryOf(bbox, placeId));
     const next = withQuery(location.pathname, writeSettings(q.toString(), settingsRef.current), location.hash);
     if (next !== location.pathname + location.search + location.hash) history.replaceState(null, '', next);
-  }, [bbox, relief, smooth, placeId]);
+  }, [bbox, placeId]);
 
   useEffect(() => {
     document.documentElement.dataset.region = status;
@@ -109,10 +107,10 @@ export function useRegion(pg: Playground): RegionController {
       setGeneration((n) => n + 1);
     };
     worker.addEventListener('message', onMessage);
-    const body = { id, bbox, relief, smooth };
+    const body = { id, bbox, relief: RELIEF, smooth: SMOOTH };
     worker.postMessage(body);
     return () => worker.removeEventListener('message', onMessage);
-  }, [bbox, relief, smooth, workerReady]);
+  }, [bbox, workerReady]);
 
   useEffect(() => {
     let stop = false;
@@ -128,21 +126,6 @@ export function useRegion(pg: Playground): RegionController {
     if (generation > 0) apply();
     return () => { stop = true; };
   }, [generation, pg]);
-
-  const elevationRef = useRef(pg.settings.elevation);
-  elevationRef.current = pg.settings.elevation;
-  const changeRef = useRef(pg.change);
-  changeRef.current = pg.change;
-  const explicitRef = useRef(urlSetsElevation(location.search));
-  const prevBbox = useRef<BBox | null>(null);
-  useEffect(() => {
-    const entering = Boolean(bbox) && !prevBbox.current;
-    const leaving = !bbox && Boolean(prevBbox.current);
-    const next = nextRegionElevation(entering, leaving, elevationRef.current, explicitRef.current);
-    if (entering) explicitRef.current = false;
-    prevBbox.current = bbox;
-    if (next !== null) changeRef.current({ elevation: next });
-  }, [bbox]);
 
   const name = findPlace(placeId)?.name ?? (bbox ? 'Custom' : '');
   const setPlace = useCallback((next: BBox, id: string | null) => {
@@ -165,7 +148,7 @@ export function useRegion(pg: Playground): RegionController {
     setGeneration((n) => n + 1);
   }, []);
   const agent: RegionController = {
-    bbox, placeId, name, relief, smooth, status, error, info, setPlace, setRelief, setSmooth, clear,
+    bbox, placeId, name, status, error, info, setPlace, clear,
   };
   const liveRef = useRef(agent);
   liveRef.current = agent;

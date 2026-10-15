@@ -1,7 +1,5 @@
 import { DEFAULT_STYLE, PARAMS, fromQuery, mergeSettings, resolveSettings, type ParamDef, type Settings, type SettingsInput } from 'topographic';
 import { LOOKS, type Look } from './looks';
-import { REGION_ELEVATION } from './region/places';
-import { readRegion } from './region/url';
 
 const VIEW = ['m', 'ink', 'paper', 'mode', 'ex', 'ev', 'dl', 'az', 'ce', 'rd', 'cm'] as const;
 
@@ -13,11 +11,8 @@ export const lookSlug = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+
 export const findLook = (slug: string | null): Look | undefined => slug ? LOOKS.find((l) => lookSlug(l.name) === slug) : undefined;
 
 /** The library defaults, except that the playground's 3D terrain is endless. The library default stays 'block'. */
-export const baseline = (input: SettingsInput = {}, place = false): Settings =>
-  mergeSettings(resolveSettings(input), { extent: input.extent ?? 'endless', ...(place && input.elevation === undefined ? { elevation: REGION_ELEVATION } : {}) });
-
-/** A real place starts at the city height, so `ev` is written only when it differs from that. */
-const hasPlace = (search: string) => readRegion(search).bbox !== null;
+export const baseline = (input: SettingsInput = {}): Settings =>
+  mergeSettings(resolveSettings(input), { extent: input.extent ?? 'endless' });
 
 const HEX = /^#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
 const colourOut = (c: string) => HEX.test(c) ? c.slice(1) : c;
@@ -46,23 +41,23 @@ function diff(s: Settings, base: Settings): [string, string][] {
 const same = (a: Settings, b: Settings) => !diff(a, b).length && a.theme.ink === b.theme.ink && a.theme.paper === b.theme.paper;
 
 /** The settings as the fewest query params: a diff against the style defaults or against a look of the same style. */
-export function settingsParams(s: Settings, place = false): [string, string][] {
-  const plain = diff(s, { ...baseline({ style: s.style }, place), style: DEFAULT_STYLE });
+export function settingsParams(s: Settings): [string, string][] {
+  const plain = diff(s, { ...baseline({ style: s.style }), style: DEFAULT_STYLE });
   let best = plain;
   for (const look of LOOKS) {
-    const base = baseline(look.settings, place);
+    const base = baseline(look.settings);
     if (base.style !== s.style) continue;
     const entries: [string, string][] = [['look', lookSlug(look.name)], ...diff(s, base)];
-    if (entries.length < best.length && same(decode(new URLSearchParams(entries), place), s)) best = entries;
+    if (entries.length < best.length && same(decode(new URLSearchParams(entries)), s)) best = entries;
   }
   return best;
 }
 
-export const readSettings = (search: string): Settings => decode(new URLSearchParams(search), hasPlace(search));
+export const readSettings = (search: string): Settings => decode(new URLSearchParams(search));
 
-function decode(q: URLSearchParams, place: boolean): Settings {
+function decode(q: URLSearchParams): Settings {
   const look = findLook(q.get('look'));
-  const base = baseline(look ? look.settings : { style: q.get('s') ?? undefined }, place);
+  const base = baseline(look ? look.settings : { style: q.get('s') ?? undefined });
   for (const key of ['ink', 'paper']) {
     const v = q.get(key);
     if (v) q.set(key, colourIn(v));
@@ -77,7 +72,7 @@ export const queryText = (q: URLSearchParams) => q.toString().replace(/%2C/gi, '
 export function writeSettings(search: string, s: Settings): string {
   const rest = new URLSearchParams(search);
   for (const key of SETTINGS_KEYS) rest.delete(key);
-  const q = new URLSearchParams(settingsParams(s, hasPlace(search)));
+  const q = new URLSearchParams(settingsParams(s));
   for (const [k, v] of rest) q.append(k, v);
   return queryText(q);
 }

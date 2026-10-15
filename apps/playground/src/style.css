@@ -100,7 +100,7 @@ button.pt-dice:active{transform:scale(.96)}
 .pt-slider-thumb:focus-visible{outline:2px solid var(--fg);outline-offset:3px}
 /* Popovers: one anchor under the cluster, two widths, one padding. */
 .pt-pop{--pop-w:380px;width:min(var(--pop-w),calc(100vw - 32px));padding:14px 16px 16px;border-radius:22px;max-height:min(720px,calc(100dvh - 170px));overflow:auto;overscroll-behavior:contain}
-.pt-pop-wide{--pop-w:560px;max-height:calc(100dvh - 92px)}
+.pt-pop-wide{--pop-w:560px;max-height:calc(100dvh - 172px)}
 .pt-pop-color{width:max-content;padding:12px}
 .pt-pop-title{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin-bottom:10px}
 /* Header: sentence-case title on the left, at most one control on the right. */
@@ -131,24 +131,21 @@ button.pt-sec-reset:hover{background:color-mix(in srgb,var(--fg) 8%,transparent)
 .pt-seg button{flex:1 1 0;min-width:0;height:24px;padding:0 2px;border:0;border-radius:7px;background:transparent;box-shadow:none;color:var(--mut);font-size:12px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pt-seg button:hover{color:var(--fg);background:transparent}
 .pt-seg button[aria-pressed="true"]{background:var(--seg-on);box-shadow:var(--seg-shadow);color:var(--fg)}
-/* Place: what is in use now, the map and the footer. */
-.pt-place-now{display:flex;align-items:center;gap:12px;min-height:44px;padding:8px 12px;border-radius:14px;background:color-mix(in srgb,var(--fg) 5%,transparent);box-shadow:inset 0 0 0 .5px var(--line);margin-bottom:4px}
-.pt-place-now .pin{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--fg) 10%,transparent)}
-.pt-place-now .copy{display:grid;gap:3px;min-width:0;flex:1}
-.pt-place-now b{font:600 15px/1.1 Literata,Georgia,serif;letter-spacing:-.005em}
-.pt-place-now small{font-size:12px;line-height:1.3;color:var(--mut);font-variant-numeric:tabular-nums}
-.pt-place-now.is-empty b{font:500 13px/1.2 var(--sans);color:var(--fg)}
-button.pt-clear{flex:none;padding:5px 10px;border:0;border-radius:999px;background:transparent;box-shadow:inset 0 0 0 .5px var(--line);color:var(--fg);font-size:12px;line-height:1.2}
-button.pt-clear:hover{background:color-mix(in srgb,var(--fg) 8%,transparent)}
 /* A fixed 16:10 map keeps the frame near 1.5:1, well within the 3:1 limit. */
-.pt-mapbox{position:relative;aspect-ratio:16 / 10;margin:6px 0 2px;border-radius:12px;overflow:hidden;box-shadow:inset 0 0 0 .5px var(--line);background:var(--paper)}
-.pt-map-cap,.pt-map-span{position:absolute;z-index:2;bottom:8px;padding:3px 8px;border-radius:999px;font:11px/1.2 var(--sans);color:#ecebe8;background:rgba(0,0,0,.45);
-  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);pointer-events:none;max-width:calc(50% - 14px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pt-map-cap{left:10px}
+.pt-mapbox{position:relative;aspect-ratio:16 / 10;border-radius:12px;overflow:hidden;box-shadow:inset 0 0 0 .5px var(--line);background:var(--paper)}
+.pt-map-span{position:absolute;z-index:2;bottom:8px;padding:3px 8px;border-radius:999px;font:11px/1.2 var(--sans);color:#ecebe8;background:rgba(0,0,0,.45);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);pointer-events:none;max-width:calc(100% - 20px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pt-map-span{right:10px;font-variant-numeric:tabular-nums}
-.pt-pop-foot{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:14px}
-.pt-pop-foot .pt-attrib{color:var(--mut)}
-button.pt-use{padding:8px 14px;border:0;border-radius:999px;background:var(--fg);color:var(--paper);font-size:13px;white-space:nowrap}
+/* Place: the map, then the city pills with Apply at the row's end. Apply moves to a header row when the popover scrolls. */
+.pt-place-head{display:flex;justify-content:flex-end;margin:0 0 10px}
+.pt-pills{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px}
+.pt-pill-set{display:flex;flex-wrap:wrap;gap:6px;min-width:0}
+.pt-pills > .pt-apply{margin-left:auto}
+button.pt-pill{height:28px;padding:0 11px;border:0;border-radius:999px;background:color-mix(in srgb,var(--fg) 7%,transparent);box-shadow:none;color:var(--mut);font-size:12px;line-height:1;white-space:nowrap}
+button.pt-pill:hover{background:color-mix(in srgb,var(--fg) 11%,transparent);color:var(--fg)}
+button.pt-pill[aria-pressed="true"]{background:var(--seg-on);box-shadow:var(--seg-shadow);color:var(--fg)}
+.pt-place .pt-attrib{margin-top:10px;color:var(--mut);font-size:10.5px;line-height:1.3}
+button.pt-use{padding:7px 14px;border:0;border-radius:999px;background:var(--fg);color:var(--paper);font-size:13px;white-space:nowrap}
 button.pt-use:disabled{opacity:.38}
 .pt-map{position:relative}
 .pt-map .pt-map-host{position:absolute;inset:0;background:var(--paper)}
@@ -156,9 +153,7 @@ button.pt-use:disabled{opacity:.38}
 .pt-map .pt-map-host .maplibregl-ctrl-attrib{background:color-mix(in srgb,var(--paper) 78%,transparent);color:var(--mut);font:10px/1.35 var(--sans);border-radius:8px}
 .pt-map .pt-map-host .maplibregl-ctrl-attrib a{color:var(--mut)}
 .pt-map-frame{position:absolute;left:16%;right:16%;top:13%;bottom:16%;border:1.5px solid #fff;border-radius:14px;box-shadow:0 0 0 999px rgba(0,0,0,.38);pointer-events:none}
-.pt-map.is-draw{cursor:crosshair}
-.pt-map-box{position:absolute;border:1.5px solid #fff;border-radius:8px;background:rgba(255,255,255,.08);box-shadow:0 0 0 999px rgba(0,0,0,.38);pointer-events:none}
-:root[data-theme=light] .pt-map-frame,:root[data-theme=light] .pt-map-box{border-color:#1b1b1a;box-shadow:0 0 0 999px rgba(249,248,246,.55)}
+:root[data-theme=light] .pt-map-frame{border-color:#1b1b1a;box-shadow:0 0 0 999px rgba(249,248,246,.55)}
 .pt-attrib{font-size:11px}
 .pt-export-block{display:grid;gap:8px;padding-top:8px}
 .pt-export-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
@@ -197,7 +192,7 @@ button.pt-use:disabled{opacity:.38}
   .pt-dock-wrap{left:8px;right:8px;bottom:24px}
   .pt-pngs{grid-template-columns:1fr}
   .pt-pop{width:min(var(--pop-w),calc(100vw - 16px));max-height:calc(100dvh - 150px)}
-  .pt-pop-wide{max-height:calc(100dvh - 72px)}
+  .pt-pop-wide{max-height:calc(100dvh - 162px)}
   .pt-pop-color{width:max-content}
   .pt-row{grid-template-columns:64px minmax(0,1fr) 40px}
   .pt-seg button{flex:1 1 auto;padding:0 4px}

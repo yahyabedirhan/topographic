@@ -62,14 +62,14 @@ describe('share url', () => {
   it('keeps region params and drops old settings keys', () => {
     const search = '?place=istanbul&lc=12&region=28.9,40.9,29.2,41.2&look=bloom&basemap=liberty';
     expect(writeSettings(search, mergeSettings(nightLobes, { lines: { count: 40 } })))
-      .toBe('look=night-lobes&lc=40&ev=0.62&place=istanbul&region=28.9,40.9,29.2,41.2&basemap=liberty');
+      .toBe('look=night-lobes&lc=40&place=istanbul&region=28.9,40.9,29.2,41.2&basemap=liberty');
   });
 
-  it('starts a place at the city height and writes ev only when it differs', () => {
-    expect(readSettings('place=istanbul').elevation).toBe(0.1);
+  it('treats elevation the same with or without a place', () => {
+    expect(readSettings('place=istanbul').elevation).toBe(readSettings('').elevation);
     expect(writeSettings('place=istanbul', readSettings('place=istanbul'))).toBe('place=istanbul');
-    const high = mergeSettings(nightLobes, { elevation: 0.62 });
-    expect(writeSettings('place=istanbul', high)).toBe('look=night-lobes&ev=0.62&place=istanbul');
-    expect(readSettings('look=night-lobes&ev=0.62&place=istanbul')).toEqual(high);
+    const low = mergeSettings(nightLobes, { elevation: 0.1 });
+    expect(writeSettings('place=istanbul', low)).toBe('look=night-lobes&ev=0.1&place=istanbul');
+    expect(readSettings('look=night-lobes&ev=0.1&place=istanbul')).toEqual(low);
   });
 });

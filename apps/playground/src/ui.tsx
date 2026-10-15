@@ -446,8 +446,8 @@ export function GlassFrame({ pg, tune, exporting }: {
         <Popover.Root open={open === 'place'} onOpenChange={openChange('place')}>
           <PlaceButton hasPlace={Boolean(region.bbox)} />
           <ClusterPositioner clusterRef={clusterRef}>
-            <Popover.Popup className="pt-pop pt-pop-wide pt-glass" initialFocus={false}>
-              <Suspense fallback={<PopHead title="Place" />}>
+            <Popover.Popup className="pt-pop pt-pop-wide pt-glass" aria-label="Place" initialFocus={false}>
+              <Suspense fallback={<div className="pt-mapbox" />}>
                 <PlacePanel region={region} appearance={appearance} />
               </Suspense>
             </Popover.Popup>
