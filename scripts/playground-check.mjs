@@ -527,6 +527,40 @@ try {
   await call('clear_region'); await settle(agent);
   const post = JSON.stringify((await call('get_settings')).config);
   check(post === pre, `clear_region after Cyprus restores the earlier settings${post === pre ? '' : ` (${pre} -> ${post})`}`);
+
+  // ---- 3D pan and zoom gestures (camera.panX / panZ, px / pz in the URL) ----
+  {
+    await call('set_settings', { mode: '3d', camera: { azimuth: 0, elevation: 34, radius: 1.92, motion: 'still', panX: 0, panZ: 0 } }); await settle(agent, 400);
+    const cam = async () => ({ panX: 0, panZ: 0, radius: 1.92, ...(await call('get_settings')).config.camera });
+    const drag = async (dx, dy, opts) => {
+      await agent.mouse.move(640, 400); await agent.mouse.down(opts); await agent.mouse.move(640 + dx, 400 + dy, { steps: 6 }); await agent.mouse.up(opts); await settle(agent, 200);
+    };
+    await drag(120, 0, { button: 'right' });
+    const right = await cam();
+    check(right.panX < -0.05 && Math.abs(right.panZ) < 0.01 && Number(q(agent).get('px')) === right.panX, `a right-drag pans across the ground and writes px (${right.panX}, ${right.panZ})`);
+    await agent.keyboard.down('Shift'); await drag(0, 80); await agent.keyboard.up('Shift');
+    const shifted = await cam();
+    check(shifted.panZ < -0.05 && shifted.azimuth === 0, `a Shift+drag pans and leaves the orbit alone (panZ ${shifted.panZ})`);
+    for (let i = 0; i < 4; i++) await drag(-600, 0, { button: 'right' });
+    const far = await cam();
+    check(far.panX > 0.5 && far.panX < 2, `the pan stops at the terrain's edge (panX ${far.panX})`);
+    await agent.mouse.move(640, 400); await agent.mouse.dblclick(640, 400); await settle(agent, 900);
+    const home = await cam();
+    check(home.panX === 0 && home.panZ === 0 && !q(agent).has('px') && !q(agent).has('pz'), 'a double-click glides the pan back to the centre');
+    await agent.mouse.move(640, 400);
+    await agent.mouse.wheel(30, 0); await settle(agent, 300);
+    const scrolled = await cam();
+    check(scrolled.panX !== 0 && scrolled.radius === 1.92, `a two-finger (horizontal) scroll pans (panX ${scrolled.panX})`);
+    await settle(agent, 300);
+    await agent.keyboard.down('Shift'); await agent.mouse.wheel(0, 120); await agent.keyboard.up('Shift'); await settle(agent, 300);
+    const zoomed = await cam();
+    check(zoomed.radius > 1.92 && zoomed.panX === scrolled.panX, `Shift + scroll zooms (radius ${zoomed.radius})`);
+    await agent.keyboard.down('Meta'); await agent.mouse.wheel(0, -240); await agent.keyboard.up('Meta'); await settle(agent, 300);
+    const closer = await cam();
+    check(closer.radius < zoomed.radius && closer.panX === scrolled.panX, `⌘ + scroll zooms (radius ${closer.radius})`);
+    await call('set_settings', { camera: { panX: 0, panZ: 0, radius: 1.92 } }); await settle(agent);
+  }
+  // ---- end of 3D pan and zoom gestures ----
   await agent.close();
 
   const plain = await browser.newPage(); watch(plain);
