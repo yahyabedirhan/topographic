@@ -18,12 +18,12 @@ svg { width: 100%; min-width: 960px; display: block; }
 </head>
 <body>
 <div class="frame">
-<p class="eyebrow">Architecture · topography</p>
+<p class="eyebrow">Architecture · topographic</p>
 <h1>Library architecture</h1>
 <div class="diagram-container">
 <svg viewBox="0 0 960 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="library-architecture-title library-architecture-desc">
 <title id="library-architecture-title">Library architecture</title>
-<desc id="library-architecture-desc">How the topography library fits together: the web component, React component and playground all call one public API, which resolves settings from the params table, styles and presets, and hands them to a single WebGL renderer that drives one shader.</desc>
+<desc id="library-architecture-desc">How the topographic library fits together: the web component, React component and playground all call one public API, which resolves settings from the params table, styles and presets, and hands them to a single WebGL renderer that drives one shader.</desc>
 <defs>
 <linearGradient id="tile" x1="0" y1="0" x2="0" y2="560" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#222529"/><stop offset="1" stop-color="#131417"/></linearGradient>
 <linearGradient id="rim1" x1="0" y1="0" x2="0" y2="560" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity="0.32"/><stop offset="1" stop-color="#fff" stop-opacity="0.08"/></linearGradient>
@@ -69,13 +69,13 @@ svg { width: 100%; min-width: 960px; display: block; }
 <rect x="48.5" y="96.5" width="28" height="12" fill="none" stroke="#6b7078" stroke-opacity="0.6" stroke-width="0.8"/>
 <text x="62.4" y="105.5" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">HTML</text>
 <text x="120.0" y="126" fill="#e4e6e9" font-size="12" font-weight="600" font-family="'Inter Tight', system-ui, sans-serif" text-anchor="middle">Web component</text>
-<text x="120.0" y="141" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">&lt;topography-bg&gt;</text>
+<text x="120.0" y="141" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">&lt;topographic-bg&gt;</text>
 <rect x="40" y="216" width="160" height="64" rx="2" fill="url(#tile)"/>
 <rect x="40.5" y="216.5" width="159" height="63" rx="2" fill="#222529" stroke="rgba(255,255,255,0.16)" stroke-width="1"/>
 <rect x="48.5" y="224.5" width="33" height="12" fill="none" stroke="#6b7078" stroke-opacity="0.6" stroke-width="0.8"/>
 <text x="64.9" y="233.5" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">REACT</text>
 <text x="120.0" y="254" fill="#e4e6e9" font-size="12" font-weight="600" font-family="'Inter Tight', system-ui, sans-serif" text-anchor="middle">React component</text>
-<text x="120.0" y="269" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">&lt;Topography&gt;</text>
+<text x="120.0" y="269" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">&lt;Topographic&gt;</text>
 <rect x="40" y="344" width="160" height="64" rx="2" fill="url(#tile)"/>
 <rect x="40.5" y="344.5" width="159" height="63" rx="2" fill="#222529" stroke="rgba(255,255,255,0.16)" stroke-width="1"/>
 <rect x="48.5" y="352.5" width="23" height="12" fill="none" stroke="#6b7078" stroke-opacity="0.6" stroke-width="0.8"/>
@@ -87,7 +87,7 @@ svg { width: 100%; min-width: 960px; display: block; }
 <rect x="288.5" y="224.5" width="23" height="12" fill="none" stroke="#6b7078" stroke-opacity="0.6" stroke-width="0.8"/>
 <text x="299.9" y="233.5" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">API</text>
 <text x="360.0" y="254" fill="#e4e6e9" font-size="12" font-weight="600" font-family="'Inter Tight', system-ui, sans-serif" text-anchor="middle">Public API</text>
-<text x="360.0" y="269" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">createTopography()</text>
+<text x="360.0" y="269" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">createTopographic()</text>
 <rect x="520" y="88" width="160" height="64" rx="2" fill="url(#tile)"/>
 <rect x="520.5" y="88.5" width="159" height="63" rx="2" fill="rgba(228,230,233,0.05)" stroke="#8b9097" stroke-width="1"/>
 <rect x="528.5" y="96.5" width="28" height="12" fill="none" stroke="#6b7078" stroke-opacity="0.6" stroke-width="0.8"/>
@@ -123,7 +123,7 @@ svg { width: 100%; min-width: 960px; display: block; }
 <rect x="768.5" y="352.5" width="28" height="12" fill="none" stroke="#6b7078" stroke-opacity="0.6" stroke-width="0.8"/>
 <text x="782.4" y="361.5" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">GLSL</text>
 <text x="840.0" y="382" fill="#e4e6e9" font-size="12" font-weight="600" font-family="'Inter Tight', system-ui, sans-serif" text-anchor="middle">Shader</text>
-<text x="840.0" y="397" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">topography.glsl.ts</text>
+<text x="840.0" y="397" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">topographic.glsl.ts</text>
 <text font-size="12" font-family="'Inter Tight', system-ui, sans-serif" fill="#8b9097"><tspan x="520" y="440">One table defines every setting. Types, element attributes,</tspan><tspan x="520" y="458">React props, playground sliders and docs all derive from it.</tspan></text>
 <line x1="40" y1="488" x2="920" y2="488" stroke="rgba(228,230,233,0.10)" stroke-width="0.8"/>
 <text x="40" y="512" fill="#8b9097" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" letter-spacing="0.14em">LEGEND</text>

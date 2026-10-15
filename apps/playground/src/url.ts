@@ -1,4 +1,4 @@
-import { GROUPS, fromQuery, paramsIn, resolveSettings, type Settings, type SettingsInput } from 'topography.js';
+import { GROUPS, fromQuery, paramsIn, resolveSettings, type Settings, type SettingsInput } from 'topographic';
 
 /** The smallest config that reproduces these settings: only values that differ from the style's defaults. */
 export function configOf(s: Settings): SettingsInput & { style: string } {

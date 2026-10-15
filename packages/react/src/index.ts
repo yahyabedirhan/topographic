@@ -1,1 +1,1 @@
-export { Topography, useTopography, type TopographyProps, type TopographySettingsProps, type TopographyRef } from './Topography.js';
+export { Topographic, useTopographic, type TopographicProps, type TopographicSettingsProps, type TopographicRef } from './Topographic.js';

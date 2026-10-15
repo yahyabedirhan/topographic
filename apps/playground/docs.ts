@@ -1,7 +1,7 @@
 // Builds the agent-facing docs from the source of truth: params table, styles, presets and the
 // shared install text. Served in dev and emitted into the build as /llms.txt, /llms-full.txt and /docs/*.md.
 import type { Plugin } from 'vite';
-import { PARAMS, PRESETS, STYLES, defaultSettings } from 'topography.js';
+import { PARAMS, PRESETS, STYLES, defaultSettings } from 'topographic';
 import { INSTALL, TAGLINE } from './src/content';
 import { TOOL_DEFS } from './src/agent-tools';
 
@@ -47,7 +47,7 @@ Other settings:
 - \`style\` (attribute \`style-name\`, React prop \`styleName\`): one of the styles below. Unknown styles fall back to \`${defaultSettings().style}\` with one console warning.
 - \`seed\` (attribute \`seed\`): integer 0 to 999999. The same seed gives the same terrain; 0 is the original look.
 - \`theme.mode\` (attribute \`theme\`): \`auto\` (follows the OS), \`light\` or \`dark\`.
-- \`theme.ink\` / \`theme.paper\` (attributes \`ink\`, \`paper\`): any CSS colour; paper may be \`transparent\`. Without them, the CSS variables \`--topography-ink\` and \`--topography-paper\` are used, then the mode defaults.
+- \`theme.ink\` / \`theme.paper\` (attributes \`ink\`, \`paper\`): any CSS colour; paper may be \`transparent\`. Without them, the CSS variables \`--topographic-ink\` and \`--topographic-paper\` are used, then the mode defaults.
 
 ## Styles
 
@@ -103,7 +103,7 @@ ${INSTALL.css}
 function apiMd(): string {
   return `# API
 
-## createTopography(element, settings?, options?)
+## createTopographic(element, settings?, options?)
 
 Mounts a canvas inside \`element\` (it fills the element) and returns an instance.
 
@@ -126,15 +126,15 @@ Behaviour:
 - Animation pauses when the element is off-screen or the tab is hidden.
 - Pixel budget: the device pixel ratio is capped at \`maxPixelRatio\`, and the canvas scales down past \`maxPixels\`.
 
-## <topography-bg>
+## <topographic-bg>
 
-\`import 'topography.js/element'\` registers the element. Attributes: \`style-name\`, \`seed\`, \`theme\`, \`ink\`, \`paper\`, plus one per setting (see [params.md](params.md)). Attribute changes apply live, and a removed attribute returns to its default. \`element.topography\` is the instance, and \`element.snapshot(opts)\` is a shortcut.
+\`import 'topographic/element'\` registers the element. Attributes: \`style-name\`, \`seed\`, \`theme\`, \`ink\`, \`paper\`, plus one per setting (see [params.md](params.md)). Attribute changes apply live, and a removed attribute returns to its default. \`element.topographic\` is the instance, and \`element.snapshot(opts)\` is a shortcut.
 
-## React: <Topography> and useTopography
+## React: <Topographic> and useTopographic
 
-\`<Topography styleName lines terrain motion layout theme seed options onReady {...divProps}>\` renders a div with the background, and children on top. It is SSR-safe: the server renders an empty div.
+\`<Topographic styleName lines terrain motion layout theme seed options onReady {...divProps}>\` renders a div with the background, and children on top. It is SSR-safe: the server renders an empty div.
 
-\`useTopography(settings, options)\` returns a ref to put on any element. \`ref.topography\` is the instance while mounted.
+\`useTopographic(settings, options)\` returns a ref to put on any element. \`ref.topographic\` is the instance while mounted.
 
 ## Helpers
 
@@ -150,7 +150,7 @@ const PAGES = () => [
 ];
 
 function llmsTxt(): string {
-  return `# Topography
+  return `# topographic
 
 > ${TAGLINE}
 
@@ -160,8 +160,8 @@ The playground page holds its state in the URL as \`?config=<url-encoded JSON se
 
 ## Packages
 
-- [topography.js](https://www.npmjs.com/package/topography.js): core and the \`<topography-bg>\` web component
-- [topography-react](https://www.npmjs.com/package/topography-react): React component and hook
+- [topographic](https://www.npmjs.com/package/topographic): core and the \`<topographic-bg>\` web component
+- [topographic-react](https://www.npmjs.com/package/topographic-react): React component and hook
 
 ## Docs
 
@@ -191,7 +191,7 @@ export function buildDocs(): Record<string, string> {
 
 export function docsPlugin(): Plugin {
   return {
-    name: 'topography-docs',
+    name: 'topographic-docs',
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
         const base = server.config.base.startsWith('/') ? server.config.base : '/';

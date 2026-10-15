@@ -65,7 +65,7 @@ export function resolveTheme(theme: Settings['theme'], env: ThemeEnv = {}): Reso
   const d = THEME_DEFAULTS[mode];
   const pick = (own: string | undefined, varName: string, fallback: RGBA) =>
     toRGBA(own, env) ?? toRGBA(env.cssVar?.(varName).trim() || undefined, env) ?? fallback;
-  return { ink: pick(theme.ink, '--topography-ink', d.ink), paper: pick(theme.paper, '--topography-paper', d.paper), dark: mode === 'dark' ? 1 : 0 };
+  return { ink: pick(theme.ink, '--topographic-ink', d.ink), paper: pick(theme.paper, '--topographic-paper', d.paper), dark: mode === 'dark' ? 1 : 0 };
 }
 
 export function rgbaToCss([r, g, b, a]: RGBA): string {

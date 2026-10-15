@@ -1,4 +1,4 @@
-// The combined topography height field. One shader holds every style; uStyle picks the branch.
+// The combined topographic height field. One shader holds every style; uStyle picks the branch.
 // Ported from the author's personal website prototype; style indices match styles.ts.
 //
 // How it draws: each style builds a height value f (distance to one or more summits, warped by
@@ -82,4 +82,4 @@ void main(){
 `;
 
 /** Fragment shader body (without version header); see wrapFragment. */
-export const TOPOGRAPHY_FRAGMENT = COMMON + FIELD;
+export const TOPOGRAPHIC_FRAGMENT = COMMON + FIELD;

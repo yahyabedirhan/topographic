@@ -22,7 +22,7 @@ describe('resolveTheme', () => {
     expect(resolveTheme({ mode: 'auto' }, { prefersDark: false }).dark).toBe(0);
   });
   it('prefers settings over CSS variables over defaults', () => {
-    const cssVar = (n: string) => (n === '--topography-ink' ? '#ff0000' : '');
+    const cssVar = (n: string) => (n === '--topographic-ink' ? '#ff0000' : '');
     expect(resolveTheme({ mode: 'light' }, { cssVar }).ink).toEqual([1, 0, 0, 1]);
     expect(resolveTheme({ mode: 'light', ink: '#00ff00' }, { cssVar }).ink).toEqual([0, 1, 0, 1]);
   });

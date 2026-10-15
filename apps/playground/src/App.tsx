@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { mergeSettings, PRESETS, resolveMode, resolveSettings, STYLES, type Settings, type SettingsInput, type Topography as Instance } from 'topography.js';
-import { Topography } from 'topography-react';
+import { mergeSettings, PRESETS, resolveMode, resolveSettings, STYLES, type Settings, type SettingsInput, type Topographic as Instance } from 'topographic';
+import { Topographic } from 'topographic-react';
 import { Code } from './Code';
 import { INSTALL, TAGLINE } from './content';
 import { embedCode, type EmbedFormat } from './embed';
@@ -37,7 +37,7 @@ export function App() {
 
   return (
     <>
-      <Topography
+      <Topographic
         className="stage"
         aria-hidden="true"
         styleName={settings.style}
@@ -51,7 +51,7 @@ export function App() {
       />
       <main className="wrap" id="top">
         <header className="head">
-          <h1>Topography</h1>
+          <h1>topographic</h1>
           <p>{TAGLINE}</p>
           <nav className="links" aria-label="Sections">
             <a href="#playground">Playground</a>
