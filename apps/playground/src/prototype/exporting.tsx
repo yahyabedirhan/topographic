@@ -80,7 +80,7 @@ function PngBlock({ pg }: { pg: Playground }) {
       <p className="pt-hint">A still image of this frame.</p>
       <div className="pt-pngs">
         {sizes.map((s) => {
-          const { name, detail } = row(s.id);
+          const { name, detail } = row(s.id as (typeof order)[number]);
           return (
             <button key={s.id} type="button" className="pt-size" onClick={() => pg.instance.current && downloadPng(pg.instance.current, s)}>
               <span className="pt-size-copy">
