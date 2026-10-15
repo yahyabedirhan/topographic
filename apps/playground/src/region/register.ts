@@ -1,4 +1,4 @@
-import { getModelContext } from '../../webmcp';
+import { getModelContext } from '../webmcp';
 import type { BBox, ReliefMode, SmoothLevel } from './pipeline';
 import { REGION_TOOL_DEFS, regionQuery, regionUpdate, type RegionToolState } from './tools';
 
@@ -39,9 +39,8 @@ function snapshot(agent: RegionAgent) {
   };
 }
 
-/** Registers set_region, get_region and clear_region. The published page does not call this. */
+/** Registers set_region, get_region and clear_region. */
 export function registerRegionTools(get: () => RegionAgent): () => void {
-  if (!import.meta.env.DEV) return () => {};
   const mc = getModelContext();
   if (!mc) return () => {};
   const controller = new AbortController();

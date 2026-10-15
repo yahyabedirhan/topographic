@@ -1,4 +1,4 @@
-import type { ToolDef } from '../../agent-tools';
+import type { ToolDef } from '../agent-tools';
 import { limitMessage, limitProblem, type BBox, type ReliefMode, type SmoothLevel } from './pipeline';
 import { PLACES, findPlace } from './places';
 import { parseBBox, writeRegion } from './url';
@@ -20,7 +20,7 @@ export interface RegionUpdate {
   smooth: SmoothLevel;
 }
 
-/** The query string an agent can append to `/?variant=P2`. */
+/** The query string an agent can append to the playground URL. */
 export function regionQuery(region: RegionToolState): string {
   const q = new URLSearchParams();
   writeRegion(q, { bbox: region.bbox, relief: region.relief, smooth: region.smooth, place: region.placeId });
@@ -107,27 +107,27 @@ const SET_SCHEMA = {
   },
 } as const;
 
-/** Dev playground only. Not part of TOOL_DEFS, so the published page never registers them. */
+/** The place tools. The region hook registers them next to TOOL_DEFS. */
 export const REGION_TOOL_DEFS: ToolDef[] = [
   {
     name: 'set_region',
     title: 'Set region',
     readOnly: false,
-    description: 'Dev playground only (?variant=P2). Sets the map region that becomes the terrain. Give place (istanbul, san-francisco, london or new-york) or a bbox in degrees. Optional relief is dramatic or measured, and smooth is light, medium or strong. The same values are written to the page URL as ?region=.',
+    description: 'Sets the map region that becomes the terrain. Give place (istanbul, san-francisco, london or new-york) or a bbox in degrees. Optional relief is dramatic or measured, and smooth is light, medium or strong. The same values are written to the page URL as ?region=.',
     inputSchema: SET_SCHEMA,
   },
   {
     name: 'get_region',
     title: 'Get region',
     readOnly: true,
-    description: 'Dev playground only (?variant=P2). Returns the current region, relief, smoothing, load status and the URL query.',
+    description: 'Returns the current region, relief, smoothing, load status and the URL query.',
     inputSchema: { type: 'object', properties: {} },
   },
   {
     name: 'clear_region',
     title: 'Clear region',
     readOnly: false,
-    description: 'Dev playground only (?variant=P2). Removes the region and returns to the procedural terrain.',
+    description: 'Removes the region and returns to the procedural terrain.',
     inputSchema: { type: 'object', properties: {} },
   },
 ];

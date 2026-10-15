@@ -6,10 +6,10 @@ import { ToggleGroup } from '@base-ui-components/react/toggle-group';
 import { Tooltip } from '@base-ui-components/react/tooltip';
 import { Braces, CodeXml, Component, Download, Image as ImageIcon, Link as LinkIcon, Share, Video } from 'lucide-react';
 import type { CameraMotion } from 'topographic';
-import { INSTALL } from '../content';
-import { embedCode } from '../embed';
-import { PNG_SIZES, downloadPng } from '../png';
-import { shareUrl } from '../url';
+import { INSTALL } from './content';
+import { embedCode } from './embed';
+import { PNG_SIZES, downloadPng } from './png';
+import { shareUrl } from './url';
 import { useCopy, type Playground } from './shared';
 import { Tip } from './ui';
 

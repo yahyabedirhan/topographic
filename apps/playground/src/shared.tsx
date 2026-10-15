@@ -4,8 +4,8 @@ import {
   type GroupName, type ParamDef, type Settings, type SettingsInput, type TopographicBackground as Instance,
 } from 'topographic';
 import { TopographicBackground } from 'topographic-react';
-import { registerTools } from '../webmcp';
-import { configOf, readUrl } from '../url';
+import { registerTools } from './webmcp';
+import { configOf, readUrl } from './url';
 import { LOOKS } from './looks';
 
 export interface Playground {
