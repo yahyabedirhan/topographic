@@ -307,7 +307,10 @@ const TUNE_TABS: TabItem<TuneTab>[] = [
 ];
 
 /** Labels that need to fit the 80px label column. The slider keeps the full name. */
-const SHORT_LABEL: Partial<Record<string, string>> = { indexEvery: 'Index every' };
+const SHORT_LABEL: Partial<Record<string, string>> = { indexEvery: 'Bold lines' };
+
+/** Every Nth line drawn bolder, read as "1 in N". */
+const boldEvery = (v: number) => (Math.round(v) < 1 ? 'Off' : `1 in ${Math.round(v)}`);
 
 /** Groups with more than four rows split into sections; the rest keep one, named after the group. */
 const SECTIONS: Partial<Record<GroupName, { title: string; keys: string[] }[]>> = {
@@ -324,6 +327,7 @@ export function linePx(value: number): string {
 
 function readParam(param: ParamDef, value: number) {
   if (param.group === 'lines' && param.key === 'width') return linePx(value);
+  if (param.key === 'indexEvery') return boldEvery(value);
   return param.integer ? String(value) : value.toFixed(2);
 }
 
@@ -378,7 +382,7 @@ function GroupPreview({ pg, group, dim }: { pg: Playground; group: GroupName; di
   if (group === 'lines') {
     const L = s.lines;
     const ie = Math.round(L.indexEvery);
-    const caption = `${L.count} lines · ${linePx(L.width)} · ${ie === 0 ? 'no index lines' : ie === 1 ? 'every line heavier' : `every ${ordinal(ie)} heavier`}`;
+    const caption = `${L.count} lines · ${linePx(L.width)} · ${ie === 0 ? 'no bold lines' : ie === 1 ? 'every line bold' : `every ${ordinal(ie)} bold`}`;
     return <Preview height={92} caption={caption} label={caption} art={(w) => contourArt(L, w, 92, w * 0.7, 54, 230)} />;
   }
   if (group === 'terrain') {
@@ -506,7 +510,7 @@ function ParamTune({ pg, group, region }: { pg: Playground; group: GroupName; re
                   art={p.key as TrackKind}
                   hint={off(p) ? 'The map place sets the shape, so this has no effect until you clear it.' : p.description}
                   value={value} min={p.min} max={p.max} step={p.step} shown={readParam(p, value)}
-                  valueText={p.group === 'lines' && p.key === 'width' ? linePx(value) : undefined}
+                  valueText={p.group === 'lines' && p.key === 'width' ? linePx(value) : p.key === 'indexEvery' ? boldEvery(value) : undefined}
                   disabled={off(p)}
                   onChange={(n) => pg.change({ [p.group]: { [p.key]: n } })}
                 />

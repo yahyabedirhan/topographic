@@ -128,7 +128,7 @@ Values outside a range are clamped, whole-number settings are rounded, and anyth
 | `lines.count` | `line-count` | 6–60, whole | 30 | How many contour lines cross the field. |
 | `lines.width` | `line-width` | 0–1 | 0.26 | Stroke width of each contour line. |
 | `lines.opacity` | `line-opacity` | 0–1 | 0.4 | How strongly lines show against the paper. |
-| `lines.indexEvery` | `index-every` | 0–10, whole | 5 | Every Nth line is slightly heavier, like a map index contour. 0 turns it off. |
+| `lines.indexEvery` | `index-every` | 0–10, whole | 5 | Every Nth line is drawn bolder, like the index contours on a map. 0 turns it off. The playground calls it **Bold lines** ("1 in 5"). |
 
 ### Terrain
 

@@ -30,7 +30,7 @@ export const PARAMS = [
     min: 0, max: 1, step: 0.01, default: 0.26, attr: 'line-width', short: 'lw', slot: 1, toUniform: (v: number) => 0.5 + v * 3.5 },
   { group: 'lines', key: 'opacity', label: 'Line opacity', description: 'How strongly lines show against the paper.',
     min: 0, max: 1, step: 0.01, default: 0.4, attr: 'line-opacity', short: 'lo', slot: 2 },
-  { group: 'lines', key: 'indexEvery', label: 'Index line every', description: 'Every Nth line is slightly heavier, like a map index contour. 0 turns it off.',
+  { group: 'lines', key: 'indexEvery', label: 'Bold line every', description: 'Every Nth line is drawn bolder, like the index contours on a map. 0 turns it off.',
     min: 0, max: 10, step: 1, default: 5, integer: true, attr: 'index-every', short: 'ix', slot: 11 },
   { group: 'terrain', key: 'peaks', label: 'Peaks', description: 'Number of summits merged into the terrain.',
     min: 1, max: 6, step: 1, default: 1, integer: true, attr: 'peaks', short: 'pk', slot: 7 },
