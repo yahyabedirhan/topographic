@@ -26,7 +26,7 @@ ${TOOL_DEFS.map((t) => `### ${t.name}\n\n\`\`\`json\n${JSON.stringify(t.inputSch
 
 ## Place tools
 
-A region is \`?region=west,south,east,north\` in degrees, or JSON such as \`{"bbox":[28.45,40.78,29.65,41.36]}\`. Named examples: \`place=istanbul\`, \`place=san-francisco\`, \`place=london\`, \`place=new-york\` (each a whole metro area 80 to 100 km wide) and \`place=cyprus\` (the whole island, about 261 × 166 km). A region draws its real heights; the seed, the terrain params and \`motion.warp\` have no effect on it. In the page, the **Map** button picks a region, and its Apply also switches to 3D with \`lc=36&lw=0&lo=0.9&ix=4&ex=block&ev=0.12&az=341.8&ce=39.3&rd=1.32\`. \`set_region\` sets the same view.
+A region is \`?region=west,south,east,north\` in degrees, or JSON such as \`{"bbox":[28.45,40.78,29.65,41.36]}\`. Named examples: \`place=istanbul\`, \`place=san-francisco\`, \`place=london\`, \`place=new-york\` (each a whole metro area 80 to 100 km wide) and \`place=cyprus\` (the whole island, about 261 × 166 km). A region draws its real heights; the seed, the terrain params and \`motion.warp\` have no effect on it. In the page, the **Map** button picks a region, and its Apply also switches to 3D with \`lc=36&lw=0&lo=0.9&ix=4&ex=block&ev=0.12&az=341.8&ce=39.3&rd=1.32\`. \`set_region\` sets the same view. A minimap above the dock shows the applied area; in 3D it turns with the camera, and its compass turns the camera back to north up, which is azimuth 0.
 
 ${REGION_TOOL_DEFS.map((t) => `- \`${t.name}\`${t.readOnly ? ' (read-only)' : ''}: ${t.description}`).join('\n')}
 
