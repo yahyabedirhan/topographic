@@ -6,7 +6,7 @@
 
 <p align="center"><a href="https://yahyabedirhan.github.io/topographic/"><b>Open the playground</b></a> · <a href="#install">Install</a> · <a href="docs/guide.md">Guide</a></p>
 
-![The camera swings around the Matterhorn and Zermatt in 3D: real elevation drawn as pale contour lines on a dark block](assets/screenshots/hero-3d.webp)
+![Fine granite in 3D: a summit ringed by pale contour lines, gullies fanning out to a dark horizon](assets/screenshots/hero.webp)
 
 topographic draws the lines of a topographic map behind your page. They drift slowly, follow light and dark mode, and lift into a 3D terrain when you want depth. It is a small npm library with no dependencies, plus a playground where you find a look and copy the code.
 

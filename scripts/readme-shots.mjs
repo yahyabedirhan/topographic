@@ -1,4 +1,4 @@
-// Takes the README images into assets/screenshots/: the animated 3D hero, the playground and its
+// Takes the README images into assets/screenshots/: the 3D hero still, the playground and its
 // Map popover, and the gallery tiles of looks, 3D looks and the ten real places.
 //
 //   npm run build:packages
@@ -7,13 +7,13 @@
 // The script starts its own Vite dev server for the playground, or uses a running one when BASE
 // is set (BASE=http://localhost:5199/). Chrome draws on the GPU; set SOFTWARE_GL=1 on a machine
 // without one. Real places load elevation tiles and the Map popover loads its map from the
-// internet, so the run needs network access. It needs ffmpeg, img2webp and cwebp (from libwebp)
-// on the PATH. Set ONLY=<name>,<name> to take only some of the files, and HERO_PLACE=<place id>
-// to try the hero on another place.
+// internet, so the run needs network access. It needs cwebp (from libwebp)
+// on the PATH. Set ONLY=<name>,<name> to take only some of the files, and HERO=<query> to try
+// the hero on another view.
 import { chromium } from 'playwright-core';
 import { createServer } from 'vite';
 import { execFileSync } from 'node:child_process';
-import { mkdir, mkdtemp, readdir, rm, stat, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
@@ -23,7 +23,7 @@ const only = process.env.ONLY?.split(',');
 const want = (name) => !only || only.includes(name);
 await mkdir(out, { recursive: true });
 
-const missing = ['ffmpeg', 'img2webp', 'cwebp'].filter((tool) => {
+const missing = ['cwebp'].filter((tool) => {
   try { execFileSync(tool, ['-version'], { stdio: 'ignore' }); return false; } catch { return true; }
 });
 if (missing.length) throw new Error(`${missing.join(', ')} not on the PATH`);
@@ -36,8 +36,8 @@ const PLACES = ['istanbul', 'cyprus', 'matterhorn', 'geirangerfjord', 'grand-can
 // Looks from the dock (LOOKS in looks.ts), by slug. The 3D tiles show looks in 3D.
 const LOOKS_2D = ['survey-ridge', 'rose-pod', 'sea-dunes', 'stepped-petals', 'stone-grain', 'centred-lobes'];
 const LOOKS_3D = ['night-flower', 'terraces', 'rocky-spine'];
-// The hero swings the camera back and forth on an orbit over one place.
-const HERO = { place: process.env.HERO_PLACE ?? 'matterhorn', seconds: 4, fps: 15, loop: 6, width: 1200 };
+// The hero is one large still of a look in 3D, drawn without the playground's controls.
+const HERO = process.env.HERO ?? 'look=fine-granite&mode=3d';
 
 let vite;
 let base = process.env.BASE;
@@ -104,30 +104,14 @@ async function tile(p, name) {
 }
 
 try {
-  if (want('hero-3d.webp')) {
-    // record() draws each frame off-screen, so the clip is smooth on any machine. The loop plays
-    // the orbit forward and back on an eased clock, so it has no seam.
+  if (want('hero.webp')) {
     const p = await page();
-    if (HERO.place === 'istanbul') {
-      await open(p, ISTANBUL);
-      await waitForPlace(p, 'istanbul');
-    } else {
-      await open(p, PLACE_BASE);
-      await setPlace(p, HERO.place);
-    }
-    const clip = await tool(p, 'record_video', { format: 'mp4', motion: 'orbit', seconds: HERO.seconds, width: 1280, height: 720 });
+    await open(p, HERO);
+    const shot = await tool(p, 'take_screenshot', { width: 2400 });
     await p.close();
-    const dir = join(work, 'hero');
-    await mkdir(dir);
-    const mp4 = join(dir, 'orbit.mp4');
-    await writeFile(mp4, Buffer.from(clip.dataUrl.split(',')[1], 'base64'));
-    execFileSync('ffmpeg', ['-loglevel', 'error', '-y', '-i', mp4, '-vf', `fps=${HERO.fps},scale=${HERO.width}:-2:flags=lanczos`, join(dir, '%03d.png')]);
-    const frames = (await readdir(dir)).filter((f) => f.endsWith('.png')).sort().map((f) => join(dir, f));
-    const count = HERO.loop * HERO.fps;
-    const loop = Array.from({ length: count }, (_, k) => frames[Math.round((frames.length - 1) * (1 - Math.cos(2 * Math.PI * k / count)) / 2)]);
-    const file = join(out, 'hero-3d.webp');
-    execFileSync('img2webp', ['-loop', '0', '-lossy', '-q', '45', '-m', '6', '-d', String(Math.round(1000 / HERO.fps)), ...loop, '-o', file], { stdio: 'ignore' });
-    sizes.push(['hero-3d.webp', (await stat(file)).size]);
+    const png = join(work, 'hero.png');
+    await writeFile(png, Buffer.from(shot.dataUrl.split(',')[1], 'base64'));
+    await webp(png, 'hero.webp', 2400, 92);
   }
 
   if (want('playground-dark.webp') || want('map-popover-dark.webp')) {
