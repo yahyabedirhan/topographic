@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { DEFAULT_ELEVATION, type Heightfield } from 'topographic';
+import { DEFAULT_ELEVATION, type Heightfield, type Settings } from 'topographic';
 import { baseline } from '../share-url';
 import type { Playground } from '../shared';
 import { limitMessage, limitProblem, spanOf, type BBox, type ReliefMode, type SmoothLevel, type Span } from './pipeline';
-import { beforePlace, findPlace, MAP_TERRAIN_DEFAULTS, type BeforePlace } from './places';
+import { beforePlace, findPlace, restoredKeys, terrainDefaults, type BeforePlace } from './places';
 import { registerRegionTools } from './register';
 import { readRegion, writeRegion, type RegionQuery } from './url';
 import { withQuery, writeSettings } from '../share-url';
@@ -29,7 +29,7 @@ export interface RegionController {
   info: RegionInfo | null;
   /** The loaded heightfield of the applied place, or null. */
   field: Heightfield | null;
-  /** Applies a place with MAP_TERRAIN_DEFAULTS on top of the settings. */
+  /** Applies a place with its defaults (MAP_TERRAIN_DEFAULTS unless the place has its own) on top of the settings. */
   setPlace(bbox: BBox, placeId: string | null): void;
   /** Applies a place and leaves the settings alone, for a saved terrain that brings its own. */
   showPlace(bbox: BBox, placeId: string | null): void;
@@ -148,8 +148,8 @@ export function useRegion(pg: Playground): RegionController {
   pgRef.current = pg;
   const bboxRef = useRef(bbox);
   bboxRef.current = bbox;
-  // The settings from before the first place, restored by clear().
-  const before = useRef<BeforePlace | null>(null);
+  // The settings from before the first place, and the keys clear() restores from them.
+  const before = useRef<{ settings: Settings; keys: Set<keyof Settings> } | null>(null);
   const showPlace = useCallback((next: BBox, id: string | null) => {
     const problem = limitProblem(next);
     if (problem) {
@@ -157,7 +157,9 @@ export function useRegion(pg: Playground): RegionController {
       setStatus('error');
       return;
     }
-    if (!bboxRef.current && before.current === null) before.current = beforePlace(settingsRef.current);
+    if (!bboxRef.current && before.current === null) before.current = { settings: settingsRef.current, keys: new Set() };
+    // A place with its own defaults (Cyprus sets the colours too) adds those keys to what Clear restores.
+    for (const key of restoredKeys(id)) before.current?.keys.add(key);
     bboxRef.current = next;
     setPlaceId(id);
     setBbox(next);
@@ -165,7 +167,7 @@ export function useRegion(pg: Playground): RegionController {
   const setPlace = useCallback((next: BBox, id: string | null) => {
     if (limitProblem(next)) return showPlace(next, id);
     showPlace(next, id);
-    pgRef.current.change(MAP_TERRAIN_DEFAULTS);
+    pgRef.current.change(terrainDefaults(id));
   }, [showPlace]);
   const clear = useCallback(() => {
     const had = Boolean(bboxRef.current);
@@ -178,7 +180,8 @@ export function useRegion(pg: Playground): RegionController {
     setError(null);
     setStatus('idle');
     setGeneration((n) => n + 1);
-    if (had) pgRef.current.change(before.current ?? generatedView(settingsRef.current.style));
+    const back = before.current;
+    if (had) pgRef.current.change(back ? beforePlace(back.settings, [...back.keys]) : generatedView(settingsRef.current.style));
     before.current = null;
   }, []);
   const agent: RegionController = {

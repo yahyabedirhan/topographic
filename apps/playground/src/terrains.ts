@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { mergeSettings, type Settings } from 'topographic';
 import type { BBox } from './region/pipeline';
-import { MAP_TERRAIN_DEFAULTS, sameBox } from './region/places';
+import { sameBox, terrainDefaults } from './region/places';
 import { useRegion, type RegionController } from './region/useRegion';
 import { useSaved, type SavedStore, type SavedTerrain } from './saved';
 import { placeThumb, type Playground } from './shared';
@@ -18,7 +18,7 @@ export interface Terrains {
   activeSaved: SavedTerrain | null;
   /** The built-in look that matches the settings, or -1. A map place selects no look. */
   lookIndex: number;
-  /** The Map popover's Apply: the place, MAP_TERRAIN_DEFAULTS, and a saved dock item. */
+  /** The Map popover's Apply: the place, its defaults (MAP_TERRAIN_DEFAULTS for most), and a saved dock item. */
   apply(bbox: BBox, placeId: string | null): void;
   openSaved(item: SavedTerrain): void;
   openLook(i: number): void;
@@ -82,7 +82,7 @@ export function useTerrains(pg: Playground): Terrains {
     lookIndex: region.bbox ? -1 : pg.lookIndex,
     apply(bbox, placeId) {
       const now = live.current;
-      const settings = mergeSettings(now.settings, MAP_TERRAIN_DEFAULTS);
+      const settings = mergeSettings(now.settings, terrainDefaults(placeId));
       region.setPlace(bbox, placeId);
       saved.save({ bbox, placeId, settings });
     },

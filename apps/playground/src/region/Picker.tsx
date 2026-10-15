@@ -250,9 +250,9 @@ export function PlacePanel({ region, onApply, appliedName, appearance }: {
           </div>
         )}
         <Menu.Root>
-          <Menu.Trigger className="pt-map-badge" aria-label={`${candidate ? name : 'Go to a city'}${candidate && !problem ? `, ${size(candidate)}` : ''}. Choose a city`}>
+          <Menu.Trigger className="pt-map-badge" aria-label={`${candidate ? name : 'Go to a place'}${candidate && !problem ? `, ${size(candidate)}` : ''}. Choose a place`}>
             <MapPin size={13} strokeWidth={1.9} aria-hidden="true" />
-            <b>{candidate ? name : 'Go to a city'}</b>
+            <b>{candidate ? name : 'Go to a place'}</b>
             {candidate && <span className={`pt-map-span${problem ? ' is-problem' : ''}`}>{problem ? limitMessage(problem) : size(candidate)}</span>}
             <ChevronDown size={13} strokeWidth={1.9} aria-hidden="true" className="pt-map-chev" />
           </Menu.Trigger>

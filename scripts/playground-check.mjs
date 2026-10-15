@@ -178,7 +178,7 @@ try {
   check(/^Istanbul [\d.]+ × [\d.]+ km$/.test(await badgeText()) && /^Generated terrain/.test(await status()), `the badge names the framed city and the footer the terrain (${await badgeText()} | ${await status()})`);
   await badge.click(); await p.getByRole('menuitem').first().waitFor();
   const items = (await p.getByRole('menuitem').allInnerTexts()).map((t) => t.split('\n')[0]);
-  check(items.join() === 'Istanbul,San Francisco,London,New York', `the badge opens the city menu (${items.join()})`);
+  check(items.join() === 'Istanbul,San Francisco,London,New York,Cyprus', `the badge opens the city menu (${items.join()})`);
   await p.keyboard.press('Escape'); await settle(p);
   check(await place.isVisible(), 'closing the city menu keeps the Map popover open');
   check(await apply.evaluate((el) => el.classList.contains('pt-action')) && await place.getByRole('button', { name: 'Generated' }).count() === 0, 'Apply is an action button and Generated is gone');
@@ -375,6 +375,20 @@ try {
   const got = await call('get_region');
   check(got.place === 'istanbul' && got.bbox?.north === 41.36, `get_region (${got.status})`);
   check((await call('clear_region')).cleared === true && (await call('get_region')).bbox === null, 'clear_region');
+  // Cyprus brings its own settings, colours included; Clear puts the earlier ones back.
+  await settle(agent);
+  const pre = JSON.stringify((await call('get_settings')).config);
+  await call('set_region', { place: 'cyprus' }); await settle(agent);
+  const cy = (await call('get_settings')).config;
+  const cyWant = { style: 'granite', lines: { count: 37, width: 0, opacity: 0.92, indexEvery: 6 }, speed: 1.3, sparkle: 0.35, layout: { anchor: 0.43, fade: 0.22 },
+    theme: { mode: 'dark', ink: '#a9c7e4', paper: '#10151c' }, mode: '3d', elevation: 0.06, extent: 'block', camera: [3, 80, 1.18] };
+  const cyGot = { style: cy.style, lines: cy.lines, speed: cy.motion?.speed, sparkle: cy.motion?.sparkle, layout: cy.layout,
+    theme: { mode: cy.theme?.mode, ink: cy.theme?.ink, paper: cy.theme?.paper }, mode: cy.mode, elevation: cy.elevation, extent: cy.extent,
+    camera: [cy.camera?.azimuth, cy.camera?.elevation, cy.camera?.radius] };
+  check(JSON.stringify(cyGot) === JSON.stringify(cyWant), `set_region cyprus applies Cyprus's own settings (${JSON.stringify(cyGot)})`);
+  await call('clear_region'); await settle(agent);
+  const post = JSON.stringify((await call('get_settings')).config);
+  check(post === pre, `clear_region after Cyprus restores the earlier settings${post === pre ? '' : ` (${pre} -> ${post})`}`);
   await agent.close();
 
   const plain = await browser.newPage(); watch(plain);
