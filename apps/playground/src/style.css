@@ -68,12 +68,14 @@ input[type=color]{width:30px;height:24px;padding:0;border:0;border-radius:6px;ba
 .pt-thumb-media{display:block;width:100%;height:100%;border-radius:16px;overflow:hidden;position:relative;background:var(--paper)}
 .pt-thumb img{display:block;width:100%;height:100%;object-fit:cover}
 .pt-thumb-name{position:absolute;left:0;right:0;bottom:0;padding:14px 8px 5px;font-size:10px;line-height:1.15;text-align:left;color:#fff;
-  background:linear-gradient(transparent,rgba(0,0,0,.66));opacity:0;transition:opacity .2s}
+  background:linear-gradient(transparent,rgba(0,0,0,.72));text-shadow:0 0 3px rgba(0,0,0,.8);opacity:0;transition:opacity .2s}
 .pt-thumb:hover .pt-thumb-name,.pt-thumb[aria-current="true"] .pt-thumb-name{opacity:1}
 /* Saved map terrains: a small globe mark, a delete button on hover or focus, and a divider before the looks. */
 .pt-saved{position:relative;flex:none;scroll-snap-align:start}
 .pt-thumb-blank{display:block;width:100%;height:100%;background:color-mix(in srgb,var(--fg) 8%,transparent)}
-.pt-thumb-mark{position:absolute;top:5px;left:7px;color:#fff;filter:drop-shadow(0 0 2px rgba(0,0,0,.7))}
+/* The globe: a small quiet badge on a soft paper disc, so it reads on any picture without shouting. */
+.pt-thumb-mark{position:absolute;top:4px;left:4px;width:16px;height:16px;padding:3px;border-radius:50%;color:var(--fg);opacity:.85;
+  background:color-mix(in srgb,var(--paper) 62%,transparent);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 button.pt-thumb-del{position:absolute;top:2px;right:2px;width:18px;height:18px;padding:0;border:0;border-radius:50%;display:grid;place-items:center;line-height:0;
   color:var(--fg);background:color-mix(in srgb,var(--paper) 82%,transparent);box-shadow:inset 0 0 0 .5px var(--line);opacity:0;transition:opacity .15s}
 .pt-saved:hover button.pt-thumb-del,button.pt-thumb-del:focus-visible{opacity:1}

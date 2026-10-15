@@ -195,7 +195,7 @@ function SavedThumb({ item, current, onOpen, onDelete }: {
         >
           <span className="pt-thumb-media">
             {item.thumb ? <img src={item.thumb} alt="" /> : <span className="pt-thumb-blank" />}
-            <Earth className="pt-thumb-mark" size={11} strokeWidth={2} aria-hidden="true" />
+            <Earth className="pt-thumb-mark" size={10} strokeWidth={2} aria-hidden="true" />
             <span className="pt-thumb-name" aria-hidden="true">{item.name}</span>
           </span>
         </Tooltip.Trigger>

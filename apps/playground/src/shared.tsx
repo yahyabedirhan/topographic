@@ -9,6 +9,7 @@ import { configOf, readUrl } from './url';
 import { baseline, withQuery, writeSettings } from './share-url';
 import { LOOKS } from './looks';
 import { keepShape } from './shape';
+import { smooth } from './region/pipeline';
 
 export interface Playground {
   settings: Settings;
@@ -295,22 +296,41 @@ export function useLookThumbs(width = 168, height = 96): string[] {
 }
 
 /**
- * A saved map terrain's dock picture: the place's heights in its own settings, drawn like a look
- * thumbnail. Returns a small WebP (or JPEG) data URL that fits in localStorage, or null.
+ * A place drawn at 84 × 48 needs fewer, bolder lines than a look: the full count turns into a solid
+ * hatch at that size. The sparkle beads are off, since they read as diagonal stripes on a heightfield.
+ */
+function placeThumbSettings(r: Settings): SettingsInput {
+  const base = thumbSettings(r);
+  return {
+    ...base,
+    lines: { ...r.lines, count: Math.min(14, Math.max(9, Math.round(r.lines.count * 0.35))), width: Math.max(0.16, r.lines.width), opacity: 1 },
+    motion: { ...r.motion, sparkle: 0 },
+  };
+}
+
+/**
+ * A saved map terrain's dock picture: the place's heights in its own settings, cropped to fill the
+ * thumbnail like a look's picture does, with no paper margin around the place. Returns a small WebP
+ * (or JPEG) data URL that fits in localStorage, or null.
  */
 export async function placeThumb(settings: Settings, field: Heightfield, width = 168, height = 96): Promise<string | null> {
-  const host = hiddenHost(width, height);
-  const t = createTopographicBackground(host, thumbSettings(settings));
+  // Draw the place at its own aspect, large enough to cover the thumbnail, then crop the middle.
+  const aspect = Math.max(field.aspect || 1, 0.05);
+  const drawW = Math.round(aspect > width / height ? height * aspect : width);
+  const drawH = Math.round(aspect > width / height ? height : width / aspect);
+  const host = hiddenHost(drawW, drawH);
+  const t = createTopographicBackground(host, placeThumbSettings(settings));
   try {
-    t.setHeightfield(field);
-    const blob = await t.snapshot({ frame: 4000, width, height });
+    // A softer copy of the heights: at this size every small hill would draw as a speck of noise.
+    t.setHeightfield({ ...field, samples: smooth(field.samples, field.size, 2.5) });
+    const blob = await t.snapshot({ frame: 4000, width: drawW, height: drawH });
     const bitmap = await createImageBitmap(blob);
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
-    canvas.getContext('2d')!.drawImage(bitmap, 0, 0);
-    const webp = canvas.toDataURL('image/webp', 0.82);
-    return webp.startsWith('data:image/webp') ? webp : canvas.toDataURL('image/jpeg', 0.82);
+    canvas.getContext('2d')!.drawImage(bitmap, (drawW - width) / 2, (drawH - height) / 2, width, height, 0, 0, width, height);
+    const webp = canvas.toDataURL('image/webp', 0.86);
+    return webp.startsWith('data:image/webp') ? webp : canvas.toDataURL('image/jpeg', 0.86);
   } catch {
     return null;
   } finally {
