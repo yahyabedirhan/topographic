@@ -126,7 +126,7 @@ npm run smoke      # headless Chrome checks (set CHROME=/path/to/chrome)
 
 ## Credits
 
-The shader is ported from the maintainer's personal website prototype. The architecture was inspired by [Paper Shaders](https://github.com/paper-design/shaders). Elevation comes from Mapzen Terrain Tiles on AWS Open Data, and the map from OpenFreeMap, OpenMapTiles and OpenStreetMap.
+The architecture was inspired by [Paper Shaders](https://github.com/paper-design/shaders). Elevation comes from Mapzen Terrain Tiles on AWS Open Data, and the map from OpenFreeMap, OpenMapTiles and OpenStreetMap.
 
 - [Playground](https://yahyabedirhan.github.io/topographic/)
 - [`topographic`](https://www.npmjs.com/package/topographic) and [`topographic-react`](https://www.npmjs.com/package/topographic-react) on npm
