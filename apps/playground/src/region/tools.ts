@@ -85,7 +85,7 @@ export const REGION_TOOL_DEFS: ToolDef[] = [
     name: 'set_region',
     title: 'Set region',
     readOnly: false,
-    description: 'Sets the map region that becomes the terrain. Give place (istanbul, san-francisco, london or new-york) or a bbox in degrees. The same values are written to the page URL as ?place= for a named place, or ?region= for a box.',
+    description: 'Sets the map region that becomes the terrain. Give place (istanbul, san-francisco, london or new-york) or a bbox in degrees. The same values are written to the page URL as ?place= for a named place, or ?region= for a box. Like Apply in the Map popover, it switches to 3D with the map terrain view: 36 lines, width 0, opacity 0.9, an index line every 4, a block at elevation 0.12, and the camera at azimuth 341.8, elevation 39.3, radius 1.32.',
     inputSchema: SET_SCHEMA,
   },
   {
@@ -99,7 +99,7 @@ export const REGION_TOOL_DEFS: ToolDef[] = [
     name: 'clear_region',
     title: 'Clear region',
     readOnly: false,
-    description: 'Removes the region and returns to the procedural terrain.',
+    description: 'Removes the region and returns to the procedural terrain and to the lines, camera, extent and elevation from before the region.',
     inputSchema: { type: 'object', properties: {} },
   },
 ];

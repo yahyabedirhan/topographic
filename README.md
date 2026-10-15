@@ -103,7 +103,7 @@ The place picker in the [playground](https://yahyabedirhan.github.io/topographic
 
 ![The place picker: a dark map of Istanbul with a white frame around the region to draw, city shortcuts above, and relief and smoothing options below](assets/screenshots/place-picker-dark.png)
 
-Click the map-pin **Place** button at the top right. Pan and zoom the map, or pick one of the city pills under it, so the frame covers the area you want, up to 300 km on a side. Then click **Apply**. **Generated** goes back to the generated terrain. The Elevation slider under Tune → 3D sets the height, the same as for generated terrain. Click the 3D button, or add `mode=3d` to the URL, for the terrain view. The elevation comes from Mapzen Terrain Tiles on AWS Open Data, so the picker needs a network connection.
+Click the globe **Map** button at the top right. Pan and zoom the map, drag the frame's corners and edges, or pick a city from the badge at the top left, so the frame covers the area you want, up to 300 km on a side. Then click **Apply**. The view switches to 3D with settings made for real places (a lower elevation, a block, fine lines and a closer camera), and the place is saved as an item at the front of the dock. **Clear** goes back to the generated terrain and to your earlier view settings. A built-in look in the dock also returns to generated terrain. The elevation comes from Mapzen Terrain Tiles on AWS Open Data, so the picker needs a network connection; the © on the map shows the credits.
 
 The [region notes](docs/prototypes/region/README.md) list the URL options and the decisions behind the picker.
 
