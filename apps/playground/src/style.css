@@ -124,7 +124,7 @@ button.pt-use:disabled{opacity:.38}
 .pt-field-name{font-size:11px;letter-spacing:.04em;color:var(--mut)}
 .pt-field .pt-hint{margin:0;max-width:42ch}
 .pt-map{position:relative}
-.pt-map-host{position:absolute;inset:0;background:var(--paper)}
+.pt-map .pt-map-host{position:absolute;inset:0;background:var(--paper)}
 .pt-map-host .maplibregl-map{font-family:var(--sans)}
 .pt-map-host .maplibregl-ctrl-attrib{background:color-mix(in srgb,var(--paper) 78%,transparent);color:var(--mut);font:10px/1.35 var(--sans);border-radius:8px}
 .pt-map-host .maplibregl-ctrl-attrib a{color:var(--mut)}
