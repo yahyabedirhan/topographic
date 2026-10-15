@@ -42,7 +42,7 @@ void main(){
     if(uHasHeight>0.5) y=0.02+uHeight*aHeight*.62;
     else y=0.05+reliefOf(contourField(int(uStyle+.5), p).f);
   }
-  vec3 world=vec3(p.x*.9, y, p.y*.9);
+  vec3 world=vec3(p.x*.9, y, -p.y*.9);
   vP=p; vWorld=world; vSide=aSide; vUV=aUV;
   gl_Position=uViewProj*vec4(world,1.);
 }
