@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { PARAMS } from './params.js';
 import { PRESETS } from './presets.js';
 import { STYLES } from './styles.js';
-import { fromAttributes, fromQuery, mergeSettings, resetWarnings, resolveSettings, toAttributes, toQuery, toUniforms } from './settings.js';
+import { fromAttributes, fromQuery, mergeSettings, meshResolution, resetWarnings, resolveSettings, toAttributes, toQuery, toUniforms } from './settings.js';
 
 afterEach(() => { resetWarnings(); vi.restoreAllMocks(); });
 
@@ -43,6 +43,48 @@ describe('resolveSettings', () => {
   });
   it('resolves every preset to its own style', () => {
     for (const p of PRESETS) expect(resolveSettings(p.settings).style).toBe(p.settings.style);
+  });
+});
+
+describe('view settings', () => {
+  it('defaults to the flat 2d map', () => {
+    const s = resolveSettings();
+    expect(s.mode).toBe('2d');
+    expect(s.extent).toBe('block');
+    expect(s.elevation).toBe(0.62);
+    expect(s.camera).toEqual({ azimuth: 42, elevation: 34, radius: 2.45, motion: 'still' });
+    expect(meshResolution(0)).toBe(32);
+    expect(meshResolution(s.detail)).toBe(96);
+    expect(meshResolution(1)).toBe(160);
+  });
+  it('clamps the camera above the horizon and keeps 2d values', () => {
+    const s = resolveSettings({ mode: '3d', elevation: 4, extent: 'endless', camera: { elevation: -20, radius: 99, azimuth: 400.26 } });
+    expect(s.mode).toBe('3d');
+    expect(s.extent).toBe('endless');
+    expect(s.elevation).toBe(1);
+    expect(s.camera.elevation).toBe(2);
+    expect(s.camera.radius).toBe(6.5);
+    expect(s.camera.azimuth).toBe(400.3);
+    expect(s.lines.count).toBe(30);
+  });
+  it('warns once for an unknown mode, extent or camera motion', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const s = resolveSettings({ mode: 'vr', extent: 'sphere', camera: { motion: 'spin' } } as never);
+    expect(s.mode).toBe('2d');
+    expect(s.extent).toBe('block');
+    expect(s.camera.motion).toBe('still');
+    resolveSettings({ mode: 'vr', extent: 'sphere', camera: { motion: 'spin' } } as never);
+    expect(warn).toHaveBeenCalledTimes(3);
+  });
+  it('round-trips 3d settings through the query and attributes', () => {
+    const s = resolveSettings({
+      style: 'gentle-summit', seed: 7, mode: '3d', elevation: 0.2, extent: 'endless', detail: 0.15,
+      camera: { azimuth: 12, elevation: 18, radius: 3, motion: 'orbit' },
+    });
+    expect(resolveSettings(fromQuery(toQuery(s)))).toEqual(s);
+    const attrs = toAttributes(s);
+    expect(attrs).toMatchObject({ mode: '3d', extent: 'endless', 'camera-motion': 'orbit', azimuth: '12' });
+    expect(resolveSettings(fromAttributes((n) => attrs[n] ?? null))).toEqual(s);
   });
 });
 
