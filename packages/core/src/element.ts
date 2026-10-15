@@ -1,6 +1,3 @@
-// <topographic-bg>: a custom element around createTopographicBackground. Importing 'topographic/element'
-// registers it. Attributes come from the params table (see params.ts), plus style-name, seed,
-// theme, ink and paper. Attribute changes update live.
 import { PARAMS } from './params.js';
 import { createTopographicBackground, type TopographicBackground, type SnapshotOptions } from './renderer.js';
 import { fromAttributes, resolveSettings, type SettingsInput } from './settings.js';
@@ -33,7 +30,6 @@ export class TopographicBackgroundElement extends Base {
 
   attributeChangedCallback(): void {
     if (!this.#topographic) return;
-    // Resolve from scratch so a removed attribute returns to its (style) default.
     const full = resolveSettings(this.#read());
     this.#topographic.update({ ...full, theme: { ink: undefined, paper: undefined, ...full.theme } });
   }

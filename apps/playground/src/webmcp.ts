@@ -1,6 +1,3 @@
-// Registers the page's WebMCP tools (https://github.com/webmachinelearning/webmcp).
-// Uses document.modelContext, with the older navigator.modelContext as a fallback, and does
-// nothing when neither exists. Tools are removed by aborting the registration signal.
 import { mergeSettings, PRESETS, STYLES, type Settings, type SettingsInput, type TopographicBackground } from 'topographic';
 import { INSTALL } from './content';
 import { embedCode, type EmbedFormat } from './embed';
@@ -28,7 +25,6 @@ const blobToDataUrl = (b: Blob) => new Promise<string>((resolve, reject) => {
   const r = new FileReader(); r.onload = () => resolve(String(r.result)); r.onerror = () => reject(r.error); r.readAsDataURL(b);
 });
 
-/** Lists which numbers were clamped or which keys were ignored, so the agent knows what happened. */
 function adjustments(input: Record<string, unknown>, out: Settings): string[] {
   const notes: string[] = [];
   if (typeof input.style === 'string' && input.style !== out.style) notes.push(`unknown style "${input.style}", kept "${out.style}"`);

@@ -1,5 +1,3 @@
-// Headless check of the built playground (apps/playground/dist): loads it, moves a slider, applies a
-// preset, randomizes the seed, checks URL sync and PNG export. SHOTS=dir saves screenshots.
 import { chromium } from 'playwright-core';
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
@@ -73,7 +71,6 @@ try {
     check(r.ok && t.length > 200 && !/\btopo\b/i.test(t), `${doc} served (${t.length} chars)`);
   }
   check((await (await fetch(base + 'docs/params.md')).text()).includes('`line-count`'), 'params.md generated from the params table');
-  // WebMCP: a stub document.modelContext records registrations; call each tool through it
   const agent = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   await agent.addInitScript(() => {
     window.__tools = {};

@@ -1,6 +1,5 @@
 import { GROUPS, fromQuery, paramsIn, resolveSettings, type Settings, type SettingsInput } from 'topographic';
 
-/** The smallest config that reproduces these settings: only values that differ from the style's defaults. */
 export function configOf(s: Settings): SettingsInput & { style: string } {
   const d = resolveSettings({ style: s.style });
   const out: Record<string, unknown> = { style: s.style };
@@ -16,12 +15,11 @@ export function configOf(s: Settings): SettingsInput & { style: string } {
   return out as SettingsInput & { style: string };
 }
 
-/** Settings from the URL. `?config={json}` is the canonical form; short keys (?s=dunes&lc=24) also work. */
 export function readUrl(search = window.location.search): Settings {
   const q = new URLSearchParams(search);
   const json = q.get('config');
   if (json) {
-    try { return resolveSettings(JSON.parse(json) as SettingsInput); } catch { /* fall through to short keys */ }
+    try { return resolveSettings(JSON.parse(json) as SettingsInput); } catch { }
   }
   return resolveSettings(fromQuery(search));
 }
@@ -30,7 +28,6 @@ export function urlFor(s: Settings): string {
   return `${window.location.pathname}?config=${encodeURIComponent(JSON.stringify(configOf(s)))}${window.location.hash}`;
 }
 
-/** Mirrors settings into the URL without adding history entries. */
 export function writeUrl(s: Settings): void {
   const next = urlFor(s);
   if (next !== window.location.pathname + window.location.search + window.location.hash) window.history.replaceState(null, '', next);

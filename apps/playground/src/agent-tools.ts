@@ -1,5 +1,3 @@
-// WebMCP tool definitions as plain data (names, descriptions, input schemas). webmcp.ts binds them
-// to the page; docs.ts documents them in llms.txt. Schemas are generated from the params table.
 import { GROUPS, PARAMS, STYLES } from 'topographic';
 
 const groupSchema = (g: string) => ({

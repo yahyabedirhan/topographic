@@ -1,5 +1,3 @@
-// Builds the agent-facing docs from the source of truth: params table, styles, presets and the
-// shared install text. Served in dev and emitted into the build as /llms.txt, /llms-full.txt and /docs/*.md.
 import type { Plugin } from 'vite';
 import { PARAMS, PRESETS, STYLES, defaultSettings } from 'topographic';
 import { INSTALL, TAGLINE } from './src/content';

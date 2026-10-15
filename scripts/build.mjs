@@ -1,4 +1,3 @@
-// Builds the library packages: one ESM file per source module (esbuild) plus .d.ts files (tsc).
 import { build } from 'esbuild';
 import { execSync } from 'node:child_process';
 import { readdirSync, rmSync } from 'node:fs';

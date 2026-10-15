@@ -10,7 +10,6 @@ export interface ResolvedTheme {
   dark: 0 | 1;
 }
 
-// Defaults carried over from the original prototype.
 export const THEME_DEFAULTS = {
   light: { ink: [0.62, 0.7, 0.8, 1] as RGBA, paper: [0.975, 0.972, 0.965, 1] as RGBA },
   dark: { ink: [0.4, 0.46, 0.58, 1] as RGBA, paper: [0.045, 0.045, 0.05, 1] as RGBA },

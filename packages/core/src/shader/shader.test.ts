@@ -13,7 +13,11 @@ describe('topographic shader source', () => {
     for (const p of PARAMS) if (typeof p.slot === 'number') expect(TOPOGRAPHIC_FRAGMENT).toContain(`uParams[${p.slot}]`);
   });
   it('has a branch for every style index', () => {
-    for (const s of STYLES) if (s.index > 0) expect(TOPOGRAPHIC_FRAGMENT).toMatch(new RegExp(`s==${s.index}\\b|s<5`));
+    for (const s of STYLES) {
+      const name = `STYLE_${s.id.toUpperCase().replace(/-/g, '_')}`;
+      expect(TOPOGRAPHIC_FRAGMENT).toContain(`#define ${name} ${s.index}\n`);
+      expect(TOPOGRAPHIC_FRAGMENT).toContain(`if(s==${name})`);
+    }
   });
   it('wraps for both WebGL versions', () => {
     expect(wrapFragment(TOPOGRAPHIC_FRAGMENT, true).startsWith('#version 300 es')).toBe(true);
