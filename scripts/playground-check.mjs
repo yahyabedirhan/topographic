@@ -508,7 +508,10 @@ try {
     && (!fpsBox || fpsBox.x + fpsBox.width < miniBox.x), `the minimap sits above the dock's right end, clear of the dock and the frame rate (${JSON.stringify(miniBox)})`);
   await call('set_settings', { mode: '3d', camera: { azimuth: 90, motion: 'still' } }); await settle(agent, 400);
   check(await mini.getAttribute('data-turn') === '90.0', `the minimap turns with the camera (turn ${await mini.getAttribute('data-turn')} at azimuth 90)`);
-  await agent.locator('.pt-compass').click(); await settle(agent, 900);
+  await agent.locator('.pt-compass').click();
+  // The turn is animated; under a software renderer it can take longer than a fixed wait.
+  await agent.waitForFunction(() => document.querySelector('.pt-minimap')?.getAttribute('data-turn') === '0.0', null, { timeout: 10000 }).catch(() => {});
+  await settle(agent, 200);
   const turned = (await call('get_settings')).config.camera?.azimuth ?? 0;
   check(turned === 0 && await mini.getAttribute('data-turn') === '0.0', `the compass turns the camera back to north up (azimuth ${turned})`);
   await call('set_settings', { mode: '2d' }); await settle(agent, 400);
