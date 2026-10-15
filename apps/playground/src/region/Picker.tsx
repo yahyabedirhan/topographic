@@ -1,22 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { Map as MapLibre, setWorkerUrl, type Map as MapMap, type LngLat } from 'maplibre-gl';
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
-import { MapPin, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import 'maplibre-gl/dist/maplibre-gl.css';
-
-setWorkerUrl(maplibreWorkerUrl);
 import { limitMessage, limitProblem, spanOf, type BBox } from './pipeline';
 import { mapStyle, type MapAppearance } from './basemap';
 import { findPlace, FRAME, PLACES } from './places';
 import type { RegionController } from './useRegion';
+import { km } from './controls';
+
+setWorkerUrl(maplibreWorkerUrl);
 
 type PickMode = 'frame' | 'draw';
-
-function km(meters: number): string {
-  if (meters < 1000) return `${Math.round(meters)} m`;
-  const n = meters / 1000;
-  return `${n < 10 ? n.toFixed(1) : Math.round(n)} km`;
-}
 
 function ordered(a: LngLat, b: LngLat): BBox {
   return {
@@ -45,35 +40,6 @@ function readFrame(map: MapMap, frame: HTMLElement, host: HTMLElement): BBox {
   const nw = map.unproject([box.left - mapRect.left, box.top - mapRect.top]);
   const se = map.unproject([box.right - mapRect.left, box.bottom - mapRect.top]);
   return ordered(nw, se);
-}
-
-export function PlaceButton({ pressed, onClick }: { pressed: boolean; onClick: () => void }) {
-  return (
-    <button type="button" className="pt-ibtn" aria-label="Place" aria-pressed={pressed} onClick={onClick}>
-      <MapPin size={18} strokeWidth={1.75} />
-    </button>
-  );
-}
-
-export function RegionPill({ region, onOpen }: { region: RegionController; onOpen: () => void }) {
-  if (region.status === 'idle' && !region.error) return null;
-  const span = region.info?.span;
-  const detail = region.status === 'loading'
-    ? 'Reading the land…'
-    : region.status === 'error'
-      ? region.error
-      : span
-        ? `${km(span.widthM)} × ${km(span.heightM)} · ${Math.round(region.info?.reliefM ?? 0)} m of relief`
-        : '';
-  return (
-    <div className="pt-region pt-glass" data-region-status={region.status}>
-      <button type="button" className="pt-region-name" onClick={onOpen}>{region.name || 'Place'}</button>
-      <span>{detail}</span>
-      {region.bbox && (
-        <button type="button" className="pt-region-clear" onClick={region.clear}>Clear</button>
-      )}
-    </div>
-  );
 }
 
 export function PlaceSheet({ open, onClose, region, appearance }: {

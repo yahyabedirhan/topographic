@@ -1,11 +1,14 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode, type Ref, type RefObject } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState, type ReactNode, type Ref, type RefObject } from 'react';
 import { Popover } from '@base-ui-components/react/popover';
 import { Slider } from '@base-ui-components/react/slider';
 import { Toggle } from '@base-ui-components/react/toggle';
 import { ToggleGroup } from '@base-ui-components/react/toggle-group';
 import { Tooltip } from '@base-ui-components/react/tooltip';
 import { Box, Dices, Frame, Map, Moon, Mountain, RotateCcw, SlidersHorizontal, Spline, Sun, Wind } from 'lucide-react';
-import { PlaceButton, PlaceSheet, RegionPill } from './region/Picker';
+import { PlaceButton, RegionPill } from './region/controls';
+
+// MapLibre is large, so the map sheet loads the first time Place opens.
+const PlaceSheet = lazy(() => import('./region/Picker').then((m) => ({ default: m.PlaceSheet })));
 import { useRegion } from './region/useRegion';
 import { DEFAULT_CAMERA, DEFAULT_DETAIL, DEFAULT_ELEVATION, GROUPS, paramsIn, resolveMode, type CameraMotion, type GroupName, type ParamDef, type TerrainExtent } from 'topographic';
 import { LOOKS } from './looks';
@@ -503,6 +506,8 @@ export function GlassFrame({ pg, tune, exporting }: {
   const [exp, setExp] = useState(false);
   const [placeOpen, setPlaceOpen] = useState(false);
   const region = useRegion(pg);
+  const [placeUsed, setPlaceUsed] = useState(false);
+  if (placeOpen && !placeUsed) setPlaceUsed(true);
   const close = useCallback(() => { setTuneOpen(false); setExp(false); setPlaceOpen(false); }, []);
   useDismiss(close);
   return (
@@ -522,12 +527,16 @@ export function GlassFrame({ pg, tune, exporting }: {
         exporting={exporting(exp, (open) => { setExp(open); if (open) { setTuneOpen(false); setPlaceOpen(false); } }, clusterRef)}
       >
         <RegionPill region={region} onOpen={() => setPlaceOpen(true)} />
-        <PlaceSheet
-          open={placeOpen}
-          onClose={() => setPlaceOpen(false)}
-          region={region}
-          appearance={resolveMode(pg.settings.theme.mode, document.documentElement.dataset.theme !== 'light')}
-        />
+        {placeUsed && (
+          <Suspense fallback={null}>
+            <PlaceSheet
+              open={placeOpen}
+              onClose={() => setPlaceOpen(false)}
+              region={region}
+              appearance={resolveMode(pg.settings.theme.mode, document.documentElement.dataset.theme !== 'light')}
+            />
+          </Suspense>
+        )}
         <Popover.Portal>
           <Popover.Positioner anchor={clusterRef} side="bottom" align="end" sideOffset={10} collisionPadding={{ top: 12, right: 8, bottom: 16, left: 8 }} positionMethod="fixed" className="pt-layer">
             <Popover.Popup className="pt-pop pt-glass pt-panel">
