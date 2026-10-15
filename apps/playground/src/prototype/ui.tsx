@@ -5,6 +5,8 @@ import { Toggle } from '@base-ui-components/react/toggle';
 import { ToggleGroup } from '@base-ui-components/react/toggle-group';
 import { Tooltip } from '@base-ui-components/react/tooltip';
 import { Box, Dices, Frame, Map, Moon, Mountain, RotateCcw, SlidersHorizontal, Spline, Sun, Wind } from 'lucide-react';
+import { PlaceButton, PlaceSheet, RegionPill } from './region/Picker';
+import { useRegion } from './region/useRegion';
 import { DEFAULT_CAMERA, DEFAULT_DETAIL, DEFAULT_ELEVATION, GROUPS, paramsIn, type CameraMotion, type GroupName, type ParamDef, type TerrainExtent } from 'topographic';
 import { LOOKS } from './looks';
 import {
@@ -112,14 +114,16 @@ export function Benchmark({ pg }: { pg: Playground }) {
   return <div className="pt-bench pt-glass" aria-live="polite">{text}</div>;
 }
 
-export function Cluster({ pg, tune, exporting, clusterRef }: {
+export function Cluster({ pg, tune, exporting, clusterRef, leading }: {
   pg: Playground;
   tune: ReactNode;
   exporting: ReactNode;
   clusterRef?: Ref<HTMLDivElement>;
+  leading?: ReactNode;
 }) {
   return (
     <div className="pt-cluster pt-glass" ref={clusterRef}>
+      {leading}
       <ModeToggle pg={pg} />
       <IconButton label="Shuffle" onClick={pg.shuffle}><Dices size={18} strokeWidth={1.75} /></IconButton>
       {exporting}
@@ -457,11 +461,12 @@ export function TuneStrip({ pg }: { pg: Playground }) {
   );
 }
 
-export function Shell({ pg, tune, exporting, clusterRef, children }: {
+export function Shell({ pg, tune, exporting, clusterRef, leading, children }: {
   pg: Playground;
   tune: ReactNode;
   exporting: ReactNode;
   clusterRef?: Ref<HTMLDivElement>;
+  leading?: ReactNode;
   children?: ReactNode;
 }) {
   return (
@@ -470,7 +475,7 @@ export function Shell({ pg, tune, exporting, clusterRef, children }: {
       <Wordmark />
       <div className="pt-top">
         <Benchmark pg={pg} />
-        <Cluster pg={pg} tune={tune} exporting={exporting} clusterRef={clusterRef} />
+        <Cluster pg={pg} tune={tune} exporting={exporting} clusterRef={clusterRef} leading={leading} />
       </div>
       {children}
       <Dock pg={pg} />
@@ -494,13 +499,16 @@ export function GlassFrame({ pg, tune, exporting }: {
   const clusterRef = useRef<HTMLDivElement>(null);
   const [tuneOpen, setTuneOpen] = useState(false);
   const [exp, setExp] = useState(false);
-  const close = useCallback(() => { setTuneOpen(false); setExp(false); }, []);
+  const [placeOpen, setPlaceOpen] = useState(false);
+  const region = useRegion(pg);
+  const close = useCallback(() => { setTuneOpen(false); setExp(false); setPlaceOpen(false); }, []);
   useDismiss(close);
   return (
     <Popover.Root open={tuneOpen} onOpenChange={(open) => { setTuneOpen(open); if (open) setExp(false); }}>
       <Shell
         pg={pg}
         clusterRef={clusterRef}
+        leading={<PlaceButton pressed={placeOpen} onClick={() => { setPlaceOpen((v) => !v); setTuneOpen(false); setExp(false); }} />}
         tune={(
           <Tooltip.Root>
             <Tooltip.Trigger delay={180} render={<Popover.Trigger className="pt-ibtn" aria-label="Tune" />}>
@@ -509,8 +517,10 @@ export function GlassFrame({ pg, tune, exporting }: {
             <Tip>Tune</Tip>
           </Tooltip.Root>
         )}
-        exporting={exporting(exp, (open) => { setExp(open); if (open) setTuneOpen(false); }, clusterRef)}
+        exporting={exporting(exp, (open) => { setExp(open); if (open) { setTuneOpen(false); setPlaceOpen(false); } }, clusterRef)}
       >
+        <RegionPill region={region} onOpen={() => setPlaceOpen(true)} />
+        <PlaceSheet open={placeOpen} onClose={() => setPlaceOpen(false)} region={region} />
         <Popover.Portal>
           <Popover.Positioner anchor={clusterRef} side="bottom" align="end" sideOffset={10} collisionPadding={{ top: 12, right: 8, bottom: 16, left: 8 }} positionMethod="fixed" className="pt-layer">
             <Popover.Popup className="pt-pop pt-glass pt-panel">
