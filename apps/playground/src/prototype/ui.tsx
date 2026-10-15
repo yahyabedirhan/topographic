@@ -4,8 +4,8 @@ import { Slider } from '@base-ui-components/react/slider';
 import { Toggle } from '@base-ui-components/react/toggle';
 import { ToggleGroup } from '@base-ui-components/react/toggle-group';
 import { Tooltip } from '@base-ui-components/react/tooltip';
-import { Dices, Frame, Moon, Mountain, RotateCcw, SlidersHorizontal, Spline, Sun, Wind } from 'lucide-react';
-import { GROUPS, paramsIn, type GroupName, type ParamDef } from 'topographic';
+import { Box, Dices, Frame, Map, Moon, Mountain, RotateCcw, SlidersHorizontal, Spline, Sun, Wind } from 'lucide-react';
+import { DEFAULT_CAMERA, DEFAULT_DETAIL, DEFAULT_ELEVATION, GROUPS, paramsIn, type CameraMotion, type GroupName, type ParamDef, type TerrainExtent } from 'topographic';
 import { LOOKS } from './looks';
 import {
   Backdrop, ColorPicker, GROUP_LABELS, INK_SWATCHES, PAPER_SWATCHES, Wordmark, currentColour, rollColour, useLookThumbs,
@@ -65,6 +65,53 @@ function ThemeToggle({ pg }: { pg: Playground }) {
   );
 }
 
+function ModeToggle({ pg }: { pg: Playground }) {
+  const on = pg.settings.mode === '3d';
+  const label = on ? 'Switch to 2D' : 'Switch to 3D';
+  return (
+    <Tooltip.Root>
+      <Tooltip.Trigger
+        delay={180}
+        render={(
+          <Toggle
+            className="pt-ibtn"
+            aria-label={label}
+            pressed={on}
+            onPressedChange={(pressed) => pg.change({ mode: pressed ? '3d' : '2d' })}
+          />
+        )}
+      >
+        {on ? <Box size={18} strokeWidth={1.75} /> : <Map size={18} strokeWidth={1.75} />}
+      </Tooltip.Trigger>
+      <Tip>{label}</Tip>
+    </Tooltip.Root>
+  );
+}
+
+export function useStats(pg: Playground) {
+  const [stats, setStats] = useState({ fps: 0, frameMs: 0, mesh: 0 });
+  useEffect(() => {
+    if (pg.settings.mode !== '3d') return;
+    let alive = true;
+    let id = 0;
+    const tick = () => {
+      const next = pg.instance.current?.stats;
+      if (alive && next) setStats(next);
+      id = window.setTimeout(tick, 400);
+    };
+    tick();
+    return () => { alive = false; window.clearTimeout(id); };
+  }, [pg, pg.settings.mode, pg.instance]);
+  return stats;
+}
+
+export function Benchmark({ pg }: { pg: Playground }) {
+  const stats = useStats(pg);
+  if (pg.settings.mode !== '3d') return null;
+  const text = `${stats.fps} fps · ${stats.frameMs.toFixed(1)} ms · ${stats.mesh}²`;
+  return <div className="pt-bench pt-glass" aria-live="polite">{text}</div>;
+}
+
 export function Cluster({ pg, tune, exporting, clusterRef }: {
   pg: Playground;
   tune: ReactNode;
@@ -73,6 +120,7 @@ export function Cluster({ pg, tune, exporting, clusterRef }: {
 }) {
   return (
     <div className="pt-cluster pt-glass" ref={clusterRef}>
+      <ModeToggle pg={pg} />
       <IconButton label="Shuffle" onClick={pg.shuffle}><Dices size={18} strokeWidth={1.75} /></IconButton>
       {exporting}
       <ThemeToggle pg={pg} />
@@ -206,37 +254,40 @@ function ParamSlider({ param, value, onChange }: { param: ParamDef; value: numbe
   );
 }
 
+type TuneTab = GroupName | 'view';
+
 function useTune(pg: Playground) {
-  const [group, setGroup] = useState<GroupName>('lines');
+  const [group, setGroup] = useState<TuneTab>(pg.settings.mode === '3d' ? 'view' : 'lines');
   const [open, setOpen] = useState('count');
-  const params = paramsIn(group);
+  const params = group === 'view' ? [] : paramsIn(group);
   const active = params.find((p) => p.key === open) ?? params[0];
   const valueOf = (p: ParamDef) => (pg.settings[p.group] as Record<string, number>)[p.key];
   const change = (p: ParamDef, n: number) => pg.change({ [p.group]: { [p.key]: n } });
-  const pickGroup = (next: GroupName) => {
+  const pickGroup = (next: TuneTab) => {
     setGroup(next);
-    setOpen(paramsIn(next)[0]?.key ?? 'count');
+    if (next !== 'view') setOpen(paramsIn(next)[0]?.key ?? 'count');
   };
+  useEffect(() => { if (pg.settings.mode === '3d') setGroup('view'); }, [pg.settings.mode]);
   return { pg, group, pickGroup, params, active, open, setOpen, valueOf, change };
 }
 
-function TuneHead({ pg, group, onGroup }: { pg: Playground; group: GroupName; onGroup: (g: GroupName) => void }) {
+function TuneHead({ pg, group, onGroup }: { pg: Playground; group: TuneTab; onGroup: (g: TuneTab) => void }) {
   return (
     <div className="pt-tune-head">
       <ToggleGroup
         className="pt-groups"
         value={[group]}
-        onValueChange={(v) => { if (v[0]) onGroup(v[0] as GroupName); }}
+        onValueChange={(v) => { if (v[0]) onGroup(v[0] as TuneTab); }}
         aria-label="Setting group"
       >
-        {GROUPS.map((g) => {
-          const Ico = GROUP_ICON[g];
+        {[...GROUPS.map((g) => ({ id: g as TuneTab, label: GROUP_LABELS[g], icon: GROUP_ICON[g] })), { id: 'view' as TuneTab, label: 'View', icon: Box }].map((g) => {
+          const Ico = g.icon;
           return (
-            <Tooltip.Root key={g}>
-              <Tooltip.Trigger delay={280} render={<Toggle className="pt-ibtn" value={g} aria-label={GROUP_LABELS[g]} />}>
+            <Tooltip.Root key={g.id}>
+              <Tooltip.Trigger delay={280} render={<Toggle className="pt-ibtn" value={g.id} aria-label={g.label} />}>
                 <Ico size={16} strokeWidth={1.75} />
               </Tooltip.Trigger>
-              <Tip>{GROUP_LABELS[g]}</Tip>
+              <Tip>{g.label}</Tip>
             </Tooltip.Root>
           );
         })}
@@ -263,11 +314,131 @@ function Reset({ param, value, onChange }: { param: ParamDef; value: number; onC
   return <IconButton label="Reset" onClick={() => onChange(param.default)}><RotateCcw size={13} strokeWidth={1.75} /></IconButton>;
 }
 
+const PATHS: { id: CameraMotion; label: string }[] = [
+  { id: 'still', label: 'Still' },
+  { id: 'orbit', label: 'Orbit' },
+  { id: 'push', label: 'Push' },
+  { id: 'flyover', label: 'Flyover' },
+  { id: 'drone', label: 'Drone' },
+];
+
+function RangeRow({ label, hint, value, min, max, step, digits, onChange, onReset }: {
+  label: string;
+  hint: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  digits: number;
+  onChange: (n: number) => void;
+  onReset?: () => void;
+}) {
+  return (
+    <div className="pt-strip">
+      <Tooltip.Root>
+        <Tooltip.Trigger delay={360} render={<span className="pt-pname" />}>{label}</Tooltip.Trigger>
+        <Tip>{hint}</Tip>
+      </Tooltip.Root>
+      <Slider.Root
+        className="pt-slider"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        thumbAlignment="center"
+        onValueChange={(next) => onChange(typeof next === 'number' ? next : next[0])}
+      >
+        <Slider.Control className="pt-slider-control">
+          <Slider.Track className="pt-slider-track">
+            <Slider.Indicator className="pt-slider-ind" />
+            <Slider.Thumb className="pt-slider-thumb" aria-label={label} />
+          </Slider.Track>
+        </Slider.Control>
+      </Slider.Root>
+      <output>{value.toFixed(digits)}</output>
+      {onReset ? <IconButton label="Reset" onClick={onReset}><RotateCcw size={13} strokeWidth={1.75} /></IconButton> : <span />}
+    </div>
+  );
+}
+
+function ViewTune({ pg }: { pg: Playground }) {
+  const s = pg.settings;
+  const stats = useStats(pg);
+  const azimuth = ((s.camera.azimuth % 360) + 360) % 360;
+  const cam = (patch: Partial<typeof s.camera>) => pg.change({ camera: patch });
+  return (
+    <div className="pt-klist">
+      <RangeRow
+        label="Elevation"
+        hint="0 is flat like the map. Higher values make peaks taller and sharper."
+        value={s.elevation} min={0} max={1} step={0.01} digits={2}
+        onChange={(n) => pg.change({ elevation: n })}
+        onReset={s.elevation === DEFAULT_ELEVATION ? undefined : () => pg.change({ elevation: DEFAULT_ELEVATION })}
+      />
+      <div className="pt-view-row">
+        <span className="pt-pname">Extent</span>
+        <div className="pt-chips">
+          {(['block', 'endless'] as TerrainExtent[]).map((id) => (
+            <button key={id} type="button" className={`pt-chip${s.extent === id ? ' is-on' : ''}`} onClick={() => pg.change({ extent: id })}>
+              {id === 'block' ? 'Block' : 'Endless'}
+            </button>
+          ))}
+        </div>
+      </div>
+      <RangeRow
+        label="Azimuth"
+        hint="Orbit around the terrain. Drag the view to move this too."
+        value={azimuth} min={0} max={360} step={1} digits={0}
+        onChange={(n) => cam({ azimuth: n })}
+        onReset={s.camera.azimuth === DEFAULT_CAMERA.azimuth ? undefined : () => cam({ azimuth: DEFAULT_CAMERA.azimuth })}
+      />
+      <RangeRow
+        label="Angle"
+        hint="Degrees above the horizon. The camera never goes below the terrain."
+        value={s.camera.elevation} min={2} max={80} step={1} digits={0}
+        onChange={(n) => cam({ elevation: n })}
+        onReset={s.camera.elevation === DEFAULT_CAMERA.elevation ? undefined : () => cam({ elevation: DEFAULT_CAMERA.elevation })}
+      />
+      <RangeRow
+        label="Distance"
+        hint="How far the camera sits. Scroll or pinch the view to zoom."
+        value={s.camera.radius} min={1.15} max={6.5} step={0.01} digits={2}
+        onChange={(n) => cam({ radius: n })}
+        onReset={s.camera.radius === DEFAULT_CAMERA.radius ? undefined : () => cam({ radius: DEFAULT_CAMERA.radius })}
+      />
+      <div className="pt-view-block">
+        <span className="pt-pname">Path</span>
+        <div className="pt-chips">
+          {PATHS.map((p) => (
+            <button key={p.id} type="button" className={`pt-chip${s.camera.motion === p.id ? ' is-on' : ''}`} onClick={() => cam({ motion: p.id })}>
+              {p.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <RangeRow
+        label="Detail"
+        hint="Mesh resolution. Low is the setting to try on a slow device."
+        value={s.detail} min={0} max={1} step={0.01} digits={2}
+        onChange={(n) => pg.change({ detail: n })}
+        onReset={s.detail === DEFAULT_DETAIL ? undefined : () => pg.change({ detail: DEFAULT_DETAIL })}
+      />
+      <div className="pt-chips">
+        <button type="button" className={`pt-chip${s.detail <= 0.2 ? ' is-on' : ''}`} onClick={() => pg.change({ detail: 0.12 })}>Low</button>
+        <button type="button" className={`pt-chip${s.detail > 0.2 && s.detail < 0.8 ? ' is-on' : ''}`} onClick={() => pg.change({ detail: DEFAULT_DETAIL })}>Medium</button>
+        <button type="button" className={`pt-chip${s.detail >= 0.8 ? ' is-on' : ''}`} onClick={() => pg.change({ detail: 1 })}>High</button>
+      </div>
+      <p className="pt-hint">{s.mode === '3d' ? `${stats.fps} fps · ${stats.frameMs.toFixed(1)} ms · ${stats.mesh}²` : 'Switch to 3D to read the frame time.'}</p>
+    </div>
+  );
+}
+
 export function TuneStrip({ pg }: { pg: Playground }) {
   const tune = useTune(pg);
   return (
     <div className="pt-tune">
       <TuneHead pg={pg} group={tune.group} onGroup={tune.pickGroup} />
+      {tune.group === 'view' ? <ViewTune pg={pg} /> : (
       <div className="pt-klist">
         {tune.params.map((p) => {
           const value = tune.valueOf(p);
@@ -277,10 +448,11 @@ export function TuneStrip({ pg }: { pg: Playground }) {
               <ParamSlider param={p} value={value} onChange={(n) => tune.change(p, n)} />
               <output>{readParam(p, value)}</output>
               <Reset param={p} value={value} onChange={(n) => tune.change(p, n)} />
-            </div>
-          );
-        })}
+          </div>
+        );
+      })}
       </div>
+      )}
     </div>
   );
 }
@@ -298,6 +470,7 @@ export function Shell({ pg, tune, exporting, clusterRef, children }: {
       <Wordmark />
       <Cluster pg={pg} tune={tune} exporting={exporting} clusterRef={clusterRef} />
       {children}
+      <Benchmark pg={pg} />
       <Dock pg={pg} />
     </>
   );

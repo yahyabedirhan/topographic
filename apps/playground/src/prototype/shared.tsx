@@ -100,6 +100,8 @@ export function usePlayground(): Playground {
   useEffect(() => {
     const q = new URLSearchParams(location.search);
     q.set('config', JSON.stringify(configOf(settings)));
+    if (settings.mode === '3d') q.set('mode', '3d');
+    else q.delete('mode');
     history.replaceState(null, '', `${location.pathname}?${q}`);
   }, [settings]);
   const latest = useRef(settings);
@@ -109,14 +111,16 @@ export function usePlayground(): Playground {
   useEffect(() => () => cancelAnimationFrame(frame.current), []);
 
   const lookIndex = useMemo(() => {
-    const key = JSON.stringify(configOf(settings));
-    return LOOKS.findIndex((look) => JSON.stringify(configOf(resolveSettings(look.settings))) === key);
+    const key = terrainKey(settings);
+    return LOOKS.findIndex((look) => terrainKey(resolveSettings(look.settings)) === key);
   }, [settings]);
 
   const shuffle = () => {
     cancelAnimationFrame(frame.current);
     const from = latest.current;
-    const goal = rollSettings();
+    const goal = mergeSettings(rollSettings(), {
+      mode: from.mode, elevation: from.elevation, extent: from.extent, detail: from.detail, camera: from.camera,
+    });
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
       setSettings(goal);
       return;
@@ -133,15 +137,113 @@ export function usePlayground(): Playground {
   return {
     settings, mode, instance, lookIndex, shuffle,
     change: (patch) => setSettings((s) => mergeSettings(s, patch)),
-    applyLook: (i) => setSettings(resolveSettings(LOOKS[i].settings)),
+    applyLook: (i) => setSettings((s) => mergeSettings(resolveSettings(LOOKS[i].settings), {
+      mode: s.mode, elevation: s.elevation, extent: s.extent, detail: s.detail, camera: s.camera,
+    })),
   };
+}
+
+function terrainKey(s: Settings): string {
+  const config = { ...configOf(s) } as Record<string, unknown>;
+  delete config.mode;
+  delete config.elevation;
+  delete config.extent;
+  delete config.detail;
+  delete config.camera;
+  return JSON.stringify(config);
+}
+
+const BENCHMARK = { benchmark: true as const };
+
+function useOrbit(pg: Playground) {
+  const live = useRef(pg);
+  live.current = pg;
+  const node = useRef<HTMLDivElement | null>(null);
+  const pointers = useRef(new Map<number, { x: number; y: number }>());
+  const drag = useRef<{ id: number; x: number; y: number; azimuth: number; elevation: number } | null>(null);
+  const pinch = useRef<{ dist: number; radius: number } | null>(null);
+  useEffect(() => {
+    const el = node.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      const current = live.current;
+      if (current.settings.mode !== '3d') return;
+      e.preventDefault();
+      const radius = Math.min(6.5, Math.max(1.15, current.settings.camera.radius * Math.exp(e.deltaY * 0.0011)));
+      current.change({ camera: { radius: Number(radius.toFixed(2)), motion: 'still' } });
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, []);
+  const wrap = (n: number) => Number((((n % 360) + 360) % 360).toFixed(1));
+  const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const current = live.current;
+    if (current.settings.mode !== '3d') return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.current.size >= 2) {
+      const [a, b] = [...pointers.current.values()];
+      pinch.current = { dist: Math.hypot(a.x - b.x, a.y - b.y), radius: current.settings.camera.radius };
+      drag.current = null;
+      return;
+    }
+    drag.current = {
+      id: e.pointerId, x: e.clientX, y: e.clientY,
+      azimuth: current.settings.camera.azimuth, elevation: current.settings.camera.elevation,
+    };
+  };
+  const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const current = live.current;
+    if (current.settings.mode !== '3d' || !pointers.current.has(e.pointerId)) return;
+    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.current.size >= 2 && pinch.current) {
+      const [a, b] = [...pointers.current.values()];
+      const dist = Math.max(1, Math.hypot(a.x - b.x, a.y - b.y));
+      const radius = Math.min(6.5, Math.max(1.15, pinch.current.radius * (pinch.current.dist / dist)));
+      current.change({ camera: { radius: Number(radius.toFixed(2)), motion: 'still' } });
+      return;
+    }
+    const held = drag.current;
+    if (!held || held.id !== e.pointerId) return;
+    const azimuth = wrap(held.azimuth - (e.clientX - held.x) * 0.32);
+    const elevation = Math.min(80, Math.max(2, held.elevation - (e.clientY - held.y) * 0.2));
+    current.change({ camera: { azimuth, elevation: Number(elevation.toFixed(1)), motion: 'still' } });
+  };
+  const onPointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
+    pointers.current.delete(e.pointerId);
+    if (drag.current?.id === e.pointerId) drag.current = null;
+    if (pointers.current.size < 2) pinch.current = null;
+  };
+  return { node, onPointerDown, onPointerMove, onPointerUp, onPointerCancel: onPointerUp };
 }
 
 export function Backdrop({ pg, className = 'pt-stage' }: { pg: Playground; className?: string }) {
   const s = pg.settings;
+  const orbit = useOrbit(pg);
   return (
-    <TopographicBackground className={className} aria-hidden="true" styleName={s.style} seed={s.seed} lines={s.lines} terrain={s.terrain}
-      motion={s.motion} layout={s.layout} theme={s.theme} onReady={(t) => { pg.instance.current = t; }} />
+    <TopographicBackground
+      ref={orbit.node}
+      className={`${className}${s.mode === '3d' ? ' is-3d' : ''}`}
+      aria-hidden="true"
+      styleName={s.style}
+      seed={s.seed}
+      lines={s.lines}
+      terrain={s.terrain}
+      motion={s.motion}
+      layout={s.layout}
+      theme={s.theme}
+      mode={s.mode}
+      elevation={s.elevation}
+      extent={s.extent}
+      detail={s.detail}
+      camera={s.camera}
+      options={BENCHMARK}
+      onPointerDown={orbit.onPointerDown}
+      onPointerMove={orbit.onPointerMove}
+      onPointerUp={orbit.onPointerUp}
+      onPointerCancel={orbit.onPointerCancel}
+      onReady={(t) => { pg.instance.current = t; }}
+    />
   );
 }
 
