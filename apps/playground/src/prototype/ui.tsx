@@ -468,9 +468,11 @@ export function Shell({ pg, tune, exporting, clusterRef, children }: {
     <>
       <Backdrop pg={pg} />
       <Wordmark />
-      <Cluster pg={pg} tune={tune} exporting={exporting} clusterRef={clusterRef} />
+      <div className="pt-top">
+        <Benchmark pg={pg} />
+        <Cluster pg={pg} tune={tune} exporting={exporting} clusterRef={clusterRef} />
+      </div>
       {children}
-      <Benchmark pg={pg} />
       <Dock pg={pg} />
     </>
   );
