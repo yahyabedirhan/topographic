@@ -61,9 +61,12 @@ export const TOOL_DEFS: ToolDef[] = [
     description: 'Picks a new random seed. With style: true, also picks a random style.',
     inputSchema: { type: 'object', properties: { style: { type: 'boolean', description: 'Also randomize the style.' } } } },
   { name: 'take_screenshot', title: 'Take screenshot', readOnly: true,
-    description: 'Renders the current background to a PNG and returns it as a data URL. Defaults to 1200 px wide at the screen aspect ratio.',
+    description: 'Renders the current background to a PNG and returns it as a data URL. Defaults to 1200 px wide at the screen aspect ratio. With region, only that slice of the current view, at full detail (for example a phone-shaped strip).',
     inputSchema: { type: 'object', properties: {
-      width: { type: 'integer', minimum: 16, maximum: 4096 }, height: { type: 'integer', minimum: 16, maximum: 4096 } } } },
+      width: { type: 'integer', minimum: 16, maximum: 4096 }, height: { type: 'integer', minimum: 16, maximum: 4096 },
+      region: { type: 'object', additionalProperties: false, description: 'Part of the view, in fractions 0..1 from its top-left corner. Width or height alone keeps the region\'s shape.',
+        properties: { x: { type: 'number', minimum: 0, maximum: 1 }, y: { type: 'number', minimum: 0, maximum: 1 }, width: { type: 'number', minimum: 0, maximum: 1 }, height: { type: 'number', minimum: 0, maximum: 1 } },
+        required: ['x', 'y', 'width', 'height'] } } } },
   { name: 'record_video', title: 'Record video', readOnly: true,
     description: 'Renders a short 3D clip of the current terrain with a moving camera. Returns an MP4 or WebM data URL. Defaults to a 2 second orbit at 640×360.',
     inputSchema: { type: 'object', properties: {

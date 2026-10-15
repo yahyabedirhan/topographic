@@ -75,7 +75,7 @@ button.pt-compass:active{transform:scale(.94)}
 .pt-ibtn.has-dot::after{content:'';position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--fg);box-shadow:0 0 0 2px color-mix(in srgb,var(--paper) 80%,transparent)}
 .pt-layer{z-index:90}
 .pt-tip{padding:5px 8px;border-radius:8px;background:var(--on);color:var(--on-fg);font-size:12px;line-height:1.2;box-shadow:0 8px 24px rgba(0,0,0,.28)}
-.pt-dock-wrap{position:fixed;z-index:5;left:12px;right:12px;bottom:24px;display:flex;justify-content:center;pointer-events:none}
+.pt-dock-wrap{position:fixed;z-index:5;left:12px;right:12px;bottom:12px;display:flex;justify-content:center;pointer-events:none}
 .pt-dock{pointer-events:auto;display:flex;align-items:center;gap:4px;padding:8px;border-radius:24px;max-width:100%;overflow:hidden}
 .pt-thumbs{display:flex;gap:4px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;padding:0;scroll-snap-type:x mandatory;flex:none}
 .pt-thumbs::-webkit-scrollbar{display:none}
@@ -128,14 +128,19 @@ button.pt-dice{width:26px;height:26px;padding:0;border:0;border-radius:50%;displ
 button.pt-dice:hover{background:color-mix(in srgb,var(--fg) 8%,transparent)}
 button.pt-dice:active{transform:scale(.96)}
 .pt-slider{width:100%;min-width:0}
-.pt-slider-control{display:flex;align-items:center;height:22px;padding:0 8px;touch-action:none}
-.pt-slider-track{width:100%;height:3px;border-radius:999px;background:color-mix(in srgb,var(--fg) 16%,transparent)}
-.pt-slider-ind{display:block;height:100%;border-radius:inherit;background:var(--fg)}
-.pt-slider-thumb{width:14px;height:14px;border-radius:50%;background:var(--fg);box-shadow:0 1px 4px rgba(0,0,0,.35)}
+/* Telling tracks: the track draws the setting's effect, muted, and again in full colour up to the value. */
+.pt-slider-control{display:flex;align-items:center;height:26px;padding:0;touch-action:none;cursor:pointer}
+.pt-slider-track{position:relative;width:100%;height:24px}
+.pt-slider-track svg{display:block;overflow:visible}
+.pt-track-base{position:absolute;inset:0;color:color-mix(in srgb,var(--fg) 24%,transparent);pointer-events:none}
+.pt-slider-ind{display:block;overflow:hidden;color:var(--fg);pointer-events:none}
+.pt-slider-thumb{width:4px;height:22px;border-radius:2px;background:var(--fg);box-shadow:0 0 0 2px color-mix(in srgb,var(--paper) 85%,transparent),0 1px 4px rgba(0,0,0,.3)}
 .pt-slider-thumb:focus-visible{outline:2px solid var(--fg);outline-offset:3px}
 /* Popovers: one anchor under the cluster, two widths, one padding. */
-.pt-pop{--pop-w:380px;width:min(var(--pop-w),calc(100vw - 32px));padding:14px 16px 16px;border-radius:22px;max-height:min(720px,calc(100dvh - 170px));overflow:auto;overscroll-behavior:contain}
-.pt-pop-wide{--pop-w:560px;max-height:calc(100dvh - 172px)}
+.pt-pop{--pop-w:380px;width:min(var(--pop-w),calc(100vw - 32px));padding:14px 16px 16px;border-radius:22px;max-height:min(720px,calc(100dvh - 158px));overflow:auto;overscroll-behavior:contain}
+/* Export: one width for every tab, measured so the React install line shows in full (296px of text + $, copy, padding) with room for wider monospace fonts. */
+.pt-export{--pop-w:412px}
+.pt-pop-wide{--pop-w:560px;max-height:calc(100dvh - 160px)}
 .pt-pop-color{width:max-content;padding:12px}
 .pt-pop-title{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin-bottom:10px}
 /* Tabs: icon over label, so no tooltip covers the content. */
@@ -151,24 +156,39 @@ button.pt-tab[aria-pressed="true"]{background:var(--seg-on);box-shadow:var(--seg
 .pt-sec-title{font:600 10.5px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
 button.pt-sec-reset{width:24px;height:24px;margin-right:-4px;padding:0;border:0;border-radius:50%;display:grid;place-items:center;background:transparent;box-shadow:none;color:var(--mut)}
 button.pt-sec-reset:hover{background:color-mix(in srgb,var(--fg) 8%,transparent);color:var(--fg)}
-/* One row grid for every control: label | control | value. Slider tracks and segmented controls share a left edge. */
-.pt-row{display:grid;grid-template-columns:80px minmax(0,1fr) 40px;align-items:center;column-gap:12px;min-height:34px}
+/* One row grid for every control: glyph | label | control | value. Tracks and chip rows share a left edge. */
+.pt-row{display:grid;grid-template-columns:16px 72px minmax(0,1fr) 40px;align-items:center;column-gap:10px;min-height:34px}
+.pt-row-icon{display:grid;place-items:center;color:var(--mut)}
 .pt-row-label{font-size:12.5px;line-height:1.2;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pt-row output,.pt-row .pt-row-value{justify-self:end;font:12px/1 var(--sans);font-variant-numeric:tabular-nums;color:var(--mut)}
-.pt-row > .pt-seg,.pt-row > .pt-row-wide{grid-column:2 / -1}
+.pt-row output,.pt-row .pt-row-value{justify-self:end;font:12px/1 var(--sans);font-variant-numeric:tabular-nums;color:var(--mut);white-space:nowrap}
+.pt-row > .pt-chips,.pt-row > .pt-row-wide{grid-column:3 / -1}
 .pt-row > .pt-row-wide{justify-self:start}
-.pt-row .pt-slider-control{padding:0;height:22px}
 /* A row a map place overrides: dimmed and not interactive. */
-.pt-row.is-off{opacity:.4}
+.pt-row.is-off,.pt-preview.is-off{opacity:.4}
 .pt-row.is-off .pt-slider-control{cursor:default}
 .pt-place-note{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 8px;margin:4px 0 2px;color:var(--mut);font-size:12px;line-height:1.4}
 button.pt-text-btn{padding:0;border:0;border-radius:4px;background:none;box-shadow:none;color:var(--fg);font-size:12px;text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
 button.pt-text-btn:hover{background:none;text-decoration-color:currentColor}
-/* Segmented control: every choice. */
-.pt-seg{display:flex;padding:2px;border-radius:9px;background:color-mix(in srgb,var(--fg) 7%,transparent)}
-.pt-seg button{flex:1 1 0;min-width:0;height:24px;padding:0 2px;border:0;border-radius:7px;background:transparent;box-shadow:none;color:var(--mut);font-size:12px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pt-seg button:hover{color:var(--fg);background:transparent}
-.pt-seg button[aria-pressed="true"]{background:var(--seg-on);box-shadow:var(--seg-shadow);color:var(--fg)}
+/* Glyph chips: every choice. The chosen chip widens and names itself; with two options both names show. */
+.pt-chips{display:flex;gap:2px;padding:2px;border-radius:9px;background:color-mix(in srgb,var(--fg) 7%,transparent)}
+.pt-chips button{flex:1 1 0;min-width:0;height:26px;padding:0 4px;border:0;border-radius:7px;display:flex;align-items:center;justify-content:center;gap:5px;
+  background:transparent;box-shadow:none;color:var(--mut);font-size:12px;line-height:1;white-space:nowrap;overflow:hidden;transition:flex-grow .22s cubic-bezier(.22,1,.36,1),background .2s,color .2s}
+.pt-chips button svg{flex:none}
+.pt-chips button span{display:none;overflow:hidden;text-overflow:ellipsis}
+.pt-chips button:hover{color:var(--fg);background:transparent}
+.pt-chips button[aria-pressed="true"]{flex-grow:2.3;background:var(--seg-on);box-shadow:var(--seg-shadow);color:var(--fg)}
+.pt-chips button[aria-pressed="true"] span,.pt-chips.is-two button span{display:inline}
+.pt-chips.is-two button[aria-pressed="true"]{flex-grow:1}
+/* The live picture at the top of a Tune tab. */
+.pt-preview{position:relative;margin:8px 0 2px;border-radius:14px;overflow:hidden;color:var(--fg);background:color-mix(in srgb,var(--fg) 4%,transparent);box-shadow:inset 0 0 0 .5px var(--line)}
+.pt-preview > svg{position:absolute;inset:0;display:block}
+.pt-preview-chip{position:absolute;left:8px;top:8px;max-width:calc(100% - 16px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 10.5px/1 var(--sans);color:var(--mut);padding:4px 7px;border-radius:999px;
+  background:color-mix(in srgb,var(--paper) 86%,transparent);box-shadow:inset 0 0 0 .5px var(--line)}
+.pt-preview-label{position:absolute;top:8px;font:600 9.5px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.pt-preview + .pt-sec{padding-top:2px}
+.pt-flow .pt-flow-dot{animation:pt-flow 1.6s linear infinite}
+@keyframes pt-flow{to{stroke-dashoffset:var(--to)}}
+@media (prefers-reduced-motion:reduce){.pt-flow .pt-flow-dot{animation:none}.pt-chips button{transition:none}}
 /* Map: the map runs edge to edge in the popover. A badge (city menu and size) and a quiet © sit on top,
    a glass footer with the status and the actions sits over its lower edge. */
 .pt-pop-map{padding:0;overflow:hidden}
@@ -233,17 +253,35 @@ button.pt-credit-btn:hover,.pt-credit.is-open button.pt-credit-btn{color:var(--f
 .pt-place-actions{display:flex;align-items:center;gap:6px;flex:none}
 .pt-place-actions .pt-action{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;font:500 13px/1 var(--sans)}
 .pt-action.is-done,.pt-action.is-done:disabled{background:transparent;color:var(--mut);box-shadow:inset 0 0 0 .5px var(--line);opacity:1}
-.pt-export-block{display:grid;gap:8px;padding-top:8px}
+.pt-export-block{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;padding-top:8px}
 .pt-export-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .pt-export-head .pt-hint{flex:1;min-width:0}
-.pt-install,.pt-code{margin:0;overflow:auto;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--paper) 42%,transparent);
-  box-shadow:inset 0 0 0 .5px var(--line);font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--fg)}
-.pt-install{white-space:pre-wrap}
-.pt-code{max-height:220px;white-space:pre-wrap;overflow-wrap:anywhere;tab-size:2}
-.pt-linkrow{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px;min-width:0;padding:4px 4px 4px 12px;border-radius:12px;
+.pt-hint-center{text-align:center;font-size:11.5px}
+.pt-hint-small{font-size:11.5px}
+/* Code: line numbers in a gutter, setting values tinted as pills. */
+.pt-code{margin:0;max-height:300px;overflow:auto;padding:10px 12px 10px 8px;border-radius:12px;background:color-mix(in srgb,var(--paper) 42%,transparent);
+  box-shadow:inset 0 0 0 .5px var(--line);font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--fg)}
+.pt-code code{display:grid;grid-template-columns:18px minmax(0,1fr);column-gap:10px;font:inherit;white-space:pre-wrap;overflow-wrap:anywhere;tab-size:2}
+.pt-ln{color:color-mix(in srgb,var(--mut) 70%,transparent);text-align:right;user-select:none;-webkit-user-select:none}
+.pt-vpill{padding:0 4px;margin:0 -1px;border-radius:5px;background:color-mix(in srgb,currentColor 14%,transparent);box-shadow:inset 0 0 0 .5px color-mix(in srgb,currentColor 38%,transparent)}
+/* The install line: a prompt with its own copy. */
+.pt-install{display:flex;align-items:center;gap:8px;min-width:0;padding:5px 5px 5px 12px;border-radius:12px;background:color-mix(in srgb,var(--paper) 42%,transparent);box-shadow:inset 0 0 0 .5px var(--line)}
+.pt-install code{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font:12px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace}
+.pt-install-mark{color:var(--mut);font:12px/1 ui-monospace,SFMono-Regular,Menlo,monospace}
+button.pt-icocopy{width:28px;height:28px;flex:none;padding:0;border:0;border-radius:8px;display:grid;place-items:center;background:transparent;box-shadow:none;color:var(--mut);line-height:0}
+button.pt-icocopy:hover{background:color-mix(in srgb,var(--fg) 8%,transparent);color:var(--fg)}
+button.pt-icocopy.is-done{color:var(--fg)}
+/* Link: the URL as readable key and value chips, then the address and its copy. */
+.pt-urlchips{display:flex;flex-wrap:wrap;gap:5px;list-style:none}
+.pt-urlchip{display:inline-flex;align-items:center;gap:5px;height:24px;max-width:100%;padding:0 9px 0 7px;border-radius:999px;font-size:11.5px;line-height:1;color:var(--fg);
+  background:color-mix(in srgb,var(--fg) 7%,transparent);box-shadow:inset 0 0 0 .5px var(--line);font-variant-numeric:tabular-nums}
+.pt-urlchip svg{flex:none;color:var(--mut)}
+.pt-urlchip i{font:normal 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--mut)}
+.pt-urlchip span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pt-urlchip .pt-urlchip-dot{flex:none;width:10px;height:10px;border-radius:50%;box-shadow:inset 0 0 0 .5px rgba(127,127,127,.6)}
+.pt-linkrow{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;min-width:0;margin-top:4px;padding:4px 4px 4px 12px;border-radius:12px;
   background:color-mix(in srgb,var(--paper) 42%,transparent);box-shadow:inset 0 0 0 .5px var(--line)}
-.pt-linkrow code{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:6px 0;background:none;box-shadow:none;font:12px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace}
-.pt-linkrow .pt-action{padding:7px 12px}
+.pt-linkrow code{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:6px 0;background:none;box-shadow:none;color:var(--mut);font:12px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace}
 .pt-syn-key{color:#c4a574}
 .pt-syn-str{color:#7dba9a}
 .pt-syn-num{color:#8aadd4}
@@ -258,28 +296,61 @@ button.pt-credit-btn:hover,.pt-credit.is-open button.pt-credit-btn{color:var(--f
 /* The quiet sibling of a primary action, such as Clear next to Apply. */
 .pt-action.pt-action-quiet{background:color-mix(in srgb,var(--fg) 8%,transparent);color:var(--fg)}
 .pt-action.pt-action-quiet:hover{background:color-mix(in srgb,var(--fg) 13%,transparent)}
-.pt-pngs{display:grid;gap:2px;padding:3px;border-radius:14px;background:color-mix(in srgb,var(--fg) 6%,transparent)}
-.pt-sec-body > .pt-pngs{margin-top:4px}
-.pt-size{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:8px 12px;border-radius:11px;background:transparent;box-shadow:none;text-align:left;color:var(--fg)}
-.pt-size:hover{background:color-mix(in srgb,var(--fg) 6%,transparent)}
-.pt-size:disabled{opacity:.55}
-.pt-size-copy{display:grid;gap:2px;min-width:0}
-.pt-size b{font-size:13px;font-weight:500}
-.pt-size small{color:var(--mut);font-size:11px}
+.pt-action-wide{justify-self:stretch;display:inline-flex;align-items:center;justify-content:center;gap:7px;height:36px;padding:0 14px;font:500 13px/1 var(--sans)}
+/* Copy: a compact pill with a glyph; once copied it turns quiet with a check. */
+.pt-action.pt-copy{flex:none;display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px 0 10px;font:500 12.5px/1 var(--sans);white-space:nowrap}
+.pt-copy-ico{display:inline-grid;line-height:0}
+.pt-action.pt-copy.is-done,.pt-action.pt-copy.is-done:hover{background:transparent;color:var(--fg);box-shadow:inset 0 0 0 .5px var(--line)}
+.pt-pop-in{display:inline-grid;line-height:0;animation:pt-pop-in .32s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pt-pop-in{from{transform:scale(.4);opacity:0}to{transform:none;opacity:1}}
+/* PNG and Video: a picture of the view with the crop frame or the camera path, then the choices. */
+.pt-shot{position:relative;justify-self:center;width:100%;border-radius:14px;overflow:hidden;color:#fff;background:var(--paper);box-shadow:inset 0 0 0 .5px var(--line);touch-action:none;user-select:none;-webkit-user-select:none}
+:root[data-theme=light] .pt-shot{color:#1b1b1a}
+.pt-shot img{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover}
+.pt-shot > svg{position:absolute;inset:0;display:block}
+.pt-shot.is-draggable{cursor:grab}
+.pt-shot.is-draggable:active{cursor:grabbing}
+.pt-shot:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.pt-shot-bar{position:absolute;left:8px;top:8px;max-width:calc(100% - 16px);height:24px;display:inline-flex;align-items:center;gap:6px;padding:0 10px;border-radius:999px;font:11px/1 var(--sans);color:var(--mut);
+  white-space:nowrap;overflow:hidden;font-variant-numeric:tabular-nums;background:color-mix(in srgb,var(--paper) 72%,transparent);box-shadow:inset 0 0 0 .5px var(--line);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);pointer-events:none}
+.pt-shot-bar b{color:var(--fg);font-weight:500}
+.pt-shot-bar svg{color:var(--fg)}
+.pt-shot-path{position:absolute;right:8px;bottom:8px;width:92px;height:64px;border-radius:10px;color:var(--fg);background:color-mix(in srgb,var(--paper) 72%,transparent);box-shadow:inset 0 0 0 .5px var(--line);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);pointer-events:none}
+.pt-shot-path svg{display:block}
+.pt-sizes{display:grid;grid-template-columns:1.25fr .8fr 1.25fr;gap:6px}
+button.pt-sizecard{position:relative;display:flex;flex-direction:column;align-items:stretch;gap:7px;min-width:0;padding:8px 8px 9px;border:0;border-radius:14px;text-align:left;color:var(--fg);
+  background:color-mix(in srgb,var(--fg) 5%,transparent);box-shadow:inset 0 0 0 .5px var(--line)}
+button.pt-sizecard:hover{background:color-mix(in srgb,var(--fg) 8%,transparent)}
+button.pt-sizecard[aria-pressed="true"]{background:var(--seg-on);box-shadow:var(--seg-shadow),inset 0 0 0 1px color-mix(in srgb,var(--fg) 28%,transparent)}
+.pt-sizecard-art{height:62px;display:grid;place-items:center}
+.pt-sizecard-pic{display:block;border-radius:5px;background-color:var(--paper);background-repeat:no-repeat;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--fg) 28%,transparent)}
+.pt-sizecard-meta{display:grid;gap:2px;min-width:0}
+.pt-sizecard b{font-size:12.5px;font-weight:500;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pt-sizecard small{color:var(--mut);font-size:10.5px;line-height:1.3;white-space:nowrap;font-variant-numeric:tabular-nums}
+.pt-timeline{position:relative;height:44px;border-radius:12px;overflow:hidden;color:var(--fg);cursor:ew-resize;touch-action:none;background:color-mix(in srgb,var(--fg) 5%,transparent);box-shadow:inset 0 0 0 .5px var(--line)}
+.pt-timeline svg{position:absolute;inset:0;display:block}
+.pt-timeline:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.pt-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+button.pt-card{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;height:56px;padding:0;border:0;border-radius:12px;color:var(--mut);font-size:11px;line-height:1;
+  background:color-mix(in srgb,var(--fg) 5%,transparent);box-shadow:inset 0 0 0 .5px var(--line)}
+button.pt-card:hover{color:var(--fg);background:color-mix(in srgb,var(--fg) 8%,transparent)}
+button.pt-card[aria-pressed="true"]{background:var(--seg-on);box-shadow:var(--seg-shadow),inset 0 0 0 1px color-mix(in srgb,var(--fg) 30%,transparent);color:var(--fg)}
+.pt-pair{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:2px}
+@media (prefers-reduced-motion:reduce){.pt-pop-in{animation:none}}
 @media (max-width:720px){
   .pt-wordmark{top:18px;left:14px;font-size:15px}
   .pt-top{top:12px;right:8px;gap:6px}
   .pt-cluster{padding:4px}
   .pt-ibtn{width:34px;height:34px}
-  .pt-dock-wrap{left:8px;right:8px;bottom:24px}
-  .pt-pngs{grid-template-columns:1fr}
-  .pt-pop{width:min(var(--pop-w),calc(100vw - 16px));max-height:calc(100dvh - 150px)}
-  .pt-pop-wide{max-height:calc(100dvh - 162px)}
+  .pt-dock-wrap{left:8px;right:8px;bottom:12px}
+  .pt-pop{width:min(var(--pop-w),calc(100vw - 16px));max-height:calc(100dvh - 138px)}
+  .pt-pop-wide{max-height:calc(100dvh - 150px)}
   .pt-mapbox{height:360px}
   .pt-place-actions .pt-action{padding:0 12px}
   .pt-pop-color{width:max-content}
-  .pt-row{grid-template-columns:64px minmax(0,1fr) 40px}
-  .pt-seg button{flex:1 1 auto;padding:0 4px}
+  .pt-row{grid-template-columns:16px 60px minmax(0,1fr) 40px;column-gap:8px}
   .pt-dock-tools{padding-inline:4px 0}
   .pt-minimap{width:100px;height:100px;border-radius:16px}
   button.pt-minimap-map{padding:7px}

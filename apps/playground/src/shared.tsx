@@ -416,15 +416,6 @@ export function ColorPicker({ value, onChange, swatches }: { value: string; onCh
   );
 }
 
-export function useCopy(): [string, (label: string, text: string) => void] {
-  const [copied, setCopied] = useState('');
-  return [copied, (label, text) => {
-    navigator.clipboard.writeText(text).catch(() => {});
-    setCopied(label);
-    setTimeout(() => setCopied(''), 1400);
-  }];
-}
-
 export function Wordmark({ children }: { children?: ReactNode }) {
   return (
     <div className="pt-wordmark">
