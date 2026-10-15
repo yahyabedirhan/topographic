@@ -1,10 +1,10 @@
-<p align="center"><img src="assets/images/logo/topography.png" width="128" alt="topography's logo: three contour rings on paper folded along one diagonal crease, on a graphite tile"></p>
+<p align="center"><img src="assets/images/logo/topography.png" width="128" alt="Topography's logo: three contour rings on paper folded along one diagonal crease, on a graphite tile"></p>
 
-<h1 align="center">topography.js</h1>
+<h1 align="center">Topography</h1>
 
-![The topography.js playground in dark mode: contour lines drift behind the page, and the settings panel sits on the right](assets/screenshots/playground-dark.png)
+![The Topography playground in dark mode: contour lines drift behind the page, and the settings panel sits on the right](assets/screenshots/playground-dark.png)
 
-## What is topography.js
+## What is Topography
 
 Topography is a js library that draws animated contour lines, like those on a topographic map, as the background of a web page.
 
@@ -68,7 +68,7 @@ It works for agents too. It serves plain-text docs at `/llms.txt`, and in browse
 
 ### Library architecture
 
-![How topography.js fits together: the web component, the React component and the playground all call one public API, which resolves the settings and hands them to one WebGL renderer and shader](assets/images/diagrams/library-architecture.png)
+![How Topography fits together: the web component, the React component and the playground all call one public API, which resolves the settings and hands them to one WebGL renderer and shader](assets/images/diagrams/library-architecture.png)
 
 Everything goes through one API, and one table defines every setting.
 

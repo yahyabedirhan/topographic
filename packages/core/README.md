@@ -1,4 +1,4 @@
-# topography.js
+# Topography
 
 [![npm](https://img.shields.io/npm/v/topography.js)](https://www.npmjs.com/package/topography.js)
 

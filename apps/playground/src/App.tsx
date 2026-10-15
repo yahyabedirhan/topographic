@@ -51,7 +51,7 @@ export function App() {
       />
       <main className="wrap" id="top">
         <header className="head">
-          <h1>topography.js</h1>
+          <h1>Topography</h1>
           <p>{TAGLINE}</p>
           <nav className="links" aria-label="Sections">
             <a href="#playground">Playground</a>

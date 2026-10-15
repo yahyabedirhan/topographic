@@ -1,7 +1,7 @@
 {
   "name": "topography-react",
   "version": "0.1.0",
-  "description": "React component and hook for topography.js backgrounds.",
+  "description": "React component and hook for Topography backgrounds.",
   "license": "MIT",
   "repository": {
     "type": "git",

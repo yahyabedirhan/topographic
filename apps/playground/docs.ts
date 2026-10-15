@@ -150,7 +150,7 @@ const PAGES = () => [
 ];
 
 function llmsTxt(): string {
-  return `# topography
+  return `# Topography
 
 > ${TAGLINE}
 
