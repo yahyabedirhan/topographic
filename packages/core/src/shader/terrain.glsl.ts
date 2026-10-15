@@ -81,7 +81,8 @@ void main(){
   vec3 n=cross(dFdx(vWorld), dFdy(vWorld));
   float lenN=length(n);
   float ndl=lenN>1e-5 ? abs(dot(n/lenN, normalize(vec3(-.32,.88,.36)))) : 1.;
-  color.rgb*=mix(.76,1.,ndl);
+  float floorShade=uHasHeight>0.5 ? .9 : .76;
+  color.rgb*=mix(floorShade,1.,ndl);
   OUT_COLOR=color;
 }
 `;

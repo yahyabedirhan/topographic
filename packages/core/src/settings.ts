@@ -80,6 +80,12 @@ export function meshResolution(detail: number): number {
   return Math.round(32 + t * 128);
 }
 
+/** A real place uses a finer mesh than the procedural default so the coast stays smooth. */
+export function terrainSegments(detail: number, hasField: boolean): number {
+  const base = meshResolution(detail);
+  return hasField ? Math.max(base, 192) : base;
+}
+
 function clampCamera(input: Partial<CameraSettings> | undefined, base: CameraSettings): CameraSettings {
   const src = input ?? {};
   const motion = src.motion === undefined ? base.motion

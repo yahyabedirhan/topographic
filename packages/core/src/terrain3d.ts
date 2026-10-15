@@ -1,6 +1,6 @@
 import { viewProjection, type Pose } from './camera.js';
 import { sampleGrid, type Heightfield } from './heightfield.js';
-import { meshResolution, toUniforms, type Settings } from './settings.js';
+import { terrainSegments, toUniforms, type Settings } from './settings.js';
 import { terrainFragmentSource, terrainVertexSource } from './shader/terrain.glsl.js';
 import type { ResolvedTheme } from './theme.js';
 
@@ -166,7 +166,7 @@ export function createTerrainPass(): TerrainPass {
     draw(gl, webgl2, frame) {
       if (!init(gl, webgl2) || !program) return;
       const { settings, theme, pose } = frame;
-      const nextSegments = meshResolution(settings.detail);
+      const nextSegments = terrainSegments(settings.detail, Boolean(frame.field));
       const nextBlock = settings.extent === 'block';
       gl.useProgram(program);
       if (nextSegments !== segments || nextBlock !== block || frame.heightVersion !== builtHeight) {

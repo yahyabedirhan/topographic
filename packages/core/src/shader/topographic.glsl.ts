@@ -87,7 +87,10 @@ vec4 contourPaint(int s, vec2 p){
   if(uHasHeight>0.5){
     vec2 uv=regionUv();
     cover=step(0.,uv.x)*step(uv.x,1.)*step(0.,uv.y)*step(uv.y,1.);
-    field=Field(regionSample(uv)*max(n,1.),1.,0.);
+    float h=regionSample(uv);
+    // Sea is exactly 0. Sitting between contours keeps that floor as plain paper.
+    float f=h<0.5/max(n,1.) ? .5 : h*max(n,1.);
+    field=Field(f,1.,0.);
   }
   float f=field.f; float r=field.r; float ang=field.ang;
   float rg=uParams[9], sh=uParams[10], ix=uParams[11], tr=uParams[12], pk=uParams[7];
@@ -101,7 +104,13 @@ vec4 contourPaint(int s, vec2 p){
     ? smoothstep(.75,1.,sin(ang*40.+t*8.*float(s+1)))*l*uParams[4]
     : smoothstep(.75,1.,sin((p.x+p.y)*60.+t*8.))*l*uParams[4];
   float m=shaped ? colMask(p)*smoothstep(2.2,.1,r)*a : colMask(p);
-  vec4 ink=paint(c,(l*.75+beads*.7)*uParams[2]*m);
+  float lineAmp=(l*.75+beads*.7)*uParams[2]*m;
+  if(uHasHeight>0.5) lineAmp*=mix(2.2,2.8,uDark);
+  vec4 ink=paint(c,lineAmp);
+  if(uHasHeight>0.5){
+    vec3 strong=mix(min(c,vec3(.42)), max(c,vec3(.72)), uDark);
+    ink.rgb=mix(ink.rgb, strong, .78*smoothstep(.05,.4,lineAmp));
+  }
   return mix(vec4(uPaper.rgb,uPaper.a), ink, cover);
 }
 `;

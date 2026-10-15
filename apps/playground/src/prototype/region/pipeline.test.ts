@@ -113,6 +113,8 @@ describe('resample and shape', () => {
     const shaped = shapeField(meters, 4, bbox, 'dramatic', 'light');
     expect(shaped.minM).toBe(0);
     expect(shaped.maxM).toBe(80);
+    expect(shaped.samples[0]).toBe(0);
+    expect(shaped.samples[4]).toBe(0);
   });
 });
 

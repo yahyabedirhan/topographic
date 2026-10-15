@@ -295,12 +295,16 @@ export function shapeField(
     span = Math.max(reliefM, MEASURED_RELIEF_M);
   }
   const unit = new Float32Array(clamped.length);
+  const sea = new Uint8Array(meters.length);
   for (let i = 0; i < clamped.length; i++) {
+    sea[i] = meters[i] <= 0 ? 1 : 0;
     unit[i] = Math.min(1, Math.max(0, (clamped[i] - lo) / span));
   }
   const extra = reliefM < 12 ? 1.8 : reliefM < 30 ? 1.25 : 1;
   const samples = smooth(unit, size, SMOOTH_SIGMA[level] * extra);
-  for (let i = 0; i < samples.length; i++) samples[i] = Math.min(1, Math.max(0, samples[i]));
+  for (let i = 0; i < samples.length; i++) {
+    samples[i] = sea[i] ? 0 : Math.min(1, Math.max(0, samples[i]));
+  }
   return { samples, size, aspect: spanOf(bbox).aspect, minM, maxM, reliefM };
 }
 

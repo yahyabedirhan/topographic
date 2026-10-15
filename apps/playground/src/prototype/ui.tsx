@@ -201,12 +201,14 @@ export function Dock({ pg }: { pg: Playground }) {
     const start = Math.min(maxStart, Math.max(0, pg.lookIndex - Math.floor((visible - 1) / 2)));
     sc.scrollTo({ left: start * (THUMB + GAP), behavior: 'smooth' });
   }, [pg.lookIndex, visible]);
-  const width = visible * THUMB + Math.max(0, visible - 1) * GAP;
+  const ready = thumbs.reduce((count, url) => count + (url ? 1 : 0), 0);
+  const shown = Math.min(visible, ready);
+  const width = shown > 0 ? shown * THUMB + Math.max(0, shown - 1) * GAP : 0;
   return (
     <div className="pt-dock-wrap" ref={wrap}>
-      <nav className="pt-dock pt-glass" aria-label="Examples">
+      <nav className="pt-dock pt-glass" aria-label="Examples" data-looks={LOOKS.length} data-ready={ready}>
         <div className="pt-thumbs" ref={scroller} style={{ width }}>
-          {LOOKS.map((p, i) => (
+          {LOOKS.map((p, i) => thumbs[i] ? (
             <button
               key={p.name}
               type="button"
@@ -216,11 +218,11 @@ export function Dock({ pg }: { pg: Playground }) {
               onClick={() => pg.applyLook(i)}
             >
               <span className="pt-thumb-media">
-                {thumbs[i] ? <img src={thumbs[i]} alt="" /> : <span className="pt-ph" />}
+                <img src={thumbs[i]} alt="" />
                 <span className="pt-thumb-name" aria-hidden="true">{p.name}</span>
               </span>
             </button>
-          ))}
+          ) : null)}
         </div>
         <div className="pt-dock-tools" ref={tools}>
           <ColorField pg={pg} which="paper" />

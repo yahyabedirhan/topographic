@@ -5,11 +5,12 @@ const base = process.argv[2] ?? 'http://127.0.0.1:5173/';
 const out = process.argv[3] ?? 'docs/prototypes/region';
 await mkdir(out, { recursive: true });
 
-const config = encodeURIComponent(JSON.stringify({
+const configFor = (mode) => encodeURIComponent(JSON.stringify({
   style: 'gentle-summit',
   lines: { count: 28 },
-  theme: { mode: 'dark' },
+  theme: { mode },
 }));
+const config = configFor('dark');
 
 const places = [
   ['istanbul-2d', 'place=istanbul&region=28.94,40.99,29.07,41.08'],
@@ -37,9 +38,36 @@ for (const [name, query] of places) {
   const status = await page.evaluate(() => document.documentElement.dataset.region);
   const pill = await page.locator('.pt-region').innerText();
   if (status !== 'ready') throw new Error(`${name} ${status} ${pill}`);
-  await page.waitForTimeout(1400);
+  await page.waitForFunction(() => {
+    const nav = document.querySelector('nav[data-looks]');
+    return nav && nav.dataset.ready === nav.dataset.looks && Number(nav.dataset.looks) > 0;
+  }, { timeout: 120000 });
+  await page.waitForTimeout(400);
   await page.screenshot({ path: `${out}/${name}.png` });
   console.log(`${name} ${Date.now() - t0}ms ${pill.replace(/\n/g, ' | ')}`);
+  await page.close();
+}
+
+const light = configFor('light');
+for (const [name, query] of places) {
+  if (!name.endsWith('-3d')) continue;
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, colorScheme: 'light' });
+  const t0 = Date.now();
+  page.on('pageerror', (e) => console.log(name, e.message));
+  await page.goto(`${base}?variant=P2&config=${light}&${query}`, { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => {
+    const status = document.documentElement.dataset.region;
+    return status === 'ready' || status === 'error';
+  }, { timeout: 60000 });
+  const status = await page.evaluate(() => document.documentElement.dataset.region);
+  if (status !== 'ready') throw new Error(`${name}-light ${status}`);
+  await page.waitForFunction(() => {
+    const nav = document.querySelector('nav[data-looks]');
+    return nav && nav.dataset.ready === nav.dataset.looks && Number(nav.dataset.looks) > 0;
+  }, { timeout: 120000 });
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: `${out}/${name}-light.png` });
+  console.log(`${name}-light ${Date.now() - t0}ms`);
   await page.close();
 }
 

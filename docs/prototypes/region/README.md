@@ -30,21 +30,22 @@ node apps/playground/src/prototype/region/shots.mjs http://127.0.0.1:5173/ docs/
 
 ## What the pictures show
 
-Same style throughout: gentle summit, 28 lines, dark paper. 3D opens at elevation 0.1.
+Same style throughout: gentle summit, 28 lines. The `*-2d.png` and `*-3d.png` files are dark paper. Each `*-3d-light.png` is that same view on light paper. 3D opens at elevation 0.1.
 
 | File | What it is |
 |---|---|
-| `istanbul-2d.png`, `istanbul-3d.png` | The historic peninsula and the Bosphorus, about 11 km by 9.9 km, 260 m of relief. |
-| `san-francisco-2d.png`, `san-francisco-3d.png` | The peninsula hills, about 11 km by 11 km, 282 m of relief. |
-| `london-2d.png`, `london-3d.png` | The Thames and the northern rise, about 11 km by 9.9 km, 135 m of relief. |
-| `new-york-2d.png`, `new-york-3d.png` | Lower Manhattan and the rivers, about 12 km by 9.9 km, 78 m of relief. |
+| `cities-overview.png` | The four cities in 3D, dark paper on the top row and light paper on the bottom, at elevation 0.1. |
+| `istanbul-2d.png`, `istanbul-3d.png`, `istanbul-3d-light.png` | The historic peninsula and the Bosphorus, about 11 km by 9.9 km, 260 m of relief. |
+| `san-francisco-2d.png`, `san-francisco-3d.png`, `san-francisco-3d-light.png` | The peninsula hills, about 11 km by 11 km, 282 m of relief. |
+| `london-2d.png`, `london-3d.png`, `london-3d-light.png` | The Thames and the northern rise, about 11 km by 9.9 km, 135 m of relief. |
+| `new-york-2d.png`, `new-york-3d.png`, `new-york-3d-light.png` | Lower Manhattan and the rivers, about 12 km by 9.9 km, 78 m of relief. |
 | `elevation-sweep-istanbul.png` | Istanbul at 0.05, 0.1, 0.15, 0.2, 0.3 and 0.62. |
 | `elevation-sweep-san-francisco.png` | The same sweep for San Francisco. |
 | `elevation-sweep-london.png` | The same sweep for London. |
 | `elevation-sweep-new-york.png` | The same sweep for New York. |
 | `picker-frame.png`, `picker-rectangle.png` | The two ways to choose the rectangle. |
 
-The heights are bare earth. The contours are the ground, and the buildings are absent. Sea water is clamped to a flat floor, which is why the Bosphorus, the bay, the Thames and the Hudson sit level.
+The heights are bare earth. The contours are the ground, and the buildings are absent. Sea water is put back to zero after the blur, and the contour shader sits that floor between the lines, so the Bosphorus, the bay, the Thames and the Hudson are blank paper rather than a striped shelf.
 
 A load of one of these cities took about 6 seconds in this browser. Almost all of that is fetching the PNG tiles.
 
@@ -82,6 +83,8 @@ Ten percent off those times is about a millisecond. An order of magnitude would 
 
 **Renderer.** The region replaces the procedural landform through `setHeightfield`. The style still sets line count, width, opacity, index, grain and colour. A real place holds its shape while you change style, and it holds still while motion is on. Block and endless, the camera, snapshot and record are the same controls as the 3D prototype. 2D fits the region inside the view and leaves paper around it. 3D uses the region's aspect for the footprint.
 
+A region mesh is at least 192 by 192. The detail slider still tops out at 160 for procedural terrain. On the software renderer used for these screenshots, that mesh was about 15 fps and 60 to 75 ms. The same gaussian still rounds the crests, so the finer grid follows the smooth field. Heightfield lines are strengthened so a gentle city reads on both papers: about 2.2 times in light mode and 2.8 times in dark mode, then pulled toward a darker ink on light paper and a lighter ink on dark paper. 3D lighting on a heightfield eases off (a floor of 0.9 instead of 0.76) so a flat city is not crushed. The dock draws a style only after its thumbnail exists.
+
 **Agents.** The dev page registers `set_region`, `get_region` and `clear_region` with WebMCP. The published tool list is unchanged. `llms.txt` and `docs/webmcp.md` describe the bbox and those tools. `set_region` accepts `place` (`istanbul`, `san-francisco`, `london`, `new-york`), the four edges, a `bbox` array, or a `region` string, plus optional `relief` and `smooth`.
 
 ## Attribution
@@ -112,5 +115,6 @@ These are in the UI and the screenshots so they can be chosen by looking.
 5. Should a style keep warping the landform, or stay on the line treatment? A real place currently keeps the elevation shape.
 6. Should this leave the prototype? The production build still omits the dock.
 7. Is a 2017 bare-earth archive the right source for a fun map? It has no buildings.
+8. Is 192 the right region mesh, or should the detail slider drive it the way it drives procedural terrain?
 
 Looking at the screenshots is enough to answer these. Running it needs no API key.

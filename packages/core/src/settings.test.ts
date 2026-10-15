@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { PARAMS } from './params.js';
 import { PRESETS } from './presets.js';
 import { STYLES } from './styles.js';
-import { fromAttributes, fromQuery, mergeSettings, meshResolution, resetWarnings, resolveSettings, toAttributes, toQuery, toUniforms } from './settings.js';
+import { fromAttributes, fromQuery, mergeSettings, meshResolution, resetWarnings, resolveSettings, terrainSegments, toAttributes, toQuery, toUniforms } from './settings.js';
 
 afterEach(() => { resetWarnings(); vi.restoreAllMocks(); });
 
@@ -56,6 +56,9 @@ describe('view settings', () => {
     expect(meshResolution(0)).toBe(32);
     expect(meshResolution(s.detail)).toBe(96);
     expect(meshResolution(1)).toBe(160);
+    expect(terrainSegments(s.detail, false)).toBe(96);
+    expect(terrainSegments(s.detail, true)).toBe(192);
+    expect(terrainSegments(1, true)).toBe(192);
   });
   it('clamps the camera above the horizon and keeps 2d values', () => {
     const s = resolveSettings({ mode: '3d', elevation: 4, extent: 'endless', camera: { elevation: -20, radius: 99, azimuth: 400.26 } });
