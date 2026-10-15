@@ -25,16 +25,23 @@ const blobToDataUrl = (b: Blob) => new Promise<string>((resolve, reject) => {
   const r = new FileReader(); r.onload = () => resolve(String(r.result)); r.onerror = () => reject(r.error); r.readAsDataURL(b);
 });
 
+const TOP_KEYS = ['style', 'seed', 'theme', 'lines', 'terrain', 'motion', 'layout', 'mode', 'elevation', 'extent', 'detail', 'camera'];
+
 function adjustments(input: Record<string, unknown>, out: Settings): string[] {
   const notes: string[] = [];
   if (typeof input.style === 'string' && input.style !== out.style) notes.push(`unknown style "${input.style}", kept "${out.style}"`);
+  if (typeof input.mode === 'string' && input.mode !== out.mode) notes.push(`mode: ${JSON.stringify(input.mode)} adjusted to ${out.mode}`);
+  if (typeof input.extent === 'string' && input.extent !== out.extent) notes.push(`extent: ${JSON.stringify(input.extent)} adjusted to ${out.extent}`);
+  if (typeof input.elevation === 'number' && input.elevation !== out.elevation) notes.push(`elevation: ${input.elevation} adjusted to ${out.elevation}`);
+  if (typeof input.detail === 'number' && input.detail !== out.detail) notes.push(`detail: ${input.detail} adjusted to ${out.detail}`);
   for (const [g, v] of Object.entries(input)) {
-    if (!['style', 'seed', 'theme', 'lines', 'terrain', 'motion', 'layout'].includes(g)) { notes.push(`ignored unknown key "${g}"`); continue; }
+    if (!TOP_KEYS.includes(g)) { notes.push(`ignored unknown key "${g}"`); continue; }
     if (v && typeof v === 'object' && g !== 'theme') {
+      const gotGroup = out[g as 'lines'] as Record<string, unknown>;
       for (const [k, n] of Object.entries(v as Record<string, unknown>)) {
-        const got = (out[g as 'lines'] as Record<string, number>)[k];
+        const got = gotGroup[k];
         if (got === undefined) notes.push(`ignored unknown key "${g}.${k}"`);
-        else if (got !== n) notes.push(`${g}.${k}: ${JSON.stringify(n)} adjusted to ${got}`);
+        else if (got !== n) notes.push(`${g}.${k}: ${JSON.stringify(n)} adjusted to ${JSON.stringify(got)}`);
       }
     }
   }
@@ -64,6 +71,21 @@ export function registerTools(page: PageBridge): () => void {
       const next = mergeSettings(page.getSettings(), patch);
       page.setSettings(next);
       return { config: configOf(next) };
+    },
+    record_video: async (input) => {
+      const t = page.instance();
+      if (!t) throw new Error('the background is not ready');
+      const format = input?.format === 'webm' ? 'webm' : 'mp4';
+      const motion = typeof input?.motion === 'string' ? input.motion : 'orbit';
+      const blob = await t.record({
+        format,
+        motion: motion as Settings['camera']['motion'],
+        seconds: Number(input?.seconds) || 2,
+        width: Number(input?.width) || 640,
+        height: Number(input?.height) || 360,
+        fps: 24,
+      });
+      return { mimeType: blob.type, byteLength: blob.size, dataUrl: await blobToDataUrl(blob) };
     },
     take_screenshot: async (input) => {
       const t = page.instance();

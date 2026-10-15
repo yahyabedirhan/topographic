@@ -2,6 +2,7 @@ import type { Plugin } from 'vite';
 import { PARAMS, PRESETS, STYLES, defaultSettings } from 'topographic';
 import { INSTALL, TAGLINE } from './src/content';
 import { TOOL_DEFS } from './src/agent-tools';
+import { REGION_TOOL_DEFS } from './src/prototype/region/tools';
 
 export const SITE_URL = 'https://yahyabedirhan.github.io/topographic/';
 export const WEBMCP_SPEC = 'https://github.com/webmachinelearning/webmcp/blob/d0e4e0e0f039358cc9d93f90074116622bfebd53/index.bs';
@@ -22,6 +23,16 @@ ${toolsList()}
 ## Input schemas
 
 ${TOOL_DEFS.map((t) => `### ${t.name}\n\n\`\`\`json\n${JSON.stringify(t.inputSchema, null, 2)}\n\`\`\``).join('\n\n')}
+
+## Region prototype (dev only)
+
+The published page does not register these. They exist on the dev dock (\`npm run prototype\`, then \`/?variant=P2\`).
+
+A region is \`?region=west,south,east,north\` in degrees, or JSON such as \`{"bbox":[28.94,40.99,29.07,41.08]}\`. \`relief=measured\` opts out of the default dramatic stretch. \`smooth=light\` or \`smooth=strong\` opts out of medium. Named examples: \`place=istanbul\`, \`place=san-francisco\`, \`place=london\`, \`place=new-york\`. \`?mode=3d\` still opts into the 3D view. The 2D map stays the default.
+
+${REGION_TOOL_DEFS.map((t) => `- \`${t.name}\`${t.readOnly ? ' (read-only)' : ''}: ${t.description}`).join('\n')}
+
+${REGION_TOOL_DEFS.map((t) => `### ${t.name}\n\n\`\`\`json\n${JSON.stringify(t.inputSchema, null, 2)}\n\`\`\``).join('\n\n')}
 `;
 }
 
@@ -46,6 +57,14 @@ Other settings:
 - \`seed\` (attribute \`seed\`): integer 0 to 999999. The same seed gives the same terrain; 0 is the original look.
 - \`theme.mode\` (attribute \`theme\`): \`auto\` (follows the OS), \`light\` or \`dark\`.
 - \`theme.ink\` / \`theme.paper\` (attributes \`ink\`, \`paper\`): any CSS colour; paper may be \`transparent\`. Without them, the CSS variables \`--topographic-ink\` and \`--topographic-paper\` are used, then the mode defaults.
+- \`mode\` (attribute \`mode\`): \`2d\` (default) or \`3d\`. 3D draws the same contour field as a terrain. The same seed gives the same map in both.
+- \`elevation\` (attribute \`elevation\`): 0 to 1, default 0.62. 3D height. 0 is flat like the 2D map; higher values make the terrain taller, with a rounded crest.
+- \`extent\` (attribute \`extent\`): \`block\` (default) is a finite tabletop whose cut sides carry thin ink layer lines. \`endless\` continues the terrain past the view.
+- \`detail\` (attribute \`detail\`): 0 to 1, default 0.5. Mesh resolution, from 32² to 160². Use a low value on a slow device.
+- \`camera.azimuth\` (attribute \`azimuth\`): degrees around the terrain. Any finite number. Default 42.
+- \`camera.elevation\` (attribute \`camera-elevation\`): degrees above the horizon, 2 to 80. The camera never goes below the terrain. Default 34, a high diagonal close to isometric.
+- \`camera.radius\` (attribute \`radius\`): distance from the terrain centre, 1.15 to 6.5. Default 2.45.
+- \`camera.motion\` (attribute \`camera-motion\`): \`still\` (default), \`orbit\`, \`push\`, \`flyover\` or \`drone\`. The terrain's own \`motion.speed\` still morphs the field, so the two motions are independent.
 
 ## Styles
 
@@ -105,13 +124,15 @@ function apiMd(): string {
 
 Mounts a canvas inside \`element\` (it fills the element) and returns an instance.
 
-- \`settings\`: partial settings, see [params.md](params.md). Shape: \`{ style, seed, lines: {...}, terrain: {...}, motion: {...}, layout: {...}, theme: { mode, ink, paper } }\`.
-- \`options\`: \`{ maxPixelRatio = 2, maxPixels = 4147200, forceWebGL1 = false }\`.
+- \`settings\`: partial settings, see [params.md](params.md). Shape: \`{ style, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, camera }\`. \`mode\` is \`'2d' | '3d'\` and defaults to \`'2d'\`.
+- \`options\`: \`{ maxPixelRatio = 2, maxPixels = 4147200, forceWebGL1 = false, benchmark = false }\`. \`benchmark\` keeps a 3D view drawing while it is visible so \`stats\` can be read.
 
 Instance:
 
 - \`update(partialSettings)\`: merges, clamps and applies live. Only changed uniforms reach the GPU.
-- \`snapshot({ frame?, width?, height? }) => Promise<Blob>\`: renders one PNG off-screen. \`frame\` is the animation time in ms. Give one side to keep the aspect ratio. The live canvas is not resized. Rejects without WebGL.
+- \`snapshot({ frame?, width?, height? }) => Promise<Blob>\`: renders one PNG off-screen. \`frame\` is the animation time in ms. Give one side to keep the aspect ratio. The live canvas is not resized. Rejects without WebGL. In 3D it includes the current camera.
+- \`record({ seconds?, fps?, width?, height?, frame?, format?, motion? }) => Promise<Blob>\`: renders a 3D clip with a moving camera. \`format\` is \`'mp4'\` (default) or \`'webm'\`. \`motion\` is \`orbit\`, \`push\`, \`flyover\`, \`drone\` or \`still\`. The live canvas is not resized. Rejects without WebGL or when the browser cannot encode that format.
+- \`stats\`: \`{ fps, frameMs, mesh }\` while a 3D view is drawing. \`frameMs\` is the time spent drawing one frame. \`mesh\` is the segments along one side, or 0 in 2D.
 - \`destroy()\`: stops the loop, removes observers and the canvas, and releases the WebGL context.
 - \`settings\`: the current resolved settings.
 - \`status\`: \`'webgl2' | 'webgl1' | 'fallback' | 'lost' | 'destroyed'\`.
@@ -126,11 +147,11 @@ Behaviour:
 
 ## <topographic-bg>
 
-\`import 'topographic/element'\` registers the element. Attributes: \`style-name\`, \`seed\`, \`theme\`, \`ink\`, \`paper\`, plus one per setting (see [params.md](params.md)). Attribute changes apply live, and a removed attribute returns to its default. \`element.topographic\` is the instance, and \`element.snapshot(opts)\` is a shortcut.
+\`import 'topographic/element'\` registers the element. Attributes: \`style-name\`, \`seed\`, \`theme\`, \`ink\`, \`paper\`, \`mode\`, \`elevation\`, \`extent\`, \`detail\`, \`azimuth\`, \`camera-elevation\`, \`radius\`, \`camera-motion\`, plus one per numeric setting (see [params.md](params.md)). Attribute changes apply live, and a removed attribute returns to its default. \`element.topographic\` is the instance, and \`element.snapshot(opts)\` is a shortcut.
 
 ## React: <TopographicBackground> and useTopographicBackground
 
-\`<TopographicBackground styleName lines terrain motion layout theme seed options onReady {...divProps}>\` renders a div with the background, and children on top. It is SSR-safe: the server renders an empty div.
+\`<TopographicBackground styleName lines terrain motion layout theme seed mode elevation extent detail camera options onReady {...divProps}>\` renders a div with the background, and children on top. It is SSR-safe: the server renders an empty div.
 
 \`useTopographicBackground(settings, options)\` returns a ref to put on any element. \`ref.topographic\` is the instance while mounted.
 
@@ -154,7 +175,9 @@ function llmsTxt(): string {
 
 Live playground: ${SITE_URL}
 
-The playground page holds its state in the URL as \`?config=<url-encoded JSON settings>\`, for example \`?config=${encodeURIComponent('{"style":"dunes","lines":{"count":24}}')}\`. The JSON shape is the \`settings\` object from the API docs.
+The playground page holds its state in the URL as \`?config=<url-encoded JSON settings>\`, for example \`?config=${encodeURIComponent('{"style":"dunes","lines":{"count":24}}')}\`. Add \`?mode=3d\` to open the same settings as a terrain. In dev, \`?variant=P2\` or \`?mode=3d\` opens the dock playground (\`npm run prototype\`). The JSON shape is the \`settings\` object from the API docs.
+
+On that dev playground, a real place is \`?region=west,south,east,north\` (or JSON \`{"bbox":[west,south,east,north]}\`), with optional \`relief=measured\` and \`smooth=light|strong\`. Examples: \`place=istanbul\`, \`place=san-francisco\`, \`place=london\`, \`place=new-york\`. The published page has no region tools.
 
 ## Packages
 
@@ -169,6 +192,10 @@ ${PAGES().map((p) => `- [${p.title}](${p.path})`).join('\n')}
 ## WebMCP tools on the playground page
 
 ${toolsList()}
+
+Dev playground only (\`/?variant=P2\`), not registered on the published page:
+
+${REGION_TOOL_DEFS.map((t) => `- \`${t.name}\`${t.readOnly ? ' (read-only)' : ''}: ${t.description}`).join('\n')}
 
 Details and input schemas: [docs/webmcp.md](docs/webmcp.md).
 

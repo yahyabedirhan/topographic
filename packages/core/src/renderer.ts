@@ -1,7 +1,11 @@
-import { mergeSettings, resolveSettings, toUniforms, type Settings, type SettingsInput } from './settings.js';
+import { cameraPose, type Pose } from './camera.js';
+import type { Heightfield } from './heightfield.js';
+import { mergeSettings, resolveSettings, toUniforms, type CameraMotion, type Settings, type SettingsInput } from './settings.js';
 import { resolveTheme, rgbaToCss, type ResolvedTheme } from './theme.js';
 import { VERTEX_100, VERTEX_300, wrapFragment } from './shader/common.glsl.js';
 import { TOPOGRAPHIC_FRAGMENT } from './shader/topographic.glsl.js';
+import { createTerrainPass } from './terrain3d.js';
+import { encodeVideo } from './video.js';
 
 export interface RendererOptions {
   /** Highest device pixel ratio to render at. Lines are anti-aliased in the shader, so 2 is plenty. */
@@ -10,6 +14,8 @@ export interface RendererOptions {
   maxPixels?: number;
   /** Skip WebGL2 and use WebGL1 (mainly for testing the fallback path). */
   forceWebGL1?: boolean;
+  /** Keep drawing while a 3D view is visible, so fps can be read. */
+  benchmark?: boolean;
 }
 
 export interface SnapshotOptions {
@@ -22,19 +28,47 @@ export interface SnapshotOptions {
 
 export type RendererStatus = 'webgl2' | 'webgl1' | 'fallback' | 'lost' | 'destroyed';
 
+export interface RendererStats {
+  /** Animation frames per second while the view is moving. */
+  fps: number;
+  /** Milliseconds spent drawing one frame. */
+  frameMs: number;
+  /** Mesh segments along one side. 0 in 2D. */
+  mesh: number;
+}
+
+export interface RecordOptions {
+  /** Clip length. Defaults to 4 seconds. */
+  seconds?: number;
+  /** Defaults to 24. */
+  fps?: number;
+  width?: number;
+  height?: number;
+  /** Terrain time at the first frame, in milliseconds. Defaults to 0. */
+  frame?: number;
+  format?: 'mp4' | 'webm';
+  /** Camera path for the clip. Defaults to the current path, or a slow orbit when that path is still. */
+  motion?: CameraMotion;
+}
+
 export interface TopographicBackground {
   /** Merges, clamps and applies new settings; only changed uniforms are sent to the GPU. */
   update(patch: SettingsInput): void;
   /** Renders one frame off-screen and returns a PNG. The live canvas is not resized. */
   snapshot(opts?: SnapshotOptions): Promise<Blob>;
+  /** Renders a 3D clip with a moving camera. The live canvas is not resized. */
+  record(opts?: RecordOptions): Promise<Blob>;
+  /** Use a real elevation grid for the contours, or null for the procedural style. */
+  setHeightfield(field: Heightfield | null): void;
   destroy(): void;
   readonly settings: Settings;
   readonly status: RendererStatus;
+  readonly stats: RendererStats;
   readonly canvas: HTMLCanvasElement;
 }
 
 type GL = WebGLRenderingContext | WebGL2RenderingContext;
-const DEFAULTS: Required<Omit<RendererOptions, 'forceWebGL1'>> = { maxPixelRatio: 2, maxPixels: 1920 * 1080 * 2 };
+const DEFAULTS: Required<Omit<RendererOptions, 'forceWebGL1' | 'benchmark'>> = { maxPixelRatio: 2, maxPixels: 1920 * 1080 * 2 };
 const TEXT_COLUMN_HALF_WIDTH_PX = 300;
 const QUAD = new Float32Array([-1, -1, 3, -1, -1, 3]);
 
@@ -49,6 +83,17 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
   let program: WebGLProgram | null = null;
   const locations = new Map<string, WebGLUniformLocation | null>();
   const sent = new Map<string, string>();
+  const terrain = createTerrainPass();
+  let heightField: Heightfield | null = null;
+  let heightVersion = 0;
+  let heightTex: WebGLTexture | null = null;
+  let uploadedVersion = -1;
+  let quadBuffer: WebGLBuffer | null = null;
+  let statFps = 0;
+  let statFrame = 0;
+  let statDraw = 0;
+  let lastSample = 0;
+  let ema = 0;
 
   let frameMs = 0;
   let lastNow = 0;
@@ -91,7 +136,7 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
   }
 
   function initGL(): boolean {
-    const attrs: WebGLContextAttributes = { alpha: true, premultipliedAlpha: false, antialias: false, depth: false, stencil: false };
+    const attrs: WebGLContextAttributes = { alpha: true, premultipliedAlpha: false, antialias: false, depth: true, stencil: false };
     let webgl2 = false;
     if (!gl) {
       if (!opts.forceWebGL1) gl = canvas.getContext('webgl2', attrs);
@@ -113,7 +158,8 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
       return false;
     }
     gl.useProgram(program);
-    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+    quadBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, QUAD, gl.STATIC_DRAW);
     gl.enableVertexAttribArray(0);
     gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
@@ -162,41 +208,139 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
     canvas.height = Math.max(1, Math.round(cssH * ratio));
     col = Math.min(TEXT_COLUMN_HALF_WIDTH_PX, cssW / 2) / cssH;
     draw();
+    sampleDraw();
   }
 
-  function draw(w = canvas.width, h = canvas.height): void {
-    if (!gl || !program || status === 'lost' || status === 'destroyed') return;
-    gl.viewport(0, 0, w, h);
+  function uploadHeight(): void {
+    if (!gl || (heightTex && uploadedVersion === heightVersion)) return;
+    if (!heightTex) heightTex = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, heightTex);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+    if (!heightField) {
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]));
+    } else {
+      const { samples, size } = heightField;
+      const rgba = new Uint8Array(samples.length * 4);
+      for (let i = 0; i < samples.length; i++) {
+        const v = Math.round(Math.min(1, Math.max(0, samples[i])) * 255);
+        const p = i * 4;
+        rgba[p] = v; rgba[p + 1] = v; rgba[p + 2] = v; rgba[p + 3] = 255;
+      }
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, size, size, 0, gl.RGBA, gl.UNSIGNED_BYTE, rgba);
+    }
+    gl.activeTexture(gl.TEXTURE0);
+    uploadedVersion = heightVersion;
+  }
+
+  function bindHeightSampler(): void {
+    if (!gl || !program) return;
+    uploadHeight();
+    if (!locations.has('uHeightTex')) locations.set('uHeightTex', gl.getUniformLocation(program, 'uHeightTex'));
+    const sampler = locations.get('uHeightTex');
+    if (sampler) gl.uniform1i(sampler, 1);
+  }
+
+  function paint2d(w: number, h: number): void {
+    if (!gl || !program) return;
+    gl.useProgram(program);
+    gl.disable(gl.DEPTH_TEST);
+    gl.disable(gl.POLYGON_OFFSET_FILL);
+    gl.disableVertexAttribArray(1);
+    gl.disableVertexAttribArray(2);
+    gl.disableVertexAttribArray(3);
+    gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
     set('uRes', [w, h]);
     set('uTime', frameMs / 1000);
     set('uCol', col);
+    set('uHasHeight', heightField ? 1 : 0);
+    set('uHeightAspect', heightField?.aspect || 1);
     applySettings();
+    bindHeightSampler();
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }
 
-  const shouldAnimate = () =>
-    (status === 'webgl2' || status === 'webgl1') && settings.motion.speed > 0 && inView && doc.visibilityState !== 'hidden' && !reducedMotion?.matches;
+  function paint(w = canvas.width, h = canvas.height, pose?: Pose, force3d = false): void {
+    if (!gl || !program || status === 'lost' || status === 'destroyed') return;
+    gl.viewport(0, 0, w, h);
+    const three = force3d || settings.mode === '3d';
+    if (three) {
+      uploadHeight();
+      terrain.draw(gl, status === 'webgl2', {
+        width: w, height: h, settings, theme, frameMs, col,
+        pose: pose ?? cameraPose(settings.camera, frameMs / 1000),
+        field: heightField,
+        heightVersion,
+      });
+      if (terrain.ok) return;
+    }
+    paint2d(w, h);
+  }
+
+  function draw(w = canvas.width, h = canvas.height, pose?: Pose, force3d = false): void {
+    paint(w, h, pose, force3d);
+  }
+
+  function sampleDraw(): void {
+    if (!gl || settings.mode !== '3d' || !terrain.ok) return;
+    const now = performance.now();
+    if (now - lastSample < 700 && statDraw > 0) return;
+    lastSample = now;
+    gl.finish();
+    const t = performance.now();
+    for (let i = 0; i < 4; i++) paint();
+    gl.finish();
+    statDraw = Math.max(0, (performance.now() - t) / 4);
+    if (!shouldAnimate()) {
+      statFrame = statDraw;
+      statFps = statDraw > 0 ? 1000 / statDraw : 0;
+    }
+  }
+
+  const shouldAnimate = () => {
+    if ((status !== 'webgl2' && status !== 'webgl1') || !inView || doc.visibilityState === 'hidden' || reducedMotion?.matches) return false;
+    if (opts.benchmark && settings.mode === '3d') return true;
+    if (settings.motion.speed > 0) return true;
+    return settings.mode === '3d' && settings.camera.motion !== 'still';
+  };
 
   function tick(now: number): void {
     raf = 0;
-    const dt = Math.min(100, now - lastNow);
+    const dt = lastNow ? Math.min(100, Math.max(0, now - lastNow)) : 0;
     lastNow = now;
+    if (dt > 0) {
+      ema = ema ? ema * 0.88 + dt * 0.12 : dt;
+      statFrame = ema;
+      statFps = 1000 / ema;
+    }
     frameMs += dt;
     draw();
     schedule();
   }
   function schedule(): void {
-    if (!shouldAnimate()) { if (raf) view.cancelAnimationFrame(raf); raf = 0; return; }
-    if (!raf) { lastNow = performance.now(); raf = view.requestAnimationFrame(tick); }
+    if (!shouldAnimate()) { if (raf) view.cancelAnimationFrame(raf); raf = 0; lastNow = 0; return; }
+    if (!raf) raf = view.requestAnimationFrame(tick);
   }
-  const restart = () => { schedule(); draw(); };
+  const restart = () => { schedule(); draw(); sampleDraw(); };
 
   const resizeObserver = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => resize()) : null;
   const intersection = typeof IntersectionObserver !== 'undefined'
     ? new IntersectionObserver(([entry]) => { inView = entry?.isIntersecting ?? true; schedule(); }) : null;
   const onSchemeChange = () => { refreshTheme(); draw(); };
   const onLost = (e: Event) => { e.preventDefault(); status = 'lost'; schedule(); };
-  const onRestored = () => { program = null; if (initGL()) { resize(); schedule(); } else status = 'fallback'; };
+  const onRestored = () => {
+    program = null;
+    heightTex = null;
+    uploadedVersion = -1;
+    if (gl) terrain.dispose(gl);
+    if (initGL()) { resize(); schedule(); } else status = 'fallback';
+  };
 
   refreshTheme();
   if (!initGL()) {
@@ -210,6 +354,31 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
   darkScheme?.addEventListener?.('change', onSchemeChange);
   resizeObserver?.observe(el);
   intersection?.observe(el);
+  function readback(w: number, h: number, pixels: Uint8Array, pose?: Pose, force3d = false): void {
+    if (!gl) return;
+    const tex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    const fbo = gl.createFramebuffer();
+    const depth = gl.createRenderbuffer();
+    gl.bindRenderbuffer(gl.RENDERBUFFER, depth);
+    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, w, h);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depth);
+    try {
+      paint(w, h, pose, force3d);
+      gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+    } finally {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+      gl.deleteFramebuffer(fbo);
+      gl.deleteRenderbuffer(depth);
+      gl.deleteTexture(tex);
+    }
+  }
+
   resize();
   schedule();
 
@@ -217,11 +386,27 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
     get settings() { return settings; },
     get status() { return status; },
     canvas,
+    get stats() {
+      return {
+        fps: Math.round(statFps),
+        frameMs: Number((shouldAnimate() ? statFrame : (statDraw > 0 ? statDraw : statFrame)).toFixed(2)),
+        mesh: settings.mode === '3d' ? terrain.mesh : 0,
+      };
+    },
     update(patch) {
       if (status === 'destroyed') return;
       settings = mergeSettings(settings, patch);
       if (patch.theme) refreshTheme();
       draw();
+      sampleDraw();
+      schedule();
+    },
+    setHeightfield(field) {
+      if (status === 'destroyed') return;
+      heightField = field;
+      heightVersion += 1;
+      draw();
+      sampleDraw();
       schedule();
     },
     async snapshot(o = {}) {
@@ -233,24 +418,9 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
       if (w < 1 || h < 1 || w > max || h > max) throw new Error(`[topographic] snapshot size must be 1..${max}px`);
       const savedFrame = frameMs;
       if (o.frame !== undefined) frameMs = o.frame;
-      const tex = gl.createTexture();
-      gl.bindTexture(gl.TEXTURE_2D, tex);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-      const fbo = gl.createFramebuffer();
-      gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
-      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
       const pixels = new Uint8Array(w * h * 4);
-      try {
-        draw(w, h);
-        gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-      } finally {
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        gl.deleteFramebuffer(fbo);
-        gl.deleteTexture(tex);
-        frameMs = savedFrame;
-        draw();
-      }
+      try { readback(w, h, pixels); }
+      finally { frameMs = savedFrame; draw(); }
       // GL rows run bottom-up; flip into an ImageData
       const out = doc.createElement('canvas');
       out.width = w; out.height = h;
@@ -260,6 +430,45 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
       for (let y = 0; y < h; y++) img.data.set(pixels.subarray((h - 1 - y) * row, (h - y) * row), y * row);
       ctx.putImageData(img, 0, 0);
       return new Promise<Blob>((resolve, reject) => out.toBlob((b) => (b ? resolve(b) : reject(new Error('[topographic] PNG encoding failed'))), 'image/png'));
+    },
+    async record(o = {}) {
+      if (!gl || !program || (status !== 'webgl2' && status !== 'webgl1')) throw new Error('[topographic] video needs WebGL');
+      const fps = Math.min(60, Math.max(1, Math.round(o.fps ?? 24)));
+      const seconds = Math.min(12, Math.max(0.5, o.seconds ?? 4));
+      const frames = Math.max(1, Math.round(seconds * fps));
+      const aspect = canvas.width / Math.max(1, canvas.height);
+      let w = Math.round(o.width ?? (o.height ? o.height * aspect : 960));
+      let h = Math.round(o.height ?? (o.width ? o.width / aspect : Math.round(960 / aspect)));
+      if (o.width === undefined && o.height === undefined) { w = 960; h = 540; }
+      w -= w % 2; h -= h % 2;
+      const max = gl.getParameter(gl.MAX_RENDERBUFFER_SIZE) as number;
+      if (w < 2 || h < 2 || w > max || h > max) throw new Error(`[topographic] video size must be 2..${max}px`);
+      const motion = o.motion ?? (settings.camera.motion === 'still' ? 'orbit' : settings.camera.motion);
+      const saved = frameMs;
+      const start = o.frame ?? 0;
+      const surface = doc.createElement('canvas');
+      surface.width = w; surface.height = h;
+      const ctx = surface.getContext('2d', { willReadFrequently: true });
+      if (!ctx) throw new Error('[topographic] video export needs a 2D canvas');
+      const pixels = new Uint8Array(w * h * 4);
+      const img = ctx.createImageData(w, h);
+      const row = w * 4;
+      try {
+        return await encodeVideo({
+          format: o.format ?? 'mp4', width: w, height: h, fps, frames, canvas: surface,
+          renderFrame: (i) => {
+            const t = i / fps;
+            frameMs = start + t * 1000;
+            readback(w, h, pixels, cameraPose({ ...settings.camera, motion }, t), true);
+            for (let y = 0; y < h; y++) img.data.set(pixels.subarray((h - 1 - y) * row, (h - y) * row), y * row);
+            ctx.putImageData(img, 0, 0);
+          },
+        });
+      } finally {
+        frameMs = saved;
+        draw();
+        schedule();
+      }
     },
     destroy() {
       if (status === 'destroyed') return;
@@ -272,6 +481,7 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
       darkScheme?.removeEventListener?.('change', onSchemeChange);
       canvas.removeEventListener('webglcontextlost', onLost);
       canvas.removeEventListener('webglcontextrestored', onRestored);
+      if (gl) terrain.dispose(gl);
       gl?.getExtension('WEBGL_lose_context')?.loseContext();
       gl = null; program = null;
       canvas.remove();

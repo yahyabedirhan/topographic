@@ -44,6 +44,8 @@ The call puts a canvas inside `element`, which fills it, so give the element a s
 |---|---|
 | `update(partialSettings)` | Merges into the current settings, clamps, and applies live. Only changed values reach the GPU. |
 | `snapshot({ frame?, width?, height? })` | Renders one PNG off-screen and resolves to a `Blob`. See [Snapshots](#snapshots-and-png-export). |
+| `record({ seconds?, fps?, width?, height?, frame?, format?, motion? })` | Renders a 3D clip with a moving camera and resolves to an MP4 or WebM `Blob`. |
+| `stats` | `{ fps, frameMs, mesh }` for the 3D view. `mesh` is 0 in 2D. |
 | `destroy()` | Stops drawing, removes listeners and the canvas, and frees the WebGL context. |
 | `settings` | The current, fully resolved settings. |
 | `status` | `'webgl2'`, `'webgl1'`, `'fallback'`, `'lost'` or `'destroyed'`. |
@@ -83,7 +85,7 @@ import { TopographicBackground, useTopographicBackground } from 'topographic-rea
 />
 ```
 
-- Props: `styleName`, `seed`, `lines`, `terrain`, `motion`, `layout`, `theme`, `options`, `onReady`, plus any `div` props. Children render on top.
+- Props: `styleName`, `seed`, `lines`, `terrain`, `motion`, `layout`, `theme`, `mode`, `elevation`, `extent`, `detail`, `camera`, `options`, `onReady`, plus any `div` props. Children render on top.
 - It's `styleName`, not `style`, because `style` stays React's inline style.
 - Each group updates on its own when its values change. Passing a new object with the same values does nothing.
 - `onReady(instance)` gives you the instance after mount (for `snapshot`), and `null` on unmount.
@@ -149,6 +151,34 @@ Values outside a range are clamped, whole-number settings are rounded, and anyth
 |---|---|---|---|---|
 | `layout.anchor` | `anchor` | 0–1 | 0 | 0 keeps the summit to the side, 1 centres it. |
 | `layout.fade` | `fade` | 0–1 | 0.7 | Fades lines behind a central text column. |
+
+### Three dimensions
+
+`mode` is `'2d'` or `'3d'`. 2D is the default. 3D draws the same contour field, so the same seed and the same settings are the same map. Switching is direct in both directions.
+
+| Setting | Attribute | Range | Default | What it does |
+|---|---|---|---|---|
+| `mode` | `mode` | `2d`, `3d` | `2d` | The flat map, or that map as a terrain. |
+| `elevation` | `elevation` | 0–1 | 0.62 | 3D height. 0 is flat like the map. Higher values make the terrain taller, with a rounded crest. |
+| `extent` | `extent` | `block`, `endless` | `block` | A finite tabletop with ink layer lines on the cut sides, or terrain that continues past the view. |
+| `detail` | `detail` | 0–1 | 0.5 | Mesh resolution, from 32² to 160². |
+| `camera.azimuth` | `azimuth` | any finite number | 42 | Degrees around the terrain. |
+| `camera.elevation` | `camera-elevation` | 2–80 | 34 | Degrees above the horizon. The camera never goes below the terrain. |
+| `camera.radius` | `radius` | 1.15–6.5 | 2.45 | Distance from the terrain centre. |
+| `camera.motion` | `camera-motion` | `still`, `orbit`, `push`, `flyover`, `drone` | `still` | A moving camera. `motion.speed` still morphs the terrain itself. |
+
+```js
+createTopographicBackground(el, {
+  style: 'gentle-summit',
+  seed: 4,
+  mode: '3d',
+  elevation: 0.7,
+  extent: 'block',
+  camera: { azimuth: 42, elevation: 34, radius: 2.45, motion: 'orbit' },
+});
+```
+
+The default camera is a high diagonal, close to isometric. `record({ motion: 'flyover', format: 'mp4' })` renders a clip without resizing the live canvas. `format: 'webm'` is the other option, when the browser can encode it.
 
 ## Styles
 

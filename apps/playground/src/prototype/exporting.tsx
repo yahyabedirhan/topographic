@@ -4,7 +4,8 @@ import { Popover } from '@base-ui-components/react/popover';
 import { Toggle } from '@base-ui-components/react/toggle';
 import { ToggleGroup } from '@base-ui-components/react/toggle-group';
 import { Tooltip } from '@base-ui-components/react/tooltip';
-import { Braces, CodeXml, Component, Download, Image as ImageIcon, Link as LinkIcon, Share } from 'lucide-react';
+import { Braces, CodeXml, Component, Download, Image as ImageIcon, Link as LinkIcon, Share, Video } from 'lucide-react';
+import type { CameraMotion } from 'topographic';
 import { INSTALL } from '../content';
 import { embedCode } from '../embed';
 import { PNG_SIZES, downloadPng } from '../png';
@@ -12,14 +13,22 @@ import { shareUrl } from '../url';
 import { useCopy, type Playground } from './shared';
 import { Tip } from './ui';
 
-type FormatId = 'link' | 'png' | 'react' | 'html' | 'json';
+type FormatId = 'link' | 'png' | 'video' | 'react' | 'html' | 'json';
 
 const FORMATS: { id: FormatId; label: string; icon: typeof LinkIcon }[] = [
   { id: 'link', label: 'Link', icon: LinkIcon },
   { id: 'png', label: 'PNG', icon: ImageIcon },
+  { id: 'video', label: 'Video', icon: Video },
   { id: 'react', label: 'React', icon: Component },
   { id: 'html', label: 'HTML', icon: CodeXml },
   { id: 'json', label: 'JSON', icon: Braces },
+];
+
+const CLIP_PATHS: { id: CameraMotion; label: string }[] = [
+  { id: 'orbit', label: 'Orbit' },
+  { id: 'push', label: 'Push' },
+  { id: 'flyover', label: 'Flyover' },
+  { id: 'drone', label: 'Drone' },
 ];
 
 const KEYS = /^(import|from|const|let|return|export|function|type|interface)$/;
@@ -96,6 +105,53 @@ function PngBlock({ pg }: { pg: Playground }) {
   );
 }
 
+function VideoBlock({ pg }: { pg: Playground }) {
+  const [path, setPath] = useState<CameraMotion>('orbit');
+  const [busy, setBusy] = useState<'mp4' | 'webm' | ''>('');
+  const [note, setNote] = useState('');
+  const save = async (format: 'mp4' | 'webm') => {
+    const live = pg.instance.current;
+    if (!live) return;
+    setBusy(format);
+    setNote('');
+    try {
+      const blob = await live.record({ format, motion: path, seconds: 4, fps: 24, width: 960, height: 540 });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `topographic-${path}.${blob.type.includes('webm') ? 'webm' : 'mp4'}`;
+      a.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 5000);
+    } catch (error) {
+      setNote(error instanceof Error ? error.message.replace('[topographic] ', '') : 'Export failed');
+    } finally {
+      setBusy('');
+    }
+  };
+  return (
+    <div className="pt-export-block">
+      <p className="pt-hint">A 4 second clip of this terrain, with the camera moving.</p>
+      <div className="pt-chips" role="group" aria-label="Camera path">
+        {CLIP_PATHS.map((item) => (
+          <button key={item.id} type="button" className={`pt-chip${path === item.id ? ' is-on' : ''}`} onClick={() => setPath(item.id)}>{item.label}</button>
+        ))}
+      </div>
+      <div className="pt-pngs">
+        {(['mp4', 'webm'] as const).map((format) => (
+          <button key={format} type="button" className="pt-size" disabled={busy !== ''} onClick={() => save(format)}>
+            <span className="pt-size-copy">
+              <b>{busy === format ? 'Rendering…' : format.toUpperCase()}</b>
+              <small>960 × 540 · 4s</small>
+            </span>
+            <Download size={15} strokeWidth={1.75} />
+          </button>
+        ))}
+      </div>
+      {note ? <p className="pt-hint">{note}</p> : null}
+    </div>
+  );
+}
+
 function CodeBlock({ pg, format }: { pg: Playground; format: 'react' | 'html' | 'json' }) {
   const [copied, copy] = useCopy();
   const usage = format === 'json' ? embedCode(pg.settings, 'json') : embedCode(pg.settings, format);
@@ -155,6 +211,7 @@ export function ExportMenu({ pg, open, onOpenChange, clusterRef }: {
             </ToggleGroup>
             {format === 'link' && <LinkBlock pg={pg} />}
             {format === 'png' && <PngBlock pg={pg} />}
+            {format === 'video' && <VideoBlock pg={pg} />}
             {format === 'react' && <CodeBlock pg={pg} format="react" />}
             {format === 'html' && <CodeBlock pg={pg} format="html" />}
             {format === 'json' && <CodeBlock pg={pg} format="json" />}

@@ -78,9 +78,9 @@ try {
   });
   await agent.goto(base);
   await agent.waitForSelector('.stage canvas');
-  await agent.waitForFunction(() => Object.keys(window.__tools).length === 7);
+  await agent.waitForFunction(() => Object.keys(window.__tools).length === 8);
   const names = await agent.evaluate(() => Object.keys(window.__tools).sort().join());
-  check(names === 'get_embed_code,get_install_instructions,get_settings,list_styles,randomize,set_settings,take_screenshot', `WebMCP registers 7 tools`);
+  check(names === 'get_embed_code,get_install_instructions,get_settings,list_styles,randomize,record_video,set_settings,take_screenshot', `WebMCP registers 8 tools`);
   const call = (n, a = {}) => agent.evaluate(([n, a]) => window.__tools[n].execute(a), [n, a]);
   check((await call('list_styles')).styles.length === 7, 'list_styles');
   const set = await call('set_settings', { style: 'dunes', lines: { count: 999 }, bogus: 1 });

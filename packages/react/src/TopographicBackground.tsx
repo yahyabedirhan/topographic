@@ -11,6 +11,12 @@ export interface TopographicBackgroundSettingsProps {
   motion?: SettingsInput['motion'];
   layout?: SettingsInput['layout'];
   theme?: SettingsInput['theme'];
+  /** '2d' is the map. '3d' is the same map as a terrain. */
+  mode?: SettingsInput['mode'];
+  elevation?: number;
+  extent?: SettingsInput['extent'];
+  detail?: number;
+  camera?: SettingsInput['camera'];
 }
 
 export interface TopographicBackgroundRef<T extends HTMLElement = HTMLDivElement> extends MutableRefObject<T | null> {
@@ -45,12 +51,13 @@ export function useTopographicBackground<T extends HTMLElement = HTMLDivElement>
     return () => { t.destroy(); ref.topographic = null; };
   }, [ref, stableOptions]);
 
-  const { styleName, seed } = settings;
+  const { styleName, seed, mode, elevation, extent, detail } = settings;
   const lines = useByValue(settings.lines);
   const terrain = useByValue(settings.terrain);
   const motion = useByValue(settings.motion);
   const layout = useByValue(settings.layout);
   const theme = useByValue(settings.theme);
+  const camera = useByValue(settings.camera);
   useEffect(() => { if (styleName !== undefined) ref.topographic?.update({ style: styleName }); }, [ref, styleName]);
   useEffect(() => { if (seed !== undefined) ref.topographic?.update({ seed }); }, [ref, seed]);
   useEffect(() => { if (lines) ref.topographic?.update({ lines }); }, [ref, lines]);
@@ -58,6 +65,11 @@ export function useTopographicBackground<T extends HTMLElement = HTMLDivElement>
   useEffect(() => { if (motion) ref.topographic?.update({ motion }); }, [ref, motion]);
   useEffect(() => { if (layout) ref.topographic?.update({ layout }); }, [ref, layout]);
   useEffect(() => { if (theme) ref.topographic?.update({ theme }); }, [ref, theme]);
+  useEffect(() => { if (mode !== undefined) ref.topographic?.update({ mode }); }, [ref, mode]);
+  useEffect(() => { if (elevation !== undefined) ref.topographic?.update({ elevation }); }, [ref, elevation]);
+  useEffect(() => { if (extent !== undefined) ref.topographic?.update({ extent }); }, [ref, extent]);
+  useEffect(() => { if (detail !== undefined) ref.topographic?.update({ detail }); }, [ref, detail]);
+  useEffect(() => { if (camera) ref.topographic?.update({ camera }); }, [ref, camera]);
 
   return ref;
 }
@@ -72,10 +84,10 @@ export interface TopographicBackgroundProps extends TopographicBackgroundSetting
 
 /** A <div> with a topographic background. Size it like any div; children render on top. */
 export const TopographicBackground = forwardRef<HTMLDivElement, TopographicBackgroundProps>(function TopographicBackground(
-  { styleName, seed, lines, terrain, motion, layout, theme, options, onReady, style, children, ...div },
+  { styleName, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, camera, options, onReady, style, children, ...div },
   forwarded,
 ) {
-  const ref = useTopographicBackground<HTMLDivElement>({ styleName, seed, lines, terrain, motion, layout, theme }, options);
+  const ref = useTopographicBackground<HTMLDivElement>({ styleName, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, camera }, options);
   const stableOptions = useByValue(options);
   const ready = useRef(onReady);
   ready.current = onReady;

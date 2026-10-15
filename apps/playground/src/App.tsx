@@ -46,6 +46,11 @@ export function App() {
         motion={settings.motion}
         layout={settings.layout}
         theme={settings.theme}
+        mode={settings.mode}
+        elevation={settings.elevation}
+        extent={settings.extent}
+        detail={settings.detail}
+        camera={settings.camera}
         onReady={(t) => { instance.current = t; }}
       />
       <main className="wrap" id="top">

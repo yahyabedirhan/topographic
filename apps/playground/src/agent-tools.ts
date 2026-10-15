@@ -23,6 +23,19 @@ export const SETTINGS_SCHEMA = {
         paper: { type: 'string', description: "CSS colour of the background, or 'transparent'." },
       },
     },
+    mode: { type: 'string', enum: ['2d', '3d'], description: '2d is the map. 3d is the same map as a terrain. 2d is the default.' },
+    elevation: { type: 'number', minimum: 0, maximum: 1, description: '3D height. 0 is flat like the map; higher values make the terrain taller, with a rounded crest.' },
+    extent: { type: 'string', enum: ['block', 'endless'], description: 'block is a finite tabletop with cut sides. endless continues past the view.' },
+    detail: { type: 'number', minimum: 0, maximum: 1, description: '3D mesh resolution. 0 is coarsest, 1 is finest.' },
+    camera: {
+      type: 'object', additionalProperties: false,
+      properties: {
+        azimuth: { type: 'number', description: 'Degrees around the terrain. Any finite number.' },
+        elevation: { type: 'number', minimum: 2, maximum: 80, description: 'Degrees above the horizon. Never below the terrain.' },
+        radius: { type: 'number', minimum: 1.15, maximum: 6.5, description: 'Distance from the terrain centre.' },
+        motion: { type: 'string', enum: ['still', 'orbit', 'push', 'flyover', 'drone'], description: 'How the camera moves. still holds the pose.' },
+      },
+    },
   },
 } as const;
 
@@ -51,6 +64,15 @@ export const TOOL_DEFS: ToolDef[] = [
     description: 'Renders the current background to a PNG and returns it as a data URL. Defaults to 1200 px wide at the screen aspect ratio.',
     inputSchema: { type: 'object', properties: {
       width: { type: 'integer', minimum: 16, maximum: 4096 }, height: { type: 'integer', minimum: 16, maximum: 4096 } } } },
+  { name: 'record_video', title: 'Record video', readOnly: true,
+    description: 'Renders a short 3D clip of the current terrain with a moving camera. Returns an MP4 or WebM data URL. Defaults to a 2 second orbit at 640×360.',
+    inputSchema: { type: 'object', properties: {
+      format: { type: 'string', enum: ['mp4', 'webm'] },
+      motion: { type: 'string', enum: ['still', 'orbit', 'push', 'flyover', 'drone'] },
+      seconds: { type: 'number', minimum: 0.5, maximum: 8 },
+      width: { type: 'integer', minimum: 160, maximum: 1280 },
+      height: { type: 'integer', minimum: 160, maximum: 720 },
+    } } },
   { name: 'get_embed_code', title: 'Get embed code', readOnly: true,
     description: 'Returns code that reproduces the current background: html (web component), react, vanilla (JS) or json (config).',
     inputSchema: { type: 'object', properties: { format: { type: 'string', enum: ['html', 'react', 'vanilla', 'json'] } }, required: ['format'] } },

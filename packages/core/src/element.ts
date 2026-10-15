@@ -2,7 +2,10 @@ import { PARAMS } from './params.js';
 import { createTopographicBackground, type TopographicBackground, type SnapshotOptions } from './renderer.js';
 import { fromAttributes, resolveSettings, type SettingsInput } from './settings.js';
 
-export const ELEMENT_ATTRIBUTES: readonly string[] = ['style-name', 'seed', 'theme', 'ink', 'paper', ...PARAMS.map((p) => p.attr)];
+export const ELEMENT_ATTRIBUTES: readonly string[] = [
+  'style-name', 'seed', 'theme', 'ink', 'paper', 'mode', 'elevation', 'extent', 'detail',
+  'azimuth', 'camera-elevation', 'radius', 'camera-motion', ...PARAMS.map((p) => p.attr),
+];
 
 const Base = (typeof HTMLElement !== 'undefined' ? HTMLElement : class {}) as typeof HTMLElement;
 
