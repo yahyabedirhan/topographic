@@ -27,6 +27,13 @@ const topographic = createTopographicBackground(document.querySelector('#hero'),
 topographic.update({ terrain: { peaks: 3 } });
 ```
 
+**3D:** the same map as a terrain. 2D stays the default.
+
+```js
+topographic.update({ mode: '3d', elevation: 0.7, camera: { motion: 'orbit' } });
+const clip = await topographic.record({ seconds: 4, format: 'mp4' });
+```
+
 For React, use [`topographic-react`](https://www.npmjs.com/package/topographic-react).
 
 - [Project README](https://github.com/yahyabedirhan/topographic#readme)

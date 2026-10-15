@@ -1,6 +1,6 @@
 {
   "name": "topographic-react",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "React component and hook for topographic backgrounds.",
   "license": "MIT",
   "repository": {
@@ -39,7 +39,7 @@
     "LICENSE"
   ],
   "dependencies": {
-    "topographic": "^0.1.0"
+    "topographic": "^0.2.0"
   },
   "peerDependencies": {
     "react": "^18 || ^19"

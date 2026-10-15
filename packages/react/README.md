@@ -22,6 +22,8 @@ export function Hero() {
 }
 ```
 
+For the 3D terrain, add `mode="3d"`, and optionally `elevation`, `extent`, `detail` and `camera`.
+
 To put the background on your own element, use `useTopographicBackground(settings)`, which returns a ref.
 
 - [Project README](https://github.com/yahyabedirhan/topographic#readme)
