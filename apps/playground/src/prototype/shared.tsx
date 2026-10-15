@@ -1,14 +1,11 @@
-// PROTOTYPE (throwaway, see README.md in this folder). Shared state and small widgets for the five playground variants.
-import { useEffect, useMemo, useRef, useState, type MutableRefObject, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type MutableRefObject, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import {
-  createTopography, mergeSettings, paramsIn, PRESETS, resolveMode, resolveSettings, rgbaToCss, THEME_DEFAULTS,
-  type GroupName, type Settings, type SettingsInput, type Topography as Instance,
+  GROUPS, PRESETS, STYLES, THEME_DEFAULTS, clampParam, createTopography, mergeSettings, paramsIn, resolveMode, resolveSettings, rgbaToCss,
+  type GroupName, type ParamDef, type Settings, type SettingsInput, type Topography as Instance,
 } from 'topography.js';
 import { Topography } from 'topography-react';
-import { embedCode } from '../embed';
-import { downloadPng, PNG_SIZES } from '../png';
-import { configOf, readUrl, shareUrl } from '../url';
 import { registerTools } from '../webmcp';
+import { configOf, readUrl } from '../url';
 
 export interface Playground {
   settings: Settings;
@@ -18,6 +15,73 @@ export interface Playground {
   presetIndex: number;
   shuffle(): void;
   instance: MutableRefObject<Instance | null>;
+}
+
+const PAIRS: { paper: string; ink: string; mode: 'light' | 'dark' }[] = [
+  { paper: '#0b0b0d', ink: '#9fb0cc', mode: 'dark' },
+  { paper: '#12141a', ink: '#c9c2b4', mode: 'dark' },
+  { paper: '#16130f', ink: '#e0b089', mode: 'dark' },
+  { paper: '#101614', ink: '#9dcec0', mode: 'dark' },
+  { paper: '#16131a', ink: '#cbb6ea', mode: 'dark' },
+  { paper: '#1a1214', ink: '#f0b2a8', mode: 'dark' },
+  { paper: '#10151c', ink: '#a9c7e4', mode: 'dark' },
+  { paper: '#141414', ink: '#e8e6e1', mode: 'dark' },
+  { paper: '#f7f4ee', ink: '#3d4c63', mode: 'light' },
+  { paper: '#efe6d6', ink: '#6b4630', mode: 'light' },
+  { paper: '#e5eef0', ink: '#1e4650', mode: 'light' },
+  { paper: '#f3efe6', ink: '#3c4a36', mode: 'light' },
+  { paper: '#f6eef2', ink: '#5c3348', mode: 'light' },
+  { paper: '#f4f1ea', ink: '#2c2c2a', mode: 'light' },
+  { paper: '#e7e2d8', ink: '#3a342c', mode: 'light' },
+];
+
+function band(p: ParamDef): [number, number] {
+  switch (p.key) {
+    case 'opacity': return [0.32, 0.85];
+    case 'count': return [16, 48];
+    case 'width': return [0.12, 0.7];
+    case 'speed': return [0.25, 1.6];
+    case 'fade': return [0.15, 0.8];
+    case 'sparkle': return [0, 0.7];
+    case 'warp': return [0.15, 0.8];
+    default: return [p.min, p.max];
+  }
+}
+
+function rollSettings(): Settings {
+  const style = STYLES[Math.floor(Math.random() * STYLES.length)].id;
+  const pair = PAIRS[Math.floor(Math.random() * PAIRS.length)];
+  const input: SettingsInput = {
+    style,
+    seed: 1 + Math.floor(Math.random() * 99999),
+    theme: { mode: pair.mode, ink: pair.ink, paper: pair.paper },
+  };
+  for (const g of GROUPS) {
+    const values: Record<string, number> = {};
+    for (const p of paramsIn(g)) {
+      const [lo, hi] = band(p);
+      const steps = Math.max(1, Math.round((hi - lo) / p.step));
+      const raw = lo + Math.floor(Math.random() * (steps + 1)) * p.step;
+      const snapped = p.integer ? Math.round(raw) : Number((Math.round(raw / p.step) * p.step).toFixed(4));
+      values[p.key] = clampParam(p, snapped);
+    }
+    (input as Record<string, unknown>)[g] = values;
+  }
+  return resolveSettings(input);
+}
+
+function glide(from: Settings, goal: Settings, t: number): Settings {
+  const e = t * t * (3 - 2 * t);
+  const next = structuredClone(goal);
+  for (const g of GROUPS) {
+    for (const p of paramsIn(g)) {
+      const a = (from[g] as Record<string, number>)[p.key];
+      const b = (goal[g] as Record<string, number>)[p.key];
+      const n = a + (b - a) * e;
+      (next[g] as Record<string, number>)[p.key] = p.integer ? Math.round(n) : Number(n.toFixed(3));
+    }
+  }
+  return next;
 }
 
 export function usePlayground(): Playground {
@@ -40,17 +104,35 @@ export function usePlayground(): Playground {
   const latest = useRef(settings);
   latest.current = settings;
   useEffect(() => registerTools({ getSettings: () => latest.current, setSettings, instance: () => instance.current }), []);
+  const frame = useRef(0);
+  useEffect(() => () => cancelAnimationFrame(frame.current), []);
 
   const presetIndex = useMemo(() => {
     const key = JSON.stringify(configOf({ ...settings, seed: 0, theme: { mode: 'auto' } }));
     return PRESETS.findIndex((p) => JSON.stringify(configOf(resolveSettings(p.settings))) === key);
   }, [settings]);
 
+  const shuffle = () => {
+    cancelAnimationFrame(frame.current);
+    const from = latest.current;
+    const goal = rollSettings();
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setSettings(goal);
+      return;
+    }
+    const t0 = performance.now();
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - t0) / 520);
+      setSettings(t >= 1 ? goal : glide(from, goal, t));
+      if (t < 1) frame.current = requestAnimationFrame(tick);
+    };
+    frame.current = requestAnimationFrame(tick);
+  };
+
   return {
-    settings, mode, instance, presetIndex,
+    settings, mode, instance, presetIndex, shuffle,
     change: (patch) => setSettings((s) => mergeSettings(s, patch)),
     applyPreset: (i) => setSettings((s) => ({ ...resolveSettings(PRESETS[i].settings), seed: s.seed, theme: s.theme })),
-    shuffle: () => setSettings((s) => mergeSettings(s, { seed: Math.floor(Math.random() * 100000) + 1 })),
   };
 }
 
@@ -62,7 +144,6 @@ export function Backdrop({ pg, className = 'pt-stage' }: { pg: Playground; class
   );
 }
 
-/** Renders every preset once, centred, with fewer and stronger lines so it reads small, into a PNG with a single off-screen renderer, in the current colours. */
 export function usePresetThumbs(pg: Playground, width = 360, height = 240): string[] {
   const [urls, setUrls] = useState<string[]>([]);
   const theme = { ...pg.settings.theme, mode: pg.mode };
@@ -88,32 +169,9 @@ export function usePresetThumbs(pg: Playground, width = 360, height = 240): stri
   return urls;
 }
 
-export const PRESET_KIND = (i: number) => (i < 7 ? 'Style' : 'Preset');
-
 export const GROUP_LABELS: Record<GroupName, string> = { lines: 'Lines', terrain: 'Terrain', motion: 'Motion', layout: 'Layout' };
 
-export function ParamRows({ pg, group }: { pg: Playground; group: GroupName }) {
-  return (
-    <div className="pt-params">
-      {paramsIn(group).map((p) => {
-        const v = (pg.settings[group] as Record<string, number>)[p.key];
-        const pct = ((v - p.min) / (p.max - p.min)) * 100;
-        return (
-          <label className="pt-param" key={p.key} title={p.description}>
-            <span>{p.label}</span>
-            <input type="range" min={p.min} max={p.max} step={p.step} value={v} style={{ ['--pct' as string]: `${pct}%` }}
-              onChange={(e) => pg.change({ [group]: { [p.key]: Number(e.target.value) } })} />
-            <output>{p.integer ? v : v.toFixed(2)}</output>
-          </label>
-        );
-      })}
-    </div>
-  );
-}
-
-// ---------- colour ----------
-
-const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const clamp01 = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 export function hexToHsv(hex: string): [number, number, number] {
   const n = hex.replace('#', '');
   const f = n.length === 3 ? n.split('').map((c) => c + c).join('') : n.slice(0, 6);
@@ -136,18 +194,20 @@ export function currentColour(pg: Playground, which: 'ink' | 'paper'): string {
   return v ?? cssToHex(rgbaToCss(THEME_DEFAULTS[pg.mode][which]));
 }
 
-/** HSV picker: a saturation/brightness field, a hue strip, swatches and a hex field. No dependencies. */
 export function ColorPicker({ value, onChange, swatches }: { value: string; onChange: (hex: string) => void; swatches: string[] }) {
   const isHex = /^#[0-9a-f]{3,8}$/i.test(value);
-  const [hsv, setHsv] = useState(() => (isHex ? hexToHsv(value) : [220, 0.2, 0.8] as [number, number, number]));
+  const [hsv, setHsv] = useState<[number, number, number]>(() => (isHex ? hexToHsv(value) : [220, 0.2, 0.8]));
   const [text, setText] = useState(value);
-  useEffect(() => { if (isHex && value.toLowerCase() !== hsvToHex(...hsv)) setHsv(hexToHsv(value)); setText(value); }, [value]);
+  useEffect(() => {
+    setText(value);
+    if (isHex && value.toLowerCase() !== hsvToHex(...hsv)) setHsv(hexToHsv(value));
+  }, [value]);
   const set = (next: [number, number, number]) => { setHsv(next); onChange(hsvToHex(...next)); };
-  const drag = (el: HTMLElement, e: React.PointerEvent, fn: (x: number, y: number) => void) => {
+  const drag = (el: HTMLElement, e: ReactPointerEvent, fn: (x: number, y: number) => void) => {
     el.setPointerCapture(e.pointerId);
-    const move = (ev: PointerEvent | React.PointerEvent) => {
+    const move = (ev: PointerEvent | ReactPointerEvent) => {
       const r = el.getBoundingClientRect();
-      fn(clamp((ev.clientX - r.left) / r.width), clamp((ev.clientY - r.top) / r.height));
+      fn(clamp01((ev.clientX - r.left) / r.width), clamp01((ev.clientY - r.top) / r.height));
     };
     move(e);
     const up = () => { el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); };
@@ -165,48 +225,13 @@ export function ColorPicker({ value, onChange, swatches }: { value: string; onCh
       </div>
       <div className="pt-swatches">
         {swatches.map((c) => (
-          <button key={c} aria-label={c} className={`pt-swatch ${c === value ? 'on' : ''} ${c === 'transparent' ? 'clear' : ''}`}
+          <button key={c} type="button" aria-label={c} className={`pt-swatch ${c === value ? 'is-on' : ''} ${c === 'transparent' ? 'clear' : ''}`}
             style={{ background: c === 'transparent' ? undefined : c }} onClick={() => onChange(c)} />
         ))}
       </div>
       <input className="pt-hex" value={text} spellCheck={false} aria-label="Hex colour"
         onChange={(e) => { setText(e.target.value); if (/^#[0-9a-f]{6}$/i.test(e.target.value)) onChange(e.target.value); }} />
     </div>
-  );
-}
-
-/** A round swatch that opens the picker in a popover. */
-export function ColorField({ pg, which, align = 'up' }: { pg: Playground; which: 'ink' | 'paper'; align?: 'up' | 'down' | 'right' | 'left' }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const off = (e: PointerEvent) => { if (!ref.current?.contains(e.target as Node)) setOpen(false); };
-    addEventListener('pointerdown', off);
-    return () => removeEventListener('pointerdown', off);
-  }, [open]);
-  const value = currentColour(pg, which);
-  return (
-    <div className="pt-colorfield" ref={ref}>
-      <button className={`pt-dot ${value === 'transparent' ? 'clear' : ''}`} style={{ background: value === 'transparent' ? undefined : value }}
-        aria-label={`${which} colour`} aria-expanded={open} onClick={() => setOpen(!open)} />
-      {open && (
-        <div className={`pt-pop pt-pop-${align}`}>
-          <div className="pt-pop-title">{which === 'ink' ? 'Ink' : 'Paper'}</div>
-          <ColorPicker value={value} swatches={which === 'ink' ? INK_SWATCHES : PAPER_SWATCHES}
-            onChange={(c) => pg.change({ theme: { [which]: c } })} />
-        </div>
-      )}
-    </div>
-  );
-}
-
-export function ModeToggle({ pg }: { pg: Playground }) {
-  return (
-    <button className="pt-icon" aria-label="Toggle light and dark" title="Light / dark"
-      onClick={() => pg.change({ theme: { mode: pg.mode === 'dark' ? 'light' : 'dark', ink: undefined, paper: undefined } })}>
-      {pg.mode === 'dark' ? '☾' : '☀'}
-    </button>
   );
 }
 
@@ -217,24 +242,6 @@ export function useCopy(): [string, (label: string, text: string) => void] {
     setCopied(label);
     setTimeout(() => setCopied(''), 1400);
   }];
-}
-
-export function ExportActions({ pg, compact }: { pg: Playground; compact?: boolean }) {
-  const [copied, copy] = useCopy();
-  const items: [string, string, () => string][] = [
-    ['html', 'HTML', () => embedCode(pg.settings, 'html')],
-    ['jsx', 'React', () => embedCode(pg.settings, 'react')],
-    ['json', 'JSON', () => embedCode(pg.settings, 'json')],
-    ['link', 'Link', () => shareUrl(pg.settings)],
-  ];
-  return (
-    <div className={`pt-export ${compact ? 'compact' : ''}`}>
-      {items.map(([id, label, text]) => (
-        <button key={id} onClick={() => copy(id, text())}>{copied === id ? 'Copied' : `Copy ${label}`}</button>
-      ))}
-      <button onClick={() => pg.instance.current && downloadPng(pg.instance.current, PNG_SIZES[1])}>PNG 1080p</button>
-    </div>
-  );
 }
 
 export function Wordmark({ children }: { children?: ReactNode }) {

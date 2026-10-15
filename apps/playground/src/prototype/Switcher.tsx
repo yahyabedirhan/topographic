@@ -1,4 +1,3 @@
-// PROTOTYPE switcher bar. Dev builds only (see main.tsx).
 import { useEffect } from 'react';
 
 export function PrototypeSwitcher({ variants, current, onChange }: { variants: { key: string; name: string }[]; current: string; onChange(key: string): void }) {
@@ -7,7 +6,8 @@ export function PrototypeSwitcher({ variants, current, onChange }: { variants: {
   useEffect(() => {
     const on = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement;
-      if (t.closest('input, textarea, select, [contenteditable]') || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (t.closest('input, textarea, select, [contenteditable], [role="slider"], .pt-panel:not([hidden])') || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (document.querySelector('.pt-panel:not([hidden])')) return;
       if (e.key === 'ArrowLeft') go(-1);
       if (e.key === 'ArrowRight') go(1);
     };
