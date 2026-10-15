@@ -3,7 +3,7 @@ import { Popover } from '@base-ui-components/react/popover';
 import { Toggle } from '@base-ui-components/react/toggle';
 import { Tooltip } from '@base-ui-components/react/tooltip';
 import { Box, Dices, Frame, Map, Moon, Mountain, SlidersHorizontal, Spline, Sun, Wind } from 'lucide-react';
-import { PlaceButton } from './region/controls';
+import { MapButton } from './region/controls';
 import { useRegion } from './region/useRegion';
 import {
   DEFAULT_CAMERA, DEFAULT_DETAIL, DEFAULT_ELEVATION, GROUPS, paramsIn, resolveMode,
@@ -16,7 +16,7 @@ import {
   type Playground,
 } from './shared';
 
-// MapLibre is large, so the place panel loads the first time Place opens.
+// MapLibre is large, so the place panel loads the first time Map opens.
 const PlacePanel = lazy(() => import('./region/Picker').then((m) => ({ default: m.PlacePanel })));
 
 export { Tip };
@@ -444,9 +444,9 @@ export function GlassFrame({ pg, tune, exporting }: {
       clusterRef={clusterRef}
       place={(
         <Popover.Root open={open === 'place'} onOpenChange={openChange('place')}>
-          <PlaceButton hasPlace={Boolean(region.bbox)} />
+          <MapButton hasPlace={Boolean(region.bbox)} />
           <ClusterPositioner clusterRef={clusterRef}>
-            <Popover.Popup className="pt-pop pt-pop-wide pt-glass" aria-label="Place" initialFocus={false}>
+            <Popover.Popup className="pt-pop pt-pop-wide pt-glass" aria-label="Map" initialFocus={false}>
               <Suspense fallback={<div className="pt-mapbox" />}>
                 <PlacePanel region={region} appearance={appearance} />
               </Suspense>

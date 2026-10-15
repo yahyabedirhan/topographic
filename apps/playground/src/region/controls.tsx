@@ -1,6 +1,6 @@
 import { Popover } from '@base-ui-components/react/popover';
 import { Tooltip } from '@base-ui-components/react/tooltip';
-import { MapPin } from 'lucide-react';
+import { Earth } from 'lucide-react';
 import { Tip } from '../parts';
 
 export function km(meters: number): string {
@@ -9,17 +9,20 @@ export function km(meters: number): string {
   return `${n < 10 ? n.toFixed(1) : Math.round(n)} km`;
 }
 
-/** The cluster's map pin. It carries a dot while a place is applied; a fill means only that its popover is open. */
-export function PlaceButton({ hasPlace }: { hasPlace: boolean }) {
+/**
+ * The cluster's Map button. Its icon is a globe, so it never reads as the folded map of the 2D toggle.
+ * It carries a dot while a place is applied; a fill means only that its popover is open.
+ */
+export function MapButton({ hasPlace }: { hasPlace: boolean }) {
   return (
     <Tooltip.Root>
       <Tooltip.Trigger
         delay={180}
-        render={<Popover.Trigger className={`pt-ibtn${hasPlace ? ' has-dot' : ''}`} aria-label="Place" />}
+        render={<Popover.Trigger className={`pt-ibtn${hasPlace ? ' has-dot' : ''}`} aria-label="Map" />}
       >
-        <MapPin size={18} strokeWidth={1.75} />
+        <Earth size={18} strokeWidth={1.75} />
       </Tooltip.Trigger>
-      <Tip>Place</Tip>
+      <Tip>Map</Tip>
     </Tooltip.Root>
   );
 }

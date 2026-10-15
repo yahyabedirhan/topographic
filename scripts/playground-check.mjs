@@ -127,10 +127,10 @@ try {
   await p.keyboard.press('Escape'); await settle(p);
 
   // Place popover: MapLibre loads lazily and its tiles need the network.
-  await p.getByRole('button', { name: 'Place', exact: true }).click();
+  await p.getByRole('button', { name: 'Map', exact: true }).click();
   const place = p.locator('.pt-pop-wide');
   await place.locator('.pt-map-host canvas').waitFor({ timeout: 30000 });
-  check(await place.isVisible() && await p.locator('.pt-cluster [data-popup-open]').getAttribute('aria-label') === 'Place', 'Place opens its popover under the cluster');
+  check(await place.isVisible() && await p.locator('.pt-cluster [data-popup-open]').getAttribute('aria-label') === 'Map', 'Map opens its popover under the cluster');
   const apply = place.locator('button.pt-apply');
   const pinDot = () => p.locator('.pt-cluster .pt-ibtn.has-dot').count();
   await p.waitForFunction(() => /km × [\d.]+ km/.test(document.querySelector('.pt-map-span')?.textContent ?? ''), null, { timeout: 30000 });
@@ -161,7 +161,7 @@ try {
   for (const [width, height] of [[1280, 800], [1440, 900], [390, 844]]) {
     const v = await browser.newPage({ viewport: { width, height } }); watch(v);
     await v.goto(base + '?mode=3d'); await v.waitForSelector('.pt-stage canvas');
-    await v.getByRole('button', { name: 'Place', exact: true }).click();
+    await v.getByRole('button', { name: 'Map', exact: true }).click();
     const pop = v.locator('.pt-pop-wide');
     await pop.locator('.pt-map-host canvas').waitFor({ timeout: 30000 });
     await v.waitForFunction(() => /km × [\d.]+ km|Too|rectangle/.test(document.querySelector('.pt-map-span')?.textContent ?? ''), null, { timeout: 30000 }).catch(() => {});
