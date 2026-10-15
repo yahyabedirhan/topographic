@@ -110,7 +110,7 @@ npm install
 npm run prototype
 ```
 
-That builds the packages, starts the dev server and opens `/?variant=P2`. Click the **Place** button at the top, frame an area on the map, or pick one of the city shortcuts, and click **Use this place**. Relief and smoothing options sit below the map. Add `mode=3d` to the URL for the terrain view. The elevation comes from Mapzen Terrain Tiles on AWS Open Data, so the picker needs a network connection.
+That builds the packages, starts the dev server and opens `/?variant=P2`. Click the map-pin **Place** button at the top right, frame an area on the map, or pick one of the city shortcuts, and click **Use this place**. Relief and smoothing options sit below the map. Add `mode=3d` to the URL for the terrain view. The elevation comes from Mapzen Terrain Tiles on AWS Open Data, so the picker needs a network connection.
 
 The [region prototype notes](docs/prototypes/region/README.md) list the URL options and the decisions behind the picker.
 
