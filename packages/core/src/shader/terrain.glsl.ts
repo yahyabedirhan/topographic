@@ -17,11 +17,14 @@ ${COMMON_MATH}
 ${CONTOUR_FIELD}
 float reliefOf(float f){
   float n=max(uParams[0],1.);
+  float h=clamp(uHeight,0.,1.);
   float u=f/n;
-  float knee=mix(1.05,.28,clamp(uHeight,0.,1.));
-  float peak=exp(-max(u,-.4)/knee);
-  peak=pow(max(peak,0.), mix(1.,1.8,clamp(uHeight,0.,1.)));
-  return uHeight*peak*.62;
+  float sigma=mix(1.15,.92,h);
+  float x=u+.18;
+  float dome=exp(-(x*x)/(sigma*sigma));
+  float shoulder=1.-smoothstep(0.,.55,abs(x)/sigma);
+  dome=mix(dome, mix(dome,1.,.35), shoulder);
+  return h*dome*mix(.6,.8,h);
 }
 void main(){
   vec2 stretched=(aUV-0.5)*uReach;

@@ -40,7 +40,7 @@ export interface Settings {
   theme: ThemeSettings;
   /** 2D is the map. 3D is the same map as a terrain. */
   mode: RenderMode;
-  /** 0 is flat like the 2D map. Higher values make peaks taller and sharper. */
+  /** 0 is flat like the 2D map. Higher values make the terrain taller, with a rounded crest. */
   elevation: number;
   extent: TerrainExtent;
   /** 0 is the coarsest mesh, 1 the finest. */

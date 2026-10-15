@@ -370,7 +370,7 @@ function ViewTune({ pg }: { pg: Playground }) {
     <div className="pt-klist">
       <RangeRow
         label="Elevation"
-        hint="0 is flat like the map. Higher values make peaks taller and sharper."
+        hint="0 is flat like the map. Higher values make the terrain taller, with a rounded crest."
         value={s.elevation} min={0} max={1} step={0.01} digits={2}
         onChange={(n) => pg.change({ elevation: n })}
         onReset={s.elevation === DEFAULT_ELEVATION ? undefined : () => pg.change({ elevation: DEFAULT_ELEVATION })}

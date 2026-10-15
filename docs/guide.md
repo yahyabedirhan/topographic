@@ -159,7 +159,7 @@ Values outside a range are clamped, whole-number settings are rounded, and anyth
 | Setting | Attribute | Range | Default | What it does |
 |---|---|---|---|---|
 | `mode` | `mode` | `2d`, `3d` | `2d` | The flat map, or that map as a terrain. |
-| `elevation` | `elevation` | 0–1 | 0.62 | 3D height. 0 is flat like the map. Higher values make peaks taller and sharper. |
+| `elevation` | `elevation` | 0–1 | 0.62 | 3D height. 0 is flat like the map. Higher values make the terrain taller, with a rounded crest. |
 | `extent` | `extent` | `block`, `endless` | `block` | A finite tabletop with ink layer lines on the cut sides, or terrain that continues past the view. |
 | `detail` | `detail` | 0–1 | 0.5 | Mesh resolution, from 32² to 160². |
 | `camera.azimuth` | `azimuth` | any finite number | 42 | Degrees around the terrain. |
