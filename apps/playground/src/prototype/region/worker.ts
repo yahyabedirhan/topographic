@@ -31,14 +31,18 @@ export interface BuildErr {
 async function decodeTile(z: number, x: number, y: number): Promise<Float32Array> {
   const res = await fetch(terrariumUrl(z, x, y));
   if (!res.ok) throw new Error(`Elevation tile ${z}/${x}/${y} returned ${res.status}.`);
-  const bmp = await createImageBitmap(await res.blob());
-  const canvas = new OffscreenCanvas(bmp.width, bmp.height);
+  const blob = await res.blob();
+  const bmp = await createImageBitmap(blob);
+  // close() zeroes width and height, so the size has to be copied first.
+  const width = bmp.width;
+  const height = bmp.height;
+  const canvas = new OffscreenCanvas(width, height);
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   if (!ctx) throw new Error('This browser cannot read elevation tiles.');
   ctx.drawImage(bmp, 0, 0);
-  const img = ctx.getImageData(0, 0, bmp.width, bmp.height);
+  const img = ctx.getImageData(0, 0, width, height);
   bmp.close();
-  const out = new Float32Array(bmp.width * bmp.height);
+  const out = new Float32Array(width * height);
   const data = img.data;
   for (let i = 0, p = 0; i < out.length; i++, p += 4) out[i] = terrariumMeters(data[p], data[p + 1], data[p + 2]);
   return out;
@@ -78,7 +82,11 @@ async function build(req: BuildRequest): Promise<BuildOk> {
   };
 }
 
-const scope = self as unknown as DedicatedWorkerGlobalScope;
+interface WorkerScope {
+  onmessage: ((event: MessageEvent<BuildRequest>) => void) | null;
+  postMessage(message: BuildOk | BuildErr, transfer?: Transferable[]): void;
+}
+const scope = self as unknown as WorkerScope;
 scope.onmessage = (event: MessageEvent<BuildRequest>) => {
   const req = event.data;
   build(req).then(
