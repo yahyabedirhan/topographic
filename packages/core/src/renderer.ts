@@ -246,9 +246,9 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
     lastSample = now;
     gl.finish();
     const t = performance.now();
-    paint();
+    for (let i = 0; i < 4; i++) paint();
     gl.finish();
-    statDraw = performance.now() - t;
+    statDraw = Math.max(0, (performance.now() - t) / 4);
     if (!shouldAnimate()) {
       statFrame = statDraw;
       statFps = statDraw > 0 ? 1000 / statDraw : 0;
@@ -264,19 +264,20 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
 
   function tick(now: number): void {
     raf = 0;
-    const dt = Math.min(100, now - lastNow);
+    const dt = lastNow ? Math.min(100, Math.max(0, now - lastNow)) : 0;
     lastNow = now;
-    ema = ema ? ema * 0.88 + dt * 0.12 : dt;
-    statFrame = ema;
-    statFps = ema > 0 ? 1000 / ema : 0;
+    if (dt > 0) {
+      ema = ema ? ema * 0.88 + dt * 0.12 : dt;
+      statFrame = ema;
+      statFps = 1000 / ema;
+    }
     frameMs += dt;
     draw();
-    sampleDraw();
     schedule();
   }
   function schedule(): void {
-    if (!shouldAnimate()) { if (raf) view.cancelAnimationFrame(raf); raf = 0; return; }
-    if (!raf) { lastNow = performance.now(); raf = view.requestAnimationFrame(tick); }
+    if (!shouldAnimate()) { if (raf) view.cancelAnimationFrame(raf); raf = 0; lastNow = 0; return; }
+    if (!raf) raf = view.requestAnimationFrame(tick);
   }
   const restart = () => { schedule(); draw(); sampleDraw(); };
 
@@ -338,7 +339,7 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
     get stats() {
       return {
         fps: Math.round(statFps),
-        frameMs: Number((statDraw || statFrame).toFixed(2)),
+        frameMs: Number((shouldAnimate() ? statFrame : (statDraw > 0 ? statDraw : statFrame)).toFixed(2)),
         mesh: settings.mode === '3d' ? terrain.mesh : 0,
       };
     },
