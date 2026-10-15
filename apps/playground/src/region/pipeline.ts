@@ -256,6 +256,16 @@ export function smooth(src: Float32Array, size: number, sigma: number): Float32A
   return out;
 }
 
+const LOW = 0.04;
+const HIGH = 0.92;
+
+/** 0..1 maps linearly to LOW..HIGH. Values past either end ease into the last few percent, reaching 0 and 1 only at the extremes. */
+export function rollOff(t: number, tMin: number, tMax: number): number {
+  if (t > 1) return HIGH + (1 - HIGH) * (1 - Math.exp(-(t - 1) * 4.6 / Math.max(tMax - 1, 1e-3)));
+  if (t < 0) return LOW * Math.exp(t * 4.6 / Math.max(-tMin, 1e-3));
+  return LOW + (HIGH - LOW) * t;
+}
+
 export interface FieldStats {
   samples: Float32Array;
   size: number;
@@ -299,9 +309,13 @@ export function shapeField(
   }
   const unit = new Float32Array(clamped.length);
   const sea = new Uint8Array(meters.length);
+  // Dramatic rolls the tails off instead of clipping them, so summits above the 98th percentile keep their shape.
+  const tMax = (maxM - lo) / span;
+  const tMin = (minM - lo) / span;
   for (let i = 0; i < clamped.length; i++) {
     sea[i] = meters[i] <= 0 ? 1 : 0;
-    unit[i] = Math.min(1, Math.max(0, (clamped[i] - lo) / span));
+    const t = (clamped[i] - lo) / span;
+    unit[i] = relief === 'dramatic' ? rollOff(t, tMin, tMax) : Math.min(1, Math.max(0, t));
   }
   const extra = reliefM < 12 ? 1.8 : reliefM < 30 ? 1.25 : 1;
   const samples = smooth(unit, size, SMOOTH_SIGMA[level] * extra);

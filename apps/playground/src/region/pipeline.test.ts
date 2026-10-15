@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  LIMITS, MEASURED_RELIEF_M, benchPipeline, latToY, limitMessage, limitProblem, lonToX, resample, shapeField,
+  LIMITS, MEASURED_RELIEF_M, benchPipeline, latToY, limitMessage, limitProblem, lonToX, resample, rollOff, shapeField,
   spanOf, stitch, terrariumMeters, tileRange, type BBox, type Mosaic,
 } from './pipeline';
 
@@ -129,5 +129,31 @@ describe('bench', () => {
       console.log(`region bench: ${row.label} ${row.ms.toFixed(1)} ms`);
       expect(row.ms).toBeLessThan(250);
     }
+  });
+});
+
+describe('dramatic relief', () => {
+  it('rolls summits off instead of clipping them flat', () => {
+    const size = 64;
+    const meters = new Float32Array(size * size);
+    for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+      const d = Math.hypot(x - 32, y - 32);
+      meters[y * size + x] = 100 + 50 * (x / size) + 3000 * Math.exp(-(d * d) / 18);
+    }
+    const bbox = { west: 7, south: 45, east: 8, north: 45.6 };
+    const { samples } = shapeField(meters, size, bbox, 'dramatic', 'light');
+    const flat = samples.filter((v) => v >= 0.999).length;
+    expect(flat).toBeLessThanOrEqual(1);
+    const ring = (r: number) => samples[32 * size + 32 + r];
+    expect(ring(0)).toBeGreaterThan(ring(1));
+    expect(ring(1)).toBeGreaterThan(ring(2));
+    expect(ring(2)).toBeGreaterThan(ring(3));
+  });
+  it('maps the 2nd to 98th percentile linearly and eases the tails', () => {
+    expect(rollOff(0, -1, 3)).toBeCloseTo(0.04);
+    expect(rollOff(1, -1, 3)).toBeCloseTo(0.92);
+    expect(rollOff(3, -1, 3)).toBeGreaterThan(0.99);
+    expect(rollOff(2, -1, 3)).toBeLessThan(rollOff(3, -1, 3));
+    expect(rollOff(-1, -1, 3)).toBeLessThan(0.001);
   });
 });
