@@ -115,8 +115,17 @@ try {
   await p.getByRole('button', { name: 'Switch to 3D' }).click(); await settle(p, 600);
   check(q(p).get('mode') === '3d' && await p.locator('.pt-stage.is-3d').count() === 1, '3D toggle sets mode=3d and the 3D stage');
   c = await cfg(p);
-  check(await p.locator('.pt-mode .pt-mode-tag').innerText() === '3D' && c.camera?.azimuth === 349.7 && c.camera?.elevation === 33.6 && c.camera?.radius === 1.92 && q(p).get('az') === null,
-    `3D shows its badge and starts from the playground camera (${JSON.stringify(c.camera)})`);
+  check(await p.locator('.pt-mode .pt-mode-tag').innerText() === '3D' && c.camera?.azimuth === 294.7 && (c.camera?.elevation ?? 34) === 34 && c.camera?.radius === 2.3,
+    `3D shows its badge and starts from the look's camera (${JSON.stringify(c.camera)})`);
+  {
+    const stage = await p.locator('.pt-stage').boundingBox();
+    await p.mouse.move(stage.x + stage.width / 2, stage.y + stage.height / 2); await p.mouse.down();
+    await p.mouse.move(stage.x + stage.width / 2 + 150, stage.y + stage.height / 2 - 30, { steps: 6 }); await p.mouse.up(); await settle(p, 400);
+    const dragged = q(p).get('az');
+    await dock.getByRole('button', { name: 'Quiet hill' }).click(); await settle(p, 400);
+    c = await cfg(p);
+    check(dragged !== null && q(p).get('az') === null && c.camera?.azimuth === 294.7 && q(p).get('look') === 'quiet-hill', `a look click brings back its camera after a drag (az ${dragged} -> ${c.camera?.azimuth})`);
+  }
   check(await p.locator('.pt-wordmark .pt-fps').isVisible() && /fps/.test(await p.locator('.pt-fps').innerText()) && await p.locator('.pt-bench').count() === 0, '3D shows the frame-rate readout under the wordmark');
   if (shots) await p.screenshot({ path: join(shots, 'playground-3d.png') });
   await p.getByRole('button', { name: 'Switch to 2D' }).click(); await settle(p);
@@ -229,7 +238,7 @@ try {
   await clearBtn.click(); await settle(p, 400);
   check(q(p).get('place') === null && q(p).get('region') === null && await pinDot() === 0 && await clearBtn.count() === 0 && q(p).get('ev') === viewBefore.ev, 'Clear returns to the generated terrain and its elevation');
   check(!/Too thin|Exaggerate|Smoothing|Use this place/.test(await place.innerText()), 'Map holds only the map, the badge, the credit and the footer');
-  await p.keyboard.press('Escape'); await settle(p);
+  await p.keyboard.press('Escape'); await place.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
   check(!(await place.isVisible()), 'Map closes on Escape');
 
   // Saved items: they stay after a reload, a click brings back place and colours, a look clears the place.

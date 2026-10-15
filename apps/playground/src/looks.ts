@@ -5,6 +5,37 @@ export interface Look {
   settings: SettingsInput;
 }
 
+/**
+ * Each look's 3D camera pose. A click on the look always brings it back; the motion stays as it is.
+ * A plain style without a look uses the playground camera (share-url.ts).
+ */
+export const LOOK_CAMERAS: Readonly<Record<string, { azimuth: number; elevation: number; radius: number }>> = {
+  'Survey ridge': { azimuth: 349.7, elevation: 33.6, radius: 1.92 },
+  'Fine granite': { azimuth: 79.7, elevation: 30, radius: 1.92 },
+  'Wide lobes': { azimuth: 79.7, elevation: 30, radius: 1.92 },
+  'Rose pod': { azimuth: 294.7, elevation: 34, radius: 2.3 },
+  'Terraces': { azimuth: 294.7, elevation: 34, radius: 2.3 },
+  'High dunes': { azimuth: 14.7, elevation: 34, radius: 1.92 },
+  'Moss granite': { azimuth: 79.7, elevation: 30, radius: 1.92 },
+  'Sea dunes': { azimuth: 14.7, elevation: 34, radius: 1.92 },
+  'Night flower': { azimuth: 79.7, elevation: 30, radius: 1.92 },
+  'Night lobes': { azimuth: 294.7, elevation: 34, radius: 2.3 },
+  'Violet pod': { azimuth: 294.7, elevation: 34, radius: 2.3 },
+  'Ink petals': { azimuth: 79.7, elevation: 30, radius: 1.92 },
+  'Stepped petals': { azimuth: 79.7, elevation: 30, radius: 1.92 },
+  'Day lobes': { azimuth: 294.7, elevation: 34, radius: 2.3 },
+  'Still dunes': { azimuth: 14.7, elevation: 34, radius: 1.92 },
+  'Rocky spine': { azimuth: 324.7, elevation: 34, radius: 1.92 },
+  'Pale dunes': { azimuth: 14.7, elevation: 34, radius: 1.92 },
+  'Stone grain': { azimuth: 79.7, elevation: 30, radius: 1.92 },
+  'Open pod': { azimuth: 349.7, elevation: 38, radius: 1.92 },
+  'Quiet hill': { azimuth: 294.7, elevation: 34, radius: 2.3 },
+  'Bloom': { azimuth: 79.7, elevation: 30, radius: 1.92 },
+  'Soft summit': { azimuth: 294.7, elevation: 34, radius: 2.3 },
+  'Paper ridge': { azimuth: 324.7, elevation: 34, radius: 1.92 },
+  'Centred lobes': { azimuth: 349.7, elevation: 38, radius: 1.92 },
+};
+
 type Mode = 'light' | 'dark';
 
 function look(
@@ -14,12 +45,12 @@ function look(
   mode: Mode,
   paper: string,
   ink: string,
-  rest: Omit<SettingsInput, 'style' | 'seed' | 'theme'> = {},
+  rest: Omit<SettingsInput, 'style' | 'seed' | 'theme' | 'camera'> = {},
 ): Look {
   const { layout, ...groups } = rest;
   return {
     name,
-    settings: { style, seed, ...groups, layout: { fade: 0.15, ...layout }, theme: { mode, paper, ink } },
+    settings: { style, seed, ...groups, layout: { fade: 0.15, ...layout }, theme: { mode, paper, ink }, camera: LOOK_CAMERAS[name] },
   };
 }
 

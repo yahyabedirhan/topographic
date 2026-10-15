@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { mergeSettings, type Settings } from 'topographic';
 import { LOOKS } from './looks';
+import cameras from './looks.cameras.json';
 import { baseline, findLook, lookSlug, readSettings, settingsParams, writeSettings } from './share-url';
 
 const query = (s: Settings) => new URLSearchParams(settingsParams(s)).toString();
@@ -53,6 +54,18 @@ describe('share url', () => {
     const map = mergeSettings(baseline(), { mode: '3d', camera: { azimuth: 341.8, elevation: 39.3, radius: 1.32 } });
     expect(query(map)).toBe('mode=3d&az=341.8&ce=39.3&rd=1.32');
     roundTrip(map);
+  });
+
+  it('gives every look its own camera and writes nothing for it', () => {
+    expect(Object.keys(cameras).sort()).toEqual(LOOKS.map((l) => l.name).sort());
+    for (const look of LOOKS) {
+      const s = mergeSettings(baseline(look.settings), { mode: '3d' });
+      expect(s.camera).toMatchObject((cameras as Record<string, object>)[look.name]);
+      expect(query(s)).toBe(`look=${lookSlug(look.name)}&mode=3d`);
+      roundTrip(s);
+    }
+    const moved = mergeSettings(nightLobes, { mode: '3d', camera: { azimuth: 12 } });
+    expect(query(moved)).toBe('look=night-lobes&mode=3d&az=12');
   });
 
   it('writes colours without # and reads them back', () => {
