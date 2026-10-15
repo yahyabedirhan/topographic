@@ -391,7 +391,7 @@ try {
   const cyWant = { style: 'granite', lines: { count: 37, width: 0, opacity: 0.92, indexEvery: 6 }, speed: 1.3, sparkle: 0.35, layout: { anchor: 0.43, fade: 0.22 },
     theme: { mode: 'dark', ink: '#a9c7e4', paper: '#10151c' }, mode: '3d', elevation: 0.06, extent: 'block', camera: [3, 80, 1.18] };
   const cyGot = { style: cy.style, lines: cy.lines, speed: cy.motion?.speed, sparkle: cy.motion?.sparkle, layout: cy.layout,
-    theme: { mode: cy.theme?.mode, ink: cy.theme?.ink, paper: cy.theme?.paper }, mode: cy.mode, elevation: cy.elevation, extent: cy.extent,
+    theme: { mode: cy.theme?.mode, ink: cy.theme?.ink, paper: cy.theme?.paper }, mode: cy.mode, elevation: cy.elevation, extent: cy.extent ?? 'block',
     camera: [cy.camera?.azimuth, cy.camera?.elevation, cy.camera?.radius] };
   check(JSON.stringify(cyGot) === JSON.stringify(cyWant), `set_region cyprus applies Cyprus's own settings (${JSON.stringify(cyGot)})`);
   await call('clear_region'); await settle(agent);
