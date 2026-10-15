@@ -40,6 +40,23 @@ input[type=color]{width:30px;height:24px;padding:0;border:0;border-radius:6px;ba
 .pt-dock-col{position:relative;max-width:100%;display:flex}
 .pt-fps{position:absolute;left:4px;bottom:calc(100% + 10px);isolation:isolate;font:500 11px/1 var(--sans);font-variant-numeric:tabular-nums;letter-spacing:0;color:color-mix(in srgb,var(--fg) 80%,var(--paper));white-space:nowrap;pointer-events:none}
 .pt-fps::before{content:'';position:absolute;z-index:-1;inset:-5px -10px;border-radius:999px;background:color-mix(in srgb,var(--paper) 78%,transparent);filter:blur(7px)}
+/* The minimap: the applied map area 10px above the dock's right end, mirroring the frame rate on the left.
+   The picture turns with the 3D camera inside a fixed square; the compass at its corner shows north. */
+.pt-minimap{position:absolute;right:0;bottom:calc(100% + 10px);width:144px;height:144px;border-radius:20px;pointer-events:auto;transition:opacity .2s}
+.pt-minimap.is-covered{opacity:0;pointer-events:none}
+button.pt-minimap-map{position:absolute;inset:0;width:100%;height:100%;padding:10px;border:0;border-radius:inherit;background:transparent;box-shadow:none;cursor:pointer}
+button.pt-minimap-map:hover{background:color-mix(in srgb,var(--fg) 5%,transparent)}
+.pt-minimap-turn{width:100%;height:100%;display:grid;place-items:center}
+.pt-minimap-turn img{display:block;border-radius:4px;object-fit:fill;box-shadow:0 0 0 1.5px var(--fg),0 2px 10px rgba(0,0,0,.35)}
+button.pt-compass{position:absolute;top:6px;right:6px;width:28px;height:28px;padding:0;border:0;border-radius:50%;display:grid;place-items:center;line-height:0;color:var(--fg);
+  background:color-mix(in srgb,var(--paper) 72%,transparent);box-shadow:inset 0 0 0 .5px var(--line),0 1px 4px rgba(0,0,0,.25)}
+button.pt-compass:hover{background:var(--paper)}
+button.pt-compass:active{transform:scale(.94)}
+.pt-compass-needle{display:block;width:24px;height:24px}
+.pt-compass-needle svg{display:block}
+.pt-compass-n{fill:#e5484d}
+.pt-compass-s{fill:color-mix(in srgb,var(--fg) 45%,transparent)}
+.pt-compass-letter{font:700 6.5px/1 var(--sans);fill:var(--fg)}
 .pt-hint{color:var(--mut);font-size:12.5px;line-height:1.45}
 .pt-cluster{display:flex;align-items:center;gap:2px;padding:6px;border-radius:999px;overflow:visible}
 .pt-ibtn{width:36px;height:36px;padding:0;border:0;border-radius:50%;display:grid;place-items:center;background:transparent;box-shadow:none;color:var(--fg);line-height:0}
@@ -264,4 +281,8 @@ button.pt-credit-btn:hover,.pt-credit.is-open button.pt-credit-btn{color:var(--f
   .pt-row{grid-template-columns:64px minmax(0,1fr) 40px}
   .pt-seg button{flex:1 1 auto;padding:0 4px}
   .pt-dock-tools{padding-inline:4px 0}
+  .pt-minimap{width:100px;height:100px;border-radius:16px}
+  button.pt-minimap-map{padding:7px}
+  button.pt-compass{top:3px;right:3px;width:24px;height:24px}
+  .pt-compass-needle{transform-origin:center}
 }

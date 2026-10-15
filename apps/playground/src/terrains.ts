@@ -19,7 +19,7 @@ export interface Terrains {
   /** The built-in look that matches the settings, or -1. A map place selects no look. */
   lookIndex: number;
   /** The Map popover's Apply: the place, its defaults (MAP_TERRAIN_DEFAULTS for most), and a saved dock item. */
-  apply(bbox: BBox, placeId: string | null): void;
+  apply(bbox: BBox, placeId: string | null, minimap?: Promise<string | null>): void;
   openSaved(item: SavedTerrain): void;
   openLook(i: number): void;
   /** Shuffle keeps a map place's shape and rolls everything that still shows. */
@@ -79,11 +79,12 @@ export function useTerrains(pg: Playground): Terrains {
     saved,
     activeSaved,
     lookIndex: region.bbox ? -1 : pg.lookIndex,
-    apply(bbox, placeId) {
+    apply(bbox, placeId, minimap) {
       const now = live.current;
       const settings = mergeSettings(now.settings, terrainDefaults(placeId));
       region.setPlace(bbox, placeId);
-      saved.save({ bbox, placeId, settings });
+      const item = saved.save({ bbox, placeId, settings });
+      minimap?.then((url) => { if (url) saved.setMinimap(item.id, url); });
     },
     openSaved(item) {
       flush();

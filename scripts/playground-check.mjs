@@ -190,6 +190,9 @@ try {
   check(!(await apply.isEnabled()) && /Applied/.test(await apply.innerText()) && await pinDot() === 1 && q(p).get('region') === null && q(p).get('place') === 'istanbul' && await clearBtn.isVisible()
     && /^Istanbul Applied · 101 × 64 km$/.test(await status()), `Apply shows Applied, Clear, the status and the Map dot (${await status()})`);
   check(await savedCount() === 1 && await dockNav.locator('.pt-thumb').first().getAttribute('aria-label') === 'Istanbul map', 'Apply saves the terrain first in the dock');
+  const miniUrl = await p.evaluate(() => JSON.parse(localStorage.getItem('topographic.saved.v1') ?? '[]')[0]?.minimap ?? '');
+  check(/^data:image\/(webp|jpeg)/.test(miniUrl) && miniUrl.length < 60000, `Apply keeps a small map picture for the minimap (${miniUrl.length} chars)`);
+  check(await p.locator('.pt-minimap img').getAttribute('src') === miniUrl, 'the minimap shows the map picture from Apply');
   // Resizing: a corner drag changes the readout and the name; Apply uses the new box.
   const handle = async (h) => { const bb = await place.locator(`.pt-frame-handle.is-${h}`).boundingBox(); return { x: bb.x + bb.width / 2, y: bb.y + bb.height / 2 }; };
   const sizeOf = async () => { const m = (await badgeText()).match(/([\d.]+) × ([\d.]+) km/); return m ? [Number(m[1]), Number(m[2])] : null; };
@@ -382,7 +385,26 @@ try {
   check(region.accepted === true && region.place === 'istanbul' && region.bbox.west === 28.45, `set_region accepts istanbul (${region.query})`);
   const got = await call('get_region');
   check(got.place === 'istanbul' && got.bbox?.north === 41.36, `get_region (${got.status})`);
+  // The minimap: shown with a map terrain, turning with the camera, with a compass back to north.
+  await agent.waitForFunction(() => document.documentElement.dataset.region === 'ready', null, { timeout: 60000 }).catch(() => {});
+  const mini = agent.locator('.pt-minimap');
+  await mini.waitFor({ timeout: 5000 }).catch(() => {});
+  const miniBox = await mini.boundingBox();
+  const dockBox = await agent.locator('nav.pt-dock').boundingBox();
+  const fpsBox = await agent.locator('.pt-fps').boundingBox();
+  check(miniBox && dockBox && miniBox.y + miniBox.height <= dockBox.y - 8 && Math.abs(miniBox.x + miniBox.width - (dockBox.x + dockBox.width)) < 1
+    && (!fpsBox || fpsBox.x + fpsBox.width < miniBox.x), `the minimap sits above the dock's right end, clear of the dock and the frame rate (${JSON.stringify(miniBox)})`);
+  await call('set_settings', { mode: '3d', camera: { azimuth: 90, motion: 'still' } }); await settle(agent, 400);
+  check(await mini.getAttribute('data-turn') === '90.0', `the minimap turns with the camera (turn ${await mini.getAttribute('data-turn')} at azimuth 90)`);
+  await agent.locator('.pt-compass').click(); await settle(agent, 900);
+  const turned = (await call('get_settings')).config.camera?.azimuth ?? 0;
+  check(turned === 0 && await mini.getAttribute('data-turn') === '0.0', `the compass turns the camera back to north up (azimuth ${turned})`);
+  await call('set_settings', { mode: '2d' }); await settle(agent, 400);
+  check(await mini.isVisible() && await agent.locator('.pt-compass').count() === 0 && await mini.getAttribute('data-turn') === '0.0', 'in 2D the minimap stands north-up and the compass hides');
+  await call('set_settings', { mode: '3d' });
   check((await call('clear_region')).cleared === true && (await call('get_region')).bbox === null, 'clear_region');
+  await settle(agent, 400);
+  check(await mini.count() === 0, 'the minimap hides without a place');
   // Cyprus brings its own settings, colours included; Clear puts the earlier ones back.
   await settle(agent);
   const pre = JSON.stringify((await call('get_settings')).config);

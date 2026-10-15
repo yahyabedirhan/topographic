@@ -40,6 +40,38 @@ function boxOf(map: MapMap, rect: Rect): BBox {
   };
 }
 
+/** The minimap image's longest side in pixels: sharp at about 100 CSS px on a 2x screen, and a few kB as WebP. */
+const MINIMAP_SIDE = 240;
+
+/**
+ * Copies the map under the frame into a small WebP data URL for the minimap. MapLibre clears its
+ * drawing buffer after each frame, so the copy happens inside the next render event.
+ */
+export function captureFrame(map: MapMap, rect: Rect): Promise<string | null> {
+  return new Promise((resolve) => {
+    const done = window.setTimeout(() => resolve(null), 1500);
+    map.once('render', () => {
+      window.clearTimeout(done);
+      try {
+        const src = map.getCanvas();
+        const ratio = src.width / Math.max(1, src.clientWidth);
+        const w = rect.right - rect.left;
+        const h = rect.bottom - rect.top;
+        const scale = MINIMAP_SIDE / Math.max(w, h);
+        const out = document.createElement('canvas');
+        out.width = Math.max(1, Math.round(w * scale));
+        out.height = Math.max(1, Math.round(h * scale));
+        out.getContext('2d')!.drawImage(src, rect.left * ratio, rect.top * ratio, w * ratio, h * ratio, 0, 0, out.width, out.height);
+        const webp = out.toDataURL('image/webp', 0.72);
+        resolve(webp.startsWith('data:image/webp') ? webp : out.toDataURL('image/jpeg', 0.72));
+      } catch {
+        resolve(null);
+      }
+    });
+    map.triggerRepaint();
+  });
+}
+
 function paddingOf(host: HTMLElement, rect: Rect) {
   return { left: rect.left, top: rect.top, right: host.clientWidth - rect.right, bottom: host.clientHeight - rect.bottom };
 }
@@ -81,7 +113,8 @@ function Credit() {
  */
 export function PlacePanel({ region, onApply, appliedName, appearance }: {
   region: RegionController;
-  onApply: (bbox: BBox, placeId: string | null) => void;
+  /** `minimap` resolves to the framed map as a small image, for the minimap. */
+  onApply: (bbox: BBox, placeId: string | null, minimap?: Promise<string | null>) => void;
   /** The applied terrain's name in the dock, if it has one. */
   appliedName?: string;
   appearance: MapAppearance;
@@ -211,7 +244,9 @@ export function PlacePanel({ region, onApply, appliedName, appearance }: {
   };
   const apply = () => {
     if (!candidate || problem) return;
-    onApply(candidate, placeId);
+    const map = mapRef.current;
+    const frame = rectRef.current;
+    onApply(candidate, placeId, map && frame ? captureFrame(map, frame) : undefined);
   };
 
   const appliedLabel = appliedName ?? areaName(region.bbox);

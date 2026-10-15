@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { latToY, lonToX, resample, type BBox, type Mosaic } from './pipeline';
+import { fitRotating, minimapTurn, NORTH_UP, northTarget } from './compass';
 // Core internals that the package does not export. Read-only here: the 3D mapping lives in packages/core.
 import { viewProjection } from '../../../../packages/core/src/camera';
 import { terrainVertexSource } from '../../../../packages/core/src/shader/terrain.glsl';
@@ -74,6 +75,31 @@ describe('region orientation', () => {
       const [cx, cy] = project3d(0, 1, az, 80); // NW
       const cross = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
       expect(cross).toBeGreaterThan(0); // counter-clockwise, as on a north-up map
+    }
+  });
+
+  it('the minimap turns like the terrain on screen: north up at azimuth 0, clockwise as the azimuth grows', () => {
+    for (const az of [NORTH_UP, 30, 90, 135, 200, 270, 341.8]) {
+      const [nx, ny] = project3d(0.5, 1, az, 80);
+      const [sx, sy] = project3d(0.5, 0, az, 80);
+      // Screen direction of north, as a CSS angle: 0 is up, positive is clockwise (clip y points up).
+      const screen = (Math.atan2(nx - sx, ny - sy) * 180) / Math.PI;
+      const diff = ((screen - minimapTurn(az)) % 360 + 540) % 360 - 180;
+      expect(Math.abs(diff)).toBeLessThan(2);
+    }
+  });
+
+  it('the compass turns the short way back to north', () => {
+    expect(northTarget(30)).toBe(0);
+    expect(northTarget(341.8)).toBe(360);
+    expect(northTarget(-20)).toBe(360);
+  });
+
+  it('sizes the minimap so any rotation fits its square', () => {
+    for (const aspect of [0.5, 1, 1.55, 3]) {
+      const { width, height } = fitRotating(aspect, 100);
+      expect(Math.hypot(width, height)).toBeCloseTo(100, 6);
+      expect(width / height).toBeCloseTo(aspect, 6);
     }
   });
 });

@@ -15,6 +15,8 @@ export interface SavedTerrain {
   settings: Settings;
   /** A small image data URL for the dock, or null until the place has loaded once. */
   thumb: string | null;
+  /** The basemap inside the box as a small WebP data URL, captured at Apply, for the minimap. Null for older items. */
+  minimap: string | null;
   savedAt: number;
 }
 
@@ -23,6 +25,8 @@ export const SAVED_KEY = 'topographic.saved.v1';
 export const SAVED_MAX = 12;
 /** A thumbnail above this many characters is dropped rather than stored. */
 export const THUMB_MAX = 40_000;
+/** A minimap image above this many characters is dropped rather than stored. */
+export const MINIMAP_MAX = 60_000;
 
 type Storage = Pick<globalThis.Storage, 'getItem' | 'setItem'>;
 
@@ -52,6 +56,7 @@ export function readSaved(store: Storage | null = storage()): SavedTerrain[] {
         placeId: typeof it.placeId === 'string' ? it.placeId : null,
         settings: resolveSettings(it.settings),
         thumb: typeof it.thumb === 'string' && it.thumb.length <= THUMB_MAX ? it.thumb : null,
+        minimap: typeof it.minimap === 'string' && it.minimap.length <= MINIMAP_MAX ? it.minimap : null,
         savedAt: typeof it.savedAt === 'number' ? it.savedAt : 0,
       }];
     }).slice(0, SAVED_MAX);
@@ -69,7 +74,7 @@ export function writeSaved(items: SavedTerrain[], store: Storage | null = storag
   } catch {
     // Full storage: try once more without pictures.
     try {
-      store.setItem(SAVED_KEY, JSON.stringify(items.map((it) => ({ ...it, thumb: null }))));
+      store.setItem(SAVED_KEY, JSON.stringify(items.map((it) => ({ ...it, thumb: null, minimap: null }))));
       return true;
     } catch {
       return false;
@@ -103,6 +108,7 @@ export function addSaved(
     placeId: entry.placeId,
     settings: entry.settings,
     thumb: null,
+    minimap: null,
     savedAt: now,
   };
   return { items: [item, ...items].slice(0, SAVED_MAX), item };
@@ -115,6 +121,7 @@ export interface SavedStore {
   /** Writes new settings into an item; the box and name stay. */
   update(id: string, settings: Settings): void;
   setThumb(id: string, thumb: string): void;
+  setMinimap(id: string, minimap: string): void;
 }
 
 /** The saved terrains, read once from localStorage and written back after every change. */
@@ -142,5 +149,9 @@ export function useSaved(): SavedStore {
     if (thumb.length > THUMB_MAX || !live.current.some((it) => it.id === id && it.thumb !== thumb)) return;
     commit(live.current.map((it) => (it.id === id ? { ...it, thumb } : it)));
   }, [commit]);
-  return { items, save, remove, update, setThumb };
+  const setMinimap = useCallback((id: string, minimap: string) => {
+    if (minimap.length > MINIMAP_MAX || !live.current.some((it) => it.id === id && it.minimap !== minimap)) return;
+    commit(live.current.map((it) => (it.id === id ? { ...it, minimap } : it)));
+  }, [commit]);
+  return { items, save, remove, update, setThumb, setMinimap };
 }

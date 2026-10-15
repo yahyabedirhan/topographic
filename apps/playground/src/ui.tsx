@@ -4,6 +4,7 @@ import { Toggle } from '@base-ui-components/react/toggle';
 import { Tooltip } from '@base-ui-components/react/tooltip';
 import { Box, Dices, Earth, Frame, Map, Moon, Mountain, SlidersHorizontal, Spline, Sun, Wind, X } from 'lucide-react';
 import { MapButton } from './region/controls';
+import { Minimap } from './region/Minimap';
 import type { RegionController } from './region/useRegion';
 import type { SavedTerrain } from './saved';
 import { ignoredWithPlace } from './shape';
@@ -212,7 +213,7 @@ function SavedThumb({ item, current, onOpen, onDelete }: {
  * Every dock item is a whole terrain. Saved map terrains come first, newest first, then a divider,
  * then the built-in looks. A click switches both the shape and the colours.
  */
-export function Dock({ pg, terrains }: { pg: Playground; terrains: Terrains }) {
+export function Dock({ pg, terrains, onOpenMap }: { pg: Playground; terrains: Terrains; onOpenMap?: () => void }) {
   const thumbs = useLookThumbs(168, 96);
   const { saved, activeSaved, lookIndex } = terrains;
   const wrap = useRef<HTMLDivElement>(null);
@@ -251,6 +252,7 @@ export function Dock({ pg, terrains }: { pg: Playground; terrains: Terrains }) {
     <div className="pt-dock-wrap" ref={wrap}>
       <div className="pt-dock-col">
       <Readout pg={pg} />
+      <Minimap pg={pg} terrains={terrains} onOpenMap={onOpenMap} />
       <nav className="pt-dock pt-glass" aria-label="Examples" data-looks={LOOKS.length} data-ready={ready} data-saved={saved.items.length}>
         <div className="pt-thumbs" ref={scroller} style={{ width }}>
           {saved.items.map((item) => (
@@ -460,9 +462,10 @@ export function TuneStrip({ pg, region }: { pg: Playground; region: RegionContro
   );
 }
 
-export function Shell({ pg, terrains, place, tune, exporting, clusterRef, children }: {
+export function Shell({ pg, terrains, place, tune, exporting, clusterRef, onOpenMap, children }: {
   pg: Playground;
   terrains: Terrains;
+  onOpenMap?: () => void;
   place?: ReactNode;
   tune: ReactNode;
   exporting: ReactNode;
@@ -477,7 +480,7 @@ export function Shell({ pg, terrains, place, tune, exporting, clusterRef, childr
         <Cluster pg={pg} place={place} tune={tune} exporting={exporting} clusterRef={clusterRef} />
       </div>
       {children}
-      <Dock pg={pg} terrains={terrains} />
+      <Dock pg={pg} terrains={terrains} onOpenMap={onOpenMap} />
     </>
   );
 }
@@ -522,6 +525,7 @@ export function GlassFrame({ pg, terrains, tune, exporting }: {
       pg={pg}
       terrains={terrains}
       clusterRef={clusterRef}
+      onOpenMap={() => setOpen('place')}
       place={(
         <Popover.Root open={open === 'place'} onOpenChange={openChange('place')}>
           <MapButton hasPlace={Boolean(region.bbox)} />
