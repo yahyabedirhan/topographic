@@ -303,7 +303,7 @@ function placeThumbSettings(r: Settings): SettingsInput {
   const base = thumbSettings(r);
   return {
     ...base,
-    lines: { ...r.lines, count: Math.min(14, Math.max(9, Math.round(r.lines.count * 0.35))), width: Math.max(0.16, r.lines.width), opacity: 1 },
+    lines: { ...r.lines, count: Math.min(14, Math.max(9, Math.round(r.lines.count * 0.35))), width: Math.max(0.3, r.lines.width), opacity: 1 },
     motion: { ...r.motion, sparkle: 0 },
   };
 }
@@ -314,10 +314,12 @@ function placeThumbSettings(r: Settings): SettingsInput {
  * (or JPEG) data URL that fits in localStorage, or null.
  */
 export async function placeThumb(settings: Settings, field: Heightfield, width = 168, height = 96): Promise<string | null> {
-  // Draw the place at its own aspect, large enough to cover the thumbnail, then crop the middle.
+  // Draw the place at its own aspect and twice the size, large enough to cover the thumbnail, then
+  // crop the middle and scale it down, which smooths the thin lines like a look's picture.
   const aspect = Math.max(field.aspect || 1, 0.05);
-  const drawW = Math.round(aspect > width / height ? height * aspect : width);
-  const drawH = Math.round(aspect > width / height ? height : width / aspect);
+  const SS = 2;
+  const drawW = Math.round((aspect > width / height ? height * aspect : width) * SS);
+  const drawH = Math.round((aspect > width / height ? height : width / aspect) * SS);
   const host = hiddenHost(drawW, drawH);
   const t = createTopographicBackground(host, placeThumbSettings(settings));
   try {
@@ -328,7 +330,9 @@ export async function placeThumb(settings: Settings, field: Heightfield, width =
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
-    canvas.getContext('2d')!.drawImage(bitmap, (drawW - width) / 2, (drawH - height) / 2, width, height, 0, 0, width, height);
+    const ctx = canvas.getContext('2d')!;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(bitmap, (drawW - width * SS) / 2, (drawH - height * SS) / 2, width * SS, height * SS, 0, 0, width, height);
     const webp = canvas.toDataURL('image/webp', 0.86);
     return webp.startsWith('data:image/webp') ? webp : canvas.toDataURL('image/jpeg', 0.86);
   } catch {
