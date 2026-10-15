@@ -1,25 +1,25 @@
 import { describe, expect, it } from 'vitest';
-import { mergeSettings, type Settings } from 'topographic';
+import { mergeSettings, resolveSettings, type Settings } from 'topographic';
 import { LOOKS } from './looks';
 import cameras from './looks.cameras.json';
-import { baseline, findLook, lookSlug, readSettings, settingsParams, writeSettings } from './share-url';
+import { findLook, lookSlug, readSettings, settingsParams, writeSettings } from './share-url';
 
 const query = (s: Settings) => new URLSearchParams(settingsParams(s)).toString();
 const roundTrip = (s: Settings) => expect(readSettings(writeSettings('', s))).toEqual(s);
-const nightLobes = baseline(findLook('night-lobes')!.settings);
+const nightLobes = resolveSettings(findLook('night-lobes')!.settings);
 
 describe('share url', () => {
   it('gives every look a unique slug', () => {
     expect(lookSlug('Night lobes')).toBe('night-lobes');
     const slugs = LOOKS.map((l) => lookSlug(l.name));
     expect(new Set(slugs).size).toBe(LOOKS.length);
-    for (const look of LOOKS) roundTrip(baseline(look.settings));
+    for (const look of LOOKS) roundTrip(resolveSettings(look.settings));
   });
 
   it('writes nothing for the default page and only the style for style defaults', () => {
-    expect(query(baseline())).toBe('');
-    expect(query(baseline({ style: 'dunes' }))).toBe('s=dunes');
-    roundTrip(baseline({ style: 'dunes' }));
+    expect(query(resolveSettings())).toBe('');
+    expect(query(resolveSettings({ style: 'dunes' }))).toBe('s=dunes');
+    roundTrip(resolveSettings({ style: 'dunes' }));
   });
 
   it('writes a look by name', () => {
@@ -45,22 +45,22 @@ describe('share url', () => {
     roundTrip(s);
     expect(query(mergeSettings(s, { camera: { panX: 0, panZ: 0 } }))).toBe('look=night-lobes&mode=3d');
     // A look always comes back centred.
-    expect(baseline(findLook('night-lobes')!.settings).camera).toMatchObject({ panX: 0, panZ: 0 });
+    expect(resolveSettings(findLook('night-lobes')!.settings).camera).toMatchObject({ panX: 0, panZ: 0 });
   });
 
-  it('treats endless as the playground default and writes block', () => {
-    expect(baseline().extent).toBe('endless');
+  it('treats endless as the default and writes block', () => {
+    expect(resolveSettings().extent).toBe('endless');
     expect(readSettings('mode=3d').extent).toBe('endless');
-    const s = mergeSettings(baseline(), { mode: '3d', extent: 'block' });
+    const s = mergeSettings(resolveSettings(), { mode: '3d', extent: 'block' });
     expect(query(s)).toBe('mode=3d&ex=block');
     roundTrip(s);
   });
 
-  it('uses the playground camera as the baseline and keeps it out of the URL', () => {
-    expect(baseline().camera).toMatchObject({ azimuth: 349.7, elevation: 33.6, radius: 1.92 });
+  it('keeps the default camera out of the URL', () => {
+    expect(resolveSettings().camera).toMatchObject({ azimuth: 349.7, elevation: 33.6, radius: 1.92 });
     expect(readSettings('mode=3d').camera).toMatchObject({ azimuth: 349.7, elevation: 33.6, radius: 1.92 });
-    expect(query(mergeSettings(baseline(), { mode: '3d' }))).toBe('mode=3d');
-    const map = mergeSettings(baseline(), { mode: '3d', camera: { azimuth: 341.8, elevation: 39.3, radius: 1.32 } });
+    expect(query(mergeSettings(resolveSettings(), { mode: '3d' }))).toBe('mode=3d');
+    const map = mergeSettings(resolveSettings(), { mode: '3d', camera: { azimuth: 341.8, elevation: 39.3, radius: 1.32 } });
     expect(query(map)).toBe('mode=3d&az=341.8&ce=39.3&rd=1.32');
     roundTrip(map);
   });
@@ -68,7 +68,7 @@ describe('share url', () => {
   it('gives every look its own camera and writes nothing for it', () => {
     expect(Object.keys(cameras).sort()).toEqual(LOOKS.map((l) => l.name).sort());
     for (const look of LOOKS) {
-      const s = mergeSettings(baseline(look.settings), { mode: '3d' });
+      const s = mergeSettings(resolveSettings(look.settings), { mode: '3d' });
       expect(s.camera).toMatchObject((cameras as Record<string, object>)[look.name]);
       expect(query(s)).toBe(`look=${lookSlug(look.name)}&mode=3d`);
       roundTrip(s);
@@ -78,7 +78,7 @@ describe('share url', () => {
   });
 
   it('writes colours without # and reads them back', () => {
-    const s = baseline({ style: 'gentle-summit', seed: 4, theme: { mode: 'dark', ink: '#9fb0cc', paper: '#0b0b0d' } });
+    const s = resolveSettings({ style: 'gentle-summit', seed: 4, theme: { mode: 'dark', ink: '#9fb0cc', paper: '#0b0b0d' } });
     expect(query(s)).toBe('s=gentle-summit&seed=4&m=dark&ink=9fb0cc&paper=0b0b0d');
     roundTrip(s);
     expect(readSettings('ink=fff&paper=transparent').theme).toMatchObject({ ink: '#fff', paper: 'transparent' });

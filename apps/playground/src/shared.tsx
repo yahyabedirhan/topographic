@@ -6,7 +6,7 @@ import {
 import { TopographicBackground } from 'topographic-react';
 import { registerTools } from './webmcp';
 import { configOf, readUrl } from './url';
-import { baseline, withQuery, writeSettings } from './share-url';
+import { withQuery, writeSettings } from './share-url';
 import { LOOKS } from './looks';
 import { keepShape } from './shape';
 import { smooth } from './region/pipeline';
@@ -143,7 +143,7 @@ export function usePlayground(): Playground {
     change: (patch) => setSettings((s) => mergeSettings(s, patch)),
     replace: (next) => { cancelAnimationFrame(frame.current); setSettings(next); },
     // A look keeps the 3D view settings but always starts from its default camera pose; the motion stays.
-    applyLook: (i) => setSettings((s) => mergeSettings(baseline(LOOKS[i].settings), {
+    applyLook: (i) => setSettings((s) => mergeSettings(resolveSettings(LOOKS[i].settings), {
       mode: s.mode, elevation: s.elevation, extent: s.extent, detail: s.detail, camera: { motion: s.camera.motion },
     })),
   };

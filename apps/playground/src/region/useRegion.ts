@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { DEFAULT_ELEVATION, type Heightfield, type Settings } from 'topographic';
-import { baseline } from '../share-url';
+import { DEFAULT_ELEVATION, resolveSettings, type Heightfield, type Settings } from 'topographic';
 import type { Playground } from '../shared';
 import { limitMessage, limitProblem, spanOf, type BBox, type ReliefMode, type SmoothLevel, type Span } from './pipeline';
 import { beforePlace, findPlace, restoredKeys, terrainDefaults, type BeforePlace } from './places';
@@ -45,9 +44,9 @@ function queryOf(bbox: BBox | null, placeId: string | null): RegionQuery {
   return { bbox, place: placeId };
 }
 
-/** Without a remembered state (a place opened from a link), Clear returns to the playground's defaults for the style. */
+/** Without a remembered state (a place opened from a link), Clear returns to the library defaults for the style. */
 function generatedView(style: string): BeforePlace {
-  const d = baseline({ style });
+  const d = resolveSettings({ style });
   return { lines: d.lines, camera: d.camera, extent: d.extent, elevation: d.elevation ?? DEFAULT_ELEVATION };
 }
 

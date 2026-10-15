@@ -11,11 +11,10 @@ import type { SavedTerrain } from './saved';
 import { ignoredWithPlace } from './shape';
 import type { Terrains } from './terrains';
 import {
-  DEFAULT_CAMERA, DEFAULT_DETAIL, DEFAULT_ELEVATION, GROUPS, paramsIn, resolveMode,
+  DEFAULT_CAMERA, DEFAULT_DETAIL, DEFAULT_ELEVATION, DEFAULT_EXTENT, GROUPS, paramsIn, resolveMode,
   type CameraMotion, type GroupName, type ParamDef, type TerrainExtent,
 } from 'topographic';
 import { LOOK_CAMERAS, LOOKS } from './looks';
-import { PLAYGROUND_CAMERA } from './share-url';
 import { OffNote, Preview, Section, SegRow, SliderRow, Tabs, Tip, type TabItem } from './parts';
 import { contourArt, flowArt, layoutArt, rigArt, terrainArt, type GlyphName, type TrackKind } from './track-art';
 import {
@@ -368,9 +367,6 @@ function detailLevel(detail: number): DetailLevel {
   return detail <= 0.2 ? 'low' : detail >= 0.8 ? 'high' : 'medium';
 }
 
-/** The playground's 3D extent default: endless. */
-const DEFAULT_EXTENT: TerrainExtent = 'endless';
-
 /**
  * The camera's pose along its motion path, read from the renderer a few times a second while `moving`.
  * The preview follows the camera without redrawing on every frame. Null while the camera stands still.
@@ -427,8 +423,8 @@ function ViewTune({ pg }: { pg: Playground }) {
   const sceneChanged = s.extent !== DEFAULT_EXTENT || s.elevation !== DEFAULT_ELEVATION;
   // Scene, camera and quality only show in 3D.
   const off = s.mode !== '3d';
-  // The camera's default is the active look's camera, or the playground camera without a look.
-  const home = (pg.lookIndex >= 0 && LOOK_CAMERAS[LOOKS[pg.lookIndex].name]) || PLAYGROUND_CAMERA;
+  // The camera's default is the active look's camera, or the library's default camera without a look.
+  const home = (pg.lookIndex >= 0 && LOOK_CAMERAS[LOOKS[pg.lookIndex].name]) || DEFAULT_CAMERA;
   const cameraChanged = (Object.keys(home) as (keyof typeof home)[]).some((k) => s.camera[k] !== home[k])
     || s.camera.motion !== DEFAULT_CAMERA.motion || s.camera.panX !== 0 || s.camera.panZ !== 0;
   const pose = useLivePose(pg, !off && s.camera.motion !== 'still');
