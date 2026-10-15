@@ -45,6 +45,7 @@ The call puts a canvas inside `element`, which fills it, so give the element a s
 | `update(partialSettings)` | Merges into the current settings, clamps, and applies live. Only changed values reach the GPU. |
 | `snapshot({ frame?, width?, height? })` | Renders one PNG off-screen and resolves to a `Blob`. See [Snapshots](#snapshots-and-png-export). |
 | `record({ seconds?, fps?, width?, height?, frame?, format?, motion? })` | Renders a 3D clip with a moving camera and resolves to an MP4 or WebM `Blob`. |
+| `setHeightfield({ samples, size, aspect } \| null)` | Draws the contours from your own square elevation grid instead of the style's terrain: `samples` is a `Float32Array` of `size × size` values from 0 (low) to 1 (high), row 0 at the south, and `aspect` is the place's width over its height. `null` brings the procedural style back. |
 | `stats` | `{ fps, frameMs, mesh }` for the 3D view. `mesh` is 0 in 2D. |
 | `destroy()` | Stops drawing, removes listeners and the canvas, and frees the WebGL context. |
 | `settings` | The current, fully resolved settings. |
@@ -317,6 +318,7 @@ In browsers that support [WebMCP](https://github.com/webmachinelearning/webmcp),
 | `set_settings` | Applies a partial settings object, and reports any clamped values or ignored keys. |
 | `randomize` | A new random seed; with `{ "style": true }`, a random style too. |
 | `take_screenshot` | A PNG of the background as a data URL (1200 px wide by default). |
+| `record_video` | A short 3D clip of the current terrain with a moving camera, as an MP4 or WebM data URL (a 2 second orbit at 640×360 by default). |
 | `get_embed_code` | Code for `html`, `react`, `vanilla` or `json`. |
 | `get_install_instructions` | Setup for `npm`, `web-component`, `react` or `vanilla`. |
 
