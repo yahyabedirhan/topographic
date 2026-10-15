@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Map popover prototypes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Literata:opsz,wght@7..72,600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--sans:-apple-system,BlinkMacSystemFont,Inter,system-ui,sans-serif}
+/* Tokens copied from apps/playground/src/style.css, scoped per cell so dark and light sit side by side. */
+[data-theme=dark]{--fg:#ecebe8;--mut:#8b8a86;--line:rgba(255,255,255,.09);--card:rgba(255,255,255,.04);--paper:#0b0b0d;--on:#ecebe8;--on-fg:#0b0b0d;
+  --seg-on:color-mix(in srgb,var(--fg) 15%,transparent);--seg-shadow:inset 0 0 0 .5px rgba(255,255,255,.06),0 1px 2px rgba(0,0,0,.25);
+  --frame:#fff;--shade:rgba(0,0,0,.38);color-scheme:dark}
+[data-theme=light]{--fg:#1b1b1a;--mut:#7c7a76;--line:rgba(0,0,0,.08);--card:rgba(255,255,255,.55);--paper:#f9f8f6;--on:#1b1b1a;--on-fg:#f9f8f6;
+  --seg-on:#fff;--seg-shadow:0 0 0 .5px rgba(0,0,0,.06),0 1px 3px rgba(0,0,0,.12);
+  --frame:#1b1b1a;--shade:rgba(249,248,246,.55);color-scheme:light}
+html,body{background:#0b0b0d}
+body{font:400 15px/1.65 var(--sans);color:#ecebe8;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+svg.i{display:block;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* Page */
+.page{width:1552px;margin:0 auto;padding:40px 0 80px}
+.page-head{display:grid;grid-template-columns:1fr auto;gap:24px;align-items:end;margin-bottom:36px;padding-bottom:24px;border-bottom:.5px solid rgba(255,255,255,.09)}
+.page-head h1{font:600 26px/1.1 Literata,Georgia,serif;letter-spacing:-.015em}
+.page-head p{color:#8b8a86;font-size:13px;line-height:1.5;max-width:760px;margin-top:8px}
+.legend{display:flex;gap:18px;color:#8b8a86;font-size:12px}
+.legend b{color:#ecebe8;font-weight:500}
+.proto{display:grid;grid-template-columns:300px 1fr;gap:28px;padding:36px 0;border-bottom:.5px solid rgba(255,255,255,.09)}
+.notes{position:sticky;top:24px;align-self:start}
+.tag{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;background:#ecebe8;color:#0b0b0d;font:600 12px/1 var(--sans);letter-spacing:.02em}
+.notes h2{font:600 20px/1.2 Literata,Georgia,serif;letter-spacing:-.01em;margin:12px 0 6px}
+.notes .idea{color:#ecebe8;font-size:13.5px;line-height:1.5}
+.notes dl{margin-top:16px;display:grid;gap:12px}
+.notes dt{font:600 10.5px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:#8b8a86;margin-bottom:5px}
+.notes dd{font-size:12.5px;line-height:1.5;color:#c9c8c4}
+.notes dd ul{padding-left:16px}
+.grid{display:grid;grid-template-columns:repeat(2,592px);gap:28px 24px;align-items:start}
+.cap{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;font-size:12px;color:#8b8a86}
+.cap b{color:#ecebe8;font-weight:500}
+.cap .fit{font-variant-numeric:tabular-nums}
+
+/* A cell is a corner of the real app: the stage, the cluster, the popover under it. */
+.cell{position:relative;width:592px;border-radius:18px;overflow:hidden;background:var(--paper);color:var(--fg);padding:16px 16px 22px;display:flex;flex-direction:column;align-items:flex-end;gap:8px;
+  box-shadow:0 0 0 .5px rgba(255,255,255,.08)}
+.cell::before{content:'';position:absolute;inset:0;background:url(img/bg-3d-dark.jpg) 82% 72%/1700px auto no-repeat;opacity:.9}
+.cell[data-theme=light]::before{background-image:url(img/bg-3d-light.jpg)}
+.cell > *{position:relative}
+
+.glass{background:color-mix(in srgb,var(--paper) 50%,transparent);box-shadow:inset 0 0 0 .5px var(--line),inset 0 1px 0 rgba(255,255,255,.08),0 18px 50px -24px rgba(0,0,0,.65);
+  backdrop-filter:blur(22px) saturate(1.5);-webkit-backdrop-filter:blur(22px) saturate(1.5)}
+.cluster{display:flex;align-items:center;gap:2px;padding:6px;border-radius:999px}
+.ibtn{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:var(--fg);position:relative}
+.ibtn.open{background:color-mix(in srgb,var(--fg) 14%,transparent)}
+.ibtn.dot::after{content:'';position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--fg);box-shadow:0 0 0 2px color-mix(in srgb,var(--paper) 80%,transparent)}
+.pop{width:560px;border-radius:22px;padding:14px 16px 16px}
+
+/* Shared map parts */
+.map{position:relative;overflow:hidden;background:var(--paper) center/cover no-repeat;box-shadow:inset 0 0 0 .5px var(--line)}
+.frame{position:absolute;border:1.5px solid var(--frame);border-radius:14px;box-shadow:0 0 0 999px var(--shade);pointer-events:none}
+.ov{position:absolute;z-index:2}
+/* The quiet overlay chip on the map, same recipe as .pt-map-span but on paper, so it follows the theme. */
+.chip-glass{background:color-mix(in srgb,var(--paper) 62%,transparent);box-shadow:inset 0 0 0 .5px var(--line);backdrop-filter:blur(12px) saturate(1.4);-webkit-backdrop-filter:blur(12px) saturate(1.4)}
+.span{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 9px;border-radius:999px;font:500 11.5px/1 var(--sans);font-variant-numeric:tabular-nums;color:var(--fg);white-space:nowrap}
+.span .m{color:var(--mut);font-weight:400}
+
+/* Credit: a quiet © that opens into a small glass label. */
+.credit{display:flex;align-items:flex-start;gap:6px;border-radius:12px;padding:2px;color:var(--mut);font:10.5px/1.4 var(--sans);max-width:300px}
+/* Closed: the © glyph alone, on a soft paper halo, no ring around its ring. Open: a glass label. */
+.credit .c{width:20px;height:20px;display:grid;place-items:center;font:400 16px/1 var(--sans);color:color-mix(in srgb,var(--fg) 70%,transparent);flex:none;
+  text-shadow:0 0 2px var(--paper),0 0 6px var(--paper)}
+.credit:not(.open){background:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
+.credit.open{padding:2px 10px 3px 2px;max-width:none}
+.credit.open .c{color:var(--fg);text-shadow:none}
+.credit span{padding-top:1px;white-space:nowrap}
+.credit a{color:var(--mut);text-decoration:none}
+.credit a:hover{color:var(--fg)}
+
+/* Buttons: the real .pt-action at 13px, plus a quiet sibling and an applied state. */
+.act{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 14px;border-radius:999px;font:500 13px/1 var(--sans);white-space:nowrap}
+.act.primary{background:var(--on);color:var(--on-fg)}
+.act.quiet{background:color-mix(in srgb,var(--fg) 8%,transparent);color:var(--fg)}
+.act.done{background:transparent;color:var(--mut);box-shadow:inset 0 0 0 .5px var(--line);cursor:default}
+.act.icon{width:32px;padding:0}
+.acts{display:flex;align-items:center;gap:6px;flex:none}
+
+/* Choices: the real .pt-seg recipe, auto width. */
+.seg{display:inline-flex;padding:2px;border-radius:9px;background:color-mix(in srgb,var(--fg) 7%,transparent)}
+.seg button{height:28px;padding:0 10px;border-radius:7px;color:var(--mut);font-size:12.5px;line-height:1;white-space:nowrap}
+.seg button.on{background:var(--seg-on);box-shadow:var(--seg-shadow);color:var(--fg)}
+.seg.pill{border-radius:999px;padding:3px}
+.seg.pill button{border-radius:999px;height:26px}
+
+/* ───────── P1 · map-first, overlaid ───────── */
+.p1{padding:6px}
+.p1 .map{height:342px;border-radius:16px}
+.p1 .frame{left:16%;right:16%;top:14%;bottom:17%}
+.p1 .tl{top:10px;left:10px}
+.p1 .tr{top:10px;right:10px}
+.p1 .bl{bottom:10px;left:10px}
+.p1 .br{bottom:10px;right:10px;display:flex;gap:4px;padding:3px;border-radius:999px}
+.p1 .br .act{height:28px;padding:0 12px;font-size:12.5px}
+.p1 .seg.pill{background:color-mix(in srgb,var(--paper) 62%,transparent);box-shadow:inset 0 0 0 .5px var(--line);backdrop-filter:blur(12px) saturate(1.4);-webkit-backdrop-filter:blur(12px) saturate(1.4)}
+.p1 .seg.pill button{color:color-mix(in srgb,var(--fg) 72%,transparent)}
+.p1 .seg.pill button.on{color:var(--fg)}
+
+/* ───────── P2 · one toolbar under the map ───────── */
+.p2 .map{height:330px;border-radius:12px}
+.p2 .frame{left:16%;right:16%;top:13%;bottom:16%}
+.p2 .bl{bottom:8px;left:8px}
+.p2 .br{bottom:8px;right:8px}
+.p2 .bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px}
+
+/* ───────── P3 · search header, map, status footer ───────── */
+.p3 .head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;position:relative;z-index:5}
+.combo{display:flex;align-items:center;gap:8px;width:252px;height:32px;padding:0 10px 0 10px;border-radius:10px;background:color-mix(in srgb,var(--fg) 7%,transparent);box-shadow:inset 0 0 0 .5px var(--line);color:var(--fg);font-size:13px}
+.combo .ph{color:var(--mut)}
+.combo .grow{flex:1;text-align:left}
+.combo .chev{color:var(--mut)}
+.menu{position:absolute;top:38px;left:0;width:300px;padding:4px;border-radius:14px}
+.menu .item{width:100%;display:grid;grid-template-columns:16px 1fr;gap:2px 10px;align-items:center;padding:7px 10px;border-radius:10px;text-align:left}
+.menu .item.hl{background:color-mix(in srgb,var(--fg) 8%,transparent)}
+.menu .item b{font-weight:500;font-size:13px;line-height:1.2}
+.menu .item small{grid-column:2;color:var(--mut);font-size:11px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.menu .sep{height:.5px;background:var(--line);margin:4px 8px}
+.p3 .readout{display:flex;align-items:center;gap:6px;color:var(--mut);font-size:12px;font-variant-numeric:tabular-nums}
+.p3 .map{height:310px;border-radius:12px}
+.p3 .frame{left:16%;right:16%;top:13%;bottom:16%}
+.p3 .tr{top:8px;right:8px}
+.p3 .foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px}
+.status{display:flex;align-items:center;gap:10px;min-width:0}
+.status .ico{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;background:color-mix(in srgb,var(--fg) 7%,transparent);color:var(--fg);flex:none}
+.status .tx{display:grid;gap:3px;min-width:0}
+.status b{font-weight:500;font-size:13px;line-height:1.1;white-space:nowrap}
+.status small{color:var(--mut);font-size:11.5px;line-height:1.1;white-space:nowrap;font-variant-numeric:tabular-nums}
+
+/* ───────── P4 · edge-to-edge map, glass footer ───────── */
+.p4{padding:0;overflow:hidden}
+.p4 .map{height:404px;border-radius:0;box-shadow:none}
+.p4 .frame{left:15%;right:15%;top:10%;bottom:31%}
+.p4 .tr{top:12px;right:12px}
+.p4 .strip{position:absolute;z-index:2;left:0;right:0;bottom:70px;display:flex;gap:6px;padding:0 14px;overflow:hidden;
+  -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent)}
+.p4 .strip button{background:color-mix(in srgb,var(--paper) 74%,transparent);height:28px;padding:0 12px;border-radius:999px;font-size:12.5px;line-height:1;color:var(--fg);white-space:nowrap;flex:none}
+.p4 .strip button.on{background:var(--on);color:var(--on-fg);box-shadow:none}
+.p4 .strip .sp{width:.5px;height:16px;background:color-mix(in srgb,var(--fg) 25%,transparent);align-self:center;margin:0 2px;flex:none}
+.p4 .strip .saved{display:inline-flex;align-items:center;gap:6px}
+.p4 .foot{position:absolute;z-index:3;left:0;right:0;bottom:0;height:60px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 12px 0 14px;
+  background:color-mix(in srgb,var(--paper) 66%,transparent);box-shadow:inset 0 .5px 0 var(--line);backdrop-filter:blur(22px) saturate(1.5);-webkit-backdrop-filter:blur(22px) saturate(1.5)}
+
+/* ───────── P5 · places list + action on the frame ───────── */
+.p5{padding:8px;display:grid;grid-template-columns:168px 1fr;gap:8px}
+.p5 .side{display:flex;flex-direction:column;justify-content:space-between;gap:8px}
+.list{display:grid;gap:2px;padding:3px;border-radius:14px;background:color-mix(in srgb,var(--fg) 6%,transparent)}
+.row{display:grid;grid-template-columns:1fr auto;align-items:center;gap:6px;padding:7px 10px 7px 11px;border-radius:11px;text-align:left;color:var(--fg)}
+.row.on{background:var(--seg-on);box-shadow:var(--seg-shadow)}
+.row .t{display:grid;gap:3px;min-width:0}
+.row b{font-weight:500;font-size:13px;line-height:1.15;white-space:nowrap}
+.row small{color:var(--mut);font-size:11px;line-height:1.1;white-space:nowrap;font-variant-numeric:tabular-nums}
+.row .mark{width:16px;height:16px;display:grid;place-items:center;color:var(--fg)}
+.row .live{width:7px;height:7px;border-radius:50%;background:var(--fg)}
+.p5 .hint{color:var(--mut);font-size:11px;line-height:1.4;padding:0 8px 4px}
+.p5 .map{height:326px;border-radius:14px}
+.p5 .frame{left:13%;right:13%;top:15%;bottom:19%}
+.p5 .dim{position:absolute;z-index:2;left:50%;transform:translate(-50%,-50%);top:15%}
+.p5 .onframe{position:absolute;z-index:2;left:50%;transform:translate(-50%,50%);bottom:19%;display:flex;gap:4px;padding:3px;border-radius:999px}
+.p5 .onframe .act{height:28px;padding:0 12px;font-size:12.5px}
+.p5 .tr{top:8px;right:8px}
+</style>
+</head>
+<body>
+<div class="page" id="page"></div>
+<script>
+const I = {
+  pin:'<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/>',
+  box:'<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>',
+  sliders:'<line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/>',
+  share:'<path d="M12 2v13"/><path d="m16 6-4-4-4 4"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>',
+  check:'<path d="M20 6 9 17l-5-5"/>',
+  x:'<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  chev:'<path d="m6 9 6 6 6-6"/>',
+  search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  mountain:'<path d="m8 3 4 8 5-5 5 15H2L8 3z"/>',
+  scan:'<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/>',
+  move:'<path d="M12 2v20"/><path d="m15 19-3 3-3-3"/><path d="m19 9 3 3-3 3"/><path d="M2 12h20"/><path d="m5 9-3 3 3 3"/><path d="m9 5 3-3 3 3"/>',
+  earth:'<path d="M21.54 15H17a2 2 0 0 0-2 2v4.54"/><path d="M7 3.34V5a3 3 0 0 0 3 3a2 2 0 0 1 2 2c0 1.1.9 2 2 2a2 2 0 0 0 2-2c0-1.1.9-2 2-2h3.17"/><path d="M11 21.95V18a2 2 0 0 0-2-2a2 2 0 0 1-2-2v-1a2 2 0 0 0-2-2H2.05"/><circle cx="12" cy="12" r="10"/>',
+  rotate:'<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
+};
+const ico = (n, s = 14, w = 1.75) => `<svg class="i" width="${s}" height="${s}" viewBox="0 0 24 24" stroke-width="${w}" aria-hidden="true">${I[n]}</svg>`;
+
+const CITIES = [
+  { id:'istanbul', name:'Istanbul', size:'101 × 64 km' },
+  { id:'sf', name:'San Francisco', size:'79 × 51 km' },
+  { id:'london', name:'London', size:'80 × 51 km' },
+  { id:'ny', name:'New York', size:'84 × 54 km' },
+];
+const NOTES = { istanbul:'The Bosphorus and the Princes’ Islands', sf:'The Bay, Tamalpais and Diablo', london:'Greater London, the Thames', ny:'The five boroughs and the harbour' };
+const cityName = (id) => CITIES.find((c) => c.id === id)?.name;
+
+/*
+ * The story every prototype tells:
+ * a  nothing applied, the map at its first view, Apply ready.
+ * b  Istanbul applied, then the frame moved: Apply is ready again and Clear is there.
+ * c  Istanbul applied and on the map: Applied (done) and Clear.
+ * L  light mode: London applied and on the map.
+ */
+const STATES = {
+  a: { theme:'dark', img:'istanbul-dark', size:'101 km × 64 km', short:'101 × 64 km', city:null, applied:null, onApplied:false, credit:false, label:'(a) Nothing applied' },
+  b: { theme:'dark', img:'moved-dark', size:'101 km × 64 km', short:'101 × 64 km', city:null, applied:'istanbul', onApplied:false, credit:true, label:'(b) Frame moved, ready to Apply' },
+  c: { theme:'dark', img:'istanbul-dark', size:'101 km × 64 km', short:'101 × 64 km', city:'istanbul', applied:'istanbul', onApplied:true, credit:false, label:'(c) Istanbul applied' },
+  L: { theme:'light', img:'london-light', size:'80 km × 51 km', short:'80 × 51 km', city:'london', applied:'london', onApplied:true, credit:false, label:'Light · London applied' },
+};
+
+const credit = (open, cls = '') => open
+  ? `<div class="ov ${cls} credit open chip-glass"><span class="c">©</span><span><a href="#">OpenFreeMap</a> © <a href="#">OpenMapTiles</a> · data © <a href="#">OpenStreetMap</a><br>Elevation: <a href="#">Mapzen Terrain Tiles</a>, AWS Open Data</span></div>`
+  : `<div class="ov ${cls} credit chip-glass" title="Map credits"><span class="c">©</span></div>`;
+
+const applyBtn = (s, small) => s.onApplied
+  ? `<button class="act done" disabled>${ico('check', 13, 2)}Applied</button>`
+  : `<button class="act primary">Apply</button>`;
+const clearBtn = (s, cls = 'quiet') => s.applied ? `<button class="act ${cls}">Clear</button>` : '';
+const segCities = (s, cls = '') => `<div class="seg ${cls}">${CITIES.map((c) => `<button class="${s.city === c.id ? 'on' : ''}">${c.name}</button>`).join('')}</div>`;
+const mapStyle = (s) => `style="background-image:url(img/${s.img}.jpg)"`;
+
+const P = [
+  {
+    id:'P1', title:'Map-first overlay',
+    idea:'The popover is the map. Cities, size and actions float on it as small glass chips, so nothing sits outside the map.',
+    pros:['Smallest popover (354 px) and the biggest map per pixel.','Feels like Maps: you act on the thing itself.'],
+    cons:['Chips and buttons sit on busy map pixels; glass carries legibility.','No room for a status line: state lives in the readout only.','Unlike Tune and Export, which have content under a header.'],
+    render: (s) => `<div class="pop glass p1"><div class="map" ${mapStyle(s)}>
+      <div class="frame"></div>
+      <div class="ov tl span chip-glass">${s.onApplied ? `${ico('pin', 12, 2)}${cityName(s.applied)}<span class="m">· ${s.short}</span>` : s.size}</div>
+      ${credit(s.credit, 'tr')}
+      <div class="ov bl">${segCities(s, 'pill')}</div>
+      <div class="ov br chip-glass">${clearBtn(s)}${applyBtn(s)}</div>
+    </div></div>`,
+  },
+  {
+    id:'P2', title:'One toolbar under the map',
+    idea:'The map, then one balanced row: city choices at the left, Clear and Apply at the right. No labels.',
+    pros:['Closest to the current build: the smallest change.','Reads left to right: pick, then commit.','Uses the real .pt-seg control, so it matches Tune.'],
+    cons:['Still no words for what is applied; the dot on the Map button carries that.','Four city names nearly fill the row; a fifth would not fit.'],
+    render: (s) => `<div class="pop glass p2"><div class="map" ${mapStyle(s)}>
+      <div class="frame"></div>
+      ${credit(s.credit, 'bl')}
+      <div class="ov br span chip-glass">${s.size}</div>
+    </div>
+    <div class="bar">${segCities(s)}<div class="acts">${clearBtn(s)}${applyBtn(s)}</div></div></div>`,
+  },
+  {
+    id:'P3', title:'Go-to header, status footer',
+    idea:'A "Go to" city menu and the frame size on top, the map in the middle, and a footer that says what the terrain is now, with the actions at its right.',
+    pros:['The footer answers "what is the terrain now?" in words.','The city menu has room for notes, saved places and later a real search.','Header, body, footer: the same shape as a macOS sheet.'],
+    cons:['Cities take two clicks instead of one.','Tallest of the five (426 px), still well within 628 px.'],
+    render: (s, light) => {
+      const status = !s.applied
+        ? { i:'mountain', b:'Generated terrain', m:'Frame a place, then Apply' }
+        : s.onApplied ? { i:'pin', b:cityName(s.applied), m:`Applied · ${s.short}` }
+        : { i:'move', b:'New area', m:`${cityName(s.applied)} applied now` };
+      const menu = light ? `<div class="menu glass">${CITIES.map((c) => `<button class="item ${c.id === 'sf' ? 'hl' : ''}"><span>${s.city === c.id ? ico('check', 14, 2) : ''}</span><b>${c.name}</b><small>${NOTES[c.id]}</small></button>`).join('')}</div>` : '';
+      return `<div class="pop glass p3"><div class="head">
+        <button class="combo">${ico('search', 14)}<span class="grow ${s.city ? '' : 'ph'}">${s.city ? cityName(s.city) : 'Go to a city'}</span><span class="chev">${ico('chev', 14)}</span></button>
+        <span class="readout">${ico('scan', 13)}${s.size}</span>${menu}</div>
+      <div class="map" ${mapStyle(s)}><div class="frame"></div>${credit(s.credit, 'tr')}</div>
+      <div class="foot"><div class="status"><span class="ico">${ico(status.i, 15)}</span><span class="tx"><b>${status.b}</b><small>${status.m}</small></span></div>
+        <div class="acts">${clearBtn(s)}${applyBtn(s)}</div></div></div>`;
+    },
+  },
+  {
+    id:'P4', title:'Edge-to-edge map, glass footer',
+    idea:'The map fills the popover to its rounded edges. A glass footer inside the bottom holds the status and the actions; a city strip floats just above it.',
+    pros:['The most immersive and the most "Apple Maps" of the five.','Status and actions share one bar, so state is always in words.','The strip can grow: saved places can follow the cities.'],
+    cons:['The only popover without the 14/16 px inset; it breaks the family a little.','City chips float on the map, like P1.'],
+    render: (s) => {
+      const status = !s.applied
+        ? { b:'Generated terrain', m:`Frame ${s.short}` }
+        : s.onApplied ? { b:cityName(s.applied), m:`Applied · ${s.short}` }
+        : { b:'New area', m:`${s.short} · ${cityName(s.applied)} applied now` };
+      return `<div class="pop glass p4"><div class="map" ${mapStyle(s)}>
+        <div class="frame"></div>${credit(s.credit, 'tr')}
+        <div class="strip">${CITIES.map((c) => `<button class="chip-glass ${s.city === c.id ? 'on' : ''}">${c.name}</button>`).join('')}</div>
+        <div class="foot"><div class="status"><span class="tx"><b>${status.b}</b><small>${status.m}</small></span></div>
+          <div class="acts">${clearBtn(s)}${applyBtn(s)}</div></div>
+      </div></div>`;
+    },
+  },
+  {
+    id:'P5', title:'Places list, Apply on the frame',
+    idea:'A short list of places at the left, with Generated as the first one, so Clear is just a choice. Apply rides on the frame itself, under the size.',
+    pros:['Every terrain source is one list: what is live has a dot, what you look at is highlighted.','No Clear button to learn: pick Generated.','The action sits on the object it acts on.'],
+    cons:['A narrower map (368 px).','Apply on the frame is a new pattern in this app.','The list does not scale past five or six places.'],
+    render: (s) => {
+      const rows = [{ id:'gen', name:'Generated', sub:'Noise terrain' }, ...CITIES.map((c) => ({ id:c.id, name:c.name, sub:c.size }))];
+      const live = s.applied ?? 'gen';
+      const view = s.onApplied ? s.applied : s.city;
+      return `<div class="pop glass p5"><div class="side"><div class="list">${rows.map((r) => `<button class="row ${view === r.id ? 'on' : ''}"><span class="t"><b>${r.name}</b><small>${r.sub}</small></span><span class="mark">${live === r.id ? '<i class="live"></i>' : ''}</span></button>`).join('')}</div>
+        <p class="hint">Applied places are kept in the dock.</p></div>
+        <div class="map" ${mapStyle(s)}><div class="frame"></div>
+          <div class="dim span chip-glass">${s.size}</div>
+          <div class="onframe glass">${s.onApplied ? `<button class="act done">${ico('check', 13, 2)}Applied</button>` : `<button class="act primary">Apply</button>`}</div>
+          ${credit(s.credit, 'tr')}
+        </div></div>`;
+    },
+  },
+];
+
+const cluster = (s) => `<div class="cluster glass"><span class="ibtn open ${s.applied ? 'dot' : ''}">${ico('pin', 18)}</span><span class="ibtn">${ico('box', 18)}</span><span class="ibtn">${ico('sliders', 18)}</span><span class="ibtn">${ico('share', 18)}</span></div>`;
+
+const page = document.getElementById('page');
+page.innerHTML = `<header class="page-head"><div><h1>Map popover · five directions</h1>
+  <p>Each row is one direction in four cells: three dark states and one light. Every cell is the top-right corner of the real app: the cluster, then the popover 8 px under it, at its real 560 px width with the real tokens, glass and lucide icons. The maps are captures of the live MapLibre basemap. The figure above each cell is the popover height; at 1280 × 800 it must stay under 628 px to clear the dock without scrolling.</p></div>
+  <div class="legend"><span><b>a</b> nothing applied</span><span><b>b</b> frame moved</span><span><b>c</b> place applied</span></div></header>
+  ${P.map((p) => `<section class="proto" id="${p.id}"><div class="notes"><span class="tag">${p.id}</span><h2>${p.title}</h2><p class="idea">${p.idea}</p>
+    <dl><div><dt>Good</dt><dd><ul>${p.pros.map((x) => `<li>${x}</li>`).join('')}</ul></dd></div><div><dt>Cost</dt><dd><ul>${p.cons.map((x) => `<li>${x}</li>`).join('')}</ul></dd></div></dl></div>
+    <div class="grid">${Object.entries(STATES).map(([k, s]) => `<div><div class="cap"><b>${s.label}</b><span class="fit"></span></div>
+      <div class="cell" data-theme="${s.theme}">${cluster(s)}${p.render(s, k === 'L')}</div></div>`).join('')}</div></section>`).join('')}`;
+
+document.fonts.ready.then(() => {
+  document.querySelectorAll('.cell').forEach((cell) => {
+    const h = Math.round(cell.querySelector('.pop').getBoundingClientRect().height);
+    cell.parentElement.querySelector('.fit').textContent = `${h} px tall · ${h <= 628 ? 'fits' : 'too tall'} at 1280 × 800`;
+  });
+  document.body.dataset.ready = '1';
+});
+</script>
+</body>
+</html>

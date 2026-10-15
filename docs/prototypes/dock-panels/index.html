@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cluster and dock mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Literata:opsz,wght@7..72,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="real-style.css">
+<link rel="stylesheet" href="proposed.css">
+<style>
+  /* ---- mockup page chrome only (not part of the proposal) ---- */
+  html,body{background:#060607}
+  body{width:1600px;margin:0 auto;padding:40px 28px 64px;color:#ecebe8;font:400 14px/1.5 var(--sans)}
+  .page-h{display:flex;align-items:baseline;justify-content:space-between;gap:24px;margin-bottom:6px}
+  .page-h h1{font:600 26px/1.15 Literata,Georgia,serif;letter-spacing:-.01em}
+  .page-h p{color:#8b8a86;font-size:13px}
+  .rules{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0 34px}
+  .rule{padding:14px 16px;border-radius:14px;background:#111114;box-shadow:inset 0 0 0 .5px rgba(255,255,255,.08)}
+  .rule b{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#8b8a86;font-weight:600;margin-bottom:6px}
+  .rule p{font-size:13px;line-height:1.5;color:#d8d7d3}
+  .rule code{font-size:12px;color:#ecebe8}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:36px}
+  .row.one{grid-template-columns:1fr}
+  .cap{display:flex;align-items:baseline;gap:10px;margin:0 0 10px}
+  .cap .tag{flex:none;display:inline-grid;place-items:center;min-width:26px;height:22px;padding:0 7px;border-radius:7px;background:#ecebe8;color:#0b0b0d;font:600 12px/1 var(--sans)}
+  .cap .tag.alt{background:transparent;color:#ecebe8;box-shadow:inset 0 0 0 1px rgba(255,255,255,.3)}
+  .cap h3{font:600 15px/1.3 var(--sans)}
+  .cap span{color:#8b8a86;font-size:13px}
+  .note{margin-top:10px;color:#8b8a86;font-size:12.5px;line-height:1.5;max-width:720px}
+  .note b{color:#d8d7d3;font-weight:500}
+  .stage{position:relative;overflow:hidden;border-radius:16px;box-shadow:0 0 0 1px rgba(255,255,255,.08);background-repeat:no-repeat;background-position:right top;background-size:1440px 900px}
+  .stage.full{width:1440px;height:900px;margin:0 auto;background-position:0 0}
+  .stage .pt-wordmark{position:absolute}
+  .stage .pt-dock-wrap{position:absolute}
+  .anchor{position:absolute;top:16px;right:16px}
+  .popat{position:absolute;top:74px;right:16px}
+  .fps-left{position:absolute;left:22px;top:70px}
+  .fps-right{position:absolute;right:30px;top:76px}
+  .th-light .pt-map-frame{border-color:#1b1b1a;box-shadow:0 0 0 999px rgba(249,248,246,.5)}
+  .pt-thumb-media{background-repeat:no-repeat;background-size:1316px 48px}
+  .marker{position:absolute;pointer-events:none;border:1px dashed rgba(255,94,58,.85);border-radius:10px}
+  .marker i{position:absolute;left:0;top:-20px;font:600 10.5px/1 var(--sans);font-style:normal;color:#ff5e3a;white-space:nowrap;letter-spacing:.02em}
+  .zoom{transform:scale(1.5);transform-origin:right bottom}
+</style>
+</head>
+<body>
+
+<header class="page-h">
+  <h1>One anchor, one row grid</h1>
+  <p>Topographic playground · cluster, popovers and dock · mockup on real CSS tokens</p>
+</header>
+
+<section class="rules">
+  <div class="rule"><b>Anchor</b><p>Every popover opens under the cluster, right-aligned, 10px below it. Cluster order: Place, 2D/3D, Tune, Export. Widths: <code>380</code> (Tune, Export) and <code>560</code> (Place). Padding 14/16/16, radius 22.</p></div>
+  <div class="rule"><b>Header</b><p>Sentence-case title, 13px semibold, one accessory on the right. Then a full-width tab bar (icon over label) where a popover has tabs. Labels on tabs mean no tooltips that cover content.</p></div>
+  <div class="rule"><b>Row grid</b><p><code>80px | 1fr | 40px</code>, gap 12, rows 34px. Label 12.5px ink, value 12px muted, tabular, right-aligned. Numbers are sliders; choices are segmented controls spanning control and value columns.</p></div>
+  <div class="rule"><b>Sections</b><p>10.5px uppercase muted header, 26px tall, one ↺ reset per group (shown only when changed). 10px + hairline + 10px between groups, 0 between rows. Look controls live only in the dock.</p></div>
+</section>
+
+<div class="row">
+  <div><div class="cap"><span class="tag">A</span><h3>Tune → 3D, dark</h3><span>V1 · headers + hairlines</span></div><div class="stage th-dark" id="A" style="height:610px;background-image:url(shots/clean-dark.jpg)"></div>
+    <p class="note">Camera has moved from its defaults, so its group shows the ↺. The frame-rate readout has left Tune; Quality keeps only the Detail presets.</p></div>
+  <div><div class="cap"><span class="tag">B</span><h3>Tune → 3D, light</h3><span>V1 · same panel, light tokens</span></div><div class="stage th-light" id="B" style="height:610px;background-image:url(shots/clean-light.jpg)"></div>
+    <p class="note">The selected segment is a white chip with a soft shadow in light mode and a 15% ink fill in dark mode (new token <b>--seg-on</b>).</p></div>
+</div>
+
+<div class="row">
+  <div><div class="cap"><span class="tag alt">V2</span><h3>Tune → 3D, dark</h3><span>headers + inset cards</span></div><div class="stage th-dark" id="V2d" style="height:610px;background-image:url(shots/clean-dark.jpg)"></div></div>
+  <div><div class="cap"><span class="tag alt">V2</span><h3>Tune → 3D, light</h3><span>headers + inset cards</span></div><div class="stage th-light" id="V2l" style="height:610px;background-image:url(shots/clean-light.jpg)"></div>
+    <p class="note">Recommendation: <b>V1</b>. Cards add a third layer of fill inside glass that is already a layer over the terrain. The segmented tracks then sit on a fill on a fill and lose contrast, and every row gets 10px narrower. Hairlines group with space, not with boxes.</p></div>
+</div>
+
+<div class="row">
+  <div><div class="cap"><span class="tag alt">A2</span><h3>Tune → Terrain, dark</h3><span>the 2D tabs follow the same grid</span></div><div class="stage th-dark" id="T2" style="height:520px;background-image:url(shots/clean-dark.jpg)"></div>
+    <p class="note">The 2D groups split into sections where they hold more than four rows: Terrain → Shape and Surface. The others keep one section. The label column fits the longest label, so <b>Index line every</b> becomes <b>Index every</b>.</p></div>
+  <div><div class="cap"><span class="tag alt">A3</span><h3>Export → Video, dark</h3><span>the same header, tabs and rows</span></div><div class="stage th-dark" id="X" style="height:520px;background-image:url(shots/clean-dark.jpg)"></div>
+    <p class="note">Export narrows from 420 to the standard 380. Its format bar becomes the shared tab bar. The camera path is a segmented row like Motion in Tune.</p></div>
+</div>
+
+<div class="row">
+  <div><div class="cap"><span class="tag">C</span><h3>Place, no place set</h3><span>wide popover, 560</span></div><div class="stage th-dark" id="C" style="height:820px;background-image:url(shots/clean-dark.jpg)"></div>
+    <p class="note">The map area has a fixed <b>16:10</b> ratio. The frame (FRAME insets 16/16/13/16%) is then about <b>1.5:1</b>, well inside the 3:1 limit, so the popover can never open in the “Too thin” error state.</p></div>
+  <div><div class="cap"><span class="tag">D</span><h3>Place, Istanbul applied</h3><span>status lives in the header card</span></div><div class="stage th-dark" id="D" style="height:820px;background-image:url(shots/ist-dark.jpg)"></div>
+    <p class="note">The card replaces the floating region pill: name, size, relief and Clear. The map pin in the cluster carries a dot whenever a place is applied. The button reads <b>In use</b> until the frame moves.</p></div>
+</div>
+
+<div class="row one">
+  <div><div class="cap"><span class="tag">E</span><h3>3D with a place, dark: no floating pills</h3><span>pick: readout as plain text under the wordmark</span></div><div class="stage full th-dark" id="E1" style="background-image:url(shots/ist-dark.jpg)"></div>
+    <p class="note" style="max-width:1440px;margin-inline:auto">The readout sits under the wordmark, not under the cluster, because every popover opens under the cluster. With Tune open you change Detail and watch the frame rate at the same time. No place name near the wordmark: the dot on the pin says that a place is applied, and the Place popover says which. The dock's right end holds the look controls: theme, paper, ink, shuffle.</p></div>
+</div>
+
+<div class="row one">
+  <div><div class="cap"><span class="tag">E</span><h3>3D with a place, light</h3><span>same layout; the halo switches to paper colour</span></div><div class="stage full th-light" id="E2" style="background-image:url(shots/ist-light.jpg)"></div></div>
+</div>
+
+<div class="row">
+  <div><div class="cap"><span class="tag">E</span><h3>Readout over busy terrain, dark</h3><span>pick on the left · <b style="font-weight:500;color:#d8d7d3">Alt</b> under the cluster on the right</span></div><div class="stage th-dark" id="F1" style="height:200px;background-image:url(shots/ist-dark.jpg);background-position:-560px -430px"></div></div>
+  <div><div class="cap"><span class="tag">E</span><h3>Readout over busy terrain, light</h3><span>same halo, paper-coloured</span></div><div class="stage th-light" id="F2" style="height:200px;background-image:url(shots/ist-light.jpg);background-position:-560px -430px"></div>
+    <p class="note">Alt (under the cluster) is not recommended: every popover opens there and would cover the readout exactly when you tune Detail.</p></div>
+</div>
+
+<div class="row">
+  <div><div class="cap"><span class="tag">F</span><h3>Dock right end, dark (1.5×)</h3><span>theme · paper · ink · shuffle</span></div><div class="stage th-dark" id="G1" style="height:200px;background-image:url(shots/ist-dark.jpg);background-position:right bottom"></div></div>
+  <div><div class="cap"><span class="tag">F</span><h3>Dock right end, light (1.5×)</h3><span>a light look applied: the sun and the swatches agree</span></div><div class="stage th-light" id="G2" style="height:200px;background-image:url(shots/ist-light.jpg);background-position:right bottom"></div></div>
+</div>
+<p class="note" style="max-width:1544px;margin-top:-20px">Order, coarse to fine and then the action: <b>theme</b> picks the mode that sets the default paper and ink, the <b>paper</b> and <b>ink</b> swatches refine it as a pair, and <b>shuffle</b> is an action, not a state, so it closes the row at the outer edge. Theme and shuffle are 28px filled circles, the swatches 22px dots in 28px slots, so the four centres sit 30px apart.</p>
+
+<script>
+/* lucide icons, 24-unit viewBox, stroke icons */
+const P = {
+  pin:'<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/>',
+  box:'<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>',
+  sliders:'<path d="M10 5H3"/><path d="M12 19H3"/><path d="M14 3v4"/><path d="M16 17v4"/><path d="M21 12h-9"/><path d="M21 19h-5"/><path d="M21 5h-7"/><path d="M8 10v4"/><path d="M8 12H3"/>',
+  share:'<path d="M12 2v13"/><path d="m16 6-4-4-4 4"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>',
+  moon:'<path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
+  dices:'<rect width="12" height="12" x="2" y="10" rx="2" ry="2"/><path d="m17.92 14 3.5-3.5a2.24 2.24 0 0 0 0-3l-5-4.92a2.24 2.24 0 0 0-3 0L10 6"/><path d="M6 18h.01"/><path d="M10 14h.01"/><path d="M15 6h.01"/><path d="M18 9h.01"/>',
+  spline:'<circle cx="19" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><path d="M5 17A12 12 0 0 1 17 5"/>',
+  mountain:'<path d="m8 3 4 8 5-5 5 15H2L8 3z"/>',
+  wind:'<path d="M12.8 19.6A2 2 0 1 0 14 16H2"/><path d="M17.5 8a2.5 2.5 0 1 1 2 4H2"/><path d="M9.8 4.4A2 2 0 1 1 11 8H2"/>',
+  frame:'<line x1="22" x2="2" y1="6" y2="6"/><line x1="22" x2="2" y1="18" y2="18"/><line x1="6" x2="6" y1="2" y2="22"/><line x1="18" x2="18" y1="2" y2="22"/>',
+  reset:'<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
+  link:'<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+  image:'<rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>',
+  video:'<path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/>',
+  component:'<path d="M15.536 11.293a1 1 0 0 0 0 1.414l2.376 2.377a1 1 0 0 0 1.414 0l2.377-2.377a1 1 0 0 0 0-1.414l-2.377-2.377a1 1 0 0 0-1.414 0z"/><path d="M2.297 11.293a1 1 0 0 0 0 1.414l2.377 2.377a1 1 0 0 0 1.414 0l2.377-2.377a1 1 0 0 0 0-1.414L6.088 8.916a1 1 0 0 0-1.414 0z"/><path d="M8.916 17.912a1 1 0 0 0 0 1.415l2.377 2.376a1 1 0 0 0 1.414 0l2.377-2.376a1 1 0 0 0 0-1.415l-2.377-2.376a1 1 0 0 0-1.414 0z"/><path d="M8.916 4.674a1 1 0 0 0 0 1.414l2.377 2.376a1 1 0 0 0 1.414 0l2.377-2.376a1 1 0 0 0 0-1.414l-2.377-2.377a1 1 0 0 0-1.414 0z"/>',
+  code:'<path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/>',
+  braces:'<path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1"/><path d="M16 21h1a2 2 0 0 0 2-2v-5c0-1.1.9-2 2-2a2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1"/>',
+  download:'<path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/>',
+};
+const ic = (n, s = 18, w = 1.75) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]}</svg>`;
+
+/* cluster: Place, 2D/3D, Tune, Export */
+function cluster({ open = '', dot = false } = {}) {
+  const b = (id, label, icon, extra = '') => `<button class="pt-ibtn${id === 'place' && dot ? ' has-dot' : ''}" aria-label="${label}" ${open === id ? 'data-popup-open' : ''} ${extra}>${ic(icon)}</button>`;
+  return `<div class="pt-cluster pt-glass">${b('place', 'Place', 'pin')}${b('mode', 'Switch to 2D', 'box').replace('class="pt-ibtn', 'class="pt-ibtn pt-mode')}${b('tune', 'Tune', 'sliders')}${b('export', 'Export', 'share')}</div>`;
+}
+function slider(v, min, max) {
+  const p = ((v - min) / (max - min)) * 100;
+  return `<div class="pt-slider"><div class="pt-slider-control"><div class="pt-slider-track"><span class="pt-slider-ind" style="width:${p}%"></span><span class="pt-slider-thumb" style="left:${p}%"></span></div></div></div>`;
+}
+const rRange = (label, v, min, max, shown) => `<div class="pt-row"><span class="pt-row-label">${label}</span>${slider(v, min, max)}<output>${shown}</output></div>`;
+const seg = (opts, on) => `<div class="pt-seg" role="group">${opts.map((o) => `<button aria-pressed="${o === on}">${o}</button>`).join('')}</div>`;
+const rSeg = (label, opts, on) => `<div class="pt-row"><span class="pt-row-label">${label}</span>${seg(opts, on)}</div>`;
+const sec = (title, body, reset = false) => `<section class="pt-sec"><div class="pt-sec-head"><span class="pt-sec-title">${title}</span>${reset ? `<button class="pt-sec-reset" aria-label="Reset ${title.toLowerCase()}">${ic('reset', 13)}</button>` : ''}</div><div class="pt-sec-body">${body}</div></section>`;
+const tabs = (items, on) => `<div class="pt-tabs">${items.map(([id, label, icon]) => `<button class="pt-tab" aria-pressed="${id === on}">${ic(icon, 15)}<span>${label}</span></button>`).join('')}</div>`;
+const head = (title, acc = '') => `<div class="pt-pop-head"><span class="pt-pop-title">${title}</span>${acc}</div>`;
+
+const TUNE_TABS = [['lines', 'Lines', 'spline'], ['terrain', 'Terrain', 'mountain'], ['motion', 'Motion', 'wind'], ['layout', 'Layout', 'frame'], ['view', '3D', 'box']];
+function tune3d(variant) {
+  return `<div class="pt-pop pt-glass ${variant}">${head('Tune')}${tabs(TUNE_TABS, 'view')}
+    ${sec('Scene', rSeg('Extent', ['Block', 'Endless'], 'Endless') + rRange('Elevation', .62, 0, 1, '0.62'))}
+    ${sec('Camera', rSeg('Motion', ['Still', 'Orbit', 'Push', 'Flyover', 'Drone'], 'Still') + rRange('Azimuth', 42, 0, 360, '42°') + rRange('Angle', 34, 2, 80, '34°') + rRange('Distance', 2.45, 1.15, 6.5, '2.45'), true)}
+    ${sec('Quality', rSeg('Detail', ['Low', 'Medium', 'High'], 'Medium'))}
+  </div>`;
+}
+function tuneTerrain() {
+  return `<div class="pt-pop pt-glass v1">${head('Tune')}${tabs(TUNE_TABS, 'terrain')}
+    ${sec('Shape', rRange('Peaks', 3, 1, 6, '3') + rRange('Spread', .5, 0, 1, '0.50') + rRange('Sharpness', .64, 0, 1, '0.64') + rRange('Variant', .5, 0, 1, '0.50'), true)}
+    ${sec('Surface', rRange('Roughness', 0, 0, 1, '0.00') + rRange('Terracing', 0, 0, 1, '0.00'))}
+  </div>`;
+}
+function exportVideo() {
+  const dl = (name, small) => `<button class="pt-size"><span class="pt-size-copy"><b>${name}</b><small>${small}</small></span>${ic('download', 15)}</button>`;
+  return `<div class="pt-pop pt-glass v1">${head('Export')}${tabs([['link', 'Link', 'link'], ['png', 'PNG', 'image'], ['video', 'Video', 'video'], ['react', 'React', 'component'], ['html', 'HTML', 'code'], ['json', 'JSON', 'braces']], 'video')}
+    ${sec('Clip', rSeg('Camera', ['Orbit', 'Push', 'Flyover', 'Drone'], 'Orbit') + `<div class="pt-row"><span class="pt-row-label">Length</span><span class="pt-row-wide pt-row-value" style="justify-self:start">4 s · 960 × 540 · 24 fps</span></div>`)}
+    ${sec('Download', `<div class="pt-pngs" style="margin-top:4px">${dl('MP4', 'H.264 · plays everywhere')}${dl('WebM', 'VP9 · smaller file')}</div>`)}
+  </div>`;
+}
+function place(applied, theme = 'dark') {
+  const now = applied
+    ? `<div class="pt-place-now"><span class="pin">${ic('pin', 15)}</span><span class="copy"><b>Istanbul</b><small>11 km × 7.3 km · 260 m of relief</small></span><button class="pt-clear">Clear</button></div>`
+    : `<div class="pt-place-now is-empty"><span class="pin">${ic('pin', 15)}</span><span class="copy"><b>No place set</b><small>The terrain is generated. Pick a city or frame a region to use real heights.</small></span></div>`;
+  return `<div class="pt-pop pt-pop-wide pt-glass v1">${head('Place')}${now}
+    ${sec('Region', rSeg('City', ['Istanbul', 'San Francisco', 'London', 'New York'], applied ? 'Istanbul' : '') + rSeg('Choose by', ['Frame', 'Rectangle'], 'Frame')
+      + `<div class="pt-mapbox" style="aspect-ratio:16/10;height:auto;background-image:url(shots/map-${theme}.jpg)"><div class="pt-map-frame"></div><span class="cap">Pan and zoom. The frame is the place.</span><span class="span">11 km × 7.3 km</span></div>`)}
+    ${sec('Heights', rSeg('Relief', ['Exaggerate', 'Real heights'], 'Exaggerate') + rSeg('Smoothing', ['Light', 'Medium', 'Strong'], 'Medium'))}
+    <div class="pt-pop-foot"><span class="pt-attrib">Elevation: Mapzen Terrain Tiles, AWS Open Data.</span><button class="pt-use" ${applied ? 'disabled' : ''}>${applied ? 'In use' : 'Use this place'}</button></div>
+  </div>`;
+}
+const fps = (cls) => `<div class="pt-fps ${cls}">120 fps · 8.3 ms · 96²</div>`;
+const wordmark = `<div class="pt-wordmark"><a href="#"><span>topographic</span><small>yahyapak.dev</small></a></div>`;
+
+/* dock: thumbnails cropped from a capture of the real dock */
+function dock(light, n = 14, current = 0, start = 0) {
+  let t = '';
+  for (let i = 0; i < n; i++) t += `<button class="pt-thumb" ${i === current ? 'aria-current="true"' : ''}><span class="pt-thumb-media" style="background-image:url(shots/thumbs.jpg);background-position:${-(i + start) * 88}px 0"></span></button>`;
+  const paper = light ? '#f9f8f6' : '#0b0b0d';
+  const ink = light ? '#9aa9c4' : '#7487ad';
+  return `<div class="pt-dock-wrap"><nav class="pt-dock pt-glass"><div class="pt-thumbs" style="width:${n * 84 + (n - 1) * 4}px">${t}</div>
+    <div class="pt-dock-tools">
+      <button class="pt-tool" aria-label="${light ? 'Switch to dark mode' : 'Switch to light mode'}">${ic(light ? 'sun' : 'moon', 16)}</button>
+      <span class="pt-tool-slot"><button class="pt-dot" aria-label="Paper colour" style="background:${paper}"></button></span>
+      <span class="pt-tool-slot"><button class="pt-dot" aria-label="Ink colour" style="background:${ink}"></button></span>
+      <button class="pt-tool" aria-label="Shuffle">${ic('dices', 16)}</button>
+    </div></nav></div>`;
+}
+const set = (id, html) => { document.getElementById(id).innerHTML = html; };
+
+set('A', `<div class="anchor">${cluster({ open: 'tune' })}</div><div class="popat">${tune3d('v1')}</div>`);
+set('B', `<div class="anchor">${cluster({ open: 'tune' })}</div><div class="popat">${tune3d('v1')}</div>`);
+set('V2d', `<div class="anchor">${cluster({ open: 'tune' })}</div><div class="popat">${tune3d('v2')}</div>`);
+set('V2l', `<div class="anchor">${cluster({ open: 'tune' })}</div><div class="popat">${tune3d('v2')}</div>`);
+set('T2', `<div class="anchor">${cluster({ open: 'tune' })}</div><div class="popat">${tuneTerrain()}</div>`);
+set('X', `<div class="anchor">${cluster({ open: 'export' })}</div><div class="popat">${exportVideo()}</div>`);
+set('C', `<div class="anchor">${cluster({ open: 'place' })}</div><div class="popat">${place(false)}</div>`);
+set('D', `<div class="anchor">${cluster({ open: 'place', dot: true })}</div><div class="popat">${place(true)}</div>`);
+set('E1', `${wordmark}${fps('fps-left')}<div class="anchor">${cluster({ dot: true })}</div>${dock(false)}`);
+set('E2', `${wordmark}${fps('fps-left')}<div class="anchor">${cluster({ dot: true })}</div>${dock(true, 14, 12)}`);
+set('F1', `${wordmark}${fps('fps-left')}<div class="anchor">${cluster({ dot: true })}</div>${fps('fps-right')}`);
+set('F2', `${wordmark}${fps('fps-left')}<div class="anchor">${cluster({ dot: true })}</div>${fps('fps-right')}`);
+set('G1', `<div class="zoom" style="position:absolute;right:0;bottom:0;width:800px;height:133px">${dock(false, 5, 1).replace('pt-dock-wrap', 'pt-dock-wrap" style="left:auto;right:12px;bottom:16px')}</div>`);
+set('G2', `<div class="zoom" style="position:absolute;right:0;bottom:0;width:800px;height:133px">${dock(true, 5, 3, 10).replace('pt-dock-wrap', 'pt-dock-wrap" style="left:auto;right:12px;bottom:16px')}</div>`);
+</script>
+</body>
+</html>
