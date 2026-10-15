@@ -10,6 +10,8 @@ uniform float uStyle;
 uniform float uSeed;
 uniform vec4 uInk;
 uniform vec4 uPaper;
+uniform float uHasHeight;
+uniform float uHeightAspect;
 `;
 
 export const COMMON_MATH = /* glsl */ `

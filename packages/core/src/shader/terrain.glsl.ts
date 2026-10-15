@@ -5,6 +5,7 @@ const VERT_BODY = /* glsl */ `
 attribute vec2 aUV;
 attribute float aSide;
 attribute float aLift;
+attribute float aHeight;
 uniform mat4 uViewProj;
 uniform float uHeight;
 uniform float uReach;
@@ -28,10 +29,19 @@ float reliefOf(float f){
 }
 void main(){
   vec2 stretched=(aUV-0.5)*uReach;
-  float aspect=uRes.x/max(uRes.y,1.);
-  vec2 p=vec2(stretched.x*aspect, stretched.y);
+  float viewA=uRes.x/max(uRes.y,1.);
+  vec2 fp=vec2(viewA,1.);
+  if(uHasHeight>0.5){
+    float ra=max(uHeightAspect,.05);
+    float s=min(min(viewA,1.15)/ra, 1.);
+    fp=vec2(ra*s, s);
+  }
+  vec2 p=vec2(stretched.x*fp.x, stretched.y*fp.y);
   float y=0.;
-  if(aLift>0.5) y=0.05+reliefOf(contourField(int(uStyle+.5), p).f);
+  if(aLift>0.5){
+    if(uHasHeight>0.5) y=0.02+uHeight*aHeight*.62;
+    else y=0.05+reliefOf(contourField(int(uStyle+.5), p).f);
+  }
   vec3 world=vec3(p.x*.9, y, p.y*.9);
   vP=p; vWorld=world; vSide=aSide; vUV=aUV;
   gl_Position=uViewProj*vec4(world,1.);
@@ -43,6 +53,7 @@ varying vec2 vP;
 varying vec3 vWorld;
 varying float vSide;
 varying vec2 vUV;
+#define REGION_FROM_MESH 1
 uniform float uReach;
 ${COMMON}
 ${CONTOUR_FIELD}

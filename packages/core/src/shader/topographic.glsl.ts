@@ -56,24 +56,53 @@ Field contourField(int s, vec2 p){
 `;
 
 export const CONTOUR_PAINT = /* glsl */ `
+uniform sampler2D uHeightTex;
+vec2 regionUv(){
+#ifdef REGION_FROM_MESH
+  return vUV;
+#else
+  vec2 suv=gl_FragCoord.xy/uRes;
+  float viewA=uRes.x/max(uRes.y,1.);
+  float ra=max(uHeightAspect,.05);
+  vec2 c=suv-.5;
+  if(viewA>ra) c.x*=viewA/ra;
+  else c.y*=ra/viewA;
+  return c+.5;
+#endif
+}
+float regionSample(vec2 uv){
+#if __VERSION__ >= 300
+  return texture(uHeightTex,clamp(uv,0.,1.)).r;
+#else
+  return texture2D(uHeightTex,clamp(uv,0.,1.)).r;
+#endif
+}
 vec4 contourPaint(int s, vec2 p){
   float t=uTime*.08*uParams[3]; vec3 c=uInk.rgb; float n=uParams[0]; float px=uParams[1]; float a=1.;
   bool petal=s==STYLE_DRIFTING_LOBES||s==STYLE_GRANITE||s==STYLE_FIVE_PETALS||s==STYLE_SEED_POD;
   if(s==STYLE_DRIFTING_LOBES) a=.95;
   if(s==STYLE_GRANITE){ px*=1.2; c*=mix(.7,1.3,granite(p)); }
   Field field=contourField(s,p);
+  float cover=1.;
+  if(uHasHeight>0.5){
+    vec2 uv=regionUv();
+    cover=step(0.,uv.x)*step(uv.x,1.)*step(0.,uv.y)*step(uv.y,1.);
+    field=Field(regionSample(uv)*max(n,1.),1.,0.);
+  }
   float f=field.f; float r=field.r; float ang=field.ang;
   float rg=uParams[9], sh=uParams[10], ix=uParams[11], tr=uParams[12], pk=uParams[7];
   float rough=1.+rg*4.+(pk-1.)+abs(sh-1.)*3.+tr*2.;
-  float fw=petal ? min(fwidth(f),(fwidth(r)*n*3.+1e-4)*rough) : max(fwidth(f),1e-4);
+  bool shaped=petal && uHasHeight<0.5;
+  float fw=shaped ? min(fwidth(f),(fwidth(r)*n*3.+1e-4)*rough) : max(fwidth(f),1e-4);
   float dd=abs(fract(f)-.5);
   float idx=floor(f+.5); float isIx=ix>.5&&mod(idx,floor(ix+.5))<.5?1.:0.; px*=1.+.2*isIx;
   float l=(1.-smoothstep(px*fw*.5, px*fw*.5+fw, .5-dd))*(1.+.15*isIx);
-  float beads=petal
+  float beads=shaped
     ? smoothstep(.75,1.,sin(ang*40.+t*8.*float(s+1)))*l*uParams[4]
     : smoothstep(.75,1.,sin((p.x+p.y)*60.+t*8.))*l*uParams[4];
-  float m=petal ? colMask(p)*smoothstep(2.2,.1,r)*a : colMask(p);
-  return paint(c,(l*.75+beads*.7)*uParams[2]*m);
+  float m=shaped ? colMask(p)*smoothstep(2.2,.1,r)*a : colMask(p);
+  vec4 ink=paint(c,(l*.75+beads*.7)*uParams[2]*m);
+  return mix(vec4(uPaper.rgb,uPaper.a), ink, cover);
 }
 `;
 

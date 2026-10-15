@@ -1,4 +1,5 @@
 export { createTopographicBackground, type TopographicBackground, type RendererOptions, type SnapshotOptions, type RecordOptions, type RendererStats, type RendererStatus } from './renderer.js';
+export { sampleGrid, type Heightfield } from './heightfield.js';
 export { PARAMS, GROUPS, paramsIn, clampParam, type ParamDef, type GroupName, type GroupValues } from './params.js';
 export { STYLES, DEFAULT_STYLE, findStyle, type Style, type StyleId } from './styles.js';
 export { PRESETS, type Preset } from './presets.js';

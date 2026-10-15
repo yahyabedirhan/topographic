@@ -1,4 +1,5 @@
 import { viewProjection, type Pose } from './camera.js';
+import { sampleGrid, type Heightfield } from './heightfield.js';
 import { meshResolution, toUniforms, type Settings } from './settings.js';
 import { terrainFragmentSource, terrainVertexSource } from './shader/terrain.glsl.js';
 import type { ResolvedTheme } from './theme.js';
@@ -13,6 +14,8 @@ export interface TerrainFrame {
   frameMs: number;
   col: number;
   pose: Pose;
+  field: Heightfield | null;
+  heightVersion: number;
 }
 
 export interface TerrainPass {
@@ -37,11 +40,12 @@ function compile(gl: GL, type: number, src: string): WebGLShader | null {
   return sh;
 }
 
-function buildMesh(segments: number, block: boolean): { data: Float32Array; index: Uint16Array; topCount: number; count: number } {
+function buildMesh(segments: number, block: boolean, height: Heightfield | null): { data: Float32Array; index: Uint16Array; topCount: number; count: number } {
   const n = segments;
   const verts: number[] = [];
-  const push = (u: number, v: number, side: number, lift: number) => { verts.push(u, v, side, lift); };
-  for (let y = 0; y <= n; y++) for (let x = 0; x <= n; x++) push(x / n, y / n, 0, 1);
+  const at = (u: number, v: number) => (height ? sampleGrid(height, u, v) : 0);
+  const push = (u: number, v: number, side: number, lift: number, h: number) => { verts.push(u, v, side, lift, h); };
+  for (let y = 0; y <= n; y++) for (let x = 0; x <= n; x++) push(x / n, y / n, 0, 1, at(x / n, y / n));
   const idx: number[] = [];
   const id = (x: number, y: number) => y * (n + 1) + x;
   for (let y = 0; y < n; y++) {
@@ -53,8 +57,8 @@ function buildMesh(segments: number, block: boolean): { data: Float32Array; inde
   const topCount = idx.length;
   if (block) {
     const wall = (pts: [number, number][]) => {
-      const base = verts.length / 4;
-      for (const [u, v] of pts) { push(u, v, 1, 1); push(u, v, 1, 0); }
+      const base = verts.length / 5;
+      for (const [u, v] of pts) { push(u, v, 1, 1, at(u, v)); push(u, v, 1, 0, 0); }
       for (let i = 0; i < pts.length - 1; i++) {
         const a = base + i * 2;
         idx.push(a, a + 1, a + 2, a + 2, a + 1, a + 3);
@@ -87,6 +91,7 @@ export function createTerrainPass(): TerrainPass {
   let topCount = 0;
   let count = 0;
   let mesh = 0;
+  let builtHeight = -1;
   const locations = new Map<string, WebGLUniformLocation | null>();
   const sent = new Map<string, string>();
 
@@ -127,6 +132,7 @@ export function createTerrainPass(): TerrainPass {
     gl.bindAttribLocation(program, 0, 'aUV');
     gl.bindAttribLocation(program, 1, 'aSide');
     gl.bindAttribLocation(program, 2, 'aLift');
+    gl.bindAttribLocation(program, 3, 'aHeight');
     gl.linkProgram(program);
     if (!gl.getProgramParameter(program, gl.LINK_STATUS) && !gl.isContextLost()) {
       console.error('[topographic] 3D program link failed:', gl.getProgramInfoLog(program));
@@ -140,14 +146,15 @@ export function createTerrainPass(): TerrainPass {
     return true;
   }
 
-  function rebuild(gl: GL, nextSegments: number, nextBlock: boolean): void {
-    const meshData = buildMesh(nextSegments, nextBlock);
+  function rebuild(gl: GL, nextSegments: number, nextBlock: boolean, height: Heightfield | null, heightVersion: number): void {
+    const meshData = buildMesh(nextSegments, nextBlock, height);
     gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
     gl.bufferData(gl.ARRAY_BUFFER, meshData.data, gl.STATIC_DRAW);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, meshData.index, gl.STATIC_DRAW);
     segments = nextSegments;
     block = nextBlock;
+    builtHeight = heightVersion;
     topCount = meshData.topCount;
     count = meshData.count;
     mesh = nextSegments;
@@ -162,17 +169,22 @@ export function createTerrainPass(): TerrainPass {
       const nextSegments = meshResolution(settings.detail);
       const nextBlock = settings.extent === 'block';
       gl.useProgram(program);
-      if (nextSegments !== segments || nextBlock !== block) {
+      if (nextSegments !== segments || nextBlock !== block || frame.heightVersion !== builtHeight) {
         sent.clear();
-        rebuild(gl, nextSegments, nextBlock);
+        rebuild(gl, nextSegments, nextBlock, frame.field, frame.heightVersion);
       }
+      const stride = 20;
       gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
       gl.enableVertexAttribArray(0);
-      gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 16, 0);
+      gl.vertexAttribPointer(0, 2, gl.FLOAT, false, stride, 0);
       gl.enableVertexAttribArray(1);
-      gl.vertexAttribPointer(1, 1, gl.FLOAT, false, 16, 8);
+      gl.vertexAttribPointer(1, 1, gl.FLOAT, false, stride, 8);
       gl.enableVertexAttribArray(2);
-      gl.vertexAttribPointer(2, 1, gl.FLOAT, false, 16, 12);
+      gl.vertexAttribPointer(2, 1, gl.FLOAT, false, stride, 12);
+      gl.enableVertexAttribArray(3);
+      gl.vertexAttribPointer(3, 1, gl.FLOAT, false, stride, 16);
+      const heightSampler = loc(gl, 'uHeightTex');
+      if (heightSampler) gl.uniform1i(heightSampler, 1);
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
       gl.enable(gl.DEPTH_TEST);
       gl.depthFunc(gl.LEQUAL);
@@ -192,6 +204,8 @@ export function createTerrainPass(): TerrainPass {
       set1(gl, 'uTime', frame.frameMs / 1000);
       set1(gl, 'uCol', frame.col);
       set1(gl, 'uHeight', settings.elevation);
+      set1(gl, 'uHasHeight', frame.field ? 1 : 0);
+      set1(gl, 'uHeightAspect', frame.field?.aspect || 1);
       set1(gl, 'uReach', nextBlock ? 1 : ENDLESS_REACH);
       const vp = loc(gl, 'uViewProj');
       if (vp) gl.uniformMatrix4fv(vp, false, viewProjection(pose, frame.width / frame.height));
@@ -215,6 +229,7 @@ export function createTerrainPass(): TerrainPass {
       ok = false;
       failed = false;
       segments = -1;
+      builtHeight = -1;
       locations.clear();
       sent.clear();
     },
