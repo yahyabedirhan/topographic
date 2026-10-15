@@ -12,9 +12,9 @@ import {
   DEFAULT_CAMERA, DEFAULT_DETAIL, DEFAULT_ELEVATION, GROUPS, paramsIn, resolveMode,
   type CameraMotion, type GroupName, type ParamDef, type TerrainExtent,
 } from 'topographic';
-import { LOOKS } from './looks';
+import { LOOK_CAMERAS, LOOKS } from './looks';
 import { PLAYGROUND_CAMERA } from './share-url';
-import { Section, SegRow, SliderRow, Tabs, Tip, type TabItem } from './parts';
+import { OffNote, Section, SegRow, SliderRow, Tabs, Tip, type TabItem } from './parts';
 import {
   Backdrop, ColorPicker, GROUP_LABELS, INK_SWATCHES, PAPER_SWATCHES, Wordmark, currentColour, rollColour, useLookThumbs,
   type Playground,
@@ -354,60 +354,56 @@ function ViewTune({ pg }: { pg: Playground }) {
   const azimuth = ((s.camera.azimuth % 360) + 360) % 360;
   const cam = (patch: Partial<typeof s.camera>) => pg.change({ camera: patch });
   const sceneChanged = s.extent !== DEFAULT_EXTENT || s.elevation !== DEFAULT_ELEVATION;
-  const cameraChanged = (Object.keys(PLAYGROUND_CAMERA) as (keyof typeof PLAYGROUND_CAMERA)[]).some((k) => s.camera[k] !== PLAYGROUND_CAMERA[k])
+  // Scene, camera and quality only show in 3D.
+  const off = s.mode !== '3d';
+  // The camera's default is the active look's camera, or the playground camera without a look.
+  const home = (pg.lookIndex >= 0 && LOOK_CAMERAS[LOOKS[pg.lookIndex].name]) || PLAYGROUND_CAMERA;
+  const cameraChanged = (Object.keys(home) as (keyof typeof home)[]).some((k) => s.camera[k] !== home[k])
     || s.camera.motion !== DEFAULT_CAMERA.motion;
   return (
     <>
-      <Section title="Scene" resetIf={sceneChanged} onReset={() => pg.change({ extent: DEFAULT_EXTENT, elevation: DEFAULT_ELEVATION })}>
-        <SegRow label="Extent" options={EXTENTS} value={s.extent} onChange={(id) => pg.change({ extent: id })} />
+      {off && <OffNote text="These apply in 3D." action="Switch to 3D" onAction={() => pg.change({ mode: '3d' })} />}
+      <Section title="Scene" resetIf={!off && sceneChanged} onReset={() => pg.change({ extent: DEFAULT_EXTENT, elevation: DEFAULT_ELEVATION })}>
+        <SegRow label="Extent" options={EXTENTS} value={s.extent} disabled={off} onChange={(id) => pg.change({ extent: id })} />
         <SliderRow
           label="Elevation"
           hint="0 is flat like the map. Higher values make the terrain taller, with a rounded crest."
-          value={s.elevation} min={0} max={1} step={0.01} shown={s.elevation.toFixed(2)}
+          value={s.elevation} min={0} max={1} step={0.01} shown={s.elevation.toFixed(2)} disabled={off}
           onChange={(n) => pg.change({ elevation: n })}
         />
       </Section>
-      <Section title="Camera" resetIf={cameraChanged} onReset={() => cam({ ...DEFAULT_CAMERA, ...PLAYGROUND_CAMERA })}>
-        <SegRow label="Motion" options={PATHS} value={s.camera.motion} onChange={(id) => cam({ motion: id })} />
+      <Section title="Camera" resetIf={!off && cameraChanged} onReset={() => cam({ ...DEFAULT_CAMERA, ...home })}>
+        <SegRow label="Motion" options={PATHS} value={s.camera.motion} disabled={off} onChange={(id) => cam({ motion: id })} />
         <SliderRow
           label="Azimuth"
           hint="Orbit around the terrain. Drag the view to move this too."
-          value={azimuth} min={0} max={360} step={1} shown={`${azimuth.toFixed(0)}°`}
+          value={azimuth} min={0} max={360} step={1} shown={`${azimuth.toFixed(0)}°`} disabled={off}
           onChange={(n) => cam({ azimuth: n })}
         />
         <SliderRow
           label="Angle"
           hint="Degrees above the horizon. The camera never goes below the terrain."
-          value={s.camera.elevation} min={2} max={80} step={1} shown={`${s.camera.elevation.toFixed(0)}°`}
+          value={s.camera.elevation} min={2} max={80} step={1} shown={`${s.camera.elevation.toFixed(0)}°`} disabled={off}
           onChange={(n) => cam({ elevation: n })}
         />
         <SliderRow
           label="Distance"
           hint="How far the camera sits. Scroll or pinch the view to zoom."
-          value={s.camera.radius} min={1.15} max={6.5} step={0.01} shown={s.camera.radius.toFixed(2)}
+          value={s.camera.radius} min={1.15} max={6.5} step={0.01} shown={s.camera.radius.toFixed(2)} disabled={off}
           onChange={(n) => cam({ radius: n })}
         />
       </Section>
-      <Section title="Quality" resetIf={s.detail !== DEFAULT_DETAIL} onReset={() => pg.change({ detail: DEFAULT_DETAIL })}>
+      <Section title="Quality" resetIf={!off && s.detail !== DEFAULT_DETAIL} onReset={() => pg.change({ detail: DEFAULT_DETAIL })}>
         <SegRow
           label="Detail"
           hint="Mesh resolution. Low is the setting to try on a slow device."
           options={DETAILS}
           value={detailLevel(s.detail)}
+          disabled={off}
           onChange={(id) => pg.change({ detail: DETAILS.find((d) => d.id === id)!.value })}
         />
       </Section>
     </>
-  );
-}
-
-/** One muted line at the top of a tab whose controls a map place overrides, with a way out. */
-function PlaceNote({ region }: { region: RegionController }) {
-  return (
-    <p className="pt-place-note">
-      <span>Shape comes from the map: {region.name}.</span>
-      <button type="button" className="pt-text-btn" onClick={region.clear}>Clear map</button>
-    </p>
   );
 }
 
@@ -419,7 +415,7 @@ function ParamTune({ pg, group, region }: { pg: Playground; group: GroupName; re
   const off = (p: ParamDef) => Boolean(region.bbox) && ignoredWithPlace(p);
   return (
     <>
-      {params.some(off) && <PlaceNote region={region} />}
+      {params.some(off) && <OffNote text={`Shape comes from the map: ${region.name}.`} action="Clear map" onAction={region.clear} />}
       {sections.map((sec) => {
         const own = sec.keys.map((k) => params.find((p) => p.key === k)).filter((p): p is ParamDef => Boolean(p));
         const live = own.filter((p) => !off(p));

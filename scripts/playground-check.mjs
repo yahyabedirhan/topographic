@@ -49,8 +49,16 @@ try {
   check(await count.getAttribute('aria-valuenow') === '40', 'Tune shows the URL line count');
   await count.focus(); await p.keyboard.press('ArrowRight'); await settle(p);
   check(q(p).get('lc') === '41' && (await cfg(p)).lines?.count === 41, `Tune slider updates the URL (?${q(p)})`);
+  // In 2D the 3D tab is dimmed under a note; its action switches to 3D.
+  const tune0 = p.locator('.pt-pop').first();
+  await tune0.getByRole('button', { name: '3D', exact: true }).click(); await settle(p);
+  const ev0 = tune0.getByRole('slider', { name: 'Elevation' });
+  check(await ev0.isDisabled() && /These apply in 3D/.test(await tune0.innerText()) && await tune0.locator('.pt-sec-reset').count() === 0, 'in 2D the 3D tab is disabled under a note');
+  await tune0.getByRole('button', { name: 'Switch to 3D' }).click(); await settle(p, 400);
+  check(await ev0.isEnabled() && !/These apply in 3D/.test(await tune0.innerText()) && q(p).get('mode') === '3d', 'Switch to 3D enables the 3D tab');
   await p.keyboard.press('Escape'); await settle(p);
   check(!(await count.isVisible()), 'Tune closes on Escape');
+  await p.getByRole('button', { name: 'Switch to 2D' }).click(); await settle(p, 400);
 
   // Dock looks: thumbnails render offscreen first, which is slow on swiftshader.
   await p.waitForFunction(() => { const n = document.querySelector('nav[data-looks]'); return n && n.dataset.ready === n.dataset.looks; }, null, { timeout: 120000 });

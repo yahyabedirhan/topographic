@@ -118,27 +118,40 @@ export function SliderRow({ label, name, hint, value, min, max, step, shown, val
 }
 
 /** A choice: label and a segmented control across the control and value columns. */
-export function SegRow<T extends string>({ label, options, value, onChange, hint }: {
+export function SegRow<T extends string>({ label, options, value, onChange, hint, disabled }: {
   label: string;
   options: readonly { id: T; label: string }[];
   value: T | null;
   onChange: (next: T) => void;
   hint?: string;
+  /** Dimmed and not interactive, for a setting that has no effect right now. */
+  disabled?: boolean;
 }) {
   const id = useId();
   return (
-    <div className="pt-row">
+    <div className={`pt-row${disabled ? ' is-off' : ''}`}>
       <span className="pt-row-label" id={id} title={hint}>{label}</span>
       <ToggleGroup
         className="pt-seg"
         value={value === null ? [] : [value]}
         onValueChange={(v) => { if (v[0]) onChange(v[0] as T); }}
         aria-labelledby={id}
+        disabled={disabled}
       >
         {options.map((o) => (
           <Toggle key={o.id} value={o.id} onClick={() => { if (o.id === value) onChange(o.id); }}>{o.label}</Toggle>
         ))}
       </ToggleGroup>
     </div>
+  );
+}
+
+/** One muted line at the top of a tab whose controls do nothing right now, with the way to make them work. */
+export function OffNote({ text, action, onAction }: { text: string; action: string; onAction: () => void }) {
+  return (
+    <p className="pt-place-note">
+      <span>{text}</span>
+      <button type="button" className="pt-text-btn" onClick={onAction}>{action}</button>
+    </p>
   );
 }
