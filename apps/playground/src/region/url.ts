@@ -1,4 +1,5 @@
 import type { BBox, ReliefMode, SmoothLevel } from './pipeline';
+import { findPlace } from './places';
 
 const RELIEF: readonly ReliefMode[] = ['dramatic', 'measured'];
 const SMOOTH: readonly SmoothLevel[] = ['light', 'medium', 'strong'];
@@ -44,15 +45,17 @@ function choice<T extends string>(value: string | null, allowed: readonly T[], f
 export function readRegion(search: string): RegionQuery {
   const q = new URLSearchParams(search);
   return {
-    bbox: parseBBox(q.get('region')),
+    bbox: parseBBox(q.get('region')) ?? findPlace(q.get('place'))?.bbox ?? null,
     relief: choice(q.get('relief'), RELIEF, 'dramatic'),
     smooth: choice(q.get('smooth'), SMOOTH, 'medium'),
     place: q.get('place'),
   };
 }
 
+/** A named place writes only `place`; its box comes back from the place list. */
 export function writeRegion(q: URLSearchParams, region: RegionQuery): void {
-  if (region.bbox) q.set('region', formatBBox(region.bbox));
+  const named = findPlace(region.place)?.bbox;
+  if (region.bbox && !(named && formatBBox(named) === formatBBox(region.bbox))) q.set('region', formatBBox(region.bbox));
   else q.delete('region');
   if (region.relief !== 'dramatic') q.set('relief', region.relief);
   else q.delete('relief');

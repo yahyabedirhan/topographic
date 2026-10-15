@@ -1,4 +1,5 @@
-import { GROUPS, fromQuery, mergeSettings, paramsIn, resolveSettings, type Settings, type SettingsInput } from 'topographic';
+import { GROUPS, paramsIn, resolveSettings, type Settings, type SettingsInput } from 'topographic';
+import { readSettings, withQuery, writeSettings } from './share-url';
 
 export function configOf(s: Settings): SettingsInput & { style: string } {
   const d = resolveSettings({ style: s.style });
@@ -23,26 +24,8 @@ export function configOf(s: Settings): SettingsInput & { style: string } {
   return out as SettingsInput & { style: string };
 }
 
-export function readUrl(search = window.location.search): Settings {
-  const q = new URLSearchParams(search);
-  const json = q.get('config');
-  let parsed: SettingsInput | null = null;
-  if (json) {
-    try { parsed = JSON.parse(json) as SettingsInput; } catch { parsed = null; }
-  }
-  let settings = resolveSettings(parsed ?? fromQuery(search));
-  const mode = q.get('mode');
-  if ((mode === '2d' || mode === '3d') && (parsed == null || parsed.mode === undefined)) settings = mergeSettings(settings, { mode });
-  return settings;
-}
+export const readUrl = (search = window.location.search): Settings => readSettings(search);
 
-export function urlFor(s: Settings): string {
-  return `${window.location.pathname}?config=${encodeURIComponent(JSON.stringify(configOf(s)))}${window.location.hash}`;
-}
-
-export function writeUrl(s: Settings): void {
-  const next = urlFor(s);
-  if (next !== window.location.pathname + window.location.search + window.location.hash) window.history.replaceState(null, '', next);
-}
-
-export const shareUrl = (s: Settings) => window.location.origin + urlFor(s).replace(window.location.hash, '');
+/** The page URL for these settings. It keeps the region params already in the page URL. */
+export const shareUrl = (s: Settings, loc: Pick<Location, 'origin' | 'pathname' | 'search'> = window.location) =>
+  withQuery(loc.origin + loc.pathname, writeSettings(loc.search, s));

@@ -1,6 +1,7 @@
 import type { ToolDef } from '../agent-tools';
 import { limitMessage, limitProblem, type BBox, type ReliefMode, type SmoothLevel } from './pipeline';
 import { PLACES, findPlace } from './places';
+import { queryText } from '../share-url';
 import { parseBBox, writeRegion } from './url';
 
 const RELIEF: readonly ReliefMode[] = ['dramatic', 'measured'];
@@ -24,7 +25,7 @@ export interface RegionUpdate {
 export function regionQuery(region: RegionToolState): string {
   const q = new URLSearchParams();
   writeRegion(q, { bbox: region.bbox, relief: region.relief, smooth: region.smooth, place: region.placeId });
-  return q.toString();
+  return queryText(q);
 }
 
 function choice<T extends string>(value: unknown, allowed: readonly T[]): T | null | 'bad' {
@@ -113,7 +114,7 @@ export const REGION_TOOL_DEFS: ToolDef[] = [
     name: 'set_region',
     title: 'Set region',
     readOnly: false,
-    description: 'Sets the map region that becomes the terrain. Give place (istanbul, san-francisco, london or new-york) or a bbox in degrees. Optional relief is dramatic or measured, and smooth is light, medium or strong. The same values are written to the page URL as ?region=.',
+    description: 'Sets the map region that becomes the terrain. Give place (istanbul, san-francisco, london or new-york) or a bbox in degrees. Optional relief is dramatic or measured, and smooth is light, medium or strong. The same values are written to the page URL as ?place= for a named place, or ?region= for a box.',
     inputSchema: SET_SCHEMA,
   },
   {

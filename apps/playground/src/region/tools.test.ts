@@ -38,7 +38,9 @@ describe('region tool input', () => {
 
   it('omits the default relief and smoothing from the query', () => {
     expect(regionQuery({ bbox: PLACES[0].bbox, placeId: 'istanbul', relief: 'dramatic', smooth: 'medium' }))
-      .toBe('region=28.94%2C40.99%2C29.07%2C41.08&place=istanbul');
+      .toBe('place=istanbul');
+    expect(regionQuery({ bbox: PLACES[0].bbox, placeId: null, relief: 'measured', smooth: 'medium' }))
+      .toBe('region=28.94,40.99,29.07,41.08&relief=measured');
     expect(regionQuery({ bbox: PLACES[2].bbox, placeId: 'london', relief: 'measured', smooth: 'strong' }))
       .toContain('relief=measured');
   });

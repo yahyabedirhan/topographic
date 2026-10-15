@@ -22,7 +22,22 @@ const want = (name) => !only || only.includes(name);
 await mkdir(out, { recursive: true });
 
 const ISTANBUL = 'place=istanbul&region=28.94,40.99,29.07,41.08';
-const q = (config) => `config=${encodeURIComponent(JSON.stringify(config))}`;
+// The playground's short URL keys (PARAMS[].short in packages/core/src/params.ts). Colours go without '#'.
+const SHORT = {
+  count: 'lc', width: 'lw', opacity: 'lo', indexEvery: 'ix', peaks: 'pk', spread: 'sp', roughness: 'rg', sharpness: 'sh',
+  terracing: 'tr', variant: 'va', speed: 'sd', warp: 'wp', sparkle: 'sk', anchor: 'an', fade: 'fd',
+};
+const q = ({ style, seed, theme = {}, mode, ...groups }) => {
+  const p = new URLSearchParams();
+  if (style) p.set('s', style);
+  if (seed !== undefined) p.set('seed', String(seed));
+  for (const values of Object.values(groups)) for (const [k, v] of Object.entries(values)) p.set(SHORT[k], String(v));
+  if (theme.mode) p.set('m', theme.mode);
+  if (theme.ink) p.set('ink', theme.ink.replace('#', ''));
+  if (theme.paper) p.set('paper', theme.paper.replace('#', ''));
+  if (mode) p.set('mode', mode);
+  return p.toString();
+};
 // The same seed and style for the 2D and 3D pair, so the two can be compared. The lines use
 // the bright, centred look of scripts/styles-grid.mjs, so they read at README size.
 const PAIR = {
@@ -132,7 +147,7 @@ try {
         document.modelContext = { registerTool: async (tool) => { window.__tools[tool.name] = tool; } };
       });
       await p.goto(`${base}?${q({ ...PAIR, mode: '3d' })}`);
-      await p.waitForSelector('.stage canvas');
+      await p.waitForSelector('canvas');
       await p.waitForFunction(() => 'record_video' in window.__tools);
       const clip = await p.evaluate(() => window.__tools.record_video.execute({ format: 'mp4', motion: 'orbit', seconds: 6, width: 960, height: 540 }));
       await p.close();

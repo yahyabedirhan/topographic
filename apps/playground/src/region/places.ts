@@ -33,16 +33,10 @@ export function nextRegionElevation(entering: boolean, leaving: boolean, current
   return null;
 }
 
-/** True when the page URL already chose an elevation, so a region must not replace it. */
-export function configSetsElevation(search: string): boolean {
-  const json = new URLSearchParams(search).get('config');
-  if (!json) return false;
-  try {
-    const parsed = JSON.parse(json) as { elevation?: unknown };
-    return typeof parsed.elevation === 'number' && Number.isFinite(parsed.elevation);
-  } catch {
-    return false;
-  }
+/** True when the page URL already chose an elevation (`ev`), so a region must not replace it. */
+export function urlSetsElevation(search: string): boolean {
+  const v = new URLSearchParams(search).get('ev');
+  return v !== null && v.trim() !== '' && Number.isFinite(Number(v));
 }
 
 /** Inset of the frame, as fractions of the map. */

@@ -6,6 +6,7 @@ import {
 import { TopographicBackground } from 'topographic-react';
 import { registerTools } from './webmcp';
 import { configOf, readUrl } from './url';
+import { withQuery, writeSettings } from './share-url';
 import { LOOKS } from './looks';
 
 export interface Playground {
@@ -98,11 +99,8 @@ export function usePlayground(): Playground {
   const mode = resolveMode(settings.theme.mode, prefersDark);
   useEffect(() => { document.documentElement.dataset.theme = mode; }, [mode]);
   useEffect(() => {
-    const q = new URLSearchParams(location.search);
-    q.set('config', JSON.stringify(configOf(settings)));
-    if (settings.mode === '3d') q.set('mode', '3d');
-    else q.delete('mode');
-    history.replaceState(null, '', `${location.pathname}?${q}`);
+    const next = withQuery(location.pathname, writeSettings(location.search, settings), location.hash);
+    if (next !== location.pathname + location.search + location.hash) history.replaceState(null, '', next);
   }, [settings]);
   const latest = useRef(settings);
   latest.current = settings;
@@ -364,8 +362,10 @@ export function useCopy(): [string, (label: string, text: string) => void] {
 export function Wordmark({ children }: { children?: ReactNode }) {
   return (
     <div className="pt-wordmark">
-      <span>topographic</span>
-      <a href="https://yahyapak.dev/projects/topography" target="_blank" rel="noreferrer">yahyapak.dev</a>
+      <a href="https://yahyapak.dev/projects/topography" target="_blank" rel="noreferrer" aria-label="topographic on yahyapak.dev">
+        <span>topographic</span>
+        <small>yahyapak.dev</small>
+      </a>
       {children}
     </div>
   );

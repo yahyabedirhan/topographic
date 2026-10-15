@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatBBox, parseBBox, readRegion } from './url';
+import { formatBBox, parseBBox, readRegion, writeRegion } from './url';
 
 describe('region url', () => {
   it('reads a comma bbox and a json bbox', () => {
@@ -14,5 +14,15 @@ describe('region url', () => {
     const q = new URLSearchParams('region=28.94,40.99,29.07,41.08&relief=measured&smooth=strong&place=istanbul');
     expect(readRegion(`?${q}`)).toMatchObject({ relief: 'measured', smooth: 'strong', place: 'istanbul' });
     expect(formatBBox({ west: 7.6, south: 45.9, east: 7.8, north: 46 })).toBe('7.6,45.9,7.8,46');
+  });
+
+  it('reads a named place without a box and writes only its name', () => {
+    const istanbul = { west: 28.94, south: 40.99, east: 29.07, north: 41.08 };
+    expect(readRegion('?place=istanbul').bbox).toEqual(istanbul);
+    const q = new URLSearchParams('lc=40');
+    writeRegion(q, { bbox: istanbul, relief: 'dramatic', smooth: 'medium', place: 'istanbul' });
+    expect(q.toString()).toBe('lc=40&place=istanbul');
+    writeRegion(q, { bbox: { ...istanbul, west: 28.9 }, relief: 'dramatic', smooth: 'medium', place: 'istanbul' });
+    expect(q.get('region')).toBe('28.9,40.99,29.07,41.08');
   });
 });

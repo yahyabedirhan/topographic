@@ -2,9 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Heightfield } from 'topographic';
 import type { Playground } from '../shared';
 import { limitMessage, limitProblem, spanOf, type BBox, type ReliefMode, type SmoothLevel, type Span } from './pipeline';
-import { configSetsElevation, findPlace, nextRegionElevation } from './places';
+import { urlSetsElevation, findPlace, nextRegionElevation } from './places';
 import { registerRegionTools } from './register';
 import { readRegion, writeRegion, type RegionQuery } from './url';
+import { withQuery, writeSettings } from '../share-url';
 import type { BuildErr, BuildOk } from './worker';
 
 export interface RegionInfo {
@@ -63,11 +64,13 @@ export function useRegion(pg: Playground): RegionController {
     };
   }, []);
 
+  const settingsRef = useRef(pg.settings);
+  settingsRef.current = pg.settings;
   useEffect(() => {
     const q = new URLSearchParams(location.search);
     writeRegion(q, queryOf(bbox, relief, smooth, placeId));
-    const next = `${location.pathname}?${q}`;
-    if (next !== `${location.pathname}${location.search}`) history.replaceState(null, '', next);
+    const next = withQuery(location.pathname, writeSettings(q.toString(), settingsRef.current), location.hash);
+    if (next !== location.pathname + location.search + location.hash) history.replaceState(null, '', next);
   }, [bbox, relief, smooth, placeId]);
 
   useEffect(() => {
@@ -130,7 +133,7 @@ export function useRegion(pg: Playground): RegionController {
   elevationRef.current = pg.settings.elevation;
   const changeRef = useRef(pg.change);
   changeRef.current = pg.change;
-  const explicitRef = useRef(configSetsElevation(location.search));
+  const explicitRef = useRef(urlSetsElevation(location.search));
   const prevBbox = useRef<BBox | null>(null);
   useEffect(() => {
     const entering = Boolean(bbox) && !prevBbox.current;

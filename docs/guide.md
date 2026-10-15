@@ -304,7 +304,7 @@ The playground (`apps/playground`) is the project's live page:
 - **Tune** opens the sliders, one group at a time: Lines, Terrain, Motion, Layout and View. View holds the 3D settings: elevation, extent, camera, path and detail.
 - **Export** gives you a link, a PNG (2× the window, a phone size or 1920 × 1080), a 4 second 3D clip as MP4 or WebM, and the code as React, HTML or JSON.
 - **Place** opens a map. Frame an area, or pick Istanbul, San Francisco, London or New York, and the real elevation becomes the terrain. The map loads only when you open it. It needs a network connection.
-- The URL holds the settings as `?config=<JSON>`, so a link reproduces the background. Short keys like `?s=dunes&lc=24` work too. `?mode=3d` opens the 3D view, and `?region=west,south,east,north` opens a real place.
+- The URL holds the settings as short keys, so a link reproduces the background. It writes only what differs from the style's defaults or from a named look: `?s=dunes&lc=24`, `?look=night-lobes&mode=3d`. Colours go without `#` (`ink=9fb0cc`), and 3D is endless unless the URL says `ex=block`. `?place=istanbul` or `?region=west,south,east,north` opens a real place.
 - It serves `/llms.txt`, `/llms-full.txt` and `/docs/*.md`, generated from the code's own settings table.
 
 Run it with `npm install && npm run dev`.

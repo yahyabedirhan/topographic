@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_ELEVATION } from 'topographic';
 import { limitProblem } from './pipeline';
-import { PLACES, REGION_ELEVATION, configSetsElevation, nextRegionElevation } from './places';
+import { PLACES, REGION_ELEVATION, urlSetsElevation, nextRegionElevation } from './places';
 
 describe('example cities', () => {
   it('offers Istanbul, San Francisco, London and New York', () => {
@@ -27,9 +27,10 @@ describe('region elevation', () => {
     expect(nextRegionElevation(false, true, 0.2, false)).toBeNull();
   });
 
-  it('reads an explicit elevation from the config query', () => {
-    expect(configSetsElevation('?config=%7B%22elevation%22%3A0.62%7D')).toBe(true);
-    expect(configSetsElevation('?config=%7B%22style%22%3A%22dunes%22%7D')).toBe(false);
-    expect(configSetsElevation('')).toBe(false);
+  it('reads an explicit elevation from the ev param', () => {
+    expect(urlSetsElevation('?ev=0.62')).toBe(true);
+    expect(urlSetsElevation('?s=dunes&ev=')).toBe(false);
+    expect(urlSetsElevation('?s=dunes')).toBe(false);
+    expect(urlSetsElevation('')).toBe(false);
   });
 });
