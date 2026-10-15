@@ -1,7 +1,7 @@
 import { mergeSettings, resolveSettings, toUniforms, type Settings, type SettingsInput } from './settings.js';
 import { resolveTheme, rgbaToCss, type ResolvedTheme } from './theme.js';
 import { VERTEX_100, VERTEX_300, wrapFragment } from './shader/common.glsl.js';
-import { TOPOGRAPHY_FRAGMENT } from './shader/topography.glsl.js';
+import { TOPOGRAPHIC_FRAGMENT } from './shader/topographic.glsl.js';
 
 export interface RendererOptions {
   /** Highest device pixel ratio to render at. Lines are anti-aliased in the shader, so 2 is plenty. */
@@ -22,7 +22,7 @@ export interface SnapshotOptions {
 
 export type RendererStatus = 'webgl2' | 'webgl1' | 'fallback' | 'lost' | 'destroyed';
 
-export interface Topography {
+export interface TopographicBackground {
   /** Merges, clamps and applies new settings; only changed uniforms are sent to the GPU. */
   update(patch: SettingsInput): void;
   /** Renders one frame off-screen and returns a PNG. The live canvas is not resized. */
@@ -38,7 +38,7 @@ const DEFAULTS: Required<Omit<RendererOptions, 'forceWebGL1'>> = { maxPixelRatio
 const TEXT_COLUMN_HALF_WIDTH_PX = 300;
 const QUAD = new Float32Array([-1, -1, 3, -1, -1, 3]);
 
-export function createTopography(el: HTMLElement, input: SettingsInput = {}, options: RendererOptions = {}): Topography {
+export function createTopographicBackground(el: HTMLElement, input: SettingsInput = {}, options: RendererOptions = {}): TopographicBackground {
   const opts = { ...DEFAULTS, ...options };
   const doc = el.ownerDocument;
   const view = doc.defaultView ?? window;
@@ -84,7 +84,7 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
     gl!.shaderSource(sh, src);
     gl!.compileShader(sh);
     if (!gl!.getShaderParameter(sh, gl!.COMPILE_STATUS) && !gl!.isContextLost()) {
-      console.error('[topography] shader compile failed:', gl!.getShaderInfoLog(sh));
+      console.error('[topographic] shader compile failed:', gl!.getShaderInfoLog(sh));
       return null;
     }
     return sh;
@@ -101,7 +101,7 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
     if (!gl) return false;
     if (!webgl2 && !gl.getExtension('OES_standard_derivatives')) return false;
     const vs = compile(gl.VERTEX_SHADER, webgl2 ? VERTEX_300 : VERTEX_100);
-    const fs = compile(gl.FRAGMENT_SHADER, wrapFragment(TOPOGRAPHY_FRAGMENT, webgl2));
+    const fs = compile(gl.FRAGMENT_SHADER, wrapFragment(TOPOGRAPHIC_FRAGMENT, webgl2));
     if (!vs || !fs) return false;
     program = gl.createProgram()!;
     gl.attachShader(program, vs);
@@ -109,7 +109,7 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
     gl.bindAttribLocation(program, 0, 'aPos');
     gl.linkProgram(program);
     if (!gl.getProgramParameter(program, gl.LINK_STATUS) && !gl.isContextLost()) {
-      console.error('[topography] program link failed:', gl.getProgramInfoLog(program));
+      console.error('[topographic] program link failed:', gl.getProgramInfoLog(program));
       return false;
     }
     gl.useProgram(program);
@@ -201,7 +201,7 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
   refreshTheme();
   if (!initGL()) {
     status = 'fallback';
-    console.warn('[topography] WebGL unavailable, showing the paper colour');
+    console.warn('[topographic] WebGL unavailable, showing the paper colour');
   }
   canvas.addEventListener('webglcontextlost', onLost);
   canvas.addEventListener('webglcontextrestored', onRestored);
@@ -225,12 +225,12 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
       schedule();
     },
     async snapshot(o = {}) {
-      if (!gl || !program || (status !== 'webgl2' && status !== 'webgl1')) throw new Error('[topography] snapshot needs WebGL');
+      if (!gl || !program || (status !== 'webgl2' && status !== 'webgl1')) throw new Error('[topographic] snapshot needs WebGL');
       const aspect = canvas.width / canvas.height;
       const w = Math.round(o.width ?? (o.height ? o.height * aspect : canvas.width));
       const h = Math.round(o.height ?? (o.width ? o.width / aspect : canvas.height));
       const max = gl.getParameter(gl.MAX_RENDERBUFFER_SIZE) as number;
-      if (w < 1 || h < 1 || w > max || h > max) throw new Error(`[topography] snapshot size must be 1..${max}px`);
+      if (w < 1 || h < 1 || w > max || h > max) throw new Error(`[topographic] snapshot size must be 1..${max}px`);
       const savedFrame = frameMs;
       if (o.frame !== undefined) frameMs = o.frame;
       const tex = gl.createTexture();
@@ -259,7 +259,7 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
       const row = w * 4;
       for (let y = 0; y < h; y++) img.data.set(pixels.subarray((h - 1 - y) * row, (h - y) * row), y * row);
       ctx.putImageData(img, 0, 0);
-      return new Promise<Blob>((resolve, reject) => out.toBlob((b) => (b ? resolve(b) : reject(new Error('[topography] PNG encoding failed'))), 'image/png'));
+      return new Promise<Blob>((resolve, reject) => out.toBlob((b) => (b ? resolve(b) : reject(new Error('[topographic] PNG encoding failed'))), 'image/png'));
     },
     destroy() {
       if (status === 'destroyed') return;

@@ -1,4 +1,4 @@
-import { GROUPS, PARAMS, STYLES } from 'topography.js';
+import { GROUPS, PARAMS, STYLES } from 'topographic';
 
 const groupSchema = (g: string) => ({
   type: 'object',

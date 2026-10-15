@@ -4,9 +4,9 @@ import { DEFAULT_STYLE, findStyle, type DeepPartialSettings, type StyleId } from
 export type ThemeMode = 'auto' | 'light' | 'dark';
 export interface ThemeSettings {
   mode: ThemeMode;
-  /** Any CSS colour. Falls back to --topography-ink, then the mode default. */
+  /** Any CSS colour. Falls back to --topographic-ink, then the mode default. */
   ink?: string;
-  /** Any CSS colour, or 'transparent'. Falls back to --topography-paper, then the mode default. */
+  /** Any CSS colour, or 'transparent'. Falls back to --topographic-paper, then the mode default. */
   paper?: string;
 }
 
@@ -28,7 +28,7 @@ export function resetWarnings(): void { warned.clear(); }
 function warnOnce(msg: string): void {
   if (warned.has(msg)) return;
   warned.add(msg);
-  console.warn(`[topography] ${msg}`);
+  console.warn(`[topographic] ${msg}`);
 }
 
 function groupDefaults<G extends GroupName>(g: G): GroupValues<G> {
@@ -98,7 +98,7 @@ export function toUniforms(s: Settings): ParamUniforms {
   return out;
 }
 
-/** Reads settings from string attributes (as on <topography-bg>). Unknown attributes are ignored. */
+/** Reads settings from string attributes (as on <topographic-bg>). Unknown attributes are ignored. */
 export function fromAttributes(get: (name: string) => string | null): SettingsInput {
   const input: Record<string, unknown> = {};
   const style = get('style-name'); if (style) input.style = style;

@@ -1,5 +1,5 @@
 {
-  "name": "topography-monorepo",
+  "name": "topographic-monorepo",
   "private": true,
   "type": "module",
   "workspaces": [

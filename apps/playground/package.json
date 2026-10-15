@@ -1,5 +1,5 @@
 {
-  "name": "topography-playground",
+  "name": "topographic-playground",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -13,8 +13,8 @@
     "lucide-react": "^0.545.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "topography-react": "^0.1.0",
-    "topography.js": "^0.1.0"
+    "topographic-react": "^0.1.0",
+    "topographic": "^0.1.0"
   },
   "devDependencies": {
     "@types/react": "^18.3.0",

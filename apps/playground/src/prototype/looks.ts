@@ -1,4 +1,4 @@
-import type { SettingsInput } from 'topography.js';
+import type { SettingsInput } from 'topographic';
 
 export interface Look {
   name: string;

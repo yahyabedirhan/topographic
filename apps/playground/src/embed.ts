@@ -1,4 +1,4 @@
-import { toAttributes, type Settings } from 'topography.js';
+import { toAttributes, type Settings } from 'topographic';
 import { PACKAGE, REACT_PACKAGE } from './content';
 import { configOf } from './url';
 
@@ -14,21 +14,21 @@ export function embedCode(s: Settings, format: EmbedFormat): string {
     const attrs = Object.entries(toAttributes(s)).map(([k, v]) => `  ${k}="${v}"`).join('\n');
     return `<script type="module">import '${PACKAGE}/element';</script>
 
-<topography-bg
+<topographic-bg
 ${attrs}
   style="position:fixed;inset:0;z-index:-1"
-></topography-bg>`;
+></topographic-bg>`;
   }
   if (format === 'vanilla') {
-    return `import { createTopography } from '${PACKAGE}';
+    return `import { createTopographicBackground } from '${PACKAGE}';
 
-const topography = createTopography(document.querySelector('#background'), ${literal(config).replace(/\n/g, '\n')});`;
+const topographic = createTopographicBackground(document.querySelector('#background'), ${literal(config).replace(/\n/g, '\n')});`;
   }
   const { style, ...rest } = config;
   const props = [`styleName="${style}"`, ...Object.entries(rest).map(([k, v]) => `${k}={${typeof v === 'object' ? literal(v).replace(/\n\s*/g, ' ') : v}}`)];
-  return `import { Topography } from '${REACT_PACKAGE}';
+  return `import { TopographicBackground } from '${REACT_PACKAGE}';
 
-<Topography
+<TopographicBackground
   ${props.join('\n  ')}
   style={{ position: 'fixed', inset: 0, zIndex: -1 }}
 />`;

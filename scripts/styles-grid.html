@@ -19,7 +19,7 @@
   window.renderGrid = async (tiles, size) => {
     const host = document.getElementById('host');
     for (const tile of tiles) {
-      const t = lib.createTopography(host, tile.settings);
+      const t = lib.createTopographicBackground(host, tile.settings);
       const blob = await t.snapshot({ frame: 4000, width: size.w, height: size.h });
       t.destroy();
       const fig = document.createElement('figure');

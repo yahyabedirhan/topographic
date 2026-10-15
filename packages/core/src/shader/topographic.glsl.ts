@@ -76,4 +76,4 @@ void main(){
 `;
 
 /** Fragment shader body (without version header); see wrapFragment. */
-export const TOPOGRAPHY_FRAGMENT = COMMON + FIELD;
+export const TOPOGRAPHIC_FRAGMENT = COMMON + FIELD;

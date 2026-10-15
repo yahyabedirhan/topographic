@@ -1,6 +1,6 @@
-# topography guide
+# topographic guide
 
-Everything you need to use topography, one topic per section. To try settings live, open the [playground](https://yahyabedirhan.github.io/topography/). For how the pieces fit together, see [design.md](low-level-design.md).
+Everything you need to use topographic, one topic per section. To try settings live, open the [playground](https://yahyabedirhan.github.io/topographic/). For how the pieces fit together, see [design.md](low-level-design.md).
 
 - [Install](#install)
 - [Three ways to use it](#three-ways-to-use-it)
@@ -20,22 +20,22 @@ Everything you need to use topography, one topic per section. To try settings li
 ## Install
 
 ```sh
-npm install topography.js            # core and the web component
-npm install topography-react      # React bindings (needs React 18 or 19)
+npm install topographic            # core and the web component
+npm install topographic-react      # React bindings (needs React 18 or 19)
 ```
 
-The packages are ESM only, have no dependencies, and are marked side-effect free except `topography.js/element`, which registers the element when imported.
+The packages are ESM only, have no dependencies, and are marked side-effect free except `topographic/element`, which registers the element when imported.
 
-On npm: [`topography.js`](https://www.npmjs.com/package/topography.js) and [`topography-react`](https://www.npmjs.com/package/topography-react).
+On npm: [`topographic`](https://www.npmjs.com/package/topographic) and [`topographic-react`](https://www.npmjs.com/package/topographic-react).
 
 ## Three ways to use it
 
-### Vanilla JavaScript: `createTopography`
+### Vanilla JavaScript: `createTopographicBackground`
 
 ```js
-import { createTopography } from 'topography.js';
+import { createTopographicBackground } from 'topographic';
 
-const topography = createTopography(element, settings?, options?);
+const topographic = createTopographicBackground(element, settings?, options?);
 ```
 
 The call puts a canvas inside `element`, which fills it, so give the element a size. It returns an instance:
@@ -57,25 +57,25 @@ The call puts a canvas inside `element`, which fills it, so give the element a s
 | `maxPixels` | `4147200` (1920×1080×2) | Upper bound on drawn pixels; the canvas scales down past it. |
 | `forceWebGL1` | `false` | Skip WebGL2. Useful for testing. |
 
-### Web component: `<topography-bg>`
+### Web component: `<topographic-bg>`
 
 ```html
-<script type="module">import 'topography.js/element';</script>
+<script type="module">import 'topographic/element';</script>
 
-<topography-bg style-name="long-ridge" line-count="36" peaks="2" theme="dark"></topography-bg>
+<topographic-bg style-name="long-ridge" line-count="36" peaks="2" theme="dark"></topographic-bg>
 ```
 
 - Every setting has an attribute (listed in [Settings](#settings)), plus `style-name`, `seed`, `theme`, `ink` and `paper`.
 - Changing an attribute applies live. Removing one returns it to the style's default.
-- `element.topography` is the instance, and `element.snapshot(opts)` is a shortcut for it.
+- `element.topographic` is the instance, and `element.snapshot(opts)` is a shortcut for it.
 - The element is `display: block`. Size and position it with CSS, for example `position: fixed; inset: 0; z-index: -1`.
 
-### React: `<Topography>` and `useTopography`
+### React: `<TopographicBackground>` and `useTopographicBackground`
 
 ```tsx
-import { Topography, useTopography } from 'topography-react';
+import { TopographicBackground, useTopographicBackground } from 'topographic-react';
 
-<Topography
+<TopographicBackground
   styleName="dunes"
   lines={{ count: 24 }}
   theme={{ mode: 'dark' }}
@@ -92,9 +92,9 @@ import { Topography, useTopography } from 'topography-react';
 To put it on your own element, use the hook:
 
 ```tsx
-const ref = useTopography({ styleName: 'seed-pod' });
+const ref = useTopographicBackground({ styleName: 'seed-pod' });
 return <section ref={ref} style={{ height: 400 }} />;
-// ref.topography is the instance while mounted
+// ref.topographic is the instance while mounted
 ```
 
 ## Settings
@@ -199,8 +199,8 @@ Presets are named starting points: a style plus a few settings. They're exported
 - **Rocky**: `{"style":"long-ridge","terrain":{"roughness":0.55,"sharpness":0.7},"lines":{"count":36}}`
 
 ```js
-import { PRESETS, createTopography } from 'topography.js';
-createTopography(el, PRESETS.find((p) => p.name === 'Survey map').settings);
+import { PRESETS, createTopographicBackground } from 'topographic';
+createTopographicBackground(el, PRESETS.find((p) => p.name === 'Survey map').settings);
 ```
 
 ## Colours, CSS variables and dark mode
@@ -208,9 +208,9 @@ createTopography(el, PRESETS.find((p) => p.name === 'Survey map').settings);
 The colours resolve in this order: settings first, then CSS variables, then the light or dark defaults.
 
 ```css
-topography-bg, .my-hero {
-  --topography-ink: #9fb3c8;
-  --topography-paper: transparent;
+topographic-bg, .my-hero {
+  --topographic-ink: #9fb3c8;
+  --topographic-paper: transparent;
 }
 ```
 
@@ -227,7 +227,7 @@ topography-bg, .my-hero {
 ## Snapshots and PNG export
 
 ```js
-const blob = await topography.snapshot({ width: 1920, height: 1080, frame: 4000 });
+const blob = await topographic.snapshot({ width: 1920, height: 1080, frame: 4000 });
 ```
 
 - It draws off-screen. The live canvas isn't resized and keeps animating.
@@ -260,9 +260,9 @@ The playground's **Download PNG** uses this, with sizes up to 4K and a phone siz
 
 Nothing touches the DOM or WebGL until the browser runs it.
 
-- **React:** `topography-react` starts with `'use client'`. On the server, `<Topography>` renders an empty `div`; the canvas appears after hydration. In the Next.js App Router you can use it straight from a server component's tree.
-- **Web component:** importing `topography.js/element` on the server is harmless. It only registers the element when `customElements` exists.
-- **Vanilla:** call `createTopography` in the browser, for example in an effect or after `DOMContentLoaded`.
+- **React:** `topographic-react` starts with `'use client'`. On the server, `<TopographicBackground>` renders an empty `div`; the canvas appears after hydration. In the Next.js App Router you can use it straight from a server component's tree.
+- **Web component:** importing `topographic/element` on the server is harmless. It only registers the element when `customElements` exists.
+- **Vanilla:** call `createTopographicBackground` in the browser, for example in an effect or after `DOMContentLoaded`.
 
 ## The playground
 

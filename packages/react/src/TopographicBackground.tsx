@@ -1,8 +1,8 @@
 'use client';
 import { forwardRef, useEffect, useRef, useState, type HTMLAttributes, type MutableRefObject } from 'react';
-import { createTopography, type RendererOptions, type SettingsInput, type Topography as TopographyInstance } from 'topography.js';
+import { createTopographicBackground, type RendererOptions, type SettingsInput, type TopographicBackground as TopographicBackgroundInstance } from 'topographic';
 
-export interface TopographySettingsProps {
+export interface TopographicBackgroundSettingsProps {
   /** Style id, e.g. 'dunes'. Named styleName because `style` is React's inline style prop. */
   styleName?: string;
   seed?: number;
@@ -13,9 +13,9 @@ export interface TopographySettingsProps {
   theme?: SettingsInput['theme'];
 }
 
-export interface TopographyRef<T extends HTMLElement = HTMLDivElement> extends MutableRefObject<T | null> {
+export interface TopographicBackgroundRef<T extends HTMLElement = HTMLDivElement> extends MutableRefObject<T | null> {
   /** The live instance while mounted (for snapshot, or imperative updates). */
-  topography: TopographyInstance | null;
+  topographic: TopographicBackgroundInstance | null;
 }
 
 const key = (v: unknown) => (v === undefined ? '' : JSON.stringify(v));
@@ -27,12 +27,12 @@ function useByValue<T>(value: T): T {
   return value;
 }
 
-/** Attaches a topography to the element you put the returned ref on. */
-export function useTopography<T extends HTMLElement = HTMLDivElement>(
-  settings: TopographySettingsProps = {},
+/** Attaches a topographic to the element you put the returned ref on. */
+export function useTopographicBackground<T extends HTMLElement = HTMLDivElement>(
+  settings: TopographicBackgroundSettingsProps = {},
   options?: RendererOptions,
-): TopographyRef<T> {
-  const [ref] = useState<TopographyRef<T>>(() => ({ current: null, topography: null }));
+): TopographicBackgroundRef<T> {
+  const [ref] = useState<TopographicBackgroundRef<T>>(() => ({ current: null, topographic: null }));
   const latest = useRef(settings);
   latest.current = settings;
   const stableOptions = useByValue(options);
@@ -40,9 +40,9 @@ export function useTopography<T extends HTMLElement = HTMLDivElement>(
   useEffect(() => {
     if (!ref.current) return;
     const { styleName, ...rest } = latest.current;
-    const t = createTopography(ref.current, { ...rest, style: styleName }, stableOptions);
-    ref.topography = t;
-    return () => { t.destroy(); ref.topography = null; };
+    const t = createTopographicBackground(ref.current, { ...rest, style: styleName }, stableOptions);
+    ref.topographic = t;
+    return () => { t.destroy(); ref.topographic = null; };
   }, [ref, stableOptions]);
 
   const { styleName, seed } = settings;
@@ -51,36 +51,36 @@ export function useTopography<T extends HTMLElement = HTMLDivElement>(
   const motion = useByValue(settings.motion);
   const layout = useByValue(settings.layout);
   const theme = useByValue(settings.theme);
-  useEffect(() => { if (styleName !== undefined) ref.topography?.update({ style: styleName }); }, [ref, styleName]);
-  useEffect(() => { if (seed !== undefined) ref.topography?.update({ seed }); }, [ref, seed]);
-  useEffect(() => { if (lines) ref.topography?.update({ lines }); }, [ref, lines]);
-  useEffect(() => { if (terrain) ref.topography?.update({ terrain }); }, [ref, terrain]);
-  useEffect(() => { if (motion) ref.topography?.update({ motion }); }, [ref, motion]);
-  useEffect(() => { if (layout) ref.topography?.update({ layout }); }, [ref, layout]);
-  useEffect(() => { if (theme) ref.topography?.update({ theme }); }, [ref, theme]);
+  useEffect(() => { if (styleName !== undefined) ref.topographic?.update({ style: styleName }); }, [ref, styleName]);
+  useEffect(() => { if (seed !== undefined) ref.topographic?.update({ seed }); }, [ref, seed]);
+  useEffect(() => { if (lines) ref.topographic?.update({ lines }); }, [ref, lines]);
+  useEffect(() => { if (terrain) ref.topographic?.update({ terrain }); }, [ref, terrain]);
+  useEffect(() => { if (motion) ref.topographic?.update({ motion }); }, [ref, motion]);
+  useEffect(() => { if (layout) ref.topographic?.update({ layout }); }, [ref, layout]);
+  useEffect(() => { if (theme) ref.topographic?.update({ theme }); }, [ref, theme]);
 
   return ref;
 }
 
-export interface TopographyProps extends TopographySettingsProps, Omit<HTMLAttributes<HTMLDivElement>, 'children'> {
+export interface TopographicBackgroundProps extends TopographicBackgroundSettingsProps, Omit<HTMLAttributes<HTMLDivElement>, 'children'> {
   /** Renderer options (pixel budget, WebGL1). Changing them recreates the renderer. */
   options?: RendererOptions;
   /** Called with the instance after mount, and with null on unmount. */
-  onReady?: (topography: TopographyInstance | null) => void;
+  onReady?: (topographic: TopographicBackgroundInstance | null) => void;
   children?: React.ReactNode;
 }
 
-/** A <div> with a topography background. Size it like any div; children render on top. */
-export const Topography = forwardRef<HTMLDivElement, TopographyProps>(function Topography(
+/** A <div> with a topographic background. Size it like any div; children render on top. */
+export const TopographicBackground = forwardRef<HTMLDivElement, TopographicBackgroundProps>(function TopographicBackground(
   { styleName, seed, lines, terrain, motion, layout, theme, options, onReady, style, children, ...div },
   forwarded,
 ) {
-  const ref = useTopography<HTMLDivElement>({ styleName, seed, lines, terrain, motion, layout, theme }, options);
+  const ref = useTopographicBackground<HTMLDivElement>({ styleName, seed, lines, terrain, motion, layout, theme }, options);
   const stableOptions = useByValue(options);
   const ready = useRef(onReady);
   ready.current = onReady;
   useEffect(() => {
-    ready.current?.(ref.topography);
+    ready.current?.(ref.topographic);
     return () => ready.current?.(null);
   }, [ref, stableOptions]);
 

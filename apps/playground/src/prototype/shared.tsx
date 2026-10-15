@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState, type MutableRefObject, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import {
-  GROUPS, STYLES, THEME_DEFAULTS, clampParam, createTopography, mergeSettings, paramsIn, resolveMode, resolveSettings, rgbaToCss,
-  type GroupName, type ParamDef, type Settings, type SettingsInput, type Topography as Instance,
-} from 'topography.js';
-import { Topography } from 'topography-react';
+  GROUPS, STYLES, THEME_DEFAULTS, clampParam, createTopographicBackground, mergeSettings, paramsIn, resolveMode, resolveSettings, rgbaToCss,
+  type GroupName, type ParamDef, type Settings, type SettingsInput, type TopographicBackground as Instance,
+} from 'topographic';
+import { TopographicBackground } from 'topographic-react';
 import { registerTools } from '../webmcp';
 import { configOf, readUrl } from '../url';
 import { LOOKS } from './looks';
@@ -140,7 +140,7 @@ export function usePlayground(): Playground {
 export function Backdrop({ pg, className = 'pt-stage' }: { pg: Playground; className?: string }) {
   const s = pg.settings;
   return (
-    <Topography className={className} aria-hidden="true" styleName={s.style} seed={s.seed} lines={s.lines} terrain={s.terrain}
+    <TopographicBackground className={className} aria-hidden="true" styleName={s.style} seed={s.seed} lines={s.lines} terrain={s.terrain}
       motion={s.motion} layout={s.layout} theme={s.theme} onReady={(t) => { pg.instance.current = t; }} />
   );
 }
@@ -152,7 +152,7 @@ export function useLookThumbs(width = 168, height = 96): string[] {
     const host = document.createElement('div');
     Object.assign(host.style, { position: 'fixed', left: '-9999px', top: '0', width: `${width / 2}px`, height: `${height / 2}px` });
     document.body.append(host);
-    const t = createTopography(host, { theme: resolveSettings(LOOKS[0].settings).theme });
+    const t = createTopographicBackground(host, { theme: resolveSettings(LOOKS[0].settings).theme });
     (async () => {
       const out: string[] = [];
       for (const look of LOOKS) {
@@ -262,7 +262,7 @@ export function useCopy(): [string, (label: string, text: string) => void] {
 export function Wordmark({ children }: { children?: ReactNode }) {
   return (
     <div className="pt-wordmark">
-      <span>topography.js</span>
+      <span>topographic</span>
       <a href="https://yahyapak.dev/projects/topography" target="_blank" rel="noreferrer">yahyapak.dev</a>
       {children}
     </div>

@@ -1,4 +1,4 @@
-import { GROUPS, fromQuery, paramsIn, resolveSettings, type Settings, type SettingsInput } from 'topography.js';
+import { GROUPS, fromQuery, paramsIn, resolveSettings, type Settings, type SettingsInput } from 'topographic';
 
 export function configOf(s: Settings): SettingsInput & { style: string } {
   const d = resolveSettings({ style: s.style });

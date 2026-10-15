@@ -32,7 +32,7 @@ async function page(extra = {}) {
 const coverage = (p, style, opts = {}) => p.evaluate(async ({ style, opts }) => {
   const host = document.getElementById('host');
   window.t?.destroy();
-  window.t = window.topographyLib.createTopography(host, { style, theme: { mode: 'light' }, ...opts.settings }, opts.renderer);
+  window.t = window.topographicLib.createTopographicBackground(host, { style, theme: { mode: 'light' }, ...opts.settings }, opts.renderer);
   const blob = await window.t.snapshot({ frame: 4000 });
   const bmp = await createImageBitmap(blob);
   const c = new OffscreenCanvas(bmp.width, bmp.height); const g = c.getContext('2d'); g.drawImage(bmp, 0, 0);
@@ -83,7 +83,7 @@ try {
 
   const rm = await page({ reducedMotion: 'reduce' });
   const still = await rm.evaluate(async () => {
-    const t = window.topographyLib.createTopography(document.getElementById('host'), {});
+    const t = window.topographicLib.createTopographicBackground(document.getElementById('host'), {});
     let frames = 0; const orig = window.requestAnimationFrame; window.requestAnimationFrame = (f) => { frames++; return orig(f); };
     await new Promise((r) => setTimeout(r, 300)); return { frames, status: t.status };
   });
@@ -93,7 +93,7 @@ try {
   await ep.goto(url.replace('smoke.html', 'element.html'));
   await ep.waitForFunction(() => window.ready);
   const el = await ep.evaluate(() => {
-    const e = document.querySelector('topography-bg'); const t = e.topography;
+    const e = document.querySelector('topographic-bg'); const t = e.topographic;
     const a = [t.status, t.settings.style, t.settings.lines.count, t.settings.seed, t.settings.layout.fade].join();
     e.setAttribute('line-count', '12'); e.setAttribute('style-name', 'granite');
     const b = [t.settings.style, t.settings.lines.count, t.settings.layout.fade].join();
@@ -101,12 +101,12 @@ try {
     e.remove(); return { a, b, c, d: t.status };
   });
   check(el.a === 'webgl2,dunes,24,3,0.5' && el.b === 'granite,12,0.7' && el.c === 30 && el.d === 'destroyed',
-    `<topography-bg> attributes: ${el.a} | ${el.b} | reset ${el.c} | removed ${el.d}`);
+    `<topographic-bg> attributes: ${el.a} | ${el.b} | reset ${el.c} | removed ${el.d}`);
 
   const nogl = await page();
   const fb = await nogl.evaluate(() => {
     HTMLCanvasElement.prototype.getContext = ((orig) => function (type, ...rest) { return type.startsWith('webgl') ? null : orig.call(this, type, ...rest); })(HTMLCanvasElement.prototype.getContext);
-    const t = window.topographyLib.createTopography(document.getElementById('host'), { theme: { mode: 'dark' } });
+    const t = window.topographicLib.createTopographicBackground(document.getElementById('host'), { theme: { mode: 'dark' } });
     return { status: t.status, bg: getComputedStyle(t.canvas).backgroundColor };
   });
   check(fb.status === 'fallback' && fb.bg.includes('11, 11, 13'), `no webgl -> ${fb.status}, paper ${fb.bg}`);

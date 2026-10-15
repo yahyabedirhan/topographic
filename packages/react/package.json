@@ -1,16 +1,16 @@
 {
-  "name": "topography-react",
+  "name": "topographic-react",
   "version": "0.1.0",
-  "description": "React component and hook for topography.js backgrounds.",
+  "description": "React component and hook for topographic backgrounds.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yahyabedirhan/topography.git",
+    "url": "git+https://github.com/yahyabedirhan/topographic.git",
     "directory": "packages/react"
   },
-  "homepage": "https://yahyabedirhan.github.io/topography/",
+  "homepage": "https://yahyabedirhan.github.io/topographic/",
   "bugs": {
-    "url": "https://github.com/yahyabedirhan/topography/issues"
+    "url": "https://github.com/yahyabedirhan/topographic/issues"
   },
   "keywords": [
     "topography",
@@ -39,7 +39,7 @@
     "LICENSE"
   ],
   "dependencies": {
-    "topography.js": "^0.1.0"
+    "topographic": "^0.1.0"
   },
   "peerDependencies": {
     "react": "^18 || ^19"

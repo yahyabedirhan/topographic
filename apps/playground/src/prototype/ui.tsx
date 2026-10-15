@@ -5,7 +5,7 @@ import { Toggle } from '@base-ui-components/react/toggle';
 import { ToggleGroup } from '@base-ui-components/react/toggle-group';
 import { Tooltip } from '@base-ui-components/react/tooltip';
 import { Dices, Frame, Moon, Mountain, RotateCcw, SlidersHorizontal, Spline, Sun, Wind } from 'lucide-react';
-import { GROUPS, paramsIn, type GroupName, type ParamDef } from 'topography.js';
+import { GROUPS, paramsIn, type GroupName, type ParamDef } from 'topographic';
 import { LOOKS } from './looks';
 import {
   Backdrop, ColorPicker, GROUP_LABELS, INK_SWATCHES, PAPER_SWATCHES, Wordmark, currentColour, rollColour, useLookThumbs,

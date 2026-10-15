@@ -1,4 +1,4 @@
-import { mergeSettings, PRESETS, STYLES, type Settings, type SettingsInput, type Topography } from 'topography.js';
+import { mergeSettings, PRESETS, STYLES, type Settings, type SettingsInput, type TopographicBackground } from 'topographic';
 import { INSTALL } from './content';
 import { embedCode, type EmbedFormat } from './embed';
 import { TOOL_DEFS } from './agent-tools';
@@ -8,7 +8,7 @@ import { configOf } from './url';
 export interface PageBridge {
   getSettings(): Settings;
   setSettings(s: Settings): void;
-  instance(): Topography | null;
+  instance(): TopographicBackground | null;
 }
 
 interface ModelContextLike {
@@ -99,7 +99,7 @@ export function registerTools(page: PageBridge): () => void {
       execute: async (input: Record<string, unknown> = {}) => run[def.name](input),
     };
     Promise.resolve(mc.registerTool(tool, { signal: controller.signal }))
-      .catch((e) => console.warn(`[topography] WebMCP could not register ${def.name}:`, e));
+      .catch((e) => console.warn(`[topographic] WebMCP could not register ${def.name}:`, e));
   }
   return () => controller.abort();
 }

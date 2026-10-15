@@ -1,16 +1,16 @@
 {
-  "name": "topography.js",
+  "name": "topographic",
   "version": "0.1.0",
   "description": "A JavaScript package for creating animated topographic backgrounds.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yahyabedirhan/topography.git",
+    "url": "git+https://github.com/yahyabedirhan/topographic.git",
     "directory": "packages/core"
   },
-  "homepage": "https://yahyabedirhan.github.io/topography/",
+  "homepage": "https://yahyabedirhan.github.io/topographic/",
   "bugs": {
-    "url": "https://github.com/yahyabedirhan/topography/issues"
+    "url": "https://github.com/yahyabedirhan/topographic/issues"
   },
   "keywords": [
     "topography",

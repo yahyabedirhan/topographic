@@ -1,14 +1,14 @@
-<p align="center"><img src="assets/images/logo/topography.png" width="128" alt="topography's logo: three contour rings on paper folded along one diagonal crease, on a graphite tile"></p>
+<p align="center"><img src="assets/images/logo/topographic.png" width="128" alt="The topographic logo: three contour rings on paper folded along one diagonal crease, on a graphite tile"></p>
 
-<h1 align="center">topography.js</h1>
+<h1 align="center">topographic</h1>
 
-![The topography.js playground in dark mode: contour lines drift behind the page, and the settings panel sits on the right](assets/screenshots/playground-dark.png)
+![The topographic playground in dark mode: contour lines drift behind the page, and the settings panel sits on the right](assets/screenshots/playground-dark.png)
 
-## What is topography.js
+## What is topographic
 
-Topography is a js library that draws animated contour lines, like those on a topographic map, as the background of a web page.
+topographic is a JavaScript library that draws topographic backgrounds: animated contour lines, like those on a topographic map, behind a web page.
 
-It renders the lines with one WebGL shader. You choose a terrain style and set options for the lines, the terrain, the motion and the layout. You can try the options in the [playground](https://yahyabedirhan.github.io/topography/).
+It renders the lines with one WebGL shader. You choose a terrain style and set options for the lines, the terrain, the motion and the layout. You can try the options in the [playground](https://yahyabedirhan.github.io/topographic/).
 
 ## How it works
 
@@ -21,35 +21,35 @@ It pauses when nobody can see it, holds still for people who prefer less motion,
 
 ## Install
 
-On npm: [`topography.js`](https://www.npmjs.com/package/topography.js) for the core and the web component, and [`topography-react`](https://www.npmjs.com/package/topography-react) for React.
+On npm: [`topographic`](https://www.npmjs.com/package/topographic) for the core and the web component, and [`topographic-react`](https://www.npmjs.com/package/topographic-react) for React.
 
 ```sh
-npm install topography.js
+npm install topographic
 ```
 
 **Web component:**
 
 ```html
-<script type="module">import 'topography.js/element';</script>
+<script type="module">import 'topographic/element';</script>
 
-<topography-bg style-name="dunes" line-count="30"></topography-bg>
+<topographic-bg style-name="dunes" line-count="30"></topographic-bg>
 ```
 
-**React** (`npm install topography-react`):
+**React** (`npm install topographic-react`):
 
 ```tsx
-import { Topography } from 'topography-react';
+import { TopographicBackground } from 'topographic-react';
 
-<Topography styleName="granite" terrain={{ roughness: 0.3 }} style={{ height: '100vh' }} />
+<TopographicBackground styleName="granite" terrain={{ roughness: 0.3 }} style={{ height: '100vh' }} />
 ```
 
 **JavaScript:**
 
 ```js
-import { createTopography } from 'topography.js';
+import { createTopographicBackground } from 'topographic';
 
-const topography = createTopography(document.querySelector('#hero'), { style: 'gentle-summit' });
-topography.update({ terrain: { peaks: 3 } });
+const topographic = createTopographicBackground(document.querySelector('#hero'), { style: 'gentle-summit' });
+topographic.update({ terrain: { peaks: 3 } });
 ```
 
 ## Styles
@@ -60,7 +60,7 @@ Seven styles, three presets, and the same terrain every time you use the same `s
 
 ## The playground
 
-The [playground](https://yahyabedirhan.github.io/topography/) is the easiest way to find a background you like. The page itself is the preview: pick a preset, move the sliders, then copy the result as HTML, React or JavaScript, or download it as a PNG. Your settings live in the URL, so a link brings the same background back.
+The [playground](https://yahyabedirhan.github.io/topographic/) is the easiest way to find a background you like. The page itself is the preview: pick a preset, move the sliders, then copy the result as HTML, React or JavaScript, or download it as a PNG. Your settings live in the URL, so a link brings the same background back.
 
 It works for agents too. It serves plain-text docs at `/llms.txt`, and in browsers with [WebMCP](https://github.com/webmachinelearning/webmcp) an agent can change the settings and get the embed code itself.
 
@@ -68,7 +68,7 @@ It works for agents too. It serves plain-text docs at `/llms.txt`, and in browse
 
 ### Library architecture
 
-![How topography.js fits together: the web component, the React component and the playground all call one public API, which resolves the settings and hands them to one WebGL renderer and shader](assets/images/diagrams/library-architecture.png)
+![How topographic fits together: the web component, the React component and the playground all call one public API, which resolves the settings and hands them to one WebGL renderer and shader](assets/images/diagrams/library-architecture.png)
 
 Everything goes through one API, and one table defines every setting.
 
