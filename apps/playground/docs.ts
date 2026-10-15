@@ -28,7 +28,7 @@ ${TOOL_DEFS.map((t) => `### ${t.name}\n\n\`\`\`json\n${JSON.stringify(t.inputSch
 
 The published page does not register these. They exist on the dev dock (\`npm run prototype\`, then \`/?variant=P2\`).
 
-A region is \`?region=west,south,east,north\` in degrees, or JSON such as \`{"bbox":[7.64,45.95,7.78,46.04]}\`. \`relief=measured\` opts out of the default dramatic stretch. \`smooth=light\` or \`smooth=strong\` opts out of medium. Named examples: \`place=zermatt\`, \`place=istanbul\`, \`place=chicago\`. \`?mode=3d\` still opts into the 3D view. The 2D map stays the default.
+A region is \`?region=west,south,east,north\` in degrees, or JSON such as \`{"bbox":[28.94,40.99,29.07,41.08]}\`. \`relief=measured\` opts out of the default dramatic stretch. \`smooth=light\` or \`smooth=strong\` opts out of medium. Named examples: \`place=istanbul\`, \`place=san-francisco\`, \`place=london\`, \`place=new-york\`. \`?mode=3d\` still opts into the 3D view. The 2D map stays the default.
 
 ${REGION_TOOL_DEFS.map((t) => `- \`${t.name}\`${t.readOnly ? ' (read-only)' : ''}: ${t.description}`).join('\n')}
 
@@ -177,7 +177,7 @@ Live playground: ${SITE_URL}
 
 The playground page holds its state in the URL as \`?config=<url-encoded JSON settings>\`, for example \`?config=${encodeURIComponent('{"style":"dunes","lines":{"count":24}}')}\`. Add \`?mode=3d\` to open the same settings as a terrain. In dev, \`?variant=P2\` or \`?mode=3d\` opens the dock playground (\`npm run prototype\`). The JSON shape is the \`settings\` object from the API docs.
 
-On that dev playground, a real place is \`?region=west,south,east,north\` (or JSON \`{"bbox":[west,south,east,north]}\`), with optional \`relief=measured\` and \`smooth=light|strong\`. Examples: \`place=zermatt\` (mountain), \`place=istanbul\` (hilly city), \`place=chicago\` (flat city). The published page has no region tools.
+On that dev playground, a real place is \`?region=west,south,east,north\` (or JSON \`{"bbox":[west,south,east,north]}\`), with optional \`relief=measured\` and \`smooth=light|strong\`. Examples: \`place=istanbul\`, \`place=san-francisco\`, \`place=london\`, \`place=new-york\`. The published page has no region tools.
 
 ## Packages
 

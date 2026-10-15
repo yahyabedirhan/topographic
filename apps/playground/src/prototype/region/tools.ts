@@ -113,7 +113,7 @@ export const REGION_TOOL_DEFS: ToolDef[] = [
     name: 'set_region',
     title: 'Set region',
     readOnly: false,
-    description: 'Dev playground only (?variant=P2). Sets the map region that becomes the terrain. Give place (zermatt, istanbul or chicago) or a bbox in degrees. Optional relief is dramatic or measured, and smooth is light, medium or strong. The same values are written to the page URL as ?region=.',
+    description: 'Dev playground only (?variant=P2). Sets the map region that becomes the terrain. Give place (istanbul, san-francisco, london or new-york) or a bbox in degrees. Optional relief is dramatic or measured, and smooth is light, medium or strong. The same values are written to the page URL as ?region=.',
     inputSchema: SET_SCHEMA,
   },
   {

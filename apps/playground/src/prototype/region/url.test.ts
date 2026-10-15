@@ -11,8 +11,8 @@ describe('region url', () => {
   });
 
   it('keeps dramatic and medium out of the query', () => {
-    const q = new URLSearchParams('region=7.6,45.9,7.8,46&relief=measured&smooth=strong&place=zermatt');
-    expect(readRegion(`?${q}`)).toMatchObject({ relief: 'measured', smooth: 'strong', place: 'zermatt' });
+    const q = new URLSearchParams('region=28.94,40.99,29.07,41.08&relief=measured&smooth=strong&place=istanbul');
+    expect(readRegion(`?${q}`)).toMatchObject({ relief: 'measured', smooth: 'strong', place: 'istanbul' });
     expect(formatBBox({ west: 7.6, south: 45.9, east: 7.8, north: 46 })).toBe('7.6,45.9,7.8,46');
   });
 });

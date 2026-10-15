@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Heightfield } from 'topographic';
 import type { Playground } from '../shared';
 import { limitMessage, limitProblem, spanOf, type BBox, type ReliefMode, type SmoothLevel, type Span } from './pipeline';
-import { findPlace } from './places';
+import { configSetsElevation, findPlace, nextRegionElevation } from './places';
 import { registerRegionTools } from './register';
 import { readRegion, writeRegion, type RegionQuery } from './url';
 import type { BuildErr, BuildOk } from './worker';
@@ -125,6 +125,21 @@ export function useRegion(pg: Playground): RegionController {
     if (generation > 0) apply();
     return () => { stop = true; };
   }, [generation, pg]);
+
+  const elevationRef = useRef(pg.settings.elevation);
+  elevationRef.current = pg.settings.elevation;
+  const changeRef = useRef(pg.change);
+  changeRef.current = pg.change;
+  const explicitRef = useRef(configSetsElevation(location.search));
+  const prevBbox = useRef<BBox | null>(null);
+  useEffect(() => {
+    const entering = Boolean(bbox) && !prevBbox.current;
+    const leaving = !bbox && Boolean(prevBbox.current);
+    const next = nextRegionElevation(entering, leaving, elevationRef.current, explicitRef.current);
+    if (entering) explicitRef.current = false;
+    prevBbox.current = bbox;
+    if (next !== null) changeRef.current({ elevation: next });
+  }, [bbox]);
 
   const name = findPlace(placeId)?.name ?? (bbox ? 'Custom' : '');
   const setPlace = useCallback((next: BBox, id: string | null) => {

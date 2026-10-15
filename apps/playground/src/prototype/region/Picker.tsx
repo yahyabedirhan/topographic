@@ -6,7 +6,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 
 setWorkerUrl(maplibreWorkerUrl);
 import { limitMessage, limitProblem, spanOf, type BBox } from './pipeline';
-import { FRAME, MAP_STYLE, PLACES } from './places';
+import { findPlace, FRAME, MAP_STYLE, PLACES } from './places';
 import type { RegionController } from './useRegion';
 
 type PickMode = 'frame' | 'draw';
@@ -115,7 +115,7 @@ export function PlaceSheet({ open, onClose, region }: { open: boolean; onClose: 
     };
     map.on('load', () => {
       map.resize();
-      const target = region.bbox ?? PLACES[1].bbox;
+      const target = region.bbox ?? findPlace('istanbul')?.bbox ?? PLACES[0].bbox;
       map.fitBounds([[target.west, target.south], [target.east, target.north]], { padding: framePadding(map), duration: 0 });
       refresh();
     });

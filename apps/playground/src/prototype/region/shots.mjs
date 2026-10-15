@@ -9,20 +9,17 @@ const config = encodeURIComponent(JSON.stringify({
   style: 'gentle-summit',
   lines: { count: 28 },
   theme: { mode: 'dark' },
-  elevation: 0.72,
 }));
 
 const places = [
-  ['zermatt-2d', 'place=zermatt&region=7.64,45.95,7.78,46.04'],
-  ['zermatt-3d', 'place=zermatt&region=7.64,45.95,7.78,46.04&mode=3d'],
-  ['zermatt-light-3d', 'place=zermatt&region=7.64,45.95,7.78,46.04&mode=3d&smooth=light'],
-  ['zermatt-strong-3d', 'place=zermatt&region=7.64,45.95,7.78,46.04&mode=3d&smooth=strong'],
   ['istanbul-2d', 'place=istanbul&region=28.94,40.99,29.07,41.08'],
   ['istanbul-3d', 'place=istanbul&region=28.94,40.99,29.07,41.08&mode=3d'],
-  ['chicago-2d', 'place=chicago&region=-87.72,41.84,-87.58,41.93'],
-  ['chicago-3d', 'place=chicago&region=-87.72,41.84,-87.58,41.93&mode=3d'],
-  ['chicago-measured-2d', 'place=chicago&region=-87.72,41.84,-87.58,41.93&relief=measured'],
-  ['chicago-measured-3d', 'place=chicago&region=-87.72,41.84,-87.58,41.93&relief=measured&mode=3d'],
+  ['san-francisco-2d', 'place=san-francisco&region=-122.51,37.71,-122.38,37.81'],
+  ['san-francisco-3d', 'place=san-francisco&region=-122.51,37.71,-122.38,37.81&mode=3d'],
+  ['london-2d', 'place=london&region=-0.22,51.48,-0.06,51.57'],
+  ['london-3d', 'place=london&region=-0.22,51.48,-0.06,51.57&mode=3d'],
+  ['new-york-2d', 'place=new-york&region=-74.06,40.68,-73.92,40.77'],
+  ['new-york-3d', 'place=new-york&region=-74.06,40.68,-73.92,40.77&mode=3d'],
 ];
 
 const args = ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'];

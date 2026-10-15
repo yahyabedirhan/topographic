@@ -13,13 +13,14 @@ That builds the packages, starts Vite and opens `/?variant=P2`. 2D is the defaul
 
 | Place | URL |
 |---|---|
-| Zermatt, a mountain valley | `/?variant=P2&place=zermatt&region=7.64,45.95,7.78,46.04` |
-| Istanbul, a hilly city | `/?variant=P2&place=istanbul&region=28.94,40.99,29.07,41.08` |
-| Chicago, a flat city | `/?variant=P2&place=chicago&region=-87.72,41.84,-87.58,41.93` |
+| Istanbul | `/?variant=P2&place=istanbul&region=28.94,40.99,29.07,41.08` |
+| San Francisco | `/?variant=P2&place=san-francisco&region=-122.51,37.71,-122.38,37.81` |
+| London | `/?variant=P2&place=london&region=-0.22,51.48,-0.06,51.57` |
+| New York | `/?variant=P2&place=new-york&region=-74.06,40.68,-73.92,40.77` |
 
-`region` is `west,south,east,north` in degrees. A JSON value works too: `{"bbox":[7.64,45.95,7.78,46.04]}` or `{"west":7.64,"south":45.95,"east":7.78,"north":46.04}`. `relief=measured` opts out of the dramatic stretch. `smooth=light` or `smooth=strong` opts out of medium. The same `config` query as the rest of the playground still sets the style, colours and camera.
+`region` is `west,south,east,north` in degrees. A JSON value works too: `{"bbox":[28.94,40.99,29.07,41.08]}` or `{"west":28.94,"south":40.99,"east":29.07,"north":41.08}`. `relief=measured` opts out of the dramatic stretch. `smooth=light` or `smooth=strong` opts out of medium. The same `config` query as the rest of the playground still sets the style, colours and camera. An explicit `elevation` in that config is kept. Without one, a place opens at 0.1.
 
-Place opens a map. Frame (the default) uses pan and zoom, and the inset rectangle is the place. Rectangle is a drag. The three chips load those examples immediately. Use this place commits whatever the frame or the drag currently covers.
+Place opens a map. Frame (the default) uses pan and zoom, and the inset rectangle is the place. Rectangle is a drag. The four chips load those cities immediately. Use this place commits whatever the frame or the drag currently covers.
 
 Regenerate the screenshots while that dev server is running:
 
@@ -29,18 +30,21 @@ node apps/playground/src/prototype/region/shots.mjs http://127.0.0.1:5173/ docs/
 
 ## What the pictures show
 
-Same style throughout: gentle summit, 28 lines, dark paper, elevation 0.72.
+Same style throughout: gentle summit, 28 lines, dark paper. 3D opens at elevation 0.1.
 
 | File | What it is |
 |---|---|
-| `zermatt-2d.png`, `zermatt-3d.png` | Matterhorn valley, about 11 km by 9.9 km, 2817 m of relief. Medium smoothing. |
-| `zermatt-light-3d.png`, `zermatt-strong-3d.png` | The same valley with less and more blur. |
 | `istanbul-2d.png`, `istanbul-3d.png` | The historic peninsula and the Bosphorus, about 11 km by 9.9 km, 260 m of relief. |
-| `chicago-2d.png`, `chicago-3d.png` | The lakefront, about 12 km by 9.9 km, 30 m of relief, stretched to fill the block. |
-| `chicago-measured-2d.png`, `chicago-measured-3d.png` | The same 30 m, drawn against a 400 m full-height span, so the city stays low. |
+| `san-francisco-2d.png`, `san-francisco-3d.png` | The peninsula hills, about 11 km by 11 km, 282 m of relief. |
+| `london-2d.png`, `london-3d.png` | The Thames and the northern rise, about 11 km by 9.9 km, 135 m of relief. |
+| `new-york-2d.png`, `new-york-3d.png` | Lower Manhattan and the rivers, about 12 km by 9.9 km, 78 m of relief. |
+| `elevation-sweep-istanbul.png` | Istanbul at 0.05, 0.1, 0.15, 0.2, 0.3 and 0.62. |
+| `elevation-sweep-san-francisco.png` | The same sweep for San Francisco. |
+| `elevation-sweep-london.png` | The same sweep for London. |
+| `elevation-sweep-new-york.png` | The same sweep for New York. |
 | `picker-frame.png`, `picker-rectangle.png` | The two ways to choose the rectangle. |
 
-The heights are bare earth. Istanbul's contours are the hills, and the buildings are absent. Sea water is clamped to a flat floor, which is why the Bosphorus and Lake Michigan sit level.
+The heights are bare earth. The contours are the ground, and the buildings are absent. Sea water is clamped to a flat floor, which is why the Bosphorus, the bay, the Thames and the Hudson sit level.
 
 A load of one of these cities took about 6 seconds in this browser. Almost all of that is fetching the PNG tiles.
 
@@ -58,7 +62,11 @@ A browser request with an `Origin` header receives `Access-Control-Allow-Origin:
 
 MapTiler and Mapbox terrain RGB, and the Google Elevation API, need a key and billing. A raw Copernicus or SRTM GeoTIFF is newer and is not a PNG tile a static page can fetch directly. Terrarium is the keyless tile that already answered the browser.
 
-**Pipeline.** A module worker fetches the tiles, decodes them, stitches, and resamples onto a 256 by 256 grid. Dramatic mode (the default) stretches the 2nd to 98th percentile of the local heights across the block, so a flat city still reads as terrain. Measured mode treats 400 m as full height, so Chicago stays low and a range above 400 m still fills the block. A gaussian blur keeps peaks round. Relief under 30 m gets a little more blur, and relief under 12 m gets more again.
+**Pipeline.** A module worker fetches the tiles, decodes them, stitches, and resamples onto a 256 by 256 grid. Dramatic mode (the default) stretches the 2nd to 98th percentile of the local heights across the block, so a flat city still reads as terrain. Measured mode treats 400 m as full height, so a low city stays low and a range above 400 m still fills the block. A gaussian blur keeps peaks round. Relief under 30 m gets a little more blur, and relief under 12 m gets more again.
+
+**Height on screen.** The procedural terrain still defaults to elevation 0.62. A real place defaults to 0.1, unless the URL already set `elevation`. Clearing the place restores 0.62 when the slider is still on 0.1. A sweep from 0.05 to 0.62 is in the `elevation-sweep-*.png` grids. At 0.62 the block becomes a wall and the city is hard to read. At 0.1 the hills stay in the frame. 0.15 and 0.2 are a little taller and still calm. 0.05 is nearly flat.
+
+The four cities have different relief in metres (78 m in New York, 282 m in San Francisco), and dramatic mode already stretches each one across the block. Scaling the slider by those metres would push New York and London toward the flat end of the sweep, so every city shares 0.1. The slider still overrides it.
 
 The numeric work, timed by `pipeline.test.ts` on this machine, warm:
 
@@ -70,11 +78,11 @@ The numeric work, timed by `pipeline.test.ts` on this machine, warm:
 
 Ten percent off those times is about a millisecond. An order of magnitude would land around 1 to 4 ms. The tile download is the wait, so the prototype stays in JavaScript. There is no Wasm build.
 
-**Area.** Shortest side at least 1.5 km, longest side at most 64 km, aspect at most 3 to 1, and at most 36 tiles. The zoom is the finest level that stays inside that tile budget, and it never goes above 15. Under 1.5 km the source is only a handful of samples across, so the picture goes soft. Over 64 km the place is no longer a city or a valley, and the download grows. Zermatt, Istanbul and Chicago all sit near 10 km on a side, inside that range.
+**Area.** Shortest side at least 1.5 km, longest side at most 64 km, aspect at most 3 to 1, and at most 36 tiles. The zoom is the finest level that stays inside that tile budget, and it never goes above 15. Under 1.5 km the source is only a handful of samples across, so the picture goes soft. Over 64 km the place is no longer a city, and the download grows. The four example cities sit near 10 km on a side, inside that range.
 
 **Renderer.** The region replaces the procedural landform through `setHeightfield`. The style still sets line count, width, opacity, index, grain and colour. A real place holds its shape while you change style, and it holds still while motion is on. Block and endless, the camera, snapshot and record are the same controls as the 3D prototype. 2D fits the region inside the view and leaves paper around it. 3D uses the region's aspect for the footprint.
 
-**Agents.** The dev page registers `set_region`, `get_region` and `clear_region` with WebMCP. The published tool list is unchanged. `llms.txt` and `docs/webmcp.md` describe the bbox and those tools. `set_region` accepts `place` (`zermatt`, `istanbul`, `chicago`), the four edges, a `bbox` array, or a `region` string, plus optional `relief` and `smooth`.
+**Agents.** The dev page registers `set_region`, `get_region` and `clear_region` with WebMCP. The published tool list is unchanged. `llms.txt` and `docs/webmcp.md` describe the bbox and those tools. `set_region` accepts `place` (`istanbul`, `san-francisco`, `london`, `new-york`), the four edges, a `bbox` array, or a `region` string, plus optional `relief` and `smooth`.
 
 ## Attribution
 
@@ -98,8 +106,8 @@ The map control credits OpenFreeMap, OpenMapTiles and OpenStreetMap. Elevation f
 These are in the UI and the screenshots so they can be chosen by looking.
 
 1. Frame or rectangle as the default way to pick? Frame is the default. Both are in the dialog.
-2. Dramatic or measured as the default relief? Dramatic is the default. Compare the Chicago pair.
-3. Light, medium or strong smoothing? Medium is the default. Compare the three Zermatt 3D shots.
+2. Dramatic or measured as the default relief? Dramatic is the default, which is what makes a 78 m city fill the block at the same slider position as a 282 m city.
+3. Light, medium or strong smoothing? Medium is the default.
 4. Are 1.5 km and 64 km the right edges for a place?
 5. Should a style keep warping the landform, or stay on the line treatment? A real place currently keeps the elevation shape.
 6. Should this leave the prototype? The production build still omits the dock.
