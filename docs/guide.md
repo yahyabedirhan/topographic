@@ -47,6 +47,7 @@ The call puts a canvas inside `element`, which fills it, so give the element a s
 | `record({ seconds?, fps?, width?, height?, frame?, format?, motion? })` | Renders a 3D clip with a moving camera and resolves to an MP4 or WebM `Blob`. |
 | `setHeightfield({ samples, size, aspect } \| null)` | Draws the contours from your own square elevation grid instead of the style's terrain: `samples` is a `Float32Array` of `size × size` values from 0 (low) to 1 (high), row 0 at the south, and `aspect` is the place's width over its height. `null` brings the procedural style back. |
 | `stats` | `{ fps, frameMs, mesh }` for the 3D view. `mesh` is 0 in 2D. |
+| `pose` | `{ azimuth, elevation, radius }`: where the 3D camera is now, along its motion path. Azimuth 0 looks from the south with north at the top of the screen, and the angle grows clockwise as seen from above, so north turns towards the right of the screen. |
 | `destroy()` | Stops drawing, removes listeners and the canvas, and frees the WebGL context. |
 | `settings` | The current, fully resolved settings. |
 | `status` | `'webgl2'`, `'webgl1'`, `'fallback'`, `'lost'` or `'destroyed'`. |

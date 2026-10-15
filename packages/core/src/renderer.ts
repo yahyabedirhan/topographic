@@ -64,6 +64,8 @@ export interface TopographicBackground {
   readonly settings: Settings;
   readonly status: RendererStatus;
   readonly stats: RendererStats;
+  /** Where the 3D camera is now, along its motion path. Azimuth 0 looks from the south, with north up. */
+  readonly pose: Pose;
   readonly canvas: HTMLCanvasElement;
 }
 
@@ -386,6 +388,7 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
   return {
     get settings() { return settings; },
     get status() { return status; },
+    get pose() { return cameraPose(settings.camera, frameMs / 1000); },
     canvas,
     get stats() {
       return {
