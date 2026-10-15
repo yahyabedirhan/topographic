@@ -17,7 +17,7 @@ export function configOf(s: Settings): SettingsInput & { style: string } {
   if (s.elevation !== d.elevation) out.elevation = s.elevation;
   if (s.extent !== d.extent) out.extent = s.extent;
   if (s.detail !== d.detail) out.detail = s.detail;
-  const camera = Object.fromEntries((['azimuth', 'elevation', 'radius', 'motion'] as const)
+  const camera = Object.fromEntries((['azimuth', 'elevation', 'radius', 'motion', 'panX', 'panZ'] as const)
     .filter((k) => s.camera[k] !== d.camera[k])
     .map((k) => [k, s.camera[k]]));
   if (Object.keys(camera).length) out.camera = camera;

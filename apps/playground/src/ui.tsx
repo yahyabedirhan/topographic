@@ -413,7 +413,7 @@ function ViewTune({ pg }: { pg: Playground }) {
   // The camera's default is the active look's camera, or the playground camera without a look.
   const home = (pg.lookIndex >= 0 && LOOK_CAMERAS[LOOKS[pg.lookIndex].name]) || PLAYGROUND_CAMERA;
   const cameraChanged = (Object.keys(home) as (keyof typeof home)[]).some((k) => s.camera[k] !== home[k])
-    || s.camera.motion !== DEFAULT_CAMERA.motion;
+    || s.camera.motion !== DEFAULT_CAMERA.motion || s.camera.panX !== 0 || s.camera.panZ !== 0;
   const pose = useLivePose(pg, !off && s.camera.motion !== 'still');
   const rig = { azimuth: pose?.azimuth ?? azimuth, angle: pose?.elevation ?? s.camera.elevation, distance: pose?.radius ?? s.camera.radius, elevation: s.elevation, motion: s.camera.motion };
   return (
@@ -442,7 +442,7 @@ function ViewTune({ pg }: { pg: Playground }) {
         <SegRow label="Motion" icon="camMotion" options={PATHS} value={s.camera.motion} disabled={off} onChange={(id) => cam({ motion: id })} />
         <SliderRow
           label="Azimuth" icon="azimuth" art="azimuth"
-          hint="Orbit around the terrain. Drag the view to move this too."
+          hint="Orbit around the terrain. Drag the view to move this too. A two-finger scroll pans; a double-click recentres."
           value={azimuth} min={0} max={360} step={1} shown={`${azimuth.toFixed(0)}°`} disabled={off}
           onChange={(n) => cam({ azimuth: n })}
         />
@@ -454,7 +454,7 @@ function ViewTune({ pg }: { pg: Playground }) {
         />
         <SliderRow
           label="Distance" icon="distance" art="distance"
-          hint="How far the camera sits. Scroll or pinch the view to zoom."
+          hint="How far the camera sits. ⌘/Ctrl + scroll or pinch the view to zoom (Shift + scroll also zooms)."
           value={s.camera.radius} min={1.15} max={6.5} step={0.01} shown={s.camera.radius.toFixed(2)} disabled={off}
           onChange={(n) => cam({ radius: n })}
         />

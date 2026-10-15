@@ -39,6 +39,15 @@ describe('share url', () => {
     roundTrip(s);
   });
 
+  it('writes the pan only when it is off centre', () => {
+    const s = mergeSettings(nightLobes, { mode: '3d', camera: { panX: 0.2, panZ: -0.05 } });
+    expect(query(s)).toBe('look=night-lobes&mode=3d&px=0.2&pz=-0.05');
+    roundTrip(s);
+    expect(query(mergeSettings(s, { camera: { panX: 0, panZ: 0 } }))).toBe('look=night-lobes&mode=3d');
+    // A look always comes back centred.
+    expect(baseline(findLook('night-lobes')!.settings).camera).toMatchObject({ panX: 0, panZ: 0 });
+  });
+
   it('treats endless as the playground default and writes block', () => {
     expect(baseline().extent).toBe('endless');
     expect(readSettings('mode=3d').extent).toBe('endless');

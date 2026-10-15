@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type MutableRefObject, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import {
-  GROUPS, STYLES, THEME_DEFAULTS, clampParam, createTopographicBackground, mergeSettings, paramsIn, resolveMode, resolveSettings, rgbaToCss,
+  GROUPS, STYLES, THEME_DEFAULTS, clampParam, createTopographicBackground, mergeSettings, panBy, paramsIn, resolveMode, resolveSettings, rgbaToCss,
   type GroupName, type Heightfield, type ParamDef, type Settings, type SettingsInput, type TopographicBackground as Instance,
 } from 'topographic';
 import { TopographicBackground } from 'topographic-react';
@@ -161,13 +161,49 @@ function terrainKey(s: Settings): string {
 
 const BENCHMARK = { benchmark: true as const };
 
+const wrapDegrees = (n: number) => Number((((n % 360) + 360) % 360).toFixed(1));
+const round3 = (n: number) => Number(n.toFixed(3));
+const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/**
+ * A wheel event from a trackpad's two-finger scroll, not a mouse wheel. Chrome and Safari report a
+ * trackpad's legacy wheelDelta as -3 × deltaY, while a mouse notch is a multiple of 120.
+ */
+function fromTrackpad(e: WheelEvent): boolean {
+  if (e.deltaMode !== 0) return false;
+  if (e.deltaX !== 0) return true;
+  const legacy = (e as WheelEvent & { wheelDeltaY?: number }).wheelDeltaY;
+  return typeof legacy === 'number' && legacy !== 0 && legacy === -3 * e.deltaY && legacy % 120 !== 0;
+}
+
+/**
+ * The 3D view's pointer controls. A drag orbits. A two-finger scroll pans across the ground, and so
+ * do a right drag, a Shift+drag and a two-finger touch drag. ⌘/Ctrl + scroll or a pinch zooms (a
+ * pinch is a wheel with ctrlKey); Shift or Alt + scroll and a plain mouse wheel zoom too. A
+ * double-click glides the pan back to the centre.
+ */
 function useOrbit(pg: Playground) {
   const live = useRef(pg);
   live.current = pg;
   const node = useRef<HTMLDivElement | null>(null);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const drag = useRef<{ id: number; x: number; y: number; azimuth: number; elevation: number } | null>(null);
-  const pinch = useRef<{ dist: number; radius: number } | null>(null);
+  const pan = useRef<{ id: number; x: number; y: number; panX: number; panZ: number } | null>(null);
+  const pinch = useRef<{ dist: number; radius: number; x: number; y: number; panX: number; panZ: number } | null>(null);
+  const glide = useRef(0);
+  const wheelPan = useRef(0);
+
+  /** The pan after dragging (dx, dy) pixels from `from`, kept over the terrain. */
+  const panned = (from: { panX: number; panZ: number }, dx: number, dy: number) => {
+    const current = live.current;
+    const t = current.instance.current;
+    const pose = t?.pose ?? current.settings.camera;
+    const [x, z] = panBy({ ...pose, ...from }, dx, dy, node.current?.clientHeight ?? innerHeight);
+    const [panX, panZ] = t ? t.clampPan(x, z) : [x, z];
+    return { panX: round3(panX), panZ: round3(panZ) };
+  };
+  const stopGlide = () => { cancelAnimationFrame(glide.current); glide.current = 0; };
+
   useEffect(() => {
     const el = node.current;
     if (!el) return;
@@ -175,57 +211,149 @@ function useOrbit(pg: Playground) {
       const current = live.current;
       if (current.settings.mode !== '3d') return;
       e.preventDefault();
-      const radius = Math.min(6.5, Math.max(1.15, current.settings.camera.radius * Math.exp(e.deltaY * 0.0011)));
+      // A pinch on a trackpad arrives as a wheel with ctrlKey, and Shift, Command or Alt turn any
+      // scroll into a zoom. macOS turns a vertical scroll with Shift held into deltaX, so the larger
+      // axis is the amount.
+      const now = performance.now();
+      const zoom = e.ctrlKey || e.shiftKey || e.metaKey || e.altKey;
+      if (!zoom && (now - wheelPan.current < 180 || fromTrackpad(e))) {
+        wheelPan.current = now;
+        stopGlide();
+        const cam = current.settings.camera;
+        current.change({ camera: panned({ panX: cam.panX, panZ: cam.panZ }, -e.deltaX, -e.deltaY) });
+        return;
+      }
+      wheelPan.current = 0;
+      const amount = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      const radius = Math.min(6.5, Math.max(1.15, current.settings.camera.radius * Math.exp(amount * (e.ctrlKey ? 0.01 : 0.0011))));
       current.change({ camera: { radius: Number(radius.toFixed(2)), motion: 'still' } });
     };
+    // A right drag pans, so the context menu stays shut over the 3D view.
+    const onMenu = (e: MouseEvent) => { if (live.current.settings.mode === '3d') e.preventDefault(); };
+    const onDouble = () => {
+      const current = live.current;
+      if (current.settings.mode !== '3d') return;
+      const { panX, panZ } = current.settings.camera;
+      if (!panX && !panZ) return;
+      stopGlide();
+      if (reducedMotion()) { current.change({ camera: { panX: 0, panZ: 0 } }); return; }
+      const t0 = performance.now();
+      const step = (now: number) => {
+        const t = Math.min(1, (now - t0) / 420);
+        const k = (1 - t) ** 3;
+        live.current.change({ camera: { panX: round3(panX * k), panZ: round3(panZ * k) } });
+        glide.current = t < 1 ? requestAnimationFrame(step) : 0;
+      };
+      glide.current = requestAnimationFrame(step);
+    };
     el.addEventListener('wheel', onWheel, { passive: false });
-    return () => el.removeEventListener('wheel', onWheel);
+    el.addEventListener('contextmenu', onMenu);
+    el.addEventListener('dblclick', onDouble);
+    return () => {
+      stopGlide();
+      el.removeEventListener('wheel', onWheel);
+      el.removeEventListener('contextmenu', onMenu);
+      el.removeEventListener('dblclick', onDouble);
+    };
   }, []);
-  const wrap = (n: number) => Number((((n % 360) + 360) % 360).toFixed(1));
   const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
     const current = live.current;
     if (current.settings.mode !== '3d') return;
+    stopGlide();
     e.currentTarget.setPointerCapture(e.pointerId);
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const cam = current.settings.camera;
     if (pointers.current.size >= 2) {
       const [a, b] = [...pointers.current.values()];
-      pinch.current = { dist: Math.hypot(a.x - b.x, a.y - b.y), radius: current.settings.camera.radius };
+      pinch.current = {
+        dist: Math.hypot(a.x - b.x, a.y - b.y), radius: cam.radius,
+        x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, panX: cam.panX, panZ: cam.panZ,
+      };
       drag.current = null;
+      pan.current = null;
       return;
     }
-    drag.current = {
-      id: e.pointerId, x: e.clientX, y: e.clientY,
-      azimuth: current.settings.camera.azimuth, elevation: current.settings.camera.elevation,
-    };
+    if (e.button === 2 || e.button === 1 || (e.button === 0 && e.shiftKey)) {
+      pan.current = { id: e.pointerId, x: e.clientX, y: e.clientY, panX: cam.panX, panZ: cam.panZ };
+      e.currentTarget.style.cursor = 'move';
+      return;
+    }
+    drag.current = { id: e.pointerId, x: e.clientX, y: e.clientY, azimuth: cam.azimuth, elevation: cam.elevation };
   };
   const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
     const current = live.current;
     if (current.settings.mode !== '3d' || !pointers.current.has(e.pointerId)) return;
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (pointers.current.size >= 2 && pinch.current) {
+    const two = pinch.current;
+    if (pointers.current.size >= 2 && two) {
+      // Two fingers zoom by their spread and pan by their midpoint, together.
       const [a, b] = [...pointers.current.values()];
       const dist = Math.max(1, Math.hypot(a.x - b.x, a.y - b.y));
-      const radius = Math.min(6.5, Math.max(1.15, pinch.current.radius * (pinch.current.dist / dist)));
-      current.change({ camera: { radius: Number(radius.toFixed(2)), motion: 'still' } });
+      const radius = Math.min(6.5, Math.max(1.15, two.radius * (two.dist / dist)));
+      const moved = panned(two, (a.x + b.x) / 2 - two.x, (a.y + b.y) / 2 - two.y);
+      current.change({ camera: { radius: Number(radius.toFixed(2)), ...moved } });
       return;
     }
-    const held = drag.current;
-    if (!held || held.id !== e.pointerId) return;
-    const azimuth = wrap(held.azimuth - (e.clientX - held.x) * 0.32);
-    const elevation = Math.min(80, Math.max(2, held.elevation - (e.clientY - held.y) * 0.2));
+    const held = pan.current;
+    if (held && held.id === e.pointerId) {
+      current.change({ camera: panned(held, e.clientX - held.x, e.clientY - held.y) });
+      return;
+    }
+    const orbit = drag.current;
+    if (!orbit || orbit.id !== e.pointerId) return;
+    const azimuth = wrapDegrees(orbit.azimuth - (e.clientX - orbit.x) * 0.32);
+    const elevation = Math.min(80, Math.max(2, orbit.elevation - (e.clientY - orbit.y) * 0.2));
     current.change({ camera: { azimuth, elevation: Number(elevation.toFixed(1)), motion: 'still' } });
   };
   const onPointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
     pointers.current.delete(e.pointerId);
     if (drag.current?.id === e.pointerId) drag.current = null;
+    if (pan.current?.id === e.pointerId) { pan.current = null; e.currentTarget.style.cursor = ''; }
     if (pointers.current.size < 2) pinch.current = null;
   };
   return { node, onPointerDown, onPointerMove, onPointerUp, onPointerCancel: onPointerUp };
 }
 
+/** Bands of page UI over the stage: the wordmark and cluster at the top, the dock at the bottom. */
+const TOP_BANDS = ['.pt-top', '.pt-wordmark'];
+const BOTTOM_BANDS = ['.pt-dock-wrap'];
+
+/**
+ * Keeps the 3D view centred in the part of the window the UI leaves free. The minimap and readout
+ * are small corners, so they don't count.
+ */
+function useStageInsets(pg: Playground) {
+  const apply = useRef(() => {});
+  useEffect(() => {
+    const measure = () => {
+      const t = pg.instance.current;
+      if (!t) return;
+      const height = innerHeight;
+      let top = 0, bottom = 0;
+      for (const sel of TOP_BANDS) for (const el of document.querySelectorAll(sel)) {
+        const r = el.getBoundingClientRect();
+        if (r.height > 0 && r.top < height / 2) top = Math.max(top, r.bottom);
+      }
+      for (const sel of BOTTOM_BANDS) for (const el of document.querySelectorAll(sel)) {
+        const r = el.getBoundingClientRect();
+        if (r.height > 0 && r.bottom > height / 2) bottom = Math.max(bottom, height - r.top);
+      }
+      t.setInsets({ top, bottom });
+    };
+    apply.current = measure;
+    const observer = new ResizeObserver(measure);
+    for (const sel of [...TOP_BANDS, ...BOTTOM_BANDS]) for (const el of document.querySelectorAll(sel)) observer.observe(el);
+    addEventListener('resize', measure);
+    measure();
+    return () => { observer.disconnect(); removeEventListener('resize', measure); };
+  }, [pg.instance]);
+  return apply;
+}
+
 export function Backdrop({ pg, className = 'pt-stage' }: { pg: Playground; className?: string }) {
   const s = pg.settings;
   const orbit = useOrbit(pg);
+  const insets = useStageInsets(pg);
   return (
     <TopographicBackground
       ref={orbit.node}
@@ -248,7 +376,7 @@ export function Backdrop({ pg, className = 'pt-stage' }: { pg: Playground; class
       onPointerMove={orbit.onPointerMove}
       onPointerUp={orbit.onPointerUp}
       onPointerCancel={orbit.onPointerCancel}
-      onReady={(t) => { pg.instance.current = t; }}
+      onReady={(t) => { pg.instance.current = t; if (t) insets.current(); }}
     />
   );
 }
