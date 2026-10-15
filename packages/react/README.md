@@ -7,7 +7,7 @@ Try it live in the [playground](https://yahyabedirhan.github.io/topographic/).
 React bindings for [`topographic`](https://www.npmjs.com/package/topographic), the JavaScript library for topographic backgrounds. It works with React 18 and 19 and is safe for server rendering.
 
 ```sh
-npm install topographic topographic-react
+npm install topographic@0.3.0 topographic-react@0.3.0
 ```
 
 ```tsx
@@ -22,7 +22,13 @@ export function Hero() {
 }
 ```
 
-For the 3D terrain, add `mode="3d"`, and optionally `elevation`, `extent`, `detail` and `camera`.
+For the 3D terrain, add `mode="3d"`, and optionally `elevation`, `extent`, `detail` and `camera`:
+
+```tsx
+<TopographicBackground styleName="long-ridge" mode="3d" extent="block" camera={{ motion: 'orbit' }} style={{ height: '100vh' }} />
+```
+
+`onReady` gives you the instance, for `snapshot()`, `record()` and `setHeightfield()`.
 
 To put the background on your own element, use `useTopographicBackground(settings)`, which returns a ref.
 

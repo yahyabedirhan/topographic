@@ -1,46 +1,51 @@
-<p align="center"><img src="assets/images/logo/topographic.png" width="128" alt="The topographic logo: three contour rings on paper folded along one diagonal crease, on a graphite tile"></p>
+<p align="center"><img src="assets/images/logo/topographic.png" width="96" alt="The topographic logo: three contour rings on paper folded along one diagonal crease, on a graphite tile"></p>
 
 <h1 align="center">topographic</h1>
 
-![The camera orbits the Long ridge block in 3D, dark mode](assets/screenshots/long-ridge-3d-orbit.webp)
+<p align="center">Animated contour-line backgrounds for the web, in 2D and 3D.<br>From generated terrain, or from any real place on Earth.</p>
 
-## What is topographic
+<p align="center"><a href="https://yahyabedirhan.github.io/topographic/"><b>Open the playground</b></a> · <a href="#install">Install</a> · <a href="docs/guide.md">Guide</a></p>
 
-topographic is a JavaScript library that draws topographic backgrounds: animated contour lines, like those on a topographic map, behind a web page.
+![The camera swings around the Matterhorn and Zermatt in 3D: real elevation drawn as pale contour lines on a dark block](assets/screenshots/hero-3d.webp)
 
-It draws them as a flat 2D map, or as that same map lifted into a 3D terrain with a moving camera. From the 3D view it records a short MP4 or WebM clip. And it can draw a real place: give it a grid of real elevation, and the contour lines follow the ground.
+topographic draws the lines of a topographic map behind your page. They drift slowly, follow light and dark mode, and lift into a 3D terrain when you want depth. It is a small npm library with no dependencies, plus a playground where you find a look and copy the code.
 
-| 2D | 3D |
-|---|---|
-| ![The Long ridge style in 2D, dark mode: flat contour lines curve around one long ridge](assets/screenshots/long-ridge-2d-dark.png) | ![The same Long ridge style and seed in 3D: the contour lines wrap a raised ridge on a layered block](assets/screenshots/long-ridge-3d-dark.png) |
+![The playground in dark mode: Istanbul in 3D behind the page, the dock of looks along the bottom, the controls at the top right and a minimap of the place in the corner](assets/screenshots/playground-dark.webp)
 
-You choose a terrain style and set options for the lines, the terrain, the motion and the layout. It follows light and dark mode, pauses when nobody can see it, holds still for people who prefer less motion, and shows a plain colour where WebGL isn't available. You can try it in the [playground](https://yahyabedirhan.github.io/topographic/).
+## Examples
 
-## How it works
+**Looks.** Seven terrain styles, with lines, colours and motion you set. The same seed always gives the same map.
 
-1. **Pick a style:** dunes, granite, a gentle summit, a long ridge and more.
-2. **Tune it** with a few readable settings for the lines, the terrain, the motion and the layout.
-3. **Choose 2D or 3D.** The same seed and settings give the same map in both.
-4. **Drop it in** as a web component, a React component or one JavaScript call.
+| | | |
+|---|---|---|
+| ![Survey ridge: pale lines around a long ridge on dark paper](assets/screenshots/look-survey-ridge-2d.webp) | ![Sea dunes: blue-green dune lines on deep teal](assets/screenshots/look-sea-dunes-2d.webp) | ![Rose pod: faint rose lines on near-black](assets/screenshots/look-rose-pod-2d.webp) |
+| ![Stepped petals: plum lines on pale pink paper](assets/screenshots/look-stepped-petals-2d.webp) | ![Stone grain: graphite lines on warm stone paper](assets/screenshots/look-stone-grain-2d.webp) | ![Centred lobes: navy rings on pale blue paper](assets/screenshots/look-centred-lobes-2d.webp) |
 
-### One terrain, two views
+**3D.** The same map, lifted into a terrain with a camera.
 
-![One terrain, two views: settings, or an optional heightfield, feed one shared contour field. In 2D a fragment shader paints its lines on every pixel. In 3D a mesh is lifted by the same field, painted with the same lines and seen through a moving camera.](assets/images/diagrams/terrain-two-views.png)
+| | | |
+|---|---|---|
+| ![Night flower in 3D: blue rings rising to a soft dome](assets/screenshots/look-night-flower-3d.webp) | ![Terraces in 3D: amber lines stepping up a hill](assets/screenshots/look-terraces-3d.webp) | ![Rocky spine in 3D: brown lines over a rough ridge on light paper](assets/screenshots/look-rocky-spine-3d.webp) |
 
-The 2D map and the 3D terrain run the same GLSL contour field and line painter. In 3D the field also lifts a mesh, and a camera moves around it.
+**Real places.** Ten places are one click away in the playground, and the Map lets you frame any other.
 
-### From a real place to a terrain
-
-![How a real place becomes a terrain in the playground: the map frame gives a bounding box, a worker fetches Terrarium elevation tiles, stitches and resamples them to a 256 by 256 grid, scales the relief and smooths it, and the region hook hands the heightfield to the renderer with setHeightfield().](assets/images/diagrams/real-place-pipeline.png)
-
-In the playground, a worker turns the framed map area into a smoothed 0..1 elevation grid. `setHeightfield()` then draws it as the 2D map or the 3D terrain.
+| | | | | |
+|---|---|---|---|---|
+| ![Istanbul, with the Bosphorus between the two shores](assets/screenshots/place-istanbul.webp)<br>Istanbul | ![Cyprus, the whole island from above](assets/screenshots/place-cyprus.webp)<br>Cyprus | ![The Matterhorn above Zermatt](assets/screenshots/place-matterhorn.webp)<br>Matterhorn | ![Geirangerfjord between steep walls](assets/screenshots/place-geirangerfjord.webp)<br>Geirangerfjord | ![The Grand Canyon from rim to rim](assets/screenshots/place-grand-canyon.webp)<br>Grand Canyon |
+| ![Yosemite Valley, Half Dome and El Capitan](assets/screenshots/place-yosemite.webp)<br>Yosemite | ![Torres del Paine, granite towers over lakes](assets/screenshots/place-torres-del-paine.webp)<br>Torres del Paine | ![Mount Fuji, the cone and its lakes](assets/screenshots/place-fuji.webp)<br>Mount Fuji | ![Everest above the Khumbu valley](assets/screenshots/place-everest.webp)<br>Everest | ![Kilimanjaro over the plains](assets/screenshots/place-kilimanjaro.webp)<br>Kilimanjaro |
 
 ## Install
 
-On npm: [`topographic`](https://www.npmjs.com/package/topographic) for the core and the web component, and [`topographic-react`](https://www.npmjs.com/package/topographic-react) for React. The 3D view, `record()` and `setHeightfield()` are in the packages from 0.2.0.
-
 ```sh
-npm install topographic
+npm install topographic@0.3.0
+```
+
+**HTML.** A web component:
+
+```html
+<script type="module">import 'topographic/element';</script>
+
+<topographic-bg style-name="long-ridge" style="position:fixed;inset:0;z-index:-1"></topographic-bg>
 ```
 
 **JavaScript:**
@@ -48,105 +53,83 @@ npm install topographic
 ```js
 import { createTopographicBackground } from 'topographic';
 
-const topographic = createTopographicBackground(document.querySelector('#hero'), {
-  style: 'long-ridge',
-  mode: '3d',
-  camera: { motion: 'orbit' },
-});
-topographic.update({ terrain: { peaks: 3 } });
+const topographic = createTopographicBackground(document.querySelector('#hero'), { style: 'long-ridge' });
 ```
 
-**Web component:**
-
-```html
-<script type="module">import 'topographic/element';</script>
-
-<topographic-bg style-name="long-ridge" mode="3d" elevation="0.7" camera-motion="orbit"></topographic-bg>
-```
-
-**React** (`npm install topographic-react`):
+**React** (`npm install topographic@0.3.0 topographic-react@0.3.0`):
 
 ```tsx
 import { TopographicBackground } from 'topographic-react';
 
-<TopographicBackground styleName="long-ridge" mode="3d" camera={{ motion: 'orbit' }} style={{ height: '100vh' }} />
+<TopographicBackground styleName="long-ridge" style={{ height: '100vh' }} />
 ```
 
-Leave out `mode` for the 2D map, which is the default.
+The fastest way to settings you like: tune them in the [playground](https://yahyabedirhan.github.io/topographic/) and copy the code from **Export**.
 
-## 3D and video
+## 2D and 3D
 
-Set `mode: '3d'` to lift the map into a terrain. A few settings shape it:
+**Settings.** Every look comes from one set of readable settings: a `style` and `seed`, then `lines`, `terrain`, `motion`, `layout` and `theme`. Change them live with `topographic.update({ terrain: { peaks: 3 } })`. The background pauses when nobody can see it, holds still for people who prefer less motion, and shows a plain colour where WebGL isn't available.
 
-- `elevation`: how tall the terrain is, from flat (0) to tall (1).
-- `extent`: `block`, a tabletop with layer lines on its cut sides, or `endless`, terrain that runs past the view.
-- `detail`: the mesh resolution.
-- `camera`: `azimuth`, `elevation` and `radius` place the camera, and `motion` moves it: `still`, `orbit`, `push`, `flyover` or `drone`.
-
-`record()` renders a clip of the 3D view with a moving camera, and resolves to an MP4 or WebM `Blob`. It draws off-screen, so the live canvas keeps its size. It needs a browser that can encode video with WebCodecs.
+**3D.** Add `mode: '3d'`. 2D stays the default, and the same seed gives the same map in both.
 
 ```js
+topographic.update({ mode: '3d', elevation: 0.7, extent: 'block', camera: { motion: 'orbit' } });
+```
+
+- `elevation` sets how tall the terrain is, from flat (0) to tall (1).
+- `extent` is `endless` (the default), terrain that runs past the view, or `block`, a tabletop with layer lines on its sides.
+- `camera` places the view (`azimuth` 349.7, `elevation` 33.6, `radius` 1.92 by default), and `motion` moves it: `still`, `orbit`, `push`, `flyover` or `drone`.
+- In the playground, drag to orbit, scroll with two fingers to pan, ⌘/Ctrl + scroll or pinch to zoom, and double-click to recentre.
+
+**Real places.** In the playground, open **Map**, frame an area up to 300 km on a side, and click **Apply**. A worker turns elevation tiles into a grid, and the view switches to 3D. The library takes any such grid through `setHeightfield({ samples, size, aspect })`, with values from 0 to 1.
+
+![The Map popover over Istanbul: a dark map with a white frame around the city, the place menu above, and Clear and Applied below](assets/screenshots/map-popover-dark.webp)
+
+**Export.** `snapshot()` renders a PNG at any size, or only a slice of the view, such as a phone-shaped crop. `record()` renders a 3D clip as MP4 or WebM. Both draw off-screen, so the live background keeps its size.
+
+```js
+const png = await topographic.snapshot({ width: 1920, height: 1080 });
 const clip = await topographic.record({ seconds: 6, motion: 'orbit', format: 'mp4' });
 ```
 
-On the web component, the instance is `element.topographic`. In React, `onReady` gives it to you.
+**AI agents.** The playground serves plain-text docs at [`llms.txt`](https://yahyabedirhan.github.io/topographic/llms.txt). In browsers with [WebMCP](https://github.com/webmachinelearning/webmcp), an agent can change the settings, pick a place, take a screenshot, record a clip and get the embed code.
 
-`setHeightfield({ samples, size, aspect })` replaces the procedural terrain with your own square elevation grid, values 0 to 1. `setHeightfield(null)` brings the style back.
+The [guide](docs/guide.md) has the full reference: every setting with its range and default, [3D](docs/guide.md#three-dimensions), [PNG export](docs/guide.md#snapshots-and-png-export), theming, server rendering and the [WebMCP tools](docs/guide.md#webmcp-tools).
 
-The [guide](docs/guide.md#three-dimensions) has the full table of 3D settings, with their attributes, ranges and defaults, and every option of `record()`.
-
-## Real places
-
-![Istanbul in 3D, dark mode: real elevation drawn as contour lines, with the Bosphorus cutting the city in two](assets/screenshots/istanbul-3d-dark.png)
-
-The place picker in the [playground](https://yahyabedirhan.github.io/topographic/) turns a part of the real world into this terrain. The npm packages don't include it: they take the result through `setHeightfield()`.
-
-![The place picker: a dark map of Istanbul with a white frame around the region to draw, city shortcuts above, and relief and smoothing options below](assets/screenshots/place-picker-dark.png)
-
-Click the globe **Map** button at the top right. Pan and zoom the map, drag the frame's corners and edges, or pick a city from the badge at the top left, so the frame covers the area you want, up to 300 km on a side. Then click **Apply**. The view switches to 3D with settings made for real places (a lower elevation, a block, fine lines and a closer camera), and the place is saved as an item at the front of the dock. **Clear** goes back to the generated terrain and to your earlier view settings. A built-in look in the dock also returns to generated terrain. The elevation comes from Mapzen Terrain Tiles on AWS Open Data, so the picker needs a network connection; the © on the map shows the credits.
-
-The [region notes](docs/prototypes/region/README.md) list the URL options and the decisions behind the picker.
-
-## Styles
-
-![Sixteen dark-mode tiles: the seven styles, the three presets Survey map, Terraces and Rocky, and six seed variants](assets/screenshots/styles.png)
-
-Seven styles, three presets, and the same terrain every time you use the same `seed`. The [guide](docs/guide.md#the-styles-image) lists the settings behind each tile.
-
-## The playground
-
-![The topographic playground in dark mode: contour lines drift behind the page, and the settings panel sits on the right](assets/screenshots/playground-dark.png)
-
-The [playground](https://yahyabedirhan.github.io/topographic/) is the easiest way to find a background you like. The page itself is the preview: pick a look from the dock at the bottom, move the sliders under **Tune**, then export the result as a link, HTML, React or JSON, a PNG or a 3D video clip. Your settings live in the URL, so a link brings the same background back. The 3D button shows the same settings as a terrain, and **Place** draws a real place.
-
-It works for agents too. It serves plain-text docs at `/llms.txt`, and in browsers with [WebMCP](https://github.com/webmachinelearning/webmcp) an agent can change the settings, get the embed code, take a screenshot, record a 3D clip and choose a real place.
-
-## How the pieces fit
-
-### Library architecture
+## How it works
 
 ![How topographic fits together: the web component, the React component and the playground call one public API, which also takes an optional heightfield. Settings resolve from the params table, styles and presets, and one WebGL renderer draws them as a 2D contour shader or a 3D terrain pass, whose frames record() encodes as video.](assets/images/diagrams/library-architecture.png)
 
-Every wrapper calls one API, and one renderer draws 2D or 3D from the same resolved settings. `record()` turns the 3D view into an MP4 or WebM clip.
+Every wrapper calls one API, and one renderer draws 2D or 3D from the same resolved settings.
 
-## Learn more
+![One terrain, two views: settings, or an optional heightfield, feed one shared contour field. In 2D a fragment shader paints its lines on every pixel. In 3D a mesh is lifted by the same field, painted with the same lines and seen through a moving camera.](assets/images/diagrams/terrain-two-views.png)
 
-The [guide](docs/guide.md) covers the rest: every setting with its range, the 3D settings, theming and CSS variables, PNG and video export, performance and accessibility, server rendering and Next.js, the WebMCP tools, and troubleshooting. The [design](docs/low-level-design.md) explains how the pieces fit and why.
+The 2D map and the 3D terrain run the same contour field and line painter.
 
-## Build from source
+![How a real place becomes a terrain in the playground: the Map popover gives a bounding box, a worker fetches Terrarium elevation tiles, stitches and resamples them to a 256 by 256 grid, scales the relief and smooths it, and the region hook hands the heightfield to the renderer with setHeightfield().](assets/images/diagrams/real-place-pipeline.png)
 
-You need Node.js 20 or later.
+A worker turns the framed area into a smoothed 0..1 grid, and `setHeightfield()` draws it. The [low-level design](docs/low-level-design.md) explains the pieces and why.
+
+## Contributing
+
+Issues and pull requests are welcome. You need Node.js 20 or later.
 
 ```sh
 npm install
 npm run dev        # the playground, live
 npm test           # unit tests
 npm run build      # packages and the playground
-npm run smoke      # headless Chrome checks (needs Chrome; set CHROME=/path/to/chrome)
+npm run smoke      # headless Chrome checks (set CHROME=/path/to/chrome)
 ```
 
-The shader is ported from the maintainer's personal website prototype. The architecture was inspired by [Paper Shaders](https://github.com/paper-design/shaders).
+`scripts/readme-shots.mjs` retakes the images in this README.
 
-## Licence
+## Credits
 
-MIT. See [LICENSE](LICENSE).
+The shader is ported from the maintainer's personal website prototype. The architecture was inspired by [Paper Shaders](https://github.com/paper-design/shaders). Elevation comes from Mapzen Terrain Tiles on AWS Open Data, and the map from OpenFreeMap, OpenMapTiles and OpenStreetMap.
+
+- [Playground](https://yahyabedirhan.github.io/topographic/)
+- [`topographic`](https://www.npmjs.com/package/topographic) and [`topographic-react`](https://www.npmjs.com/package/topographic-react) on npm
+- [Guide](docs/guide.md)
+
+MIT licence. See [LICENSE](LICENSE).
