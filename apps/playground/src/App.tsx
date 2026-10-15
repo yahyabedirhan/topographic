@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { mergeSettings, PRESETS, resolveMode, resolveSettings, STYLES, type Settings, type SettingsInput, type Topographic as Instance } from 'topographic';
-import { Topographic } from 'topographic-react';
+import { mergeSettings, PRESETS, resolveMode, resolveSettings, STYLES, type Settings, type SettingsInput, type TopographicBackground as Instance } from 'topographic';
+import { TopographicBackground } from 'topographic-react';
 import { Code } from './Code';
 import { INSTALL, TAGLINE } from './content';
 import { embedCode, type EmbedFormat } from './embed';
@@ -37,7 +37,7 @@ export function App() {
 
   return (
     <>
-      <Topographic
+      <TopographicBackground
         className="stage"
         aria-hidden="true"
         styleName={settings.style}

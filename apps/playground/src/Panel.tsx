@@ -1,5 +1,5 @@
 import { useEffect, useState, type MutableRefObject } from 'react';
-import { GROUPS, paramsIn, STYLES, THEME_DEFAULTS, rgbaToCss, type Settings, type SettingsInput, type Topographic } from 'topographic';
+import { GROUPS, paramsIn, STYLES, THEME_DEFAULTS, rgbaToCss, type Settings, type SettingsInput, type TopographicBackground } from 'topographic';
 import { embedCode } from './embed';
 import { downloadPng, PNG_SIZES } from './png';
 import { shareUrl } from './url';
@@ -15,7 +15,7 @@ interface Props {
   settings: Settings;
   mode: 'light' | 'dark';
   onChange: (patch: SettingsInput) => void;
-  instance: MutableRefObject<Topographic | null>;
+  instance: MutableRefObject<TopographicBackground | null>;
 }
 
 export function Panel({ settings, mode, onChange, instance }: Props) {

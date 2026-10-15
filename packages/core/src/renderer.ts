@@ -22,7 +22,7 @@ export interface SnapshotOptions {
 
 export type RendererStatus = 'webgl2' | 'webgl1' | 'fallback' | 'lost' | 'destroyed';
 
-export interface Topographic {
+export interface TopographicBackground {
   /** Merges, clamps and applies new settings; only changed uniforms are sent to the GPU. */
   update(patch: SettingsInput): void;
   /** Renders one frame off-screen and returns a PNG. The live canvas is not resized. */
@@ -37,7 +37,7 @@ type GL = WebGLRenderingContext | WebGL2RenderingContext;
 const DEFAULTS: Required<Omit<RendererOptions, 'forceWebGL1'>> = { maxPixelRatio: 2, maxPixels: 1920 * 1080 * 2 };
 const QUAD = new Float32Array([-1, -1, 3, -1, -1, 3]);
 
-export function createTopographic(el: HTMLElement, input: SettingsInput = {}, options: RendererOptions = {}): Topographic {
+export function createTopographicBackground(el: HTMLElement, input: SettingsInput = {}, options: RendererOptions = {}): TopographicBackground {
   const opts = { ...DEFAULTS, ...options };
   const doc = el.ownerDocument;
   const view = doc.defaultView ?? window;

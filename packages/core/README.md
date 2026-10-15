@@ -21,9 +21,9 @@ npm install topographic
 **JavaScript:**
 
 ```js
-import { createTopographic } from 'topographic';
+import { createTopographicBackground } from 'topographic';
 
-const topographic = createTopographic(document.querySelector('#hero'), { style: 'gentle-summit' });
+const topographic = createTopographicBackground(document.querySelector('#hero'), { style: 'gentle-summit' });
 topographic.update({ terrain: { peaks: 3 } });
 ```
 

@@ -1,10 +1,10 @@
 # topographic: design
 
-topographic draws topographic backgrounds (animated contour lines, like a topographic map) with one WebGL shader. You pick a **style** (the terrain shape) and tune readable **settings**. The same core powers a vanilla JS API, a `<topographic-bg>` web component, a React `<Topographic>` component, and a playground site that exports what you build.
+topographic draws topographic backgrounds (animated contour lines, like a topographic map) with one WebGL shader. You pick a **style** (the terrain shape) and tune readable **settings**. The same core powers a vanilla JS API, a `<topographic-bg>` web component, a React `<TopographicBackground>` component, and a playground site that exports what you build.
 
 ```js
-import { createTopographic } from 'topographic';
-const topographic = createTopographic(el, { style: 'dunes', lines: { count: 30 } });
+import { createTopographicBackground } from 'topographic';
+const topographic = createTopographicBackground(el, { style: 'dunes', lines: { count: 30 } });
 ```
 
 ## Requirements
@@ -24,13 +24,13 @@ const topographic = createTopographic(el, { style: 'dunes', lines: { count: 30 }
 11. Out of scope for now: SVG and video export, multi-colour palettes, Vue/Svelte wrappers, the 6 other prototype styles (spiral, twin peaks, caldera, archipelago, terraced plateau, river valley).
 
 ## Entities and relationships
-- **Renderer**: owns the canvas, the WebGL program, the frame loop, observers and the pixel budget. It is created by `createTopographic` and is the only thing that touches WebGL.
+- **Renderer**: owns the canvas, the WebGL program, the frame loop, observers and the pixel budget. It is created by `createTopographicBackground` and is the only thing that touches WebGL.
 - **Settings**: the full, validated value object (`style`, `seed`, `lines`, `terrain`, `motion`, `layout`, `theme`). The `params` table defines each field's name, range, default and uniform slot.
 - **Style**: data, not code. `{ id, name, index, notes }`. `index` selects a branch in the one combined shader.
 - **Preset**: data. `{ name, settings: Partial<Settings> }`. Presets live in core, so every wrapper shares them.
 - **Theme**: resolves `ink` and `paper` from settings, then CSS variables (`--topographic-ink`, `--topographic-paper`), then light/dark defaults.
 - **`<topographic-bg>`**: a custom element. Attributes become Settings, and it holds one Renderer.
-- **React `<Topographic>`** and **`useTopographic`**: props become Settings, and they hold one Renderer.
+- **React `<TopographicBackground>`** and **`useTopographicBackground`**: props become Settings, and they hold one Renderer.
 - **Playground**: a React app. Panel state is Settings, mirrored in the URL. Export uses `snapshot` and the embed serializer.
 
 Flow: wrapper → Settings (via the params table) → Renderer → uniforms → shader.
@@ -48,7 +48,7 @@ packages/core/src/
   shader/common.glsl.ts  noise, smooth-min, line drawing
   shader/topographic.glsl.ts  combined height field, branch per style
   element.ts             <topographic-bg> custom element
-packages/react/src/Topographic.tsx   <Topographic>, useTopographic
+packages/react/src/TopographicBackground.tsx   <TopographicBackground>, useTopographicBackground
 apps/playground/src/
   App.tsx  Panel.tsx  url.ts  export.ts
 ```
@@ -56,7 +56,7 @@ apps/playground/src/
 
 ## Public API
 ```ts
-const topographic = createTopographic(el: HTMLElement, settings?: Partial<Settings>);
+const topographic = createTopographicBackground(el: HTMLElement, settings?: Partial<Settings>);
 topographic.update(partial: Partial<Settings>): void;   // live, merges and clamps
 topographic.snapshot(opts?: { frame?: number; width?: number; height?: number }): Promise<Blob>;
 // renders off-screen at the given size and frame; the live canvas is not resized
@@ -66,8 +66,8 @@ topographic.destroy(): void;
 <topographic-bg style-name="dunes" line-count="30" seed="7"></topographic-bg>
 ```
 ```tsx
-<Topographic styleName="granite" terrain={{ roughness: 0.4 }} />
-const ref = useTopographic({ styleName: 'seed-pod' });
+<TopographicBackground styleName="granite" terrain={{ roughness: 0.4 }} />
+const ref = useTopographicBackground({ styleName: 'seed-pod' });
 ```
 Settings groups:
 - `lines`: count, width, opacity, indexEvery
@@ -78,7 +78,7 @@ Settings groups:
 Ranges are 0–1 except counts. In the element and React the style is `style-name` / `styleName`, because `style` is already taken by HTML and React.
 
 ## Traced flow
-**Happy path.** `createTopographic(el, { style: 'dunes' })` runs these steps:
+**Happy path.** `createTopographicBackground(el, { style: 'dunes' })` runs these steps:
 1. Settings are resolved: defaults, then the preset, then the input; values are clamped.
 2. Theme reads the CSS variables.
 3. The Renderer compiles the shader and maps Settings to uniforms.
@@ -98,7 +98,7 @@ Ranges are 0–1 except counts. In the element and React the style is `style-nam
 | A setting | `params.ts` row, plus its use in `topographic.glsl.ts` |
 | A style | `styles.ts` record, plus a branch in `topographic.glsl.ts` |
 | A preset | `presets.ts` record only |
-| A wrapper (Vue, Svelte) | a new package calling `createTopographic` |
+| A wrapper (Vue, Svelte) | a new package calling `createTopographicBackground` |
 | An export format | `apps/playground/src/export.ts` (SVG later needs a CPU port of the height field) |
 
 ## Decisions

@@ -11,18 +11,18 @@ npm install topographic topographic-react
 ```
 
 ```tsx
-import { Topographic } from 'topographic-react';
+import { TopographicBackground } from 'topographic-react';
 
 export function Hero() {
   return (
-    <Topographic styleName="granite" terrain={{ roughness: 0.3 }} style={{ height: '100vh' }}>
+    <TopographicBackground styleName="granite" terrain={{ roughness: 0.3 }} style={{ height: '100vh' }}>
       <h1>Hello</h1>
-    </Topographic>
+    </TopographicBackground>
   );
 }
 ```
 
-To put the background on your own element, use `useTopographic(settings)`, which returns a ref.
+To put the background on your own element, use `useTopographicBackground(settings)`, which returns a ref.
 
 - [Project README](https://github.com/yahyabedirhan/topographic#readme)
 - [Guide](https://github.com/yahyabedirhan/topographic/blob/main/docs/guide.md)

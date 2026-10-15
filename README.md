@@ -38,17 +38,17 @@ npm install topographic
 **React** (`npm install topographic-react`):
 
 ```tsx
-import { Topographic } from 'topographic-react';
+import { TopographicBackground } from 'topographic-react';
 
-<Topographic styleName="granite" terrain={{ roughness: 0.3 }} style={{ height: '100vh' }} />
+<TopographicBackground styleName="granite" terrain={{ roughness: 0.3 }} style={{ height: '100vh' }} />
 ```
 
 **JavaScript:**
 
 ```js
-import { createTopographic } from 'topographic';
+import { createTopographicBackground } from 'topographic';
 
-const topographic = createTopographic(document.querySelector('#hero'), { style: 'gentle-summit' });
+const topographic = createTopographicBackground(document.querySelector('#hero'), { style: 'gentle-summit' });
 topographic.update({ terrain: { peaks: 3 } });
 ```
 

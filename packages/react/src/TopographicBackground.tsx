@@ -2,9 +2,9 @@
 // React bindings for topographic. The canvas is created in an effect, so server rendering
 // outputs a plain empty <div> and hydration never touches WebGL.
 import { forwardRef, useEffect, useRef, useState, type HTMLAttributes, type MutableRefObject } from 'react';
-import { createTopographic, type RendererOptions, type SettingsInput, type Topographic as TopographicInstance } from 'topographic';
+import { createTopographicBackground, type RendererOptions, type SettingsInput, type TopographicBackground as TopographicBackgroundInstance } from 'topographic';
 
-export interface TopographicSettingsProps {
+export interface TopographicBackgroundSettingsProps {
   /** Style id, e.g. 'dunes'. Named styleName because `style` is React's inline style prop. */
   styleName?: string;
   seed?: number;
@@ -15,19 +15,19 @@ export interface TopographicSettingsProps {
   theme?: SettingsInput['theme'];
 }
 
-export interface TopographicRef<T extends HTMLElement = HTMLDivElement> extends MutableRefObject<T | null> {
+export interface TopographicBackgroundRef<T extends HTMLElement = HTMLDivElement> extends MutableRefObject<T | null> {
   /** The live instance while mounted (for snapshot, or imperative updates). */
-  topographic: TopographicInstance | null;
+  topographic: TopographicBackgroundInstance | null;
 }
 
 const key = (v: unknown) => (v === undefined ? '' : JSON.stringify(v));
 
 /** Attaches a topographic to the element you put the returned ref on. */
-export function useTopographic<T extends HTMLElement = HTMLDivElement>(
-  settings: TopographicSettingsProps = {},
+export function useTopographicBackground<T extends HTMLElement = HTMLDivElement>(
+  settings: TopographicBackgroundSettingsProps = {},
   options?: RendererOptions,
-): TopographicRef<T> {
-  const [ref] = useState<TopographicRef<T>>(() => ({ current: null, topographic: null }));
+): TopographicBackgroundRef<T> {
+  const [ref] = useState<TopographicBackgroundRef<T>>(() => ({ current: null, topographic: null }));
   const latest = useRef(settings);
   latest.current = settings;
   const optionsKey = key(options);
@@ -35,7 +35,7 @@ export function useTopographic<T extends HTMLElement = HTMLDivElement>(
   useEffect(() => {
     if (!ref.current) return;
     const { styleName, ...rest } = latest.current;
-    const t = createTopographic(ref.current, { ...rest, style: styleName }, options);
+    const t = createTopographicBackground(ref.current, { ...rest, style: styleName }, options);
     ref.topographic = t;
     return () => { t.destroy(); ref.topographic = null; };
     // Recreated only when renderer options change; settings flow through update() below.
@@ -55,20 +55,20 @@ export function useTopographic<T extends HTMLElement = HTMLDivElement>(
   return ref;
 }
 
-export interface TopographicProps extends TopographicSettingsProps, Omit<HTMLAttributes<HTMLDivElement>, 'children'> {
+export interface TopographicBackgroundProps extends TopographicBackgroundSettingsProps, Omit<HTMLAttributes<HTMLDivElement>, 'children'> {
   /** Renderer options (pixel budget, WebGL1). Changing them recreates the renderer. */
   options?: RendererOptions;
   /** Called with the instance after mount, and with null on unmount. */
-  onReady?: (topographic: TopographicInstance | null) => void;
+  onReady?: (topographic: TopographicBackgroundInstance | null) => void;
   children?: React.ReactNode;
 }
 
 /** A <div> with a topographic background. Size it like any div; children render on top. */
-export const Topographic = forwardRef<HTMLDivElement, TopographicProps>(function Topographic(
+export const TopographicBackground = forwardRef<HTMLDivElement, TopographicBackgroundProps>(function TopographicBackground(
   { styleName, seed, lines, terrain, motion, layout, theme, options, onReady, style, children, ...div },
   forwarded,
 ) {
-  const ref = useTopographic<HTMLDivElement>({ styleName, seed, lines, terrain, motion, layout, theme }, options);
+  const ref = useTopographicBackground<HTMLDivElement>({ styleName, seed, lines, terrain, motion, layout, theme }, options);
   const ready = useRef(onReady);
   ready.current = onReady;
   useEffect(() => {

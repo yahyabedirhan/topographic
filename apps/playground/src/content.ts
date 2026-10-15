@@ -11,18 +11,18 @@ export const INSTALL = {
 </script>
 
 <topographic-bg style-name="dunes" line-count="30"></topographic-bg>`,
-  reactUsage: `import { Topographic } from '${REACT_PACKAGE}';
+  reactUsage: `import { TopographicBackground } from '${REACT_PACKAGE}';
 
 export function Hero() {
   return (
-    <Topographic styleName="granite" terrain={{ roughness: 0.3 }} style={{ height: '100vh' }}>
+    <TopographicBackground styleName="granite" terrain={{ roughness: 0.3 }} style={{ height: '100vh' }}>
       <h1>Hello</h1>
-    </Topographic>
+    </TopographicBackground>
   );
 }`,
-  vanilla: `import { createTopographic } from '${PACKAGE}';
+  vanilla: `import { createTopographicBackground } from '${PACKAGE}';
 
-const topographic = createTopographic(document.querySelector('#hero'), {
+const topographic = createTopographicBackground(document.querySelector('#hero'), {
   style: 'gentle-summit',
   lines: { count: 36, indexEvery: 5 },
   theme: { mode: 'dark' },

@@ -103,7 +103,7 @@ ${INSTALL.css}
 function apiMd(): string {
   return `# API
 
-## createTopographic(element, settings?, options?)
+## createTopographicBackground(element, settings?, options?)
 
 Mounts a canvas inside \`element\` (it fills the element) and returns an instance.
 
@@ -130,11 +130,11 @@ Behaviour:
 
 \`import 'topographic/element'\` registers the element. Attributes: \`style-name\`, \`seed\`, \`theme\`, \`ink\`, \`paper\`, plus one per setting (see [params.md](params.md)). Attribute changes apply live, and a removed attribute returns to its default. \`element.topographic\` is the instance, and \`element.snapshot(opts)\` is a shortcut.
 
-## React: <Topographic> and useTopographic
+## React: <TopographicBackground> and useTopographicBackground
 
-\`<Topographic styleName lines terrain motion layout theme seed options onReady {...divProps}>\` renders a div with the background, and children on top. It is SSR-safe: the server renders an empty div.
+\`<TopographicBackground styleName lines terrain motion layout theme seed options onReady {...divProps}>\` renders a div with the background, and children on top. It is SSR-safe: the server renders an empty div.
 
-\`useTopographic(settings, options)\` returns a ref to put on any element. \`ref.topographic\` is the instance while mounted.
+\`useTopographicBackground(settings, options)\` returns a ref to put on any element. \`ref.topographic\` is the instance while mounted.
 
 ## Helpers
 

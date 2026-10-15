@@ -54,7 +54,7 @@ try {
   check(html.includes('style-name="gentle-summit"'), 'HTML embed copied');
   await p.locator('#copy-jsx').click();
   const jsx = await p.evaluate(() => navigator.clipboard.readText());
-  check(jsx.includes('<Topographic') && jsx.includes('styleName="gentle-summit"'), 'JSX embed copied');
+  check(jsx.includes('<TopographicBackground') && jsx.includes('styleName="gentle-summit"'), 'JSX embed copied');
 
   await p.locator('#copy-json').click();
   const json = JSON.parse(await p.evaluate(() => navigator.clipboard.readText()));
@@ -94,7 +94,7 @@ try {
   check((await call('randomize', { style: true })).config.seed > 0, 'randomize');
   const shot = await call('take_screenshot', { width: 400 });
   check(shot.dataUrl.startsWith('data:image/png;base64,') && shot.width === 400, `take_screenshot ${shot.width}x${shot.height}`);
-  check((await call('get_embed_code', { format: 'react' })).code.includes('<Topographic'), 'get_embed_code');
+  check((await call('get_embed_code', { format: 'react' })).code.includes('<TopographicBackground'), 'get_embed_code');
   check((await call('get_install_instructions', { target: 'react' })).instructions.includes('npm install'), 'get_install_instructions');
   await agent.close();
   const plain = await browser.newPage(); await plain.goto(base); await plain.waitForSelector('.stage canvas');

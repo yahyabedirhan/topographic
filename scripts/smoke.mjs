@@ -36,7 +36,7 @@ async function page(extra = {}) {
 const coverage = (p, style, opts = {}) => p.evaluate(async ({ style, opts }) => {
   const host = document.getElementById('host');
   window.t?.destroy();
-  window.t = window.topographicLib.createTopographic(host, { style, theme: { mode: 'light' }, ...opts.settings }, opts.renderer);
+  window.t = window.topographicLib.createTopographicBackground(host, { style, theme: { mode: 'light' }, ...opts.settings }, opts.renderer);
   const blob = await window.t.snapshot({ frame: 4000 });
   const bmp = await createImageBitmap(blob);
   const c = new OffscreenCanvas(bmp.width, bmp.height); const g = c.getContext('2d'); g.drawImage(bmp, 0, 0);
@@ -93,7 +93,7 @@ try {
   // reduced motion: no animation frames
   const rm = await page({ reducedMotion: 'reduce' });
   const still = await rm.evaluate(async () => {
-    const t = window.topographicLib.createTopographic(document.getElementById('host'), {});
+    const t = window.topographicLib.createTopographicBackground(document.getElementById('host'), {});
     let frames = 0; const orig = window.requestAnimationFrame; window.requestAnimationFrame = (f) => { frames++; return orig(f); };
     await new Promise((r) => setTimeout(r, 300)); return { frames, status: t.status };
   });
@@ -118,7 +118,7 @@ try {
   const nogl = await page();
   const fb = await nogl.evaluate(() => {
     HTMLCanvasElement.prototype.getContext = ((orig) => function (type, ...rest) { return type.startsWith('webgl') ? null : orig.call(this, type, ...rest); })(HTMLCanvasElement.prototype.getContext);
-    const t = window.topographicLib.createTopographic(document.getElementById('host'), { theme: { mode: 'dark' } });
+    const t = window.topographicLib.createTopographicBackground(document.getElementById('host'), { theme: { mode: 'dark' } });
     return { status: t.status, bg: getComputedStyle(t.canvas).backgroundColor };
   });
   check(fb.status === 'fallback' && fb.bg.includes('11, 11, 13'), `no webgl -> ${fb.status}, paper ${fb.bg}`);

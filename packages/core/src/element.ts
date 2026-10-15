@@ -1,20 +1,20 @@
-// <topographic-bg>: a custom element around createTopographic. Importing 'topographic/element'
+// <topographic-bg>: a custom element around createTopographicBackground. Importing 'topographic/element'
 // registers it. Attributes come from the params table (see params.ts), plus style-name, seed,
 // theme, ink and paper. Attribute changes update live.
 import { PARAMS } from './params.js';
-import { createTopographic, type Topographic, type SnapshotOptions } from './renderer.js';
+import { createTopographicBackground, type TopographicBackground, type SnapshotOptions } from './renderer.js';
 import { fromAttributes, resolveSettings, type SettingsInput } from './settings.js';
 
 export const ELEMENT_ATTRIBUTES: readonly string[] = ['style-name', 'seed', 'theme', 'ink', 'paper', ...PARAMS.map((p) => p.attr)];
 
 const Base = (typeof HTMLElement !== 'undefined' ? HTMLElement : class {}) as typeof HTMLElement;
 
-export class TopographicElement extends Base {
+export class TopographicBackgroundElement extends Base {
   static observedAttributes = ELEMENT_ATTRIBUTES;
-  #topographic: Topographic | null = null;
+  #topographic: TopographicBackground | null = null;
 
   /** The underlying instance, once connected. */
-  get topographic(): Topographic | null { return this.#topographic; }
+  get topographic(): TopographicBackground | null { return this.#topographic; }
 
   #read(): SettingsInput {
     return fromAttributes((n) => this.getAttribute(n));
@@ -23,7 +23,7 @@ export class TopographicElement extends Base {
   connectedCallback(): void {
     if (this.#topographic) return;
     if (getComputedStyle(this).display === 'inline') this.style.display = 'block';
-    this.#topographic = createTopographic(this, this.#read());
+    this.#topographic = createTopographicBackground(this, this.#read());
   }
 
   disconnectedCallback(): void {
@@ -45,9 +45,9 @@ export class TopographicElement extends Base {
 }
 
 if (typeof customElements !== 'undefined' && !customElements.get('topographic-bg')) {
-  customElements.define('topographic-bg', TopographicElement);
+  customElements.define('topographic-bg', TopographicBackgroundElement);
 }
 
 declare global {
-  interface HTMLElementTagNameMap { 'topographic-bg': TopographicElement }
+  interface HTMLElementTagNameMap { 'topographic-bg': TopographicBackgroundElement }
 }

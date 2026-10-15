@@ -20,15 +20,15 @@ ${attrs}
 ></topographic-bg>`;
   }
   if (format === 'vanilla') {
-    return `import { createTopographic } from '${PACKAGE}';
+    return `import { createTopographicBackground } from '${PACKAGE}';
 
-const topographic = createTopographic(document.querySelector('#background'), ${literal(config).replace(/\n/g, '\n')});`;
+const topographic = createTopographicBackground(document.querySelector('#background'), ${literal(config).replace(/\n/g, '\n')});`;
   }
   const { style, ...rest } = config;
   const props = [`styleName="${style}"`, ...Object.entries(rest).map(([k, v]) => `${k}={${typeof v === 'object' ? literal(v).replace(/\n\s*/g, ' ') : v}}`)];
-  return `import { Topographic } from '${REACT_PACKAGE}';
+  return `import { TopographicBackground } from '${REACT_PACKAGE}';
 
-<Topographic
+<TopographicBackground
   ${props.join('\n  ')}
   style={{ position: 'fixed', inset: 0, zIndex: -1 }}
 />`;
