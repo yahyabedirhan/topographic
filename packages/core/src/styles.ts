@@ -14,7 +14,6 @@ export type DeepPartialSettings = { [K in keyof Settings]?: Settings[K] extends 
 
 export type StyleId = 'drifting-lobes' | 'granite' | 'five-petals' | 'seed-pod' | 'gentle-summit' | 'long-ridge' | 'dunes';
 
-// Indices match the original prototype's style numbering, so ported shader branches line up.
 export const STYLES: readonly Style[] = [
   { id: 'drifting-lobes', name: 'Drifting lobes', index: 0, description: 'Three soft lobes drifting off to the side, morphing towards four.' },
   { id: 'granite', name: 'Granite', index: 1, description: 'Many small lumpy lobes with a stone-grain tint.' },

@@ -24,7 +24,6 @@ export interface Settings {
 export type SettingsInput = Omit<DeepPartialSettings, 'style'> & { style?: string };
 
 const warned = new Set<string>();
-/** Test hook: forget which warnings were already printed. */
 export function resetWarnings(): void { warned.clear(); }
 function warnOnce(msg: string): void {
   if (warned.has(msg)) return;
@@ -98,8 +97,6 @@ export function toUniforms(s: Settings): ParamUniforms {
   }
   return out;
 }
-
-// ---- serialisation: element attributes and URL query ----
 
 /** Reads settings from string attributes (as on <topography-bg>). Unknown attributes are ignored. */
 export function fromAttributes(get: (name: string) => string | null): SettingsInput {
