@@ -247,6 +247,8 @@ try {
   const VIEW_KEYS = ['lc', 'lw', 'lo', 'ix', 'mode', 'ex', 'ev', 'az', 'ce', 'rd'];
   const viewOf = (pg) => Object.fromEntries(VIEW_KEYS.map((k) => [k, q(pg).get(k)]));
   const MAP_VIEW = { lc: '36', lw: '0', lo: '0.9', ix: '4', mode: '3d', ex: 'block', ev: '0.12', az: '341.8', ce: '39.3', rd: '1.32' };
+  // A landscape keeps the map terrain view but brings its own camera angle and elevation.
+  const MATTERHORN_VIEW = { ...MAP_VIEW, ev: '0.16', ce: '35' };
   const sameView = (a, b) => VIEW_KEYS.every((k) => a[k] === b[k]);
   const viewBefore = viewOf(p);
   const settingsBefore = await cfg(p);
@@ -284,9 +286,11 @@ try {
   check(/^Istanbul [\d.]+ × [\d.]+ km$/.test(await badgeText()) && /^Generated terrain/.test(await status()), `the badge names the framed city and the footer the terrain (${await badgeText()} | ${await status()})`);
   await badge.click(); await p.getByRole('menuitem').first().waitFor();
   const items = (await p.getByRole('menuitem').allInnerTexts()).map((t) => t.split('\n')[0]);
-  check(items.join() === 'Istanbul,San Francisco,London,New York,Cyprus', `the badge opens the city menu (${items.join()})`);
+  check(items.join() === 'Istanbul,Cyprus,Matterhorn & Zermatt,Geirangerfjord,Grand Canyon,Yosemite Valley,Torres del Paine,Mount Fuji,Everest & the Khumbu,Kilimanjaro', `the badge opens the place menu (${items.join()})`);
+  const labels = await p.locator('.pt-menu-label').allInnerTexts();
+  check(labels.map((t) => t.toLowerCase()).join() === 'europe & middle east,americas,asia,africa', `the place menu groups places by region (${labels.join()})`);
   await p.keyboard.press('Escape'); await settle(p);
-  check(await place.isVisible(), 'closing the city menu keeps the Map popover open');
+  check(await place.isVisible(), 'closing the place menu keeps the Map popover open');
   check(await apply.evaluate((el) => el.classList.contains('pt-action')) && await place.getByRole('button', { name: 'Generated' }).count() === 0, 'Apply is an action button and Generated is gone');
   await apply.click(); await settle(p, 600);
   c = await cfg(p);
@@ -346,8 +350,8 @@ try {
   // A city: the segment moves the frame only; Apply saves it under its name.
   await p.getByRole('button', { name: 'Map', exact: true }).click(); await settle(p, 600);
   const placeSearch = q(p).toString();
-  await badge.click(); await p.getByRole('menuitem', { name: /^London/ }).click(); await settle(p, 1200);
-  check(await apply.isEnabled() && q(p).toString() === placeSearch && /^London 80 × 51 km$/.test(await badgeText()), `a city from the menu moves the map only (${await badgeText()})`);
+  await badge.click(); await p.getByRole('menuitem', { name: /^Matterhorn/ }).click(); await settle(p, 1200);
+  check(await apply.isEnabled() && q(p).toString() === placeSearch && /^Matterhorn & Zermatt 40 × 26 km$/.test(await badgeText()), `a city from the menu moves the map only (${await badgeText()})`);
   await apply.click(); await settle(p, 600);
   await badge.click(); await p.getByRole('menuitem').first().waitFor();
   await settle(p, 300);
@@ -355,9 +359,9 @@ try {
   const marks = await p.locator('.pt-menu-item svg').count();
   const lit = await p.locator('.pt-menu-item[data-highlighted]').count();
   await p.keyboard.press('Escape'); await settle(p);
-  check(marks === 0 && lit === 0, `the city menu shows no selected state (${marks} marks, ${lit} highlighted)`);
-  check(q(p).get('place') === 'london' && await savedCount() === 3
-    && await dockNav.locator('.pt-saved:not([data-builtin]) .pt-thumb').first().getAttribute('aria-label') === 'London map', `Apply on a city writes its name and saves it (?${q(p)})`);
+  check(marks === 0 && lit === 0, `the place menu shows no selected state (${marks} marks, ${lit} highlighted)`);
+  check(q(p).get('place') === 'matterhorn' && await savedCount() === 3
+    && await dockNav.locator('.pt-saved:not([data-builtin]) .pt-thumb').first().getAttribute('aria-label') === 'Matterhorn & Zermatt map', `Apply on a city writes its name and saves it (?${q(p)})`);
   await clearBtn.click(); await settle(p, 400);
   check(q(p).get('place') === null && q(p).get('region') === null && await pinDot() === 0 && await clearBtn.count() === 0 && q(p).get('ev') === viewBefore.ev, 'Clear returns to the generated terrain and its elevation');
   check(!/Too thin|Exaggerate|Smoothing|Use this place/.test(await place.innerText()), 'Map holds only the map, the badge, the credit and the footer');
@@ -367,16 +371,16 @@ try {
   // Saved items: they stay after a reload, a click brings back place and colours, a look clears the place.
   await p.reload(); await p.waitForSelector('.pt-stage canvas'); await settle(p);
   check(await savedCount() === 3, 'saved map terrains stay after a reload');
-  await dockNav.getByRole('button', { name: 'London map' }).click(); await settle(p, 600);
-  const london = await cfg(p);
-  check(q(p).get('place') === 'london' && sameView(viewOf(p), MAP_VIEW) && await pinDot() === 1, `a saved item brings back its place and view (?${q(p)})`);
+  await dockNav.getByRole('button', { name: 'Matterhorn & Zermatt map' }).click(); await settle(p, 600);
+  const matterhorn = await cfg(p);
+  check(q(p).get('place') === 'matterhorn' && sameView(viewOf(p), MATTERHORN_VIEW) && await pinDot() === 1, `a saved item brings back its place and view (?${q(p)})`);
   await p.waitForFunction(() => document.documentElement.dataset.region === 'ready', null, { timeout: 60000 }).catch(() => {});
   await dockNav.getByRole('button', { name: 'Fine granite' }).click(); await settle(p, 600);
   c = await cfg(p);
   const lookAz = q(p).get('az');
   check(q(p).get('place') === null && c.style === 'granite' && c.seed === 191 && await pinDot() === 0, 'a built-in look clears the place and brings its shape');
-  await dockNav.getByRole('button', { name: 'London map' }).click(); await settle(p, 600);
-  check(q(p).get('place') === 'london' && JSON.stringify(await cfg(p)) === JSON.stringify(london), 'the saved item returns with its own colours');
+  await dockNav.getByRole('button', { name: 'Matterhorn & Zermatt map' }).click(); await settle(p, 600);
+  check(q(p).get('place') === 'matterhorn' && JSON.stringify(await cfg(p)) === JSON.stringify(matterhorn), 'the saved item returns with its own colours');
   // Edits to the active saved item are kept, the camera included.
   await p.getByRole('button', { name: 'Ink colour' }).click();
   await p.locator('.pt-pop-color .pt-swatch').nth(3).click(); await p.keyboard.press('Escape'); await settle(p, 900);
@@ -389,20 +393,20 @@ try {
   check(draggedAz !== '341.8', `dragging moves the camera (az=${draggedAz})`);
   await dockNav.getByRole('button', { name: 'Fine granite' }).click(); await settle(p, 600);
   check(q(p).get('az') === lookAz, `a built-in look still resets to its own camera (az ${q(p).get('az')}, want ${lookAz})`);
-  await dockNav.getByRole('button', { name: 'London map' }).click(); await settle(p, 600);
+  await dockNav.getByRole('button', { name: 'Matterhorn & Zermatt map' }).click(); await settle(p, 600);
   check(q(p).get('az') === draggedAz && q(p).get('ce') === draggedCe, `the saved item comes back with the dragged camera (az ${q(p).get('az')}, want ${draggedAz})`);
   await p.reload(); await p.waitForSelector('.pt-stage canvas'); await settle(p);
   await dockNav.getByRole('button', { name: 'Fine granite' }).click(); await settle(p, 400);
-  await dockNav.getByRole('button', { name: 'London map' }).click(); await settle(p, 600);
+  await dockNav.getByRole('button', { name: 'Matterhorn & Zermatt map' }).click(); await settle(p, 600);
   c = await cfg(p);
-  check(c.theme?.ink === ink && ink !== london.theme?.ink && q(p).get('az') === draggedAz, `after a reload the saved item kept the new ink (${ink}) and the dragged camera (az ${q(p).get('az')})`);
+  check(c.theme?.ink === ink && ink !== matterhorn.theme?.ink && q(p).get('az') === draggedAz, `after a reload the saved item kept the new ink (${ink}) and the dragged camera (az ${q(p).get('az')})`);
   // Delete: hover shows the ×.
-  await dockNav.locator('.pt-saved', { has: p.getByRole('button', { name: 'London map' }) }).hover();
+  await dockNav.locator('.pt-saved', { has: p.getByRole('button', { name: 'Matterhorn & Zermatt map' }) }).hover();
   if (shots) await dockNav.screenshot({ path: join(shots, 'dock-saved-hover.png') });
-  await dockNav.getByRole('button', { name: 'Delete London' }).click(); await settle(p);
-  check(await savedCount() === 2 && q(p).get('place') === 'london', 'delete removes the item and keeps the view');
+  await dockNav.getByRole('button', { name: 'Delete Matterhorn & Zermatt' }).click(); await settle(p);
+  check(await savedCount() === 2 && q(p).get('place') === 'matterhorn', 'delete removes the item and keeps the view');
   await p.reload(); await p.waitForSelector('.pt-stage canvas'); await settle(p);
-  check(await savedCount() === 2 && await dockNav.getByRole('button', { name: 'London map' }).count() === 0, 'a deleted item stays gone after a reload');
+  check(await savedCount() === 2 && await dockNav.getByRole('button', { name: 'Matterhorn & Zermatt map' }).count() === 0, 'a deleted item stays gone after a reload');
   await p.close();
 
   // Storage blocked: the page, Apply and the dock still work.

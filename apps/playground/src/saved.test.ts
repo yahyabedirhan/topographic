@@ -20,7 +20,7 @@ describe('saved map terrains', () => {
     items = addSaved(items, { bbox: box(1), placeId: null, settings }, 3).items;
     expect(items.map((it) => it.name)).toEqual(['Area 2', 'Area', 'Istanbul']);
     expect(savedName(items, null)).toBe('Area 3');
-    expect(savedName(items, 'london')).toBe('London');
+    expect(savedName(items, 'matterhorn')).toBe('Matterhorn & Zermatt');
   });
 
   it('selects the existing item for the same box instead of adding one', () => {

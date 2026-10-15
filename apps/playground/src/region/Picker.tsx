@@ -6,7 +6,7 @@ import { Menu } from '@base-ui-components/react/menu';
 import { Check, ChevronDown, MapPin, Mountain, Move } from 'lucide-react';
 import { limitMessage, limitProblem, spanOf, type BBox } from './pipeline';
 import { ELEVATION_CREDIT, mapStyle, type MapAppearance } from './basemap';
-import { findPlace, PLACES, sameBox } from './places';
+import { findPlace, PLACE_GROUPS, PLACES, sameBox } from './places';
 import { clampTowards, containRect, fitRect, HANDLES, resizeRect, screenAspect, type Handle, type Rect } from './frame';
 import type { RegionController } from './useRegion';
 import { km } from './controls';
@@ -294,11 +294,16 @@ export function PlacePanel({ region, onApply, appliedName, appearance }: {
           <Menu.Portal>
             <Menu.Positioner side="bottom" align="start" sideOffset={6} className="pt-layer pt-layer-menu">
               <Menu.Popup className="pt-menu pt-glass">
-                {PLACES.map((city) => (
-                  <Menu.Item key={city.id} className="pt-menu-item" onClick={() => flyTo(city.id)}>
-                    <b>{city.name}</b>
-                    <small>{city.note}</small>
-                  </Menu.Item>
+                {PLACE_GROUPS.map((group) => (
+                  <Menu.Group key={group} className="pt-menu-group">
+                    <Menu.GroupLabel className="pt-menu-label">{group}</Menu.GroupLabel>
+                    {PLACES.filter((city) => city.group === group).map((city) => (
+                      <Menu.Item key={city.id} className="pt-menu-item" onClick={() => flyTo(city.id)}>
+                        <b>{city.name}</b>
+                        <small>{city.note}</small>
+                      </Menu.Item>
+                    ))}
+                  </Menu.Group>
                 ))}
               </Menu.Popup>
             </Menu.Positioner>
