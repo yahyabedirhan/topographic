@@ -10,10 +10,13 @@ export interface BBox {
 export type ReliefMode = 'dramatic' | 'measured';
 export type SmoothLevel = 'light' | 'medium' | 'strong';
 
-/** Shortest side, longest side, and how square the rectangle must stay. */
+/**
+ * Shortest side, longest side, and how square the rectangle must stay. A 300 km side stays cheap:
+ * tileRange picks the finest zoom within maxTiles, and the output is always the same grid.
+ */
 export const LIMITS = {
   minSideM: 1500,
-  maxSideM: 64000,
+  maxSideM: 300000,
   maxAspect: 3,
   maxTiles: 36,
   grid: 256,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  LIMITS, MEASURED_RELIEF_M, benchPipeline, latToY, limitProblem, lonToX, resample, shapeField,
+  LIMITS, MEASURED_RELIEF_M, benchPipeline, latToY, limitMessage, limitProblem, lonToX, resample, shapeField,
   spanOf, stitch, terrariumMeters, tileRange, type BBox, type Mosaic,
 } from './pipeline';
 
@@ -35,8 +35,12 @@ describe('tiles', () => {
 });
 
 describe('limits', () => {
-  it('accepts a city and rejects a block, a country and a sliver', () => {
+  it('accepts a city and a mountain range, and rejects a block, a country and a sliver', () => {
     expect(limitProblem({ west: 28.95, south: 41.0, east: 29.05, north: 41.08 })).toBeNull();
+    // About 200 km × 130 km around Mont Blanc and Zermatt.
+    expect(limitProblem({ west: 6.3, south: 45.4, east: 8.9, north: 46.6 })).toBeNull();
+    expect(LIMITS.maxSideM).toBe(300000);
+    expect(limitMessage('large')).toBe('Too large. The long side needs to stay under 300 km.');
     expect(limitProblem({ west: 29, south: 41, east: 29.004, north: 41.004 })).toBe('small');
     expect(limitProblem({ west: 26, south: 40, east: 30, north: 42.5 })).toBe('large');
     expect(limitProblem({ west: 29, south: 41, east: 29.5, north: 41.02 })).toBe('aspect');

@@ -31,6 +31,8 @@ function snapshot(agent: RegionAgent) {
     maxM: agent.info?.maxM ?? null,
     zoom: agent.info?.zoom ?? null,
     tiles: agent.info?.tiles ?? null,
+    fetchMs: agent.info ? Math.round(agent.info.fetchMs) : null,
+    shapeMs: agent.info ? Math.round(agent.info.shapeMs) : null,
     query: regionQuery(agent),
   };
 }
