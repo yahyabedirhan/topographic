@@ -65,8 +65,8 @@ The numeric work, timed by `pipeline.test.ts` on this machine, warm:
 | Case | Time |
 |---|---|
 | 9 tiles, 768² source, 256 grid | 10 to 14 ms |
-| 36 tiles, 1536² source, 256 grid | about 9 ms |
-| 2048² source, 512 grid | about 37 ms |
+| 36 tiles, 1536² source, 256 grid | 9 to 11 ms |
+| 2048² source, 512 grid | 37 to 46 ms |
 
 Ten percent off those times is about a millisecond. An order of magnitude would land around 1 to 4 ms. The tile download is the wait, so the prototype stays in JavaScript. There is no Wasm build.
 
