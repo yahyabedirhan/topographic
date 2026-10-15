@@ -362,10 +362,8 @@ export function useCopy(): [string, (label: string, text: string) => void] {
 export function Wordmark({ children }: { children?: ReactNode }) {
   return (
     <div className="pt-wordmark">
-      <a href="https://yahyapak.dev/projects/topography" target="_blank" rel="noreferrer" aria-label="topographic on yahyapak.dev">
-        <span>topographic</span>
-        <small>yahyapak.dev</small>
-      </a>
+      <a href="https://github.com/yahyabedirhan/topographic" target="_blank" rel="noreferrer" aria-label="topographic on GitHub">topographic</a>
+      <a href="https://yahyapak.dev/projects/topography" target="_blank" rel="noreferrer" className="pt-wordmark-site">yahyapak.dev</a>
       {children}
     </div>
   );

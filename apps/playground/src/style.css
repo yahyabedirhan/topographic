@@ -30,11 +30,10 @@ input[type=color]{width:30px;height:24px;padding:0;border:0;border-radius:6px;ba
 .pt-glass{background:color-mix(in srgb,var(--paper) 50%,transparent);box-shadow:inset 0 0 0 .5px var(--line),inset 0 1px 0 rgba(255,255,255,.08),0 18px 50px -24px rgba(0,0,0,.65);
   backdrop-filter:blur(22px) saturate(1.5);-webkit-backdrop-filter:blur(22px) saturate(1.5)}
 .pt-wordmark{position:fixed;z-index:3;top:22px;left:22px;display:grid;gap:7px;justify-items:start;font:600 17px/1 Literata,Georgia,serif;letter-spacing:-.01em}
-.pt-wordmark a{display:grid;gap:7px;justify-items:start;color:inherit;text-decoration:none}
-.pt-wordmark a span{transition:opacity .15s}
-.pt-wordmark small{font:400 12px/1 var(--sans);letter-spacing:0;color:var(--mut);transition:color .15s}
-.pt-wordmark a:hover span{opacity:.82}
-.pt-wordmark a:hover small,.pt-wordmark a:focus-visible small{color:var(--fg)}
+.pt-wordmark a{color:inherit;text-decoration:none;transition:opacity .15s,color .15s}
+.pt-wordmark a:hover{opacity:.82}
+.pt-wordmark .pt-wordmark-site{font:400 12px/1 var(--sans);letter-spacing:0;color:var(--mut)}
+.pt-wordmark .pt-wordmark-site:hover,.pt-wordmark .pt-wordmark-site:focus-visible{opacity:1;color:var(--fg)}
 .pt-hint{color:var(--mut);font-size:12.5px;line-height:1.45}
 .pt-kicker{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}
 .pt-cluster{display:flex;align-items:center;gap:2px;padding:6px;border-radius:999px;overflow:visible}
