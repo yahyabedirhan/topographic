@@ -1,12 +1,11 @@
 import { useId, type ReactNode } from 'react';
-import { Popover } from '@base-ui-components/react/popover';
 import { Slider } from '@base-ui-components/react/slider';
 import { Toggle } from '@base-ui-components/react/toggle';
 import { ToggleGroup } from '@base-ui-components/react/toggle-group';
 import { Tooltip } from '@base-ui-components/react/tooltip';
 import { RotateCcw, type LucideIcon } from 'lucide-react';
 
-// The building blocks every popover shares: a header, a tab bar, sections and one row grid.
+// The building blocks every popover shares: a tab bar, sections and one row grid.
 
 export function Tip({ children, side = 'bottom' }: { children: ReactNode; side?: 'top' | 'bottom' }) {
   return (
@@ -15,16 +14,6 @@ export function Tip({ children, side = 'bottom' }: { children: ReactNode; side?:
         <Tooltip.Popup className="pt-tip">{children}</Tooltip.Popup>
       </Tooltip.Positioner>
     </Tooltip.Portal>
-  );
-}
-
-/** Sentence-case title on the left, at most one control on the right. */
-export function PopHead({ title, children }: { title: string; children?: ReactNode }) {
-  return (
-    <div className="pt-pop-head">
-      <Popover.Title className="pt-pop-title">{title}</Popover.Title>
-      {children}
-    </div>
   );
 }
 

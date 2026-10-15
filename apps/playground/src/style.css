@@ -103,9 +103,6 @@ button.pt-dice:active{transform:scale(.96)}
 .pt-pop-wide{--pop-w:560px;max-height:calc(100dvh - 172px)}
 .pt-pop-color{width:max-content;padding:12px}
 .pt-pop-title{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin-bottom:10px}
-/* Header: sentence-case title on the left, at most one control on the right. */
-.pt-pop-head{display:flex;align-items:center;justify-content:space-between;gap:12px;height:28px;margin:0 0 10px}
-.pt-pop-head .pt-pop-title{margin:0;font:600 13px/1 var(--sans);letter-spacing:-.005em;text-transform:none;color:var(--fg)}
 /* Tabs: icon over label, so no tooltip covers the content. */
 .pt-tabs{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:2px;padding:3px;border-radius:14px;background:color-mix(in srgb,var(--fg) 6%,transparent);margin-bottom:6px}
 button.pt-tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:0;padding:7px 2px 6px;border:0;border-radius:11px;background:transparent;box-shadow:none;color:var(--mut);font-size:11px;line-height:1}

@@ -10,7 +10,7 @@ import {
   type CameraMotion, type GroupName, type ParamDef, type TerrainExtent,
 } from 'topographic';
 import { LOOKS } from './looks';
-import { PopHead, Section, SegRow, SliderRow, Tabs, Tip, type TabItem } from './parts';
+import { Section, SegRow, SliderRow, Tabs, Tip, type TabItem } from './parts';
 import {
   Backdrop, ColorPicker, GROUP_LABELS, INK_SWATCHES, PAPER_SWATCHES, Wordmark, currentColour, rollColour, useLookThumbs,
   type Playground,
@@ -376,7 +376,6 @@ export function TuneStrip({ pg }: { pg: Playground }) {
   useEffect(() => { if (pg.settings.mode === '3d') setGroup('view'); }, [pg.settings.mode]);
   return (
     <>
-      <PopHead title="Tune" />
       <Tabs items={TUNE_TABS} value={group} onChange={setGroup} label="Setting group" />
       {group === 'view' ? <ViewTune pg={pg} /> : <ParamTune pg={pg} group={group} />}
     </>
@@ -463,7 +462,7 @@ export function GlassFrame({ pg, tune, exporting }: {
             <Tip>Tune</Tip>
           </Tooltip.Root>
           <ClusterPositioner clusterRef={clusterRef}>
-            <Popover.Popup className="pt-pop pt-glass">
+            <Popover.Popup className="pt-pop pt-glass" aria-label="Tune">
               {tune}
             </Popover.Popup>
           </ClusterPositioner>

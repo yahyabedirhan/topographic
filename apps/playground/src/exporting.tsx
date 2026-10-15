@@ -9,7 +9,7 @@ import { embedCode } from './embed';
 import { PNG_SIZES, downloadPng } from './png';
 import { shareUrl } from './url';
 import { useCopy, type Playground } from './shared';
-import { PopHead, Section, SegRow, Tabs, Tip } from './parts';
+import { Section, SegRow, Tabs, Tip } from './parts';
 
 type FormatId = 'link' | 'png' | 'video' | 'react' | 'html' | 'json';
 
@@ -192,8 +192,7 @@ export function ExportMenu({ pg, open, onOpenChange, clusterRef }: {
       </Tooltip.Root>
       <Popover.Portal>
         <Popover.Positioner anchor={clusterRef} side="bottom" align="end" sideOffset={10} collisionPadding={{ top: 12, right: 8, bottom: 16, left: 8 }} positionMethod="fixed" className="pt-layer">
-          <Popover.Popup className="pt-pop pt-glass pt-export" initialFocus={false}>
-            <PopHead title="Export" />
+          <Popover.Popup className="pt-pop pt-glass pt-export" aria-label="Export" initialFocus={false}>
             <Tabs items={FORMATS} value={format} onChange={setFormat} label="Export format" />
             {format === 'link' && <LinkBlock pg={pg} />}
             {format === 'png' && <PngBlock pg={pg} />}
