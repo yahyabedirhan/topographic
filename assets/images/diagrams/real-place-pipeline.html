@@ -18,12 +18,12 @@ svg { width: 100%; min-width: 960px; display: block; }
 </head>
 <body>
 <div class="frame">
-<p class="eyebrow">Prototype · topographic</p>
+<p class="eyebrow">Playground · topographic</p>
 <h1>Real-place pipeline</h1>
 <div class="diagram-container">
 <svg viewBox="0 0 960 608" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="real-place-pipeline-title real-place-pipeline-desc">
 <title id="real-place-pipeline-title">Real-place pipeline</title>
-<desc id="real-place-pipeline-desc">How a real place becomes a terrain in the prototype: the map frame gives a bounding box, a worker fetches and decodes Terrarium elevation tiles, stitches and resamples them to a 256 by 256 grid, scales the relief and smooths it, and the hook hands the heightfield to the renderer with setHeightfield().</desc>
+<desc id="real-place-pipeline-desc">How a real place becomes a terrain in the playground: the map frame gives a bounding box, a worker fetches and decodes Terrarium elevation tiles, stitches and resamples them to a 256 by 256 grid, scales the relief and smooths it, and the hook hands the heightfield to the renderer with setHeightfield().</desc>
 <defs>
 <linearGradient id="tile" x1="0" y1="0" x2="0" y2="608" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#222529"/><stop offset="1" stop-color="#131417"/></linearGradient>
 <linearGradient id="rim1" x1="0" y1="0" x2="0" y2="608" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity="0.32"/><stop offset="1" stop-color="#fff" stop-opacity="0.08"/></linearGradient>
@@ -35,8 +35,8 @@ svg { width: 100%; min-width: 960px; display: block; }
 <rect x="2.5" y="2.5" width="955" height="603" rx="10" fill="none" stroke="url(#rim1)" stroke-width="1"/>
 <rect x="10.5" y="10.5" width="939" height="587" rx="2" fill="none" stroke="url(#rim2)" stroke-width="1"/>
 <rect x="24" y="56" width="912" height="136" rx="8" fill="rgba(228,230,233,0.02)" stroke="rgba(228,230,233,0.10)" stroke-width="0.8"/>
-<rect x="408.9" y="60" width="142.2" height="12" fill="url(#tile)"/>
-<text x="480.0" y="69" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.14em">PROTOTYPE · MAIN THREAD</text>
+<rect x="405.9" y="60" width="148.1" height="12" fill="url(#tile)"/>
+<text x="480.0" y="69" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.14em">PLAYGROUND · MAIN THREAD</text>
 <rect x="24" y="236" width="912" height="136" rx="8" fill="rgba(228,230,233,0.02)" stroke="rgba(228,230,233,0.10)" stroke-width="0.8"/>
 <rect x="423.7" y="240" width="112.6" height="12" fill="url(#tile)"/>
 <text x="480.0" y="249" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.14em">WORKER · worker.ts</text>

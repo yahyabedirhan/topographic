@@ -1,4 +1,4 @@
-import { viewProjection, type Pose } from './camera.js';
+import { ENDLESS_REACH, viewProjection, type Pose } from './camera.js';
 import { sampleGrid, type Heightfield } from './heightfield.js';
 import { terrainSegments, toUniforms, type Settings } from './settings.js';
 import { terrainFragmentSource, terrainVertexSource } from './shader/terrain.glsl.js';
@@ -16,6 +16,8 @@ export interface TerrainFrame {
   pose: Pose;
   field: Heightfield | null;
   heightVersion: number;
+  /** Lens shift in clip space, so the picture centres in the part of the view that UI leaves free. */
+  shift?: readonly [number, number];
 }
 
 export interface TerrainPass {
@@ -24,8 +26,6 @@ export interface TerrainPass {
   draw(gl: GL, webgl2: boolean, frame: TerrainFrame): void;
   dispose(gl: GL): void;
 }
-
-const ENDLESS_REACH = 2.45;
 
 function compile(gl: GL, type: number, src: string): WebGLShader | null {
   const sh = gl.createShader(type);
@@ -208,7 +208,7 @@ export function createTerrainPass(): TerrainPass {
       set1(gl, 'uHeightAspect', frame.field?.aspect || 1);
       set1(gl, 'uReach', nextBlock ? 1 : ENDLESS_REACH);
       const vp = loc(gl, 'uViewProj');
-      if (vp) gl.uniformMatrix4fv(vp, false, viewProjection(pose, frame.width / frame.height));
+      if (vp) gl.uniformMatrix4fv(vp, false, viewProjection(pose, frame.width / frame.height, frame.shift));
       if (!nextBlock) {
         gl.drawElements(gl.TRIANGLES, topCount, gl.UNSIGNED_SHORT, 0);
         return;

@@ -1,0 +1,194 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { DEFAULT_ELEVATION, resolveSettings, type Heightfield, type Settings } from 'topographic';
+import type { Playground } from '../shared';
+import { limitMessage, limitProblem, spanOf, type BBox, type ReliefMode, type SmoothLevel, type Span } from './pipeline';
+import { beforePlace, findPlace, restoredKeys, terrainDefaults, type BeforePlace } from './places';
+import { registerRegionTools } from './register';
+import { readRegion, writeRegion, type RegionQuery } from './url';
+import { withQuery, writeSettings } from '../share-url';
+import type { BuildErr, BuildOk } from './worker';
+
+export interface RegionInfo {
+  minM: number;
+  maxM: number;
+  reliefM: number;
+  zoom: number;
+  tiles: number;
+  fetchMs: number;
+  shapeMs: number;
+  span: Span;
+}
+
+export interface RegionController {
+  bbox: BBox | null;
+  placeId: string | null;
+  name: string;
+  status: 'idle' | 'loading' | 'ready' | 'error';
+  error: string | null;
+  info: RegionInfo | null;
+  /** The loaded heightfield of the applied place, or null. */
+  field: Heightfield | null;
+  /** Applies a place with its defaults (MAP_TERRAIN_DEFAULTS unless the place has its own) on top of the settings. */
+  setPlace(bbox: BBox, placeId: string | null): void;
+  /** Applies a place and leaves the settings alone, for a saved terrain that brings its own. */
+  showPlace(bbox: BBox, placeId: string | null): void;
+  /** Returns to the generated terrain and to the lines, camera, extent and elevation from before the first place. */
+  clear(): void;
+}
+
+/** Every place uses the same height treatment; the 3D Elevation slider is the only height control. */
+const RELIEF: ReliefMode = 'dramatic';
+const SMOOTH: SmoothLevel = 'medium';
+
+function queryOf(bbox: BBox | null, placeId: string | null): RegionQuery {
+  return { bbox, place: placeId };
+}
+
+/** Without a remembered state (a place opened from a link), Clear returns to the library defaults for the style. */
+function generatedView(style: string): BeforePlace {
+  const d = resolveSettings({ style });
+  return { lines: d.lines, camera: d.camera, extent: d.extent, elevation: d.elevation ?? DEFAULT_ELEVATION };
+}
+
+export function useRegion(pg: Playground): RegionController {
+  const initial = readRegion(location.search);
+  const initialProblem = initial.bbox ? limitProblem(initial.bbox) : null;
+  const [bbox, setBbox] = useState<BBox | null>(initialProblem ? null : initial.bbox);
+  const [placeId, setPlaceId] = useState<string | null>(initial.place);
+  const [status, setStatus] = useState<RegionController['status']>(initialProblem ? 'error' : initial.bbox ? 'loading' : 'idle');
+  const [error, setError] = useState<string | null>(initialProblem ? limitMessage(initialProblem) : null);
+  const [info, setInfo] = useState<RegionInfo | null>(null);
+  const [generation, setGeneration] = useState(0);
+  const fieldRef = useRef<Heightfield | null>(null);
+  const [field, setField] = useState<Heightfield | null>(null);
+  const workerRef = useRef<Worker | null>(null);
+  const [workerReady, setWorkerReady] = useState(false);
+  const request = useRef(0);
+
+  useEffect(() => {
+    const worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
+    workerRef.current = worker;
+    setWorkerReady(true);
+    return () => {
+      worker.terminate();
+      workerRef.current = null;
+    };
+  }, []);
+
+  const settingsRef = useRef(pg.settings);
+  settingsRef.current = pg.settings;
+  useEffect(() => {
+    const q = new URLSearchParams(location.search);
+    writeRegion(q, queryOf(bbox, placeId));
+    const next = withQuery(location.pathname, writeSettings(q.toString(), settingsRef.current), location.hash);
+    if (next !== location.pathname + location.search + location.hash) history.replaceState(null, '', next);
+  }, [bbox, placeId]);
+
+  useEffect(() => {
+    document.documentElement.dataset.region = status;
+    return () => { delete document.documentElement.dataset.region; };
+  }, [status]);
+
+  useEffect(() => {
+    const worker = workerRef.current;
+    if (!workerReady || !worker || !bbox) return;
+    const id = ++request.current;
+    setStatus('loading');
+    setError(null);
+    const onMessage = (event: MessageEvent<BuildOk | BuildErr>) => {
+      if (event.data.id !== id) return;
+      if (!event.data.ok) {
+        fieldRef.current = null;
+        setField(null);
+        setInfo(null);
+        setStatus('error');
+        setError(event.data.error);
+        setGeneration((n) => n + 1);
+        return;
+      }
+      fieldRef.current = { samples: event.data.samples, size: event.data.size, aspect: event.data.aspect };
+      setField(fieldRef.current);
+      setInfo({
+        minM: event.data.minM,
+        maxM: event.data.maxM,
+        reliefM: event.data.reliefM,
+        zoom: event.data.zoom,
+        tiles: event.data.tiles,
+        fetchMs: event.data.fetchMs,
+        shapeMs: event.data.shapeMs,
+        span: spanOf(bbox),
+      });
+      setStatus('ready');
+      setGeneration((n) => n + 1);
+    };
+    worker.addEventListener('message', onMessage);
+    const body = { id, bbox, relief: RELIEF, smooth: SMOOTH };
+    worker.postMessage(body);
+    return () => worker.removeEventListener('message', onMessage);
+  }, [bbox, workerReady]);
+
+  useEffect(() => {
+    let stop = false;
+    const apply = () => {
+      if (stop) return;
+      const live = pg.instance.current;
+      if (!live) {
+        requestAnimationFrame(apply);
+        return;
+      }
+      live.setHeightfield(fieldRef.current);
+    };
+    if (generation > 0) apply();
+    return () => { stop = true; };
+  }, [generation, pg]);
+
+  const name = findPlace(placeId)?.name ?? (bbox ? 'Area' : '');
+  const pgRef = useRef(pg);
+  pgRef.current = pg;
+  const bboxRef = useRef(bbox);
+  bboxRef.current = bbox;
+  // The settings from before the first place, and the keys clear() restores from them.
+  const before = useRef<{ settings: Settings; keys: Set<keyof Settings> } | null>(null);
+  const showPlace = useCallback((next: BBox, id: string | null) => {
+    const problem = limitProblem(next);
+    if (problem) {
+      setError(limitMessage(problem));
+      setStatus('error');
+      return;
+    }
+    if (!bboxRef.current && before.current === null) before.current = { settings: settingsRef.current, keys: new Set() };
+    // A place with its own defaults (Cyprus sets the colours too) adds those keys to what Clear restores.
+    for (const key of restoredKeys(id)) before.current?.keys.add(key);
+    bboxRef.current = next;
+    setPlaceId(id);
+    setBbox(next);
+  }, []);
+  const setPlace = useCallback((next: BBox, id: string | null) => {
+    if (limitProblem(next)) return showPlace(next, id);
+    showPlace(next, id);
+    pgRef.current.change(terrainDefaults(id));
+  }, [showPlace]);
+  const clear = useCallback(() => {
+    const had = Boolean(bboxRef.current);
+    bboxRef.current = null;
+    fieldRef.current = null;
+    setField(null);
+    setBbox(null);
+    setPlaceId(null);
+    setInfo(null);
+    setError(null);
+    setStatus('idle');
+    setGeneration((n) => n + 1);
+    const back = before.current;
+    if (had) pgRef.current.change(back ? beforePlace(back.settings, [...back.keys]) : generatedView(settingsRef.current.style));
+    before.current = null;
+  }, []);
+  const agent: RegionController = {
+    bbox, placeId, name, status, error, info, field, setPlace, showPlace, clear,
+  };
+  const liveRef = useRef(agent);
+  liveRef.current = agent;
+  useEffect(() => registerRegionTools(() => liveRef.current), []);
+
+  return agent;
+}

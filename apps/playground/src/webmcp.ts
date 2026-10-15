@@ -90,7 +90,9 @@ export function registerTools(page: PageBridge): () => void {
     take_screenshot: async (input) => {
       const t = page.instance();
       if (!t) throw new Error('the background is not ready');
-      const blob = await renderPng(t, Number(input?.width) || (input?.height ? 0 : 1200), Number(input?.height) || 0);
+      const r = input?.region as { x?: unknown; y?: unknown; width?: unknown; height?: unknown } | undefined;
+      const region = r ? { x: Number(r.x ?? 0), y: Number(r.y ?? 0), width: Number(r.width ?? 1), height: Number(r.height ?? 1) } : undefined;
+      const blob = await renderPng(t, Number(input?.width) || (input?.height ? 0 : 1200), Number(input?.height) || 0, region);
       const bmp = await createImageBitmap(blob);
       return { width: bmp.width, height: bmp.height, mimeType: 'image/png', dataUrl: await blobToDataUrl(blob) };
     },

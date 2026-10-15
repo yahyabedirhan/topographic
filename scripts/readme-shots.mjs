@@ -3,8 +3,8 @@
 //   npm run build:packages
 //   CHROME="/path/to/chrome" node scripts/readme-shots.mjs [out-dir]
 //
-// The script starts its own Vite dev server (port 5287, or the next free one), because the 3D dock and the
-// place picker live in the dev-only prototype (?variant=P2). It stops the server at the end.
+// The script starts its own Vite dev server for the playground (port 5287, or the next free one),
+// so the playground needs no build. It stops the server at the end.
 // Real places load elevation tiles and the picker loads its map from the internet, so the run
 // needs network access. The animated preview needs ffmpeg and img2webp (from libwebp) on the
 // PATH; without them, the script skips that file. Set ONLY=<name>,<name> to take only some of the files.
@@ -22,7 +22,22 @@ const want = (name) => !only || only.includes(name);
 await mkdir(out, { recursive: true });
 
 const ISTANBUL = 'place=istanbul&region=28.94,40.99,29.07,41.08';
-const q = (config) => `config=${encodeURIComponent(JSON.stringify(config))}`;
+// The playground's short URL keys (PARAMS[].short in packages/core/src/params.ts). Colours go without '#'.
+const SHORT = {
+  count: 'lc', width: 'lw', opacity: 'lo', indexEvery: 'ix', peaks: 'pk', spread: 'sp', roughness: 'rg', sharpness: 'sh',
+  terracing: 'tr', variant: 'va', speed: 'sd', warp: 'wp', sparkle: 'sk', anchor: 'an', fade: 'fd',
+};
+const q = ({ style, seed, theme = {}, mode, ...groups }) => {
+  const p = new URLSearchParams();
+  if (style) p.set('s', style);
+  if (seed !== undefined) p.set('seed', String(seed));
+  for (const values of Object.values(groups)) for (const [k, v] of Object.entries(values)) p.set(SHORT[k], String(v));
+  if (theme.mode) p.set('m', theme.mode);
+  if (theme.ink) p.set('ink', theme.ink.replace('#', ''));
+  if (theme.paper) p.set('paper', theme.paper.replace('#', ''));
+  if (mode) p.set('mode', mode);
+  return p.toString();
+};
 // The same seed and style for the 2D and 3D pair, so the two can be compared. The lines use
 // the bright, centred look of scripts/styles-grid.mjs, so they read at README size.
 const PAIR = {
@@ -48,9 +63,9 @@ async function save(p, name) {
   await p.screenshot({ path: join(out, name) });
   sizes.push([name, (await stat(join(out, name))).size]);
 }
-// The prototype shows a live frame-time readout in 3D. A software-rendered headless browser
+// The playground shows a live frame-time readout in 3D. A software-rendered headless browser
 // makes it read a few fps, which says nothing about a real GPU, so the shots hide it.
-const hideBench = (p) => p.addStyleTag({ content: '.pt-bench { display: none !important; }' });
+const hideBench = (p) => p.addStyleTag({ content: '.pt-fps { display: none !important; }' });
 async function waitForDock(p) {
   await p.waitForFunction(() => {
     const nav = document.querySelector('nav[data-looks]');
@@ -60,20 +75,21 @@ async function waitForDock(p) {
 async function waitForRegion(p) {
   await p.waitForFunction(() => ['ready', 'error'].includes(document.documentElement.dataset.region), { timeout: 60000 });
   const status = await p.evaluate(() => document.documentElement.dataset.region);
-  if (status !== 'ready') throw new Error(`region ${status}: ${await p.locator('.pt-region').innerText()}`);
+  if (status !== 'ready') throw new Error(`region ${status}`);
 }
 
 try {
   if (want('playground-dark.png')) {
-    // The README hero: the public playground, dark mode, panel open. The settings are the ones
-    // the earlier hero showed in its panel: drifting lobes, seed 0, the Survey map lines and terrain.
+    // The README hero: the playground in dark mode, with the dock. The settings are the ones
+    // the earlier hero showed: drifting lobes, seed 0, the Survey map lines and terrain.
     const p = await page('dark');
     const hero = {
       style: 'drifting-lobes', lines: { count: 44, indexEvery: 5, opacity: 0.55 },
       terrain: { peaks: 3, spread: 0.6, roughness: 0.2 }, motion: { speed: 0.4, sparkle: 0 }, theme: { mode: 'dark' },
     };
     await p.goto(`${base}?${q(hero)}`);
-    await p.waitForSelector('.stage canvas');
+    await p.waitForSelector('canvas');
+    await waitForDock(p);
     await p.waitForTimeout(600);
     await save(p, 'playground-dark.png');
     await p.close();
@@ -83,7 +99,7 @@ try {
     const name = `long-ridge-${mode}-dark.png`;
     if (!want(name)) continue;
     const p = await page('dark');
-    await p.goto(`${base}?variant=P2&${q({ ...PAIR, mode })}`);
+    await p.goto(`${base}?${q({ ...PAIR, mode })}`);
     await p.waitForSelector('canvas');
     await waitForDock(p);
     await hideBench(p);
@@ -96,7 +112,7 @@ try {
     const name = `istanbul-3d-${scheme}.png`;
     if (!want(name)) continue;
     const p = await page(scheme);
-    await p.goto(`${base}?variant=P2&${q({ style: 'gentle-summit', lines: { count: 28 }, theme: { mode: scheme } })}&${ISTANBUL}&mode=3d`, { waitUntil: 'domcontentloaded' });
+    await p.goto(`${base}?${q({ style: 'gentle-summit', lines: { count: 28 }, theme: { mode: scheme } })}&${ISTANBUL}&mode=3d`, { waitUntil: 'domcontentloaded' });
     await waitForRegion(p);
     await waitForDock(p);
     await hideBench(p);
@@ -107,7 +123,7 @@ try {
 
   if (want('place-picker-dark.png')) {
     const p = await page('dark');
-    await p.goto(`${base}?variant=P2&${q({ style: 'gentle-summit', lines: { count: 28 }, theme: { mode: 'dark' } })}&${ISTANBUL}`, { waitUntil: 'domcontentloaded' });
+    await p.goto(`${base}?${q({ style: 'gentle-summit', lines: { count: 28 }, theme: { mode: 'dark' } })}&${ISTANBUL}`, { waitUntil: 'domcontentloaded' });
     await waitForRegion(p);
     await p.click('[aria-label="Place"]');
     await p.waitForSelector('.maplibregl-canvas', { timeout: 20000 });
@@ -131,7 +147,7 @@ try {
         document.modelContext = { registerTool: async (tool) => { window.__tools[tool.name] = tool; } };
       });
       await p.goto(`${base}?${q({ ...PAIR, mode: '3d' })}`);
-      await p.waitForSelector('.stage canvas');
+      await p.waitForSelector('canvas');
       await p.waitForFunction(() => 'record_video' in window.__tools);
       const clip = await p.evaluate(() => window.__tools.record_video.execute({ format: 'mp4', motion: 'orbit', seconds: 6, width: 960, height: 540 }));
       await p.close();

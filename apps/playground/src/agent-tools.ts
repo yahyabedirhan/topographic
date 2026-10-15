@@ -25,7 +25,7 @@ export const SETTINGS_SCHEMA = {
     },
     mode: { type: 'string', enum: ['2d', '3d'], description: '2d is the map. 3d is the same map as a terrain. 2d is the default.' },
     elevation: { type: 'number', minimum: 0, maximum: 1, description: '3D height. 0 is flat like the map; higher values make the terrain taller, with a rounded crest.' },
-    extent: { type: 'string', enum: ['block', 'endless'], description: 'block is a finite tabletop with cut sides. endless continues past the view.' },
+    extent: { type: 'string', enum: ['block', 'endless'], description: 'block is a finite tabletop with cut sides. endless continues past the view. The playground defaults to endless.' },
     detail: { type: 'number', minimum: 0, maximum: 1, description: '3D mesh resolution. 0 is coarsest, 1 is finest.' },
     camera: {
       type: 'object', additionalProperties: false,
@@ -34,6 +34,8 @@ export const SETTINGS_SCHEMA = {
         elevation: { type: 'number', minimum: 2, maximum: 80, description: 'Degrees above the horizon. Never below the terrain.' },
         radius: { type: 'number', minimum: 1.15, maximum: 6.5, description: 'Distance from the terrain centre.' },
         motion: { type: 'string', enum: ['still', 'orbit', 'push', 'flyover', 'drone'], description: 'How the camera moves. still holds the pose.' },
+        panX: { type: 'number', minimum: -6, maximum: 6, description: 'Moves the point the camera looks at east across the ground. 0 is the terrain centre; kept over the terrain.' },
+        panZ: { type: 'number', minimum: -6, maximum: 6, description: 'Moves the point the camera looks at south across the ground. 0 is the terrain centre; kept over the terrain.' },
       },
     },
   },
@@ -61,9 +63,12 @@ export const TOOL_DEFS: ToolDef[] = [
     description: 'Picks a new random seed. With style: true, also picks a random style.',
     inputSchema: { type: 'object', properties: { style: { type: 'boolean', description: 'Also randomize the style.' } } } },
   { name: 'take_screenshot', title: 'Take screenshot', readOnly: true,
-    description: 'Renders the current background to a PNG and returns it as a data URL. Defaults to 1200 px wide at the screen aspect ratio.',
+    description: 'Renders the current background to a PNG and returns it as a data URL. Defaults to 1200 px wide at the screen aspect ratio. With region, only that slice of the current view, at full detail (for example a phone-shaped strip).',
     inputSchema: { type: 'object', properties: {
-      width: { type: 'integer', minimum: 16, maximum: 4096 }, height: { type: 'integer', minimum: 16, maximum: 4096 } } } },
+      width: { type: 'integer', minimum: 16, maximum: 4096 }, height: { type: 'integer', minimum: 16, maximum: 4096 },
+      region: { type: 'object', additionalProperties: false, description: 'Part of the view, in fractions 0..1 from its top-left corner. Width or height alone keeps the region\'s shape.',
+        properties: { x: { type: 'number', minimum: 0, maximum: 1 }, y: { type: 'number', minimum: 0, maximum: 1 }, width: { type: 'number', minimum: 0, maximum: 1 }, height: { type: 'number', minimum: 0, maximum: 1 } },
+        required: ['x', 'y', 'width', 'height'] } } } },
   { name: 'record_video', title: 'Record video', readOnly: true,
     description: 'Renders a short 3D clip of the current terrain with a moving camera. Returns an MP4 or WebM data URL. Defaults to a 2 second orbit at 640×360.',
     inputSchema: { type: 'object', properties: {

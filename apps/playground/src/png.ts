@@ -1,4 +1,4 @@
-import type { TopographicBackground } from 'topographic';
+import type { SnapshotRegion, TopographicBackground } from 'topographic';
 
 export const PNG_SIZES = [
   { id: 'screen', label: 'Screen ×2', width: 0, height: 0 },
@@ -8,14 +8,38 @@ export const PNG_SIZES = [
   { id: 'phone', label: '1170 × 2532 (phone)', width: 1170, height: 2532 },
 ] as const;
 
-export async function renderPng(t: TopographicBackground, width?: number, height?: number): Promise<Blob> {
+export type PngSize = (typeof PNG_SIZES)[number];
+
+/**
+ * A PNG of the background. With a region, only that slice of the view, drawn at full detail; without one,
+ * a size other than the window's shape lays the view out again at that shape.
+ */
+export async function renderPng(t: TopographicBackground, width?: number, height?: number, region?: SnapshotRegion): Promise<Blob> {
+  if (region) return t.snapshot({ width: width || undefined, height: height || undefined, region });
   const w = width || t.canvas.clientWidth * 2;
   const h = height || (width ? Math.round((width * t.canvas.clientHeight) / t.canvas.clientWidth) : t.canvas.clientHeight * 2);
   return t.snapshot({ width: w, height: h });
 }
 
-export async function downloadPng(t: TopographicBackground, size: (typeof PNG_SIZES)[number]): Promise<void> {
-  const blob = await renderPng(t, size.width, size.height);
+/**
+ * The part of the view a size crops to: the largest rectangle of its shape, placed by `at` (the
+ * top-left corner along the free axis, 0 to 1 of the room left). Null for the window's own shape.
+ */
+export function cropRegion(viewAspect: number, width: number, height: number, at = 0.5): SnapshotRegion | null {
+  if (!width || !height) return null;
+  const aspect = width / height;
+  if (Math.abs(aspect / viewAspect - 1) < 0.005) return null;
+  const a = Math.min(1, Math.max(0, at));
+  if (aspect < viewAspect) {
+    const w = aspect / viewAspect;
+    return { x: (1 - w) * a, y: 0, width: w, height: 1 };
+  }
+  const h = viewAspect / aspect;
+  return { x: 0, y: (1 - h) * a, width: 1, height: h };
+}
+
+export async function downloadPng(t: TopographicBackground, size: PngSize, region?: SnapshotRegion | null): Promise<void> {
+  const blob = await renderPng(t, size.width, size.height, region ?? undefined);
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `topographic-${t.settings.style}-${t.settings.seed}.png`;

@@ -72,10 +72,12 @@ vec2 regionUv(){
 }
 float regionSample(vec2 uv){
 #if __VERSION__ >= 300
-  return texture(uHeightTex,clamp(uv,0.,1.)).r;
+  vec2 hl=texture(uHeightTex,clamp(uv,0.,1.)).rg;
 #else
-  return texture2D(uHeightTex,clamp(uv,0.,1.)).r;
+  vec2 hl=texture2D(uHeightTex,clamp(uv,0.,1.)).rg;
 #endif
+  // R is the high byte and G the low byte; the sum is linear, so filtering stays correct.
+  return dot(hl, vec2(65280., 255.)/65535.);
 }
 vec4 contourPaint(int s, vec2 p){
   float t=uTime*.08*uParams[3]; vec3 c=uInk.rgb; float n=uParams[0]; float px=uParams[1]; float a=1.;
@@ -105,12 +107,7 @@ vec4 contourPaint(int s, vec2 p){
     : smoothstep(.75,1.,sin((p.x+p.y)*60.+t*8.))*l*uParams[4];
   float m=shaped ? colMask(p)*smoothstep(2.2,.1,r)*a : colMask(p);
   float lineAmp=(l*.75+beads*.7)*uParams[2]*m;
-  if(uHasHeight>0.5) lineAmp*=mix(2.2,2.8,uDark);
   vec4 ink=paint(c,lineAmp);
-  if(uHasHeight>0.5){
-    vec3 strong=mix(min(c,vec3(.42)), max(c,vec3(.72)), uDark);
-    ink.rgb=mix(ink.rgb, strong, .78*smoothstep(.05,.4,lineAmp));
-  }
   return mix(vec4(uPaper.rgb,uPaper.a), ink, cover);
 }
 `;

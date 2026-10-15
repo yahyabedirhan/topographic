@@ -1,36 +1,46 @@
-# Region prototype
+# Region picker
 
-Pick a place on a map and draw it with the existing contour field. The use is fun, such as a city you know, rather than a survey. A production build does not ship this. It lives on the dev dock.
+Pick a place on a map and draw it with the existing contour field. The use is fun, such as a city you know, rather than a survey. It is part of the [playground](https://yahyabedirhan.github.io/topographic/), behind the **Map** button. MapLibre loads only when Map opens.
 
 ## Run it
 
+Open the [playground](https://yahyabedirhan.github.io/topographic/), or run it locally:
+
 ```sh
 npm ci
-npm run prototype
+npm run dev
 ```
 
-That builds the packages, starts Vite and opens `/?variant=P2`. 2D is the default. Add `mode=3d` for the terrain view.
+That builds the packages and starts Vite. 2D is the default. Add `mode=3d` for the terrain view.
 
 | Place | URL |
 |---|---|
-| Istanbul | `/?variant=P2&place=istanbul&region=28.94,40.99,29.07,41.08` |
-| San Francisco | `/?variant=P2&place=san-francisco&region=-122.51,37.71,-122.38,37.81` |
-| London | `/?variant=P2&place=london&region=-0.22,51.48,-0.06,51.57` |
-| New York | `/?variant=P2&place=new-york&region=-74.06,40.68,-73.92,40.77` |
+| Istanbul | `/?place=istanbul` (`28.45,40.78,29.65,41.36`, about 101 × 64 km) |
+| Cyprus | `/?place=cyprus` (`32.07126,34.41845,34.93823,35.92088`, about 261 × 166 km) |
+| Matterhorn & Zermatt | `/?place=matterhorn` (`7.441,45.883,7.959,46.117`, about 40 × 26 km) |
+| Geirangerfjord | `/?place=geirangerfjord` (`6.474,61.925,7.626,62.275`, about 60 × 39 km) |
+| Grand Canyon | `/?place=grand-canyon` (`-112.434,35.945,-111.766,36.295`, about 60 × 39 km) |
+| Yosemite Valley | `/?place=yosemite` (`-119.755,37.647,-119.415,37.823`, about 30 × 19 km) |
+| Torres del Paine | `/?place=torres-del-paine` (`-73.478,-51.175,-72.622,-50.825`, about 60 × 39 km) |
+| Mount Fuji | `/?place=fuji` (`138.433,35.278,139.007,35.582`, about 52 × 34 km) |
+| Everest & the Khumbu | `/?place=everest` (`86.515,27.725,87.125,28.075`, about 60 × 39 km) |
+| Kilimanjaro | `/?place=kilimanjaro` (`37,-3.303,37.72,-2.837`, about 80 × 52 km) |
 
-`region` is `west,south,east,north` in degrees. A JSON value works too: `{"bbox":[28.94,40.99,29.07,41.08]}` or `{"west":28.94,"south":40.99,"east":29.07,"north":41.08}`. `relief=measured` opts out of the dramatic stretch. `smooth=light` or `smooth=strong` opts out of medium. The same `config` query as the rest of the playground still sets the style, colours and camera. An explicit `elevation` in that config is kept. Without one, a place opens at 0.1.
+Istanbul's box holds the whole metro area with the Bosphorus, the Princes' Islands and some of the Sea of Marmara. Cyprus is the whole island, from the Troodos to the Karpas peninsula, with some sea around it. Each landscape box frames its main feature at the frame's 1.55:1 shape. `PLACES` in `region/places.ts` is the list.
 
-Place opens a map. Choose by Frame (the default) and pan and zoom, or choose Rectangle and drag. The city chips load Istanbul, San Francisco, London and New York. Relief is Exaggerate for drama, which fills the block, or Match the real heights, which keeps a low city low. Smoothing is Light, Medium or Strong, and the line under it says it softens the hills. Use this place sits at the bottom right and commits whatever the frame or the drag currently covers. The map uses the quiet paper style. Add `basemap=liberty` to open the previous OpenFreeMap Liberty style instead.
+`region` is `west,south,east,north` in degrees. A JSON value works too: `{"bbox":[28.45,40.78,29.65,41.36]}` or `{"west":28.45,"south":40.78,"east":29.65,"north":41.36}`. `place=istanbul` (or any id in the table) names a place instead. The short settings keys of the rest of the playground set the style, colours and camera. Elevation is a plain setting: Apply sets it to 0.12, and the URL writes `ev=0.12`. There is no hidden place baseline.
 
-Regenerate the screenshots while that dev server is running:
+Map opens a popover with the map edge to edge and a frame on it. A badge at the top left names the framed place, or Area, with its size; it opens the place menu, grouped by region under small muted headers (Europe & Middle East, Americas, Asia, Africa). The menu items only move the map; they show no selected state. Pan and zoom to move the area under the frame, or drag the frame's corners and edges to change its shape. Dragging stops at the place limits, so the frame is always valid. A glass footer says what the terrain is now and holds Clear and Apply. Apply turns to ✓ Applied while the frame shows the applied place.
 
-```sh
-node apps/playground/src/prototype/region/shots.mjs http://127.0.0.1:5173/ docs/prototypes/region
-```
+Apply sets `MAP_TERRAIN_DEFAULTS` (in `region/places.ts`) on top of the current settings: 3D, a block, elevation 0.12, 36 lines at width 0 and opacity 0.9 with an index line every 4, and the camera at azimuth 341.8, angle 39.3, distance 1.32. It also saves the place as a dock item (`topographic.saved.v1` in localStorage: the box, the name and the settings, never the heightfield). A place in `PLACES` may carry its own `defaults`, which replace `MAP_TERRAIN_DEFAULTS`: Cyprus brings the granite style, dark paper `#10151c`, ink `#a9c7e4`, 37 lines, elevation 0.06 and a camera at azimuth 3, angle 80, distance 1.18. Each landscape uses `MAP_TERRAIN_DEFAULTS` with its own camera angle and elevation, picked from a small grid of renders. Clear returns to the generated terrain and to the lines, camera, extent and elevation from before the first Apply. After Cyprus, Clear also returns the style, colours, motion and layout it changed. A side can be up to 300 km. Relief is always dramatic and smoothing always medium. The map uses the quiet paper style. Add `basemap=liberty` to open the previous OpenFreeMap Liberty style instead.
+
+The script that took the screenshots below is gone. `scripts/readme-shots.mjs` takes the README shots of Istanbul and the picker.
 
 ## What the pictures show
 
 Same style throughout: gentle summit, 28 lines. The `*-2d.png` and `*-3d.png` files are dark paper. Each `*-3d-light.png` is that same view on light paper. 3D opens at elevation 0.1.
+
+These pictures were taken with the earlier boxes of about 10 km on a side.
 
 | File | What it is |
 |---|---|
@@ -62,11 +72,13 @@ Google Maps needs a key, a billing account, and terms that do not suit a public 
 
 `https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png`
 
-A browser request with an `Origin` header receives `Access-Control-Allow-Origin: *`. Height in metres is `(R * 256 + G + B / 256) - 32768`. Zooms 0 to 15. The EU bucket `elevation-tiles-prod-eu` returned 403 here, so the prototype uses the us-east-1 bucket. The registry describes the set as bare-earth terrain. The objects in the bucket were last written around 2017.
+A browser request with an `Origin` header receives `Access-Control-Allow-Origin: *`. Height in metres is `(R * 256 + G + B / 256) - 32768`. Zooms 0 to 15. The EU bucket `elevation-tiles-prod-eu` returned 403 here, so the picker uses the us-east-1 bucket. The registry describes the set as bare-earth terrain. The objects in the bucket were last written around 2017.
 
 MapTiler and Mapbox terrain RGB, and the Google Elevation API, need a key and billing. A raw Copernicus or SRTM GeoTIFF is newer and is not a PNG tile a static page can fetch directly. Terrarium is the keyless tile that already answered the browser.
 
-**Pipeline.** A module worker fetches the tiles, decodes them, stitches, and resamples onto a 256 by 256 grid. Dramatic mode (the default) stretches the 2nd to 98th percentile of the local heights across the block, so a flat city still reads as terrain. Measured mode treats 400 m as full height, so a low city stays low and a range above 400 m still fills the block. A gaussian blur keeps peaks round. Relief under 30 m gets a little more blur, and relief under 12 m gets more again.
+> **Since then:** the playground dropped the relief and smoothing options and the 0.1 place elevation. The notes below on measured relief, smoothing levels and the 0.1 default record the prototype decisions.
+
+**Pipeline.** A module worker fetches the tiles, decodes them, stitches, and resamples onto a 256 by 256 grid. Dramatic mode (the default) stretches the local heights from the 2nd percentile up to the true summit (the highest point after the blur, so a one-cell spike does not count) across the block, so a flat city still reads as terrain and peaks keep their tips. Measured mode treats 400 m as full height, so a low city stays low and a range above 400 m still fills the block. A gaussian blur keeps peaks round. Sea cells are 0, and a blurred sea mask fades the land into the water, so the coast is a smooth line rather than grid steps. Relief under 30 m gets a little more blur, and relief under 12 m gets more again.
 
 **Height on screen.** The procedural terrain still defaults to elevation 0.62. A real place defaults to 0.1, unless the URL already set `elevation`. Clearing the place restores 0.62 when the slider is still on 0.1. A sweep from 0.05 to 0.62 is in the `elevation-sweep-*.png` grids. At 0.62 the block becomes a wall and the city is hard to read. At 0.1 the hills stay in the frame. 0.15 and 0.2 are a little taller and still calm. 0.05 is nearly flat.
 
@@ -80,19 +92,19 @@ The numeric work, timed by `pipeline.test.ts` on this machine, warm:
 | 36 tiles, 1536² source, 256 grid | 9 to 11 ms |
 | 2048² source, 512 grid | 37 to 46 ms |
 
-Ten percent off those times is about a millisecond. An order of magnitude would land around 1 to 4 ms. The tile download is the wait, so the prototype stays in JavaScript. There is no Wasm build.
+Ten percent off those times is about a millisecond. An order of magnitude would land around 1 to 4 ms. The tile download is the wait, so the pipeline stays in JavaScript. There is no Wasm build.
 
-**Area.** Shortest side at least 1.5 km, longest side at most 64 km, aspect at most 3 to 1, and at most 36 tiles. The zoom is the finest level that stays inside that tile budget, and it never goes above 15. Under 1.5 km the source is only a handful of samples across, so the picture goes soft. Over 64 km the place is no longer a city, and the download grows. The four example cities sit near 10 km on a side, inside that range.
+**Area.** Shortest side at least 1.5 km, longest side at most 300 km, aspect at most 3 to 1, and at most 36 tiles. The zoom is the finest level that stays inside that tile budget, and it never goes above 15. Under 1.5 km the source is only a handful of samples across, so the picture goes soft. The four example cities are 80 to 100 km wide, the whole metro area of each.
 
-**Renderer.** The region replaces the procedural landform through `setHeightfield`. The style still sets line count, width, opacity, index, grain and colour. A real place holds its shape while you change style, and it holds still while motion is on. Block and endless, the camera, snapshot and record are the same controls as the 3D prototype. 2D fits the region inside the view and leaves paper around it. 3D uses the region's aspect for the footprint.
+**Renderer.** The region replaces the procedural landform through `setHeightfield`. The style still sets line count, width, opacity, index, grain and colour. The seed, every Terrain param and Motion's warp have no effect on a heightfield, so Tune dims them while a place is applied; speed still moves the sparkle. A real place holds its shape while you change style, and it holds still while motion is on. Block and endless, the camera, snapshot and record are the same controls as for procedural terrain. 2D fits the region inside the view and leaves paper around it. 3D uses the region's aspect for the footprint.
 
-A region mesh is at least 192 by 192. The detail slider still tops out at 160 for procedural terrain. On the software renderer used for these screenshots, that mesh was about 15 fps and 60 to 75 ms. The same gaussian still rounds the crests, so the finer grid follows the smooth field. Heightfield lines are strengthened so a gentle city reads on both papers: about 2.2 times in light mode and 2.8 times in dark mode, then pulled toward a darker ink on light paper and a lighter ink on dark paper. 3D lighting on a heightfield eases off (a floor of 0.9 instead of 0.76) so a flat city is not crushed. The dock draws a style only after its thumbnail exists.
+A region mesh is at least 192 by 192. The detail slider still tops out at 160 for procedural terrain. On the software renderer used for these screenshots, that mesh was about 15 fps and 60 to 75 ms. The same gaussian still rounds the crests, so the finer grid follows the smooth field. Heightfield lines respond to line width and opacity exactly like generated ones, then are pulled toward a darker ink on light paper and a lighter ink on dark paper. 3D lighting on a heightfield eases off (a floor of 0.9 instead of 0.76) so a flat city is not crushed. The dock draws a style only after its thumbnail exists.
 
-**Agents.** The dev page registers `set_region`, `get_region` and `clear_region` with WebMCP. The published tool list is unchanged. `llms.txt` and `docs/webmcp.md` describe the bbox and those tools. `set_region` accepts `place` (`istanbul`, `san-francisco`, `london`, `new-york`), the four edges, a `bbox` array, or a `region` string, plus optional `relief` and `smooth`.
+**Agents.** The playground registers `set_region`, `get_region` and `clear_region` with WebMCP, beside its eight other tools. `llms.txt` and `docs/webmcp.md` describe the bbox and those tools. `set_region` accepts `place` (`istanbul`, `san-francisco`, `london`, `new-york`), the four edges, a `bbox` array, or a `region` string.
 
 ## Attribution
 
-The map control credits OpenFreeMap, OpenMapTiles and OpenStreetMap: `OpenFreeMap © OpenMapTiles Data from OpenStreetMap`. That line is not repeated under the map. Elevation follows the [Tilezen / joerd attribution](https://github.com/tilezen/joerd/blob/master/docs/attribution.md). Terrain Tiles was accessed in October 2026 from <https://registry.opendata.aws/terrain-tiles>.
+The © in the map's top-right corner opens the credits: OpenFreeMap, OpenMapTiles and OpenStreetMap, and `Elevation: Mapzen Terrain Tiles, AWS Open Data`. Nothing is repeated under the map. Elevation follows the [Tilezen / joerd attribution](https://github.com/tilezen/joerd/blob/master/docs/attribution.md). Terrain Tiles was accessed in October 2026 from <https://registry.opendata.aws/terrain-tiles>.
 
 - Mapzen
 - ArcticDEM terrain data DEM(s) were created from DigitalGlobe, Inc., imagery and funded under National Science Foundation awards 1043681, 1559691, and 1542736
@@ -116,7 +128,7 @@ These are in the UI and the screenshots so they can be chosen by looking.
 3. Light, medium or strong smoothing? Medium is the default.
 4. Are 1.5 km and 64 km the right edges for a place?
 5. Should a style keep warping the landform, or stay on the line treatment? A real place currently keeps the elevation shape.
-6. Should this leave the prototype? The production build still omits the dock.
+6. Should this leave the prototype? Yes. The dock and the picker are now the published playground.
 7. Is a 2017 bare-earth archive the right source for a fun map? It has no buildings.
 8. Is 192 the right region mesh, or should the detail slider drive it the way it drives procedural terrain?
 

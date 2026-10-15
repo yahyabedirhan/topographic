@@ -1,0 +1,122 @@
+{
+  "Survey ridge": {
+    "azimuth": 349.7,
+    "elevation": 33.6,
+    "radius": 1.92
+  },
+  "Fine granite": {
+    "azimuth": 79.7,
+    "elevation": 30,
+    "radius": 1.92
+  },
+  "Wide lobes": {
+    "azimuth": 79.7,
+    "elevation": 30,
+    "radius": 1.92
+  },
+  "Rose pod": {
+    "azimuth": 294.7,
+    "elevation": 34,
+    "radius": 2.3
+  },
+  "Terraces": {
+    "azimuth": 294.7,
+    "elevation": 34,
+    "radius": 2.3
+  },
+  "High dunes": {
+    "azimuth": 14.7,
+    "elevation": 34,
+    "radius": 1.92
+  },
+  "Moss granite": {
+    "azimuth": 79.7,
+    "elevation": 30,
+    "radius": 1.92
+  },
+  "Sea dunes": {
+    "azimuth": 14.7,
+    "elevation": 34,
+    "radius": 1.92
+  },
+  "Night flower": {
+    "azimuth": 79.7,
+    "elevation": 30,
+    "radius": 1.92
+  },
+  "Night lobes": {
+    "azimuth": 294.7,
+    "elevation": 34,
+    "radius": 2.3
+  },
+  "Violet pod": {
+    "azimuth": 294.7,
+    "elevation": 34,
+    "radius": 2.3
+  },
+  "Ink petals": {
+    "azimuth": 79.7,
+    "elevation": 30,
+    "radius": 1.92
+  },
+  "Stepped petals": {
+    "azimuth": 79.7,
+    "elevation": 30,
+    "radius": 1.92
+  },
+  "Day lobes": {
+    "azimuth": 294.7,
+    "elevation": 34,
+    "radius": 2.3
+  },
+  "Still dunes": {
+    "azimuth": 14.7,
+    "elevation": 34,
+    "radius": 1.92
+  },
+  "Rocky spine": {
+    "azimuth": 324.7,
+    "elevation": 34,
+    "radius": 1.92
+  },
+  "Pale dunes": {
+    "azimuth": 14.7,
+    "elevation": 34,
+    "radius": 1.92
+  },
+  "Stone grain": {
+    "azimuth": 79.7,
+    "elevation": 30,
+    "radius": 1.92
+  },
+  "Open pod": {
+    "azimuth": 349.7,
+    "elevation": 38,
+    "radius": 1.92
+  },
+  "Quiet hill": {
+    "azimuth": 294.7,
+    "elevation": 34,
+    "radius": 2.3
+  },
+  "Bloom": {
+    "azimuth": 79.7,
+    "elevation": 30,
+    "radius": 1.92
+  },
+  "Soft summit": {
+    "azimuth": 294.7,
+    "elevation": 34,
+    "radius": 2.3
+  },
+  "Paper ridge": {
+    "azimuth": 324.7,
+    "elevation": 34,
+    "radius": 1.92
+  },
+  "Centred lobes": {
+    "azimuth": 349.7,
+    "elevation": 38,
+    "radius": 1.92
+  }
+}

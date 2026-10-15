@@ -1,0 +1,95 @@
+/* ============================================================
+   PROPOSED additions/changes to apps/playground/src/style.css
+   Everything here is meant to land in style.css later.
+   ============================================================ */
+
+/* Theme tokens: two new ones. --seg-on is the selected segment fill. */
+.th-dark{--fg:#ecebe8;--mut:#8b8a86;--line:rgba(255,255,255,.09);--card:rgba(255,255,255,.04);--paper:#0b0b0d;--glass:rgba(30,30,32,.55);--on:#ecebe8;--on-fg:#0b0b0d;
+  --seg-on:color-mix(in srgb,var(--fg) 15%,transparent);--seg-shadow:inset 0 0 0 .5px rgba(255,255,255,.06),0 1px 2px rgba(0,0,0,.25);color-scheme:dark;color:var(--fg)}
+.th-light{--fg:#1b1b1a;--mut:#7c7a76;--line:rgba(0,0,0,.08);--card:rgba(255,255,255,.55);--paper:#f9f8f6;--glass:rgba(255,255,255,.5);--on:#1b1b1a;--on-fg:#f9f8f6;
+  --seg-on:#fff;--seg-shadow:0 0 0 .5px rgba(0,0,0,.06),0 1px 3px rgba(0,0,0,.12);color-scheme:light;color:var(--fg)}
+
+/* ---- Popover family: one anchor, two widths, one padding ---- */
+.pt-pop{--pop-w:380px;width:min(var(--pop-w),calc(100vw - 32px));padding:14px 16px 16px;border-radius:22px;max-height:min(720px,calc(100dvh - 170px))}
+.pt-pop-wide{--pop-w:560px}
+
+/* Header: sentence-case title on the left, one accessory on the right. 28px tall. */
+.pt-pop-head{display:flex;align-items:center;justify-content:space-between;gap:12px;height:28px;margin:0 0 10px}
+.pt-pop-head .pt-pop-title{margin:0;font:600 13px/1 var(--sans);letter-spacing:-.005em;text-transform:none;color:var(--fg)}
+
+/* Tabs: the Export format bar, generalised. Icon over label: no tooltips needed. */
+.pt-tabs{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:2px;padding:3px;border-radius:14px;background:color-mix(in srgb,var(--fg) 6%,transparent);margin-bottom:6px}
+button.pt-tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:0;padding:7px 2px 6px;border:0;border-radius:11px;background:transparent;box-shadow:none;color:var(--mut);font-size:11px;line-height:1}
+button.pt-tab:hover{background:color-mix(in srgb,var(--fg) 6%,transparent);color:var(--fg)}
+button.pt-tab[aria-pressed="true"]{background:var(--seg-on);box-shadow:var(--seg-shadow);color:var(--fg)}
+
+/* Sections: small uppercase header, optional group reset on the right. */
+.pt-sec{padding-top:6px}
+.pt-sec-head{display:flex;align-items:center;justify-content:space-between;height:26px}
+.pt-sec-title{font:600 10.5px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+button.pt-sec-reset{width:24px;height:24px;margin-right:-4px;padding:0;border:0;border-radius:50%;display:grid;place-items:center;background:transparent;box-shadow:none;color:var(--mut)}
+button.pt-sec-reset:hover{background:color-mix(in srgb,var(--fg) 8%,transparent);color:var(--fg)}
+
+/* V1: hairline between sections. */
+.v1 .pt-sec + .pt-sec{margin-top:10px;border-top:.5px solid var(--line);padding-top:10px}
+/* V2: each section body is an inset card. */
+.v2 .pt-sec + .pt-sec{margin-top:8px}
+.v2 .pt-sec-body{padding:2px 10px;border-radius:14px;background:color-mix(in srgb,var(--fg) 4%,transparent);box-shadow:inset 0 0 0 .5px var(--line)}
+.v2 .pt-sec-head{padding-inline:2px}
+
+/* One row grid for every control: label | control | value. */
+.pt-row{display:grid;grid-template-columns:80px minmax(0,1fr) 40px;align-items:center;column-gap:12px;min-height:34px}
+.pt-row-label{font-size:12.5px;line-height:1.2;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pt-row output,.pt-row .pt-row-value{justify-self:end;font:12px/1 var(--sans);font-variant-numeric:tabular-nums;color:var(--mut)}
+.pt-row > .pt-seg,.pt-row > .pt-row-wide{grid-column:2 / -1}
+.pt-row .pt-slider-control{padding:0;height:22px}
+.pt-row .pt-slider-track{position:relative}
+.pt-row .pt-slider-thumb{position:absolute;top:50%;transform:translate(-50%,-50%)}
+
+/* Segmented control: every choice. Full width of control+value columns. */
+.pt-seg{display:flex;gap:0;padding:2px;border-radius:9px;background:color-mix(in srgb,var(--fg) 7%,transparent)}
+.pt-seg button{flex:1 1 0;min-width:0;height:24px;padding:0 2px;border:0;border-radius:7px;background:transparent;box-shadow:none;color:var(--mut);font-size:12px;line-height:1;white-space:nowrap}
+.pt-seg button:hover{color:var(--fg);background:transparent}
+.pt-seg button[aria-pressed="true"]{background:var(--seg-on);box-shadow:var(--seg-shadow);color:var(--fg)}
+.pt-seg button + button:not([aria-pressed="true"]):not(:has(+ [aria-pressed="true"]))::before{content:none}
+
+/* Notes under a section, e.g. what a Place option does. */
+.pt-note{margin:2px 0 0 92px;font-size:11.5px;line-height:1.4;color:var(--mut)}
+
+/* ---- Place popover ---- */
+.pt-place-now{display:flex;align-items:center;gap:12px;min-height:44px;padding:8px 12px;border-radius:14px;background:color-mix(in srgb,var(--fg) 5%,transparent);box-shadow:inset 0 0 0 .5px var(--line);margin-bottom:4px}
+.pt-place-now .pin{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--fg) 10%,transparent)}
+.pt-place-now .copy{display:grid;gap:3px;min-width:0;flex:1}
+.pt-place-now b{font:600 15px/1.1 Literata,Georgia,serif;letter-spacing:-.005em}
+.pt-place-now small{font-size:12px;line-height:1.2;color:var(--mut);font-variant-numeric:tabular-nums}
+.pt-place-now.is-empty b{font:500 13px/1.2 var(--sans);color:var(--fg)}
+button.pt-clear{flex:none;padding:5px 10px;border:0;border-radius:999px;background:transparent;box-shadow:inset 0 0 0 .5px var(--line);color:var(--fg);font-size:12px;line-height:1.2}
+.pt-mapbox{position:relative;height:236px;margin:6px 0 2px;border-radius:12px;overflow:hidden;box-shadow:inset 0 0 0 .5px var(--line);background:#141518 center/cover no-repeat}
+.pt-mapbox .cap{position:absolute;left:10px;bottom:8px;padding:3px 8px;border-radius:999px;font-size:11px;color:#ecebe8;background:rgba(0,0,0,.45);backdrop-filter:blur(8px)}
+.pt-mapbox .span{position:absolute;right:10px;bottom:8px;padding:3px 8px;border-radius:999px;font:11px/1.2 var(--sans);font-variant-numeric:tabular-nums;color:#ecebe8;background:rgba(0,0,0,.45);backdrop-filter:blur(8px)}
+.pt-pop-foot{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:14px}
+.pt-pop-foot .pt-attrib{color:var(--mut)}
+
+/* Place button: a dot when a place is applied (pressed style stays reserved for 'popover open'). */
+.pt-ibtn.has-dot{position:relative}
+.pt-ibtn.has-dot::after{content:'';position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--fg);box-shadow:0 0 0 2px color-mix(in srgb,var(--paper) 80%,transparent)}
+
+/* ---- 3D readout: plain text on the page, like the wordmark, with a paper-coloured halo ---- */
+/* A blurred paper-coloured smudge behind the glyphs (no edge, no glass), plus a tight text halo. */
+.pt-fps::before{content:'';position:absolute;z-index:-1;inset:-5px -10px;border-radius:999px;background:color-mix(in srgb,var(--paper) 78%,transparent);filter:blur(7px)}
+.pt-fps{isolation:isolate;font:500 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:0;color:color-mix(in srgb,var(--fg) 80%,var(--paper));white-space:nowrap;pointer-events:none;z-index:1;
+  text-shadow:0 0 1px var(--paper),0 0 2px var(--paper),0 0 3px var(--paper),0 0 8px var(--paper),0 0 16px color-mix(in srgb,var(--paper) 80%,transparent)}
+/* The wordmark's small line gets the same halo, so the two read as one family. */
+.pt-wordmark small,.pt-wordmark span{text-shadow:0 0 1px var(--paper),0 0 2px var(--paper),0 0 3px var(--paper),0 0 8px var(--paper),0 0 16px color-mix(in srgb,var(--paper) 80%,transparent)}
+
+/* ---- Dock: the look controls sit at the right end ---- */
+.pt-dock-tools{gap:2px;padding-inline:6px 2px}
+.pt-tool-slot{width:28px;height:28px;display:grid;place-items:center}
+button.pt-tool{width:28px;height:28px;padding:0;border:0;border-radius:50%;display:grid;place-items:center;color:var(--fg);
+  background:color-mix(in srgb,var(--fg) 7%,transparent);box-shadow:inset 0 0 0 .5px var(--line)}
+button.pt-tool:hover{background:color-mix(in srgb,var(--fg) 12%,transparent)}
+button.pt-tool:active{transform:scale(.94)}
+
+/* Fill in the cluster means one thing: this button's popover is open. The 2D/3D toggle shows its state by its icon (map / box), like the theme toggle did. */
+.pt-cluster .pt-ibtn.pt-mode[aria-pressed="true"]{background:transparent}
+.pt-cluster .pt-ibtn.pt-mode:hover{background:color-mix(in srgb,var(--fg) 8%,transparent)}

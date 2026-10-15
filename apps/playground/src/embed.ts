@@ -25,7 +25,7 @@ ${attrs}
 const topographic = createTopographicBackground(document.querySelector('#background'), ${literal(config).replace(/\n/g, '\n')});`;
   }
   const { style, ...rest } = config;
-  const props = [`styleName="${style}"`, ...Object.entries(rest).map(([k, v]) => `${k}={${typeof v === 'object' ? literal(v).replace(/\n\s*/g, ' ') : v}}`)];
+  const props = [`styleName="${style}"`, ...Object.entries(rest).map(([k, v]) => typeof v === 'string' ? `${k}="${v}"` : `${k}={${typeof v === 'object' ? literal(v).replace(/\n\s*/g, ' ') : v}}`)];
   return `import { TopographicBackground } from '${REACT_PACKAGE}';
 
 <TopographicBackground
