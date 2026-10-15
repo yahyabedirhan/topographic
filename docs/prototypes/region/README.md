@@ -20,9 +20,9 @@ That builds the packages and starts Vite. 2D is the default. Add `mode=3d` for t
 | London | `/?place=london&region=-0.22,51.48,-0.06,51.57` |
 | New York | `/?place=new-york&region=-74.06,40.68,-73.92,40.77` |
 
-`region` is `west,south,east,north` in degrees. A JSON value works too: `{"bbox":[28.94,40.99,29.07,41.08]}` or `{"west":28.94,"south":40.99,"east":29.07,"north":41.08}`. `relief=measured` opts out of the dramatic stretch. `smooth=light` or `smooth=strong` opts out of medium. The same `config` query as the rest of the playground still sets the style, colours and camera. An explicit `elevation` in that config is kept. Without one, a place opens at 0.1.
+`region` is `west,south,east,north` in degrees. A JSON value works too: `{"bbox":[28.94,40.99,29.07,41.08]}` or `{"west":28.94,"south":40.99,"east":29.07,"north":41.08}`. `place=istanbul` (or `san-francisco`, `london`, `new-york`) names a city instead. The short settings keys of the rest of the playground set the style, colours and camera. Elevation behaves the same with or without a place.
 
-Place opens a map. Choose by Frame (the default) and pan and zoom, or choose Rectangle and drag. The city chips load Istanbul, San Francisco, London and New York. Relief is Exaggerate for drama, which fills the block, or Match the real heights, which keeps a low city low. Smoothing is Light, Medium or Strong, and the line under it says it softens the hills. Use this place sits at the bottom right and commits whatever the frame or the drag currently covers. The map uses the quiet paper style. Add `basemap=liberty` to open the previous OpenFreeMap Liberty style instead.
+Place opens a popover with a 16:10 map and a frame. Pan and zoom, or click a city pill (Istanbul, San Francisco, London, New York), then click Apply. Apply turns to Applied while the map shows the applied place. Generated returns to the generated terrain. A side can be up to 300 km. Relief is always dramatic and smoothing always medium; the Elevation slider is the only height control. The map uses the quiet paper style. Add `basemap=liberty` to open the previous OpenFreeMap Liberty style instead.
 
 The script that took the screenshots below is gone. `scripts/readme-shots.mjs` takes the README shots of Istanbul and the picker.
 
@@ -64,6 +64,8 @@ A browser request with an `Origin` header receives `Access-Control-Allow-Origin:
 
 MapTiler and Mapbox terrain RGB, and the Google Elevation API, need a key and billing. A raw Copernicus or SRTM GeoTIFF is newer and is not a PNG tile a static page can fetch directly. Terrarium is the keyless tile that already answered the browser.
 
+> **Since then:** the playground dropped the relief and smoothing options and the 0.1 place elevation. The notes below on measured relief, smoothing levels and the 0.1 default record the prototype decisions.
+
 **Pipeline.** A module worker fetches the tiles, decodes them, stitches, and resamples onto a 256 by 256 grid. Dramatic mode (the default) stretches the 2nd to 98th percentile of the local heights across the block, so a flat city still reads as terrain. Measured mode treats 400 m as full height, so a low city stays low and a range above 400 m still fills the block. A gaussian blur keeps peaks round. Relief under 30 m gets a little more blur, and relief under 12 m gets more again.
 
 **Height on screen.** The procedural terrain still defaults to elevation 0.62. A real place defaults to 0.1, unless the URL already set `elevation`. Clearing the place restores 0.62 when the slider is still on 0.1. A sweep from 0.05 to 0.62 is in the `elevation-sweep-*.png` grids. At 0.62 the block becomes a wall and the city is hard to read. At 0.1 the hills stay in the frame. 0.15 and 0.2 are a little taller and still calm. 0.05 is nearly flat.
@@ -86,7 +88,7 @@ Ten percent off those times is about a millisecond. An order of magnitude would 
 
 A region mesh is at least 192 by 192. The detail slider still tops out at 160 for procedural terrain. On the software renderer used for these screenshots, that mesh was about 15 fps and 60 to 75 ms. The same gaussian still rounds the crests, so the finer grid follows the smooth field. Heightfield lines are strengthened so a gentle city reads on both papers: about 2.2 times in light mode and 2.8 times in dark mode, then pulled toward a darker ink on light paper and a lighter ink on dark paper. 3D lighting on a heightfield eases off (a floor of 0.9 instead of 0.76) so a flat city is not crushed. The dock draws a style only after its thumbnail exists.
 
-**Agents.** The playground registers `set_region`, `get_region` and `clear_region` with WebMCP, beside its eight other tools. `llms.txt` and `docs/webmcp.md` describe the bbox and those tools. `set_region` accepts `place` (`istanbul`, `san-francisco`, `london`, `new-york`), the four edges, a `bbox` array, or a `region` string, plus optional `relief` and `smooth`.
+**Agents.** The playground registers `set_region`, `get_region` and `clear_region` with WebMCP, beside its eight other tools. `llms.txt` and `docs/webmcp.md` describe the bbox and those tools. `set_region` accepts `place` (`istanbul`, `san-francisco`, `london`, `new-york`), the four edges, a `bbox` array, or a `region` string.
 
 ## Attribution
 
