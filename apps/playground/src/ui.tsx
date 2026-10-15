@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState, type ReactNode, type Ref, type RefObject } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode, type Ref, type RefObject } from 'react';
 import { Popover } from '@base-ui-components/react/popover';
 import { Toggle } from '@base-ui-components/react/toggle';
 import { Tooltip } from '@base-ui-components/react/tooltip';
@@ -15,7 +15,8 @@ import {
 } from 'topographic';
 import { LOOK_CAMERAS, LOOKS } from './looks';
 import { PLAYGROUND_CAMERA } from './share-url';
-import { OffNote, Section, SegRow, SliderRow, Tabs, Tip, type TabItem } from './parts';
+import { OffNote, Preview, Section, SegRow, SliderRow, Tabs, Tip, type TabItem } from './parts';
+import { contourArt, flowArt, layoutArt, rigArt, terrainArt, type GlyphName, type TrackKind } from './track-art';
 import {
   Backdrop, ColorPicker, GROUP_LABELS, INK_SWATCHES, PAPER_SWATCHES, Wordmark, currentColour, rollColour, useLookThumbs,
   type Playground,
@@ -222,7 +223,8 @@ export function Dock({ pg, terrains, onOpenMap }: { pg: Playground; terrains: Te
   const items = saved.items.length + LOOKS.length;
   const divider = saved.items.length ? DIVIDER : 0;
   const [visible, setVisible] = useState(() => Math.min(LOOKS.length, Math.max(1, Math.floor((Math.min(1100, innerWidth) - 180) / (THUMB + GAP)))));
-  useEffect(() => {
+  // Measured before the first paint, so the dock opens at its final width.
+  useLayoutEffect(() => {
     const el = wrap.current;
     const tool = tools.current;
     if (!el || !tool) return;
@@ -246,7 +248,8 @@ export function Dock({ pg, terrains, onOpenMap }: { pg: Playground; terrains: Te
     sc.scrollTo({ left: start * (THUMB + GAP) + (start >= saved.items.length && start > 0 ? divider : 0), behavior: 'smooth' });
   }, [selected, visible, items, divider, saved.items.length]);
   const ready = thumbs.reduce((count, url) => count + (url ? 1 : 0), 0);
-  const shown = Math.min(visible, saved.items.length + ready);
+  // Every look has a slot from the first frame; a look's picture fades in when it is drawn.
+  const shown = Math.min(visible, items);
   const width = shown > 0 ? shown * THUMB + Math.max(0, shown - 1) * GAP + (shown > saved.items.length ? divider : 0) : 0;
   return (
     <div className="pt-dock-wrap" ref={wrap}>
@@ -265,7 +268,7 @@ export function Dock({ pg, terrains, onOpenMap }: { pg: Playground; terrains: Te
             />
           ))}
           {saved.items.length ? <span className="pt-dock-divider" aria-hidden="true" /> : null}
-          {LOOKS.map((p, i) => thumbs[i] ? (
+          {LOOKS.map((p, i) => (
             <button
               key={p.name}
               type="button"
@@ -274,12 +277,12 @@ export function Dock({ pg, terrains, onOpenMap }: { pg: Playground; terrains: Te
               aria-label={p.name}
               onClick={() => terrains.openLook(i)}
             >
-              <span className="pt-thumb-media">
-                <img src={thumbs[i]} alt="" />
+              <span className={`pt-thumb-media${thumbs[i] ? '' : ' is-loading'}`}>
+                {thumbs[i] ? <img src={thumbs[i]} alt="" /> : null}
                 <span className="pt-thumb-name" aria-hidden="true">{p.name}</span>
               </span>
             </button>
-          ) : null)}
+          ))}
         </div>
         {/* Theme, shuffle, then the two colours. */}
         <div className="pt-dock-tools" ref={tools}>
@@ -324,24 +327,24 @@ function readParam(param: ParamDef, value: number) {
   return param.integer ? String(value) : value.toFixed(2);
 }
 
-const PATHS: { id: CameraMotion; label: string }[] = [
-  { id: 'still', label: 'Still' },
-  { id: 'orbit', label: 'Orbit' },
-  { id: 'push', label: 'Push' },
-  { id: 'flyover', label: 'Flyover' },
-  { id: 'drone', label: 'Drone' },
+const PATHS: { id: CameraMotion; label: string; glyph: GlyphName }[] = [
+  { id: 'still', label: 'Still', glyph: 'still' },
+  { id: 'orbit', label: 'Orbit', glyph: 'orbit' },
+  { id: 'push', label: 'Push', glyph: 'push' },
+  { id: 'flyover', label: 'Flyover', glyph: 'flyover' },
+  { id: 'drone', label: 'Drone', glyph: 'drone' },
 ];
 
-const EXTENTS: { id: TerrainExtent; label: string }[] = [
-  { id: 'block', label: 'Block' },
-  { id: 'endless', label: 'Endless' },
+const EXTENTS: { id: TerrainExtent; label: string; glyph: GlyphName }[] = [
+  { id: 'block', label: 'Block', glyph: 'block' },
+  { id: 'endless', label: 'Endless', glyph: 'endless' },
 ];
 
 type DetailLevel = 'low' | 'medium' | 'high';
-const DETAILS: { id: DetailLevel; label: string; value: number }[] = [
-  { id: 'low', label: 'Low', value: 0.12 },
-  { id: 'medium', label: 'Medium', value: DEFAULT_DETAIL },
-  { id: 'high', label: 'High', value: 1 },
+const DETAILS: { id: DetailLevel; label: string; glyph: GlyphName; value: number }[] = [
+  { id: 'low', label: 'Low', glyph: 'low', value: 0.12 },
+  { id: 'medium', label: 'Medium', glyph: 'medium', value: DEFAULT_DETAIL },
+  { id: 'high', label: 'High', glyph: 'high', value: 1 },
 ];
 
 function detailLevel(detail: number): DetailLevel {
@@ -350,6 +353,55 @@ function detailLevel(detail: number): DetailLevel {
 
 /** The playground's 3D extent default: endless. */
 const DEFAULT_EXTENT: TerrainExtent = 'endless';
+
+/**
+ * The camera's pose along its motion path, read from the renderer a few times a second while `moving`.
+ * The preview follows the camera without redrawing on every frame. Null while the camera stands still.
+ */
+function useLivePose(pg: Playground, moving: boolean) {
+  const [pose, setPose] = useState<{ azimuth: number; elevation: number; radius: number } | null>(null);
+  useEffect(() => {
+    if (!moving || matchMedia('(prefers-reduced-motion: reduce)').matches) { setPose(null); return; }
+    const read = () => { const p = pg.instance.current?.pose; if (p) setPose({ ...p }); };
+    read();
+    const id = window.setInterval(read, 160);
+    return () => window.clearInterval(id);
+  }, [pg.instance, moving]);
+  return moving ? pose : null;
+}
+
+const ordinal = (n: number) => `${n}${n % 10 === 1 && n !== 11 ? 'st' : n % 10 === 2 && n !== 12 ? 'nd' : n % 10 === 3 && n !== 13 ? 'rd' : 'th'}`;
+
+/** The live picture at the top of a settings tab, drawn from that tab's values. */
+function GroupPreview({ pg, group, dim }: { pg: Playground; group: GroupName; dim: boolean }) {
+  const s = pg.settings;
+  if (group === 'lines') {
+    const L = s.lines;
+    const ie = Math.round(L.indexEvery);
+    const caption = `${L.count} lines · ${linePx(L.width)} · ${ie === 0 ? 'no index lines' : ie === 1 ? 'every line heavier' : `every ${ordinal(ie)} heavier`}`;
+    return <Preview height={92} caption={caption} label={caption} art={(w) => contourArt(L, w, 92, w * 0.7, 54, 230)} />;
+  }
+  if (group === 'terrain') {
+    const caption = dim ? 'Shape from the map' : `${s.terrain.peaks} ${s.terrain.peaks === 1 ? 'peak' : 'peaks'}`;
+    return <Preview height={92} dim={dim} caption={caption} label={`Terrain profile: ${caption}`} art={(w) => terrainArt(s.terrain, w, 82, 16)} />;
+  }
+  if (group === 'motion') {
+    const m = s.motion;
+    const caption = m.speed === 0 ? 'Still' : `${m.speed.toFixed(2)}× speed`;
+    return (
+      <Preview
+        height={92}
+        className={m.speed > 0 ? 'pt-flow' : ''}
+        caption={caption}
+        label={`Flow: ${caption}`}
+        art={(w) => flowArt(m, w, 92)}
+      />
+    );
+  }
+  const a = s.layout.anchor;
+  const caption = a < 0.05 ? 'Summit to the side' : a > 0.95 ? 'Summit centred' : `Summit ${Math.round(a * 100)}% to centre`;
+  return <Preview height={104} caption={caption} label={`Page layout: ${caption}`} art={(w) => layoutArt(s.layout, w, 104)} />;
+}
 
 function ViewTune({ pg }: { pg: Playground }) {
   const s = pg.settings;
@@ -362,34 +414,46 @@ function ViewTune({ pg }: { pg: Playground }) {
   const home = (pg.lookIndex >= 0 && LOOK_CAMERAS[LOOKS[pg.lookIndex].name]) || PLAYGROUND_CAMERA;
   const cameraChanged = (Object.keys(home) as (keyof typeof home)[]).some((k) => s.camera[k] !== home[k])
     || s.camera.motion !== DEFAULT_CAMERA.motion;
+  const pose = useLivePose(pg, !off && s.camera.motion !== 'still');
+  const rig = { azimuth: pose?.azimuth ?? azimuth, angle: pose?.elevation ?? s.camera.elevation, distance: pose?.radius ?? s.camera.radius, elevation: s.elevation, motion: s.camera.motion };
   return (
     <>
       {off && <OffNote text="These apply in 3D." action="Switch to 3D" onAction={() => pg.change({ mode: '3d' })} />}
+      <Preview
+        height={100}
+        dim={off}
+        className="pt-rig"
+        label={`Camera at azimuth ${Math.round(((rig.azimuth % 360) + 360) % 360)}°, ${Math.round(rig.angle)}° above the horizon, distance ${rig.distance.toFixed(2)}`}
+        art={(w) => rigArt(rig, w, 100)}
+      >
+        <span className="pt-preview-label" style={{ left: 10 }}>Top</span>
+        <span className="pt-preview-label" style={{ left: 124 }}>Side</span>
+      </Preview>
       <Section title="Scene" resetIf={!off && sceneChanged} onReset={() => pg.change({ extent: DEFAULT_EXTENT, elevation: DEFAULT_ELEVATION })}>
-        <SegRow label="Extent" options={EXTENTS} value={s.extent} disabled={off} onChange={(id) => pg.change({ extent: id })} />
+        <SegRow label="Extent" icon="extent" options={EXTENTS} value={s.extent} disabled={off} onChange={(id) => pg.change({ extent: id })} />
         <SliderRow
-          label="Elevation"
+          label="Elevation" icon="elevation" art="elevation"
           hint="0 is flat like the map. Higher values make the terrain taller, with a rounded crest."
           value={s.elevation} min={0} max={1} step={0.01} shown={s.elevation.toFixed(2)} disabled={off}
           onChange={(n) => pg.change({ elevation: n })}
         />
       </Section>
       <Section title="Camera" resetIf={!off && cameraChanged} onReset={() => cam({ ...DEFAULT_CAMERA, ...home })}>
-        <SegRow label="Motion" options={PATHS} value={s.camera.motion} disabled={off} onChange={(id) => cam({ motion: id })} />
+        <SegRow label="Motion" icon="camMotion" options={PATHS} value={s.camera.motion} disabled={off} onChange={(id) => cam({ motion: id })} />
         <SliderRow
-          label="Azimuth"
+          label="Azimuth" icon="azimuth" art="azimuth"
           hint="Orbit around the terrain. Drag the view to move this too."
           value={azimuth} min={0} max={360} step={1} shown={`${azimuth.toFixed(0)}°`} disabled={off}
           onChange={(n) => cam({ azimuth: n })}
         />
         <SliderRow
-          label="Angle"
+          label="Angle" icon="angle" art="angle"
           hint="Degrees above the horizon. The camera never goes below the terrain."
           value={s.camera.elevation} min={2} max={80} step={1} shown={`${s.camera.elevation.toFixed(0)}°`} disabled={off}
           onChange={(n) => cam({ elevation: n })}
         />
         <SliderRow
-          label="Distance"
+          label="Distance" icon="distance" art="distance"
           hint="How far the camera sits. Scroll or pinch the view to zoom."
           value={s.camera.radius} min={1.15} max={6.5} step={0.01} shown={s.camera.radius.toFixed(2)} disabled={off}
           onChange={(n) => cam({ radius: n })}
@@ -398,6 +462,7 @@ function ViewTune({ pg }: { pg: Playground }) {
       <Section title="Quality" resetIf={!off && s.detail !== DEFAULT_DETAIL} onReset={() => pg.change({ detail: DEFAULT_DETAIL })}>
         <SegRow
           label="Detail"
+          icon="detail"
           hint="Mesh resolution. Low is the setting to try on a slow device."
           options={DETAILS}
           value={detailLevel(s.detail)}
@@ -418,6 +483,7 @@ function ParamTune({ pg, group, region }: { pg: Playground; group: GroupName; re
   return (
     <>
       {params.some(off) && <OffNote text={`Shape comes from the map: ${region.name}.`} action="Clear map" onAction={region.clear} />}
+      <GroupPreview pg={pg} group={group} dim={params.every(off)} />
       {sections.map((sec) => {
         const own = sec.keys.map((k) => params.find((p) => p.key === k)).filter((p): p is ParamDef => Boolean(p));
         const live = own.filter((p) => !off(p));
@@ -436,6 +502,8 @@ function ParamTune({ pg, group, region }: { pg: Playground; group: GroupName; re
                   key={p.key}
                   label={SHORT_LABEL[p.key] ?? p.label}
                   name={p.label}
+                  icon={p.key as GlyphName}
+                  art={p.key as TrackKind}
                   hint={off(p) ? 'The map place sets the shape, so this has no effect until you clear it.' : p.description}
                   value={value} min={p.min} max={p.max} step={p.step} shown={readParam(p, value)}
                   valueText={p.group === 'lines' && p.key === 'width' ? linePx(value) : undefined}
