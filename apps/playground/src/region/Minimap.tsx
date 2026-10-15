@@ -53,7 +53,8 @@ function prefersReducedMotion(): boolean {
  * opens the Map popover.
  */
 export function Minimap({ pg, terrains, onOpenMap }: { pg: Playground; terrains: Terrains; onOpenMap?: () => void }) {
-  const { region, activeSaved } = terrains;
+  const { region, activeSaved, activeMapLook } = terrains;
+  const kept = activeMapLook?.minimap ?? activeSaved?.minimap;
   const field = region.status === 'ready' ? region.field : null;
   const three = pg.settings.mode === '3d';
   const root = useRef<HTMLDivElement>(null);
@@ -65,8 +66,8 @@ export function Minimap({ pg, terrains, onOpenMap }: { pg: Playground; terrains:
     // The picture's ink follows the theme; read it once the theme has been applied.
     setInk(getComputedStyle(document.documentElement).color || 'rgb(127,127,127)');
   }, [pg.mode]);
-  const fallback = useMemo(() => (field && !activeSaved?.minimap && ink ? fieldPicture(field, ink) : null), [field, activeSaved?.minimap, ink]);
-  const picture = activeSaved?.minimap ?? fallback;
+  const fallback = useMemo(() => (field && !kept && ink ? fieldPicture(field, ink) : null), [field, kept, ink]);
+  const picture = kept ?? fallback;
 
   // Follows the live camera, motion paths included, by writing the transform directly each frame.
   useEffect(() => {
@@ -123,7 +124,7 @@ export function Minimap({ pg, terrains, onOpenMap }: { pg: Playground; terrains:
 
   if (!field || !picture) return null;
   const { width, height } = fitRotating(field.aspect || 1, 100);
-  const name = activeSaved?.name ?? region.name ?? 'Area';
+  const name = activeMapLook?.name ?? activeSaved?.name ?? region.name ?? 'Area';
   return (
     <div
       ref={root}

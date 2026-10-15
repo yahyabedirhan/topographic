@@ -4,6 +4,7 @@ import { Toggle } from '@base-ui-components/react/toggle';
 import { Tooltip } from '@base-ui-components/react/tooltip';
 import { Box, Dices, Earth, Frame, Map, Moon, Mountain, SlidersHorizontal, Spline, Sun, Wind, X } from 'lucide-react';
 import { MapButton } from './region/controls';
+import { MAP_LOOKS } from './region/map-looks';
 import { Minimap } from './region/Minimap';
 import type { RegionController } from './region/useRegion';
 import type { SavedTerrain } from './saved';
@@ -182,14 +183,15 @@ export function ColorField({ pg, which }: { pg: Playground; which: 'ink' | 'pape
 const DIVIDER = 1 + GAP;
 
 function SavedThumb({ item, current, onOpen, onDelete }: {
-  item: SavedTerrain;
+  item: Pick<SavedTerrain, 'name' | 'thumb'>;
   current: boolean;
   onOpen: () => void;
-  onDelete: () => void;
+  /** Built-in map terrains have no delete. */
+  onDelete?: () => void;
 }) {
   const label = `${item.name} map`;
   return (
-    <div className="pt-saved">
+    <div className="pt-saved" data-builtin={onDelete ? undefined : 'true'}>
       <Tooltip.Root>
         <Tooltip.Trigger
           delay={280}
@@ -203,25 +205,30 @@ function SavedThumb({ item, current, onOpen, onDelete }: {
         </Tooltip.Trigger>
         <Tip side="top">{label}</Tip>
       </Tooltip.Root>
-      <button type="button" className="pt-thumb-del" aria-label={`Delete ${item.name}`} onClick={onDelete}>
-        <X size={11} strokeWidth={2.25} />
-      </button>
+      {onDelete ? (
+        <button type="button" className="pt-thumb-del" aria-label={`Delete ${item.name}`} onClick={onDelete}>
+          <X size={11} strokeWidth={2.25} />
+        </button>
+      ) : null}
     </div>
   );
 }
 
 /**
- * Every dock item is a whole terrain. Saved map terrains come first, newest first, then a divider,
- * then the built-in looks. A click switches both the shape and the colours.
+ * Every dock item is a whole terrain. The built-in map terrains come first, then the saved map
+ * terrains, newest first, then a divider, then the built-in looks. A click switches both the shape
+ * and the colours.
  */
 export function Dock({ pg, terrains, onOpenMap }: { pg: Playground; terrains: Terrains; onOpenMap?: () => void }) {
   const thumbs = useLookThumbs(168, 96);
-  const { saved, activeSaved, lookIndex } = terrains;
+  const { saved, activeSaved, activeMapLook, lookIndex } = terrains;
   const wrap = useRef<HTMLDivElement>(null);
   const tools = useRef<HTMLDivElement>(null);
   const scroller = useRef<HTMLDivElement>(null);
-  const items = saved.items.length + LOOKS.length;
-  const divider = saved.items.length ? DIVIDER : 0;
+  // The map items before the divider: the built-in ones, then the saved ones.
+  const maps = MAP_LOOKS.length + saved.items.length;
+  const items = maps + LOOKS.length;
+  const divider = maps ? DIVIDER : 0;
   const [visible, setVisible] = useState(() => Math.min(LOOKS.length, Math.max(1, Math.floor((Math.min(1100, innerWidth) - 180) / (THUMB + GAP)))));
   // Measured before the first paint, so the dock opens at its final width.
   useLayoutEffect(() => {
@@ -238,19 +245,22 @@ export function Dock({ pg, terrains, onOpenMap }: { pg: Playground; terrains: Te
     measure();
     return () => ro.disconnect();
   }, [items, divider]);
+  const mapLookIndex = activeMapLook ? MAP_LOOKS.indexOf(activeMapLook) : -1;
   const savedIndex = activeSaved ? saved.items.indexOf(activeSaved) : -1;
-  const selected = savedIndex >= 0 ? savedIndex : lookIndex >= 0 ? saved.items.length + lookIndex : -1;
+  const selected = mapLookIndex >= 0 ? mapLookIndex
+    : savedIndex >= 0 ? MAP_LOOKS.length + savedIndex
+      : lookIndex >= 0 ? maps + lookIndex : -1;
   useEffect(() => {
     const sc = scroller.current;
     if (!sc || selected < 0) return;
     const maxStart = Math.max(0, items - visible);
     const start = Math.min(maxStart, Math.max(0, selected - Math.floor((visible - 1) / 2)));
-    sc.scrollTo({ left: start * (THUMB + GAP) + (start >= saved.items.length && start > 0 ? divider : 0), behavior: 'smooth' });
-  }, [selected, visible, items, divider, saved.items.length]);
+    sc.scrollTo({ left: start * (THUMB + GAP) + (start >= maps && start > 0 ? divider : 0), behavior: 'smooth' });
+  }, [selected, visible, items, divider, maps]);
   const ready = thumbs.reduce((count, url) => count + (url ? 1 : 0), 0);
   // Every look has a slot from the first frame; a look's picture fades in when it is drawn.
   const shown = Math.min(visible, items);
-  const width = shown > 0 ? shown * THUMB + Math.max(0, shown - 1) * GAP + (shown > saved.items.length ? divider : 0) : 0;
+  const width = shown > 0 ? shown * THUMB + Math.max(0, shown - 1) * GAP + (shown > maps ? divider : 0) : 0;
   return (
     <div className="pt-dock-wrap" ref={wrap}>
       <div className="pt-dock-col">
@@ -258,6 +268,9 @@ export function Dock({ pg, terrains, onOpenMap }: { pg: Playground; terrains: Te
       <Minimap pg={pg} terrains={terrains} onOpenMap={onOpenMap} />
       <nav className="pt-dock pt-glass" aria-label="Examples" data-looks={LOOKS.length} data-ready={ready} data-saved={saved.items.length}>
         <div className="pt-thumbs" ref={scroller} style={{ width }}>
+          {MAP_LOOKS.map((look) => (
+            <SavedThumb key={look.id} item={look} current={look === activeMapLook} onOpen={() => terrains.openMapLook(look)} />
+          ))}
           {saved.items.map((item) => (
             <SavedThumb
               key={item.id}
@@ -267,7 +280,7 @@ export function Dock({ pg, terrains, onOpenMap }: { pg: Playground; terrains: Te
               onDelete={() => saved.remove(item.id)}
             />
           ))}
-          {saved.items.length ? <span className="pt-dock-divider" aria-hidden="true" /> : null}
+          {maps ? <span className="pt-dock-divider" aria-hidden="true" /> : null}
           {LOOKS.map((p, i) => (
             <button
               key={p.name}
@@ -604,7 +617,7 @@ export function GlassFrame({ pg, terrains, tune, exporting }: {
           <ClusterPositioner clusterRef={clusterRef}>
             <Popover.Popup className="pt-pop pt-pop-wide pt-pop-map pt-glass" aria-label="Map" initialFocus={false}>
               <Suspense fallback={<div className="pt-mapbox" />}>
-                <PlacePanel region={region} onApply={terrains.apply} appliedName={terrains.activeSaved?.name} appearance={appearance} />
+                <PlacePanel region={region} onApply={terrains.apply} appliedName={terrains.activeMapLook?.name ?? terrains.activeSaved?.name} appearance={appearance} />
               </Suspense>
             </Popover.Popup>
           </ClusterPositioner>

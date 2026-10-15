@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef } from 'react';
-import { mergeSettings, type Settings } from 'topographic';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { mergeSettings, resolveSettings, type Settings } from 'topographic';
+import { findMapLook, MAP_LOOKS, type MapLook } from './region/map-looks';
 import type { BBox } from './region/pipeline';
 import { sameBox, terrainDefaults } from './region/places';
 import { useRegion, type RegionController } from './region/useRegion';
@@ -14,13 +15,17 @@ import { placeThumb, type Playground } from './shared';
 export interface Terrains {
   region: RegionController;
   saved: SavedStore;
-  /** The saved item whose box is applied, if any. */
+  /** The saved item whose box is applied, if any. Null while a built-in map terrain is open. */
   activeSaved: SavedTerrain | null;
+  /** The built-in map terrain that was opened from the dock (or from its own link), while its place stays applied. */
+  activeMapLook: MapLook | null;
   /** The built-in look that matches the settings, or -1. A map place selects no look. */
   lookIndex: number;
   /** The Map popover's Apply: the place, its defaults (MAP_TERRAIN_DEFAULTS for most), and a saved dock item. */
   apply(bbox: BBox, placeId: string | null, minimap?: Promise<string | null>): void;
   openSaved(item: SavedTerrain): void;
+  /** Opens a built-in map terrain with its own settings. Like a look, edits to it are not kept. */
+  openMapLook(look: MapLook): void;
   openLook(i: number): void;
   /** Shuffle keeps a map place's shape and rolls everything that still shows. */
   shuffle(): void;
@@ -37,7 +42,18 @@ export function useTerrains(pg: Playground): Terrains {
   const live = useRef(pg);
   live.current = pg;
 
-  const activeSaved = region.bbox ? saved.items.find((it) => sameBox(it.bbox, region.bbox!)) ?? null : null;
+  // A built-in map terrain is open from a dock click, or from a link that carries exactly its place
+  // and settings. It stays open while its place does; a saved item with the same box then waits.
+  const [mapLookId, setMapLookId] = useState<string | null>(() => {
+    const key = JSON.stringify(pg.settings);
+    return MAP_LOOKS.find((look) => region.bbox && sameBox(look.bbox, region.bbox) && region.placeId === look.placeId
+      && JSON.stringify(resolveSettings(look.settings)) === key)?.id ?? null;
+  });
+  const openLookItem = findMapLook(mapLookId);
+  const activeMapLook = openLookItem && region.bbox && sameBox(region.bbox, openLookItem.bbox) ? openLookItem : null;
+  // Any other place, or none: the built-in is closed for good, so a later visit to its box is not it.
+  useEffect(() => { if (mapLookId && !activeMapLook) setMapLookId(null); }, [mapLookId, activeMapLook]);
+  const activeSaved = region.bbox && !activeMapLook ? saved.items.find((it) => sameBox(it.bbox, region.bbox!)) ?? null : null;
 
   // Edits to the active saved item are written back half a second after the last change, the camera
   // included, so a click on the item brings back the view it was left in. Built-in looks keep nothing.
@@ -78,21 +94,32 @@ export function useTerrains(pg: Playground): Terrains {
     region,
     saved,
     activeSaved,
+    activeMapLook,
     lookIndex: region.bbox ? -1 : pg.lookIndex,
     apply(bbox, placeId, minimap) {
       const now = live.current;
       const settings = mergeSettings(now.settings, terrainDefaults(placeId));
+      setMapLookId(null);
       region.setPlace(bbox, placeId);
       const item = saved.save({ bbox, placeId, settings });
       minimap?.then((url) => { if (url) saved.setMinimap(item.id, url); });
     },
     openSaved(item) {
       flush();
+      setMapLookId(null);
       if (!region.bbox || !sameBox(region.bbox, item.bbox)) region.showPlace(item.bbox, item.placeId);
       // The item's own settings, camera and motion included, as it was last left.
       live.current.replace(item.settings);
     },
+    openMapLook(look) {
+      flush();
+      setMapLookId(look.id);
+      if (!region.bbox || !sameBox(region.bbox, look.bbox)) region.showPlace(look.bbox, look.placeId);
+      // Always the defined settings, camera and pan included: a built-in keeps no edits.
+      live.current.replace(resolveSettings(look.settings));
+    },
     openLook(i) {
+      setMapLookId(null);
       if (region.bbox) region.clear();
       live.current.applyLook(i);
     },

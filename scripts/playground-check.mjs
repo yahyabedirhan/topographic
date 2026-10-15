@@ -64,6 +64,31 @@ try {
     await d.close();
   }
 
+  // The built-in Istanbul map terrain: first in the dock on a fresh profile, with no delete; a preset like a look.
+  {
+    const b = await ctx.newPage(); watch(b);
+    await open(b, '');
+    const nav = b.locator('nav[data-looks]');
+    const first = nav.locator('.pt-thumb').first();
+    check(await first.getAttribute('aria-label') === 'Istanbul map' && await nav.locator('.pt-saved[data-builtin]').count() === 1
+      && await nav.getByRole('button', { name: /^Delete / }).count() === 0 && await nav.getAttribute('data-saved') === '0', 'a fresh profile shows the built-in Istanbul first in the dock, with no delete');
+    const OWNER = { place: 'istanbul', s: 'gentle-summit', seed: '67', lc: '36', ix: '4', m: 'dark', mode: '3d', ex: 'block', ev: '0.12', az: '353.3', ce: '45.1', rd: '1.15', px: '0.043', pz: '-0.075' };
+    const matches = () => Object.entries(OWNER).every(([k, v]) => q(b).get(k) === v);
+    await first.click(); await settle(b, 600);
+    await b.waitForFunction(() => document.documentElement.dataset.region === 'ready', null, { timeout: 60000 }).catch(() => {});
+    check(matches() && await first.getAttribute('aria-current') === 'true' && await b.locator('.pt-cluster .pt-ibtn.has-dot').count() === 1,
+      `a click opens Istanbul with its settings, camera and pan (?${q(b)})`);
+    check(/istanbul-minimap|^data:image\/webp/.test(await b.locator('.pt-minimap img').getAttribute('src') ?? ''), 'the minimap shows the shipped Istanbul picture');
+    await b.evaluate(() => window.__tools.set_settings.execute({ lines: { count: 50 }, camera: { azimuth: 20, panX: 0.2 } })); await settle(b, 900);
+    const stored = await b.evaluate(() => localStorage.getItem('topographic.saved.v1') ?? '[]');
+    check(q(b).get('lc') === '50' && q(b).get('az') === '20' && stored === '[]' && await nav.getAttribute('data-saved') === '0', `edits to the built-in are not saved (${stored.length} chars stored)`);
+    await first.click(); await settle(b, 600);
+    check(matches(), `a second click restores the built-in's settings and camera (?${q(b)})`);
+    await b.reload(); await b.waitForSelector('.pt-stage canvas'); await settle(b);
+    check(await nav.locator('.pt-thumb').first().getAttribute('aria-current') === 'true', 'its link reopens it as the built-in');
+    await b.close();
+  }
+
   // URL state: short params load, and the page writes its state back as short params.
   await open(p, '?s=granite&lc=40');
   let c = await cfg(p);
@@ -270,7 +295,7 @@ try {
   await p.waitForFunction(() => document.documentElement.dataset.region === 'ready', null, { timeout: 60000 }).catch(() => {});
   check(!(await apply.isEnabled()) && /Applied/.test(await apply.innerText()) && await pinDot() === 1 && q(p).get('region') === null && q(p).get('place') === 'istanbul' && await clearBtn.isVisible()
     && /^Istanbul Applied · 101 × 64 km$/.test(await status()), `Apply shows Applied, Clear, the status and the Map dot (${await status()})`);
-  check(await savedCount() === 1 && await dockNav.locator('.pt-thumb').first().getAttribute('aria-label') === 'Istanbul map', 'Apply saves the terrain first in the dock');
+  check(await savedCount() === 1 && await dockNav.locator('.pt-saved:not([data-builtin]) .pt-thumb').first().getAttribute('aria-label') === 'Istanbul map', 'Apply saves the terrain first in the dock');
   const miniUrl = await p.evaluate(() => JSON.parse(localStorage.getItem('topographic.saved.v1') ?? '[]')[0]?.minimap ?? '');
   check(/^data:image\/(webp|jpeg)/.test(miniUrl) && miniUrl.length < 60000, `Apply keeps a small map picture for the minimap (${miniUrl.length} chars)`);
   check(await p.locator('.pt-minimap img').getAttribute('src') === miniUrl, 'the minimap shows the map picture from Apply');
@@ -283,7 +308,7 @@ try {
   check(resized && resized[0] < 101 && /^Area /.test(await badgeText()) && await apply.isEnabled() && /^Area Istanbul applied now$/.test(await status()), `a corner drag resizes the frame (${await badgeText()} | ${await status()})`);
   await apply.click(); await settle(p, 600);
   const applied2 = q(p).get('region')?.split(',').map(Number);
-  check(applied2 && q(p).get('place') === null && await savedCount() === 2 && await dockNav.locator('.pt-thumb').first().getAttribute('aria-label') === 'Area map'
+  check(applied2 && q(p).get('place') === null && await savedCount() === 2 && await dockNav.locator('.pt-saved:not([data-builtin]) .pt-thumb').first().getAttribute('aria-label') === 'Area map'
     && Math.abs((applied2[2] - applied2[0]) * 111.32 * Math.cos(((applied2[1] + applied2[3]) / 2) * Math.PI / 180) - resized[0]) < 1.5, `Apply uses the resized box and saves it as Area (?region=${applied2})`);
   // Clamp: pulling the right edge far out and the top edge down stops at 3:1.
   at = await handle('e'); await p.mouse.move(at.x, at.y); await p.mouse.down(); await p.mouse.move(at.x + 400, at.y, { steps: 6 }); await p.mouse.up();
@@ -332,7 +357,7 @@ try {
   await p.keyboard.press('Escape'); await settle(p);
   check(marks === 0 && lit === 0, `the city menu shows no selected state (${marks} marks, ${lit} highlighted)`);
   check(q(p).get('place') === 'london' && await savedCount() === 3
-    && await dockNav.locator('.pt-thumb').first().getAttribute('aria-label') === 'London map', `Apply on a city writes its name and saves it (?${q(p)})`);
+    && await dockNav.locator('.pt-saved:not([data-builtin]) .pt-thumb').first().getAttribute('aria-label') === 'London map', `Apply on a city writes its name and saves it (?${q(p)})`);
   await clearBtn.click(); await settle(p, 400);
   check(q(p).get('place') === null && q(p).get('region') === null && await pinDot() === 0 && await clearBtn.count() === 0 && q(p).get('ev') === viewBefore.ev, 'Clear returns to the generated terrain and its elevation');
   check(!/Too thin|Exaggerate|Smoothing|Use this place/.test(await place.innerText()), 'Map holds only the map, the badge, the credit and the footer');
