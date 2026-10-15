@@ -8,7 +8,7 @@
 
 topographic is a JavaScript library that draws topographic backgrounds: animated contour lines, like those on a topographic map, behind a web page.
 
-It renders the lines with one WebGL shader. You choose a terrain style and set options for the lines, the terrain, the motion and the layout. You can try the options in the [playground](https://yahyabedirhan.github.io/topography/).
+It renders the lines with one WebGL shader. You choose a terrain style and set options for the lines, the terrain, the motion and the layout. You can try the options in the [playground](https://yahyabedirhan.github.io/topographic/).
 
 ## How it works
 
@@ -60,7 +60,7 @@ Seven styles, three presets, and the same terrain every time you use the same `s
 
 ## The playground
 
-The [playground](https://yahyabedirhan.github.io/topography/) is the easiest way to find a background you like. The page itself is the preview: pick a preset, move the sliders, then copy the result as HTML, React or JavaScript, or download it as a PNG. Your settings live in the URL, so a link brings the same background back.
+The [playground](https://yahyabedirhan.github.io/topographic/) is the easiest way to find a background you like. The page itself is the preview: pick a preset, move the sliders, then copy the result as HTML, React or JavaScript, or download it as a PNG. Your settings live in the URL, so a link brings the same background back.
 
 It works for agents too. It serves plain-text docs at `/llms.txt`, and in browsers with [WebMCP](https://github.com/webmachinelearning/webmcp) an agent can change the settings and get the embed code itself.
 

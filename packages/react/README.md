@@ -2,7 +2,7 @@
 
 [![npm](https://img.shields.io/npm/v/topographic-react)](https://www.npmjs.com/package/topographic-react)
 
-Try it live in the [playground](https://yahyabedirhan.github.io/topography/).
+Try it live in the [playground](https://yahyabedirhan.github.io/topographic/).
 
 React bindings for [`topographic`](https://www.npmjs.com/package/topographic), the JavaScript library for topographic backgrounds. It works with React 18 and 19 and is safe for server rendering.
 
@@ -24,7 +24,7 @@ export function Hero() {
 
 To put the background on your own element, use `useTopographic(settings)`, which returns a ref.
 
-- [Project README](https://github.com/yahyabedirhan/topography#readme)
-- [Guide](https://github.com/yahyabedirhan/topography/blob/main/docs/guide.md)
+- [Project README](https://github.com/yahyabedirhan/topographic#readme)
+- [Guide](https://github.com/yahyabedirhan/topographic/blob/main/docs/guide.md)
 
 MIT licence.

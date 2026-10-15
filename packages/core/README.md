@@ -2,7 +2,7 @@
 
 [![npm](https://img.shields.io/npm/v/topographic)](https://www.npmjs.com/package/topographic)
 
-Try it live in the [playground](https://yahyabedirhan.github.io/topography/).
+Try it live in the [playground](https://yahyabedirhan.github.io/topographic/).
 
 A JavaScript package for creating animated topographic backgrounds. One small WebGL shader, seven terrain styles and readable settings, with no dependencies.
 
@@ -29,7 +29,7 @@ topographic.update({ terrain: { peaks: 3 } });
 
 For React, use [`topographic-react`](https://www.npmjs.com/package/topographic-react).
 
-- [Project README](https://github.com/yahyabedirhan/topography#readme)
-- [Guide](https://github.com/yahyabedirhan/topography/blob/main/docs/guide.md): every API, every setting, theming, export, fallbacks, server rendering
+- [Project README](https://github.com/yahyabedirhan/topographic#readme)
+- [Guide](https://github.com/yahyabedirhan/topographic/blob/main/docs/guide.md): every API, every setting, theming, export, fallbacks, server rendering
 
 MIT licence.

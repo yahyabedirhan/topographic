@@ -5,12 +5,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yahyabedirhan/topography.git",
+    "url": "git+https://github.com/yahyabedirhan/topographic.git",
     "directory": "packages/core"
   },
-  "homepage": "https://yahyabedirhan.github.io/topography/",
+  "homepage": "https://yahyabedirhan.github.io/topographic/",
   "bugs": {
-    "url": "https://github.com/yahyabedirhan/topography/issues"
+    "url": "https://github.com/yahyabedirhan/topographic/issues"
   },
   "keywords": [
     "topography",
