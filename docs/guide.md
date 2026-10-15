@@ -299,9 +299,9 @@ Nothing touches the DOM or WebGL until the browser runs it.
 
 The playground (`apps/playground`) is the project's live page:
 
-- The page background is the preview. The dock at the bottom holds the looks as thumbnails, and the paper and ink colours.
-- The buttons at the top right are **Place**, 2D/3D, **Shuffle**, **Export**, light/dark and **Tune**.
-- **Tune** opens the sliders, one group at a time: Lines, Terrain, Motion, Layout and View. View holds the 3D settings: elevation, extent, camera, path and detail.
+- The page background is the preview. The dock at the bottom holds the looks as thumbnails, then light/dark, the paper and ink colours, and **Shuffle**.
+- The buttons at the top right are **Place**, 2D/3D, **Tune** and **Export**. Each opens its panel under them, one at a time.
+- **Tune** opens the sliders, one tab at a time: Lines, Terrain, Motion, Layout and 3D. The 3D tab holds the scene (extent and elevation), the camera (motion, azimuth, angle and distance) and the detail level. In 3D, the frame rate shows under the wordmark.
 - **Export** gives you a link, a PNG (2× the window, a phone size or 1920 × 1080), a 4 second 3D clip as MP4 or WebM, and the code as React, HTML or JSON.
 - **Place** opens a map. Frame an area, or pick Istanbul, San Francisco, London or New York, and the real elevation becomes the terrain. The map loads only when you open it. It needs a network connection.
 - The URL holds the settings as short keys, so a link reproduces the background. It writes only what differs from the style's defaults or from a named look: `?s=dunes&lc=24`, `?look=night-lobes&mode=3d`. Colours go without `#` (`ink=9fb0cc`), and 3D is endless unless the URL says `ex=block`. `?place=istanbul` or `?region=west,south,east,north` opens a real place.

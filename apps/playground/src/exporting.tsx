@@ -1,8 +1,6 @@
 import { useState, type ReactNode, type RefObject } from 'react';
 import { Button } from '@base-ui-components/react/button';
 import { Popover } from '@base-ui-components/react/popover';
-import { Toggle } from '@base-ui-components/react/toggle';
-import { ToggleGroup } from '@base-ui-components/react/toggle-group';
 import { Tooltip } from '@base-ui-components/react/tooltip';
 import { Braces, CodeXml, Component, Download, Image as ImageIcon, Link as LinkIcon, Share, Video } from 'lucide-react';
 import type { CameraMotion } from 'topographic';
@@ -11,7 +9,7 @@ import { embedCode } from './embed';
 import { PNG_SIZES, downloadPng } from './png';
 import { shareUrl } from './url';
 import { useCopy, type Playground } from './shared';
-import { Tip } from './ui';
+import { PopHead, Section, SegRow, Tabs, Tip } from './parts';
 
 type FormatId = 'link' | 'png' | 'video' | 'react' | 'html' | 'json';
 
@@ -129,26 +127,29 @@ function VideoBlock({ pg }: { pg: Playground }) {
     }
   };
   return (
-    <div className="pt-export-block">
-      <p className="pt-hint">A 4 second clip of this terrain, with the camera moving.</p>
-      <div className="pt-chips" role="group" aria-label="Camera path">
-        {CLIP_PATHS.map((item) => (
-          <button key={item.id} type="button" className={`pt-chip${path === item.id ? ' is-on' : ''}`} onClick={() => setPath(item.id)}>{item.label}</button>
-        ))}
-      </div>
-      <div className="pt-pngs">
-        {(['mp4', 'webm'] as const).map((format) => (
-          <button key={format} type="button" className="pt-size" disabled={busy !== ''} onClick={() => save(format)}>
-            <span className="pt-size-copy">
-              <b>{busy === format ? 'Rendering…' : format.toUpperCase()}</b>
-              <small>960 × 540 · 4s</small>
-            </span>
-            <Download size={15} strokeWidth={1.75} />
-          </button>
-        ))}
-      </div>
-      {note ? <p className="pt-hint">{note}</p> : null}
-    </div>
+    <>
+      <Section title="Clip">
+        <SegRow label="Camera" options={CLIP_PATHS} value={path} onChange={setPath} />
+        <div className="pt-row">
+          <span className="pt-row-label">Length</span>
+          <span className="pt-row-value pt-row-wide">4 s · 960 × 540 · 24 fps</span>
+        </div>
+      </Section>
+      <Section title="Download">
+        <div className="pt-pngs">
+          {(['mp4', 'webm'] as const).map((format) => (
+            <button key={format} type="button" className="pt-size" disabled={busy !== ''} onClick={() => save(format)}>
+              <span className="pt-size-copy">
+                <b>{busy === format ? 'Rendering…' : format === 'mp4' ? 'MP4' : 'WebM'}</b>
+                <small>{format === 'mp4' ? 'H.264 · plays everywhere' : 'VP8 · open format'}</small>
+              </span>
+              <Download size={15} strokeWidth={1.75} />
+            </button>
+          ))}
+        </div>
+        {note ? <p className="pt-hint">{note}</p> : null}
+      </Section>
+    </>
   );
 }
 
@@ -192,23 +193,8 @@ export function ExportMenu({ pg, open, onOpenChange, clusterRef }: {
       <Popover.Portal>
         <Popover.Positioner anchor={clusterRef} side="bottom" align="end" sideOffset={10} collisionPadding={{ top: 12, right: 8, bottom: 16, left: 8 }} positionMethod="fixed" className="pt-layer">
           <Popover.Popup className="pt-pop pt-glass pt-export" initialFocus={false}>
-            <Popover.Title className="pt-pop-title">Export</Popover.Title>
-            <ToggleGroup
-              className="pt-fmtbar"
-              value={[format]}
-              onValueChange={(v) => { if (v[0]) setFormat(v[0] as FormatId); }}
-              aria-label="Export format"
-            >
-              {FORMATS.map((f) => {
-                const Ico = f.icon;
-                return (
-                  <Toggle key={f.id} className="pt-fmt" value={f.id} aria-label={f.label}>
-                    <Ico size={15} strokeWidth={1.75} />
-                    <span>{f.label}</span>
-                  </Toggle>
-                );
-              })}
-            </ToggleGroup>
+            <PopHead title="Export" />
+            <Tabs items={FORMATS} value={format} onChange={setFormat} label="Export format" />
             {format === 'link' && <LinkBlock pg={pg} />}
             {format === 'png' && <PngBlock pg={pg} />}
             {format === 'video' && <VideoBlock pg={pg} />}

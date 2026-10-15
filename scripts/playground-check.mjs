@@ -42,6 +42,8 @@ try {
   let c = await cfg(p);
   check(c.style === 'granite' && c.lines?.count === 40 && q(p).get('s') === 'granite' && q(p).get('lc') === '40', `short query loads (?${q(p)})`);
   await p.getByRole('button', { name: 'Tune', exact: true }).click();
+  const tabs = await p.locator('.pt-tabs button.pt-tab').allInnerTexts();
+  check(tabs.join() === 'Lines,Terrain,Motion,Layout,3D', `Tune tabs are labelled (${tabs.join()})`);
   const count = p.getByRole('slider', { name: 'Line count' });
   await count.waitFor();
   check(await count.getAttribute('aria-valuenow') === '40', 'Tune shows the URL line count');
@@ -65,7 +67,9 @@ try {
   check(await p.evaluate(() => document.documentElement.dataset.theme) === 'light', 'light look sets data-theme light');
 
   const search = q(p).toString();
-  await p.getByRole('button', { name: 'Shuffle', exact: true }).click(); await settle(p, 900);
+  check(await dock.getByRole('button', { name: 'Shuffle', exact: true }).count() === 1 && await dock.getByRole('button', { name: /^Switch to (dark|light) mode$/ }).count() === 1
+    && await p.locator('.pt-cluster').getByRole('button', { name: /Shuffle|Switch to (dark|light) mode/ }).count() === 0, 'shuffle and theme live in the dock');
+  await dock.getByRole('button', { name: 'Shuffle', exact: true }).click(); await settle(p, 900);
   c = await cfg(p);
   check(c.seed !== 197 && q(p).toString() !== search, `shuffle changes the seed (197 -> ${c.seed}, ?${q(p)})`);
   await dock.getByRole('button', { name: 'Quiet hill' }).click(); await settle(p, 400);
@@ -110,20 +114,39 @@ try {
   // 3D toggle.
   await p.getByRole('button', { name: 'Switch to 3D' }).click(); await settle(p, 600);
   check(q(p).get('mode') === '3d' && await p.locator('.pt-stage.is-3d').count() === 1, '3D toggle sets mode=3d and the 3D stage');
-  check(await p.locator('.pt-bench').isVisible(), '3D shows the frame stats');
+  check(await p.locator('.pt-wordmark .pt-fps').isVisible() && /fps/.test(await p.locator('.pt-fps').innerText()) && await p.locator('.pt-bench').count() === 0, '3D shows the frame-rate readout under the wordmark');
   if (shots) await p.screenshot({ path: join(shots, 'playground-3d.png') });
   await p.getByRole('button', { name: 'Switch to 2D' }).click(); await settle(p);
-  check(q(p).get('mode') === null && await p.locator('.pt-stage.is-3d').count() === 0, 'toggling back returns to 2D');
+  check(q(p).get('mode') === null && await p.locator('.pt-stage.is-3d').count() === 0 && await p.locator('.pt-fps').count() === 0, 'toggling back returns to 2D and hides the readout');
 
-  // Place sheet: MapLibre loads lazily and its tiles need the network, so only the sheet is checked.
+  // One popover at a time, and only an open popover fills its cluster button.
+  await p.getByRole('button', { name: 'Tune', exact: true }).click(); await settle(p);
+  await p.getByRole('button', { name: 'Export', exact: true }).click(); await settle(p);
+  check(await p.locator('.pt-pop:not(.pt-pop-color)').count() === 1 && await p.locator('.pt-export').isVisible(), 'opening Export closes Tune');
+  check(await p.locator('.pt-cluster [data-popup-open]').count() === 1 && await p.locator('.pt-mode').evaluate((el) => getComputedStyle(el).backgroundColor) === 'rgba(0, 0, 0, 0)', 'only the open popover fills its button; 2D/3D never fills');
+  await p.keyboard.press('Escape'); await settle(p);
+
+  // Place popover: MapLibre loads lazily and its tiles need the network, so only the panel is checked.
   await p.getByRole('button', { name: 'Place', exact: true }).click();
-  const sheet = p.getByRole('dialog', { name: 'Choose a place' });
-  await sheet.waitFor({ timeout: 30000 });
-  check(await sheet.isVisible(), 'Place opens the place sheet');
-  await sheet.getByRole('button', { name: 'Close', exact: true }).click();
-  await sheet.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
-  check(!(await sheet.isVisible()), 'place sheet closes');
+  const place = p.locator('.pt-pop-wide');
+  await place.locator('.pt-map-host canvas').waitFor({ timeout: 30000 });
+  check(await place.isVisible() && await p.locator('.pt-cluster [data-popup-open]').getAttribute('aria-label') === 'Place', 'Place opens its popover under the cluster');
+  await p.keyboard.press('Escape'); await settle(p);
+  check(!(await place.isVisible()), 'Place closes on Escape');
   await p.close();
+
+  // The Place frame never opens too thin, at common laptop sizes.
+  for (const [width, height] of [[1280, 800], [1440, 900]]) {
+    const v = await browser.newPage({ viewport: { width, height } }); watch(v);
+    await v.goto(base + '?mode=3d'); await v.waitForSelector('.pt-stage canvas');
+    await v.getByRole('button', { name: 'Place', exact: true }).click();
+    const pop = v.locator('.pt-pop-wide');
+    await pop.locator('.pt-map-host canvas').waitFor({ timeout: 30000 });
+    await v.waitForFunction(() => /km × [\d.]+ km|Too|rectangle/.test(document.querySelector('.pt-map-span')?.textContent ?? ''), null, { timeout: 30000 }).catch(() => {});
+    const text = await pop.innerText();
+    check(!text.includes('Too thin') && /\d km × [\d.]+ km/.test(text), `Place at ${width}×${height} opens with a valid frame (${(text.match(/[\d.]+ km × [\d.]+ km/) ?? ['none'])[0]})`);
+    await v.close();
+  }
 
   // Links load: the copied link, a look slug and 3D mode.
   const back = await ctx.newPage(); watch(back);
@@ -185,7 +208,7 @@ try {
 
   const plain = await browser.newPage(); watch(plain);
   await plain.goto(base); await plain.waitForSelector('.pt-stage canvas'); await settle(plain);
-  check(await plain.evaluate(() => !('modelContext' in document) && !('modelContext' in navigator)) && await plain.locator('.pt-cluster button').count() > 4, 'no WebMCP: page works, nothing registered');
+  check(await plain.evaluate(() => !('modelContext' in document) && !('modelContext' in navigator)) && await plain.locator('.pt-cluster button').count() === 4, 'no WebMCP: page works, nothing registered');
   await plain.close();
 
   check(errors.length === 0, `no page errors${errors.length ? ': ' + errors.join(' | ') : ''}`);

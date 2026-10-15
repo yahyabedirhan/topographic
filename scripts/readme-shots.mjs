@@ -65,7 +65,7 @@ async function save(p, name) {
 }
 // The playground shows a live frame-time readout in 3D. A software-rendered headless browser
 // makes it read a few fps, which says nothing about a real GPU, so the shots hide it.
-const hideBench = (p) => p.addStyleTag({ content: '.pt-bench { display: none !important; }' });
+const hideBench = (p) => p.addStyleTag({ content: '.pt-fps { display: none !important; }' });
 async function waitForDock(p) {
   await p.waitForFunction(() => {
     const nav = document.querySelector('nav[data-looks]');
@@ -75,7 +75,7 @@ async function waitForDock(p) {
 async function waitForRegion(p) {
   await p.waitForFunction(() => ['ready', 'error'].includes(document.documentElement.dataset.region), { timeout: 60000 });
   const status = await p.evaluate(() => document.documentElement.dataset.region);
-  if (status !== 'ready') throw new Error(`region ${status}: ${await p.locator('.pt-region').innerText()}`);
+  if (status !== 'ready') throw new Error(`region ${status}`);
 }
 
 try {

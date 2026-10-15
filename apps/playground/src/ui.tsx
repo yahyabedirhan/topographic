@@ -1,45 +1,40 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState, type ReactNode, type Ref, type RefObject } from 'react';
 import { Popover } from '@base-ui-components/react/popover';
-import { Slider } from '@base-ui-components/react/slider';
 import { Toggle } from '@base-ui-components/react/toggle';
-import { ToggleGroup } from '@base-ui-components/react/toggle-group';
 import { Tooltip } from '@base-ui-components/react/tooltip';
-import { Box, Dices, Frame, Map, Moon, Mountain, RotateCcw, SlidersHorizontal, Spline, Sun, Wind } from 'lucide-react';
-import { PlaceButton, RegionPill } from './region/controls';
-
-// MapLibre is large, so the map sheet loads the first time Place opens.
-const PlaceSheet = lazy(() => import('./region/Picker').then((m) => ({ default: m.PlaceSheet })));
+import { Box, Dices, Frame, Map, Moon, Mountain, SlidersHorizontal, Spline, Sun, Wind } from 'lucide-react';
+import { PlaceButton } from './region/controls';
 import { useRegion } from './region/useRegion';
-import { DEFAULT_CAMERA, DEFAULT_DETAIL, DEFAULT_ELEVATION, GROUPS, paramsIn, resolveMode, type CameraMotion, type GroupName, type ParamDef, type TerrainExtent } from 'topographic';
+import {
+  DEFAULT_CAMERA, DEFAULT_DETAIL, DEFAULT_ELEVATION, GROUPS, paramsIn, resolveMode,
+  type CameraMotion, type GroupName, type ParamDef, type TerrainExtent,
+} from 'topographic';
 import { LOOKS } from './looks';
+import { PopHead, Section, SegRow, SliderRow, Tabs, Tip, type TabItem } from './parts';
 import {
   Backdrop, ColorPicker, GROUP_LABELS, INK_SWATCHES, PAPER_SWATCHES, Wordmark, currentColour, rollColour, useLookThumbs,
   type Playground,
 } from './shared';
 
+// MapLibre is large, so the place panel loads the first time Place opens.
+const PlacePanel = lazy(() => import('./region/Picker').then((m) => ({ default: m.PlacePanel })));
+
+export { Tip };
+
 const THUMB = 84;
 const GAP = 4;
 
-export function Tip({ children, side = 'bottom' }: { children: ReactNode; side?: 'top' | 'bottom' }) {
-  return (
-    <Tooltip.Portal>
-      <Tooltip.Positioner side={side} sideOffset={8} className="pt-layer">
-        <Tooltip.Popup className="pt-tip">{children}</Tooltip.Popup>
-      </Tooltip.Positioner>
-    </Tooltip.Portal>
-  );
-}
-
-export function IconButton({ label, pressed, onClick, side = 'bottom', children }: {
+export function IconButton({ label, pressed, onClick, side = 'bottom', className = 'pt-ibtn', children }: {
   label: string;
   pressed?: boolean;
   onClick?: () => void;
   side?: 'top' | 'bottom';
+  className?: string;
   children: ReactNode;
 }) {
   return (
     <Tooltip.Root>
-      <Tooltip.Trigger delay={180} className="pt-ibtn" aria-label={label} aria-pressed={pressed} onClick={onClick}>
+      <Tooltip.Trigger delay={180} className={className} aria-label={label} aria-pressed={pressed} onClick={onClick}>
         {children}
       </Tooltip.Trigger>
       <Tip side={side}>{label}</Tip>
@@ -56,20 +51,21 @@ function ThemeToggle({ pg }: { pg: Playground }) {
         delay={180}
         render={(
           <Toggle
-            className="pt-ibtn pt-theme"
+            className="pt-tool pt-theme"
             aria-label={label}
             pressed={dark}
             onPressedChange={() => pg.change({ theme: { mode: dark ? 'light' : 'dark', ink: undefined, paper: undefined } })}
           />
         )}
       >
-        {dark ? <Moon size={18} strokeWidth={1.75} /> : <Sun size={18} strokeWidth={1.75} />}
+        {dark ? <Moon size={16} strokeWidth={1.75} /> : <Sun size={16} strokeWidth={1.75} />}
       </Tooltip.Trigger>
-      <Tip>{label}</Tip>
+      <Tip side="top">{label}</Tip>
     </Tooltip.Root>
   );
 }
 
+/** Shows its state by its icon (map or box), never by a fill: a fill in the cluster means an open popover. */
 function ModeToggle({ pg }: { pg: Playground }) {
   const on = pg.settings.mode === '3d';
   const label = on ? 'Switch to 2D' : 'Switch to 3D';
@@ -79,7 +75,7 @@ function ModeToggle({ pg }: { pg: Playground }) {
         delay={180}
         render={(
           <Toggle
-            className="pt-ibtn"
+            className="pt-ibtn pt-mode"
             aria-label={label}
             pressed={on}
             onPressedChange={(pressed) => pg.change({ mode: pressed ? '3d' : '2d' })}
@@ -110,28 +106,26 @@ export function useStats(pg: Playground) {
   return stats;
 }
 
-export function Benchmark({ pg }: { pg: Playground }) {
+/** The 3D frame-rate readout: plain text under the wordmark. */
+export function Readout({ pg }: { pg: Playground }) {
   const stats = useStats(pg);
   if (pg.settings.mode !== '3d') return null;
-  const text = `${stats.fps} fps · ${stats.frameMs.toFixed(1)} ms · ${stats.mesh}²`;
-  return <div className="pt-bench pt-glass" aria-live="polite">{text}</div>;
+  return <div className="pt-fps" aria-live="polite">{`${stats.fps} fps · ${stats.frameMs.toFixed(1)} ms · ${stats.mesh}²`}</div>;
 }
 
-export function Cluster({ pg, tune, exporting, clusterRef, leading }: {
+export function Cluster({ pg, place, tune, exporting, clusterRef }: {
   pg: Playground;
+  place?: ReactNode;
   tune: ReactNode;
   exporting: ReactNode;
   clusterRef?: Ref<HTMLDivElement>;
-  leading?: ReactNode;
 }) {
   return (
     <div className="pt-cluster pt-glass" ref={clusterRef}>
-      {leading}
+      {place}
       <ModeToggle pg={pg} />
-      <IconButton label="Shuffle" onClick={pg.shuffle}><Dices size={18} strokeWidth={1.75} /></IconButton>
-      {exporting}
-      <ThemeToggle pg={pg} />
       {tune}
+      {exporting}
     </div>
   );
 }
@@ -153,7 +147,7 @@ export function ColorField({ pg, which }: { pg: Playground; which: 'ink' | 'pape
               />
             )}
           />
-          <Tip>{name}</Tip>
+          <Tip side="top">{name}</Tip>
         </Tooltip.Root>
       </div>
       <Popover.Portal>
@@ -182,7 +176,7 @@ export function Dock({ pg }: { pg: Playground }) {
   const wrap = useRef<HTMLDivElement>(null);
   const tools = useRef<HTMLDivElement>(null);
   const scroller = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(() => Math.min(LOOKS.length, Math.max(1, Math.floor((Math.min(1100, innerWidth) - 140) / (THUMB + GAP)))));
+  const [visible, setVisible] = useState(() => Math.min(LOOKS.length, Math.max(1, Math.floor((Math.min(1100, innerWidth) - 180) / (THUMB + GAP)))));
   useEffect(() => {
     const el = wrap.current;
     const tool = tools.current;
@@ -227,9 +221,12 @@ export function Dock({ pg }: { pg: Playground }) {
             </button>
           ) : null)}
         </div>
+        {/* Coarse to fine, then the action: theme, paper, ink, shuffle. */}
         <div className="pt-dock-tools" ref={tools}>
-          <ColorField pg={pg} which="paper" />
-          <ColorField pg={pg} which="ink" />
+          <ThemeToggle pg={pg} />
+          <span className="pt-tool-slot"><ColorField pg={pg} which="paper" /></span>
+          <span className="pt-tool-slot"><ColorField pg={pg} which="ink" /></span>
+          <IconButton label="Shuffle" side="top" className="pt-tool" onClick={pg.shuffle}><Dices size={16} strokeWidth={1.75} /></IconButton>
         </div>
       </nav>
     </div>
@@ -238,89 +235,26 @@ export function Dock({ pg }: { pg: Playground }) {
 
 const GROUP_ICON: Record<GroupName, typeof Spline> = { lines: Spline, terrain: Mountain, motion: Wind, layout: Frame };
 
-function readParam(param: ParamDef, value: number) {
-  return param.integer ? String(value) : value.toFixed(2);
-}
-
-function ParamSlider({ param, value, onChange }: { param: ParamDef; value: number; onChange: (n: number) => void }) {
-  return (
-    <Slider.Root
-      className="pt-slider"
-      min={param.min}
-      max={param.max}
-      step={param.step}
-      value={value}
-      thumbAlignment="center"
-      onValueChange={(next) => onChange(typeof next === 'number' ? next : next[0])}
-    >
-      <Slider.Control className="pt-slider-control">
-        <Slider.Track className="pt-slider-track">
-          <Slider.Indicator className="pt-slider-ind" />
-          <Slider.Thumb className="pt-slider-thumb" aria-label={param.label} />
-        </Slider.Track>
-      </Slider.Control>
-    </Slider.Root>
-  );
-}
-
 type TuneTab = GroupName | 'view';
 
-function useTune(pg: Playground) {
-  const [group, setGroup] = useState<TuneTab>(pg.settings.mode === '3d' ? 'view' : 'lines');
-  const [open, setOpen] = useState('count');
-  const params = group === 'view' ? [] : paramsIn(group);
-  const active = params.find((p) => p.key === open) ?? params[0];
-  const valueOf = (p: ParamDef) => (pg.settings[p.group] as Record<string, number>)[p.key];
-  const change = (p: ParamDef, n: number) => pg.change({ [p.group]: { [p.key]: n } });
-  const pickGroup = (next: TuneTab) => {
-    setGroup(next);
-    if (next !== 'view') setOpen(paramsIn(next)[0]?.key ?? 'count');
-  };
-  useEffect(() => { if (pg.settings.mode === '3d') setGroup('view'); }, [pg.settings.mode]);
-  return { pg, group, pickGroup, params, active, open, setOpen, valueOf, change };
-}
+const TUNE_TABS: TabItem<TuneTab>[] = [
+  ...GROUPS.map((g) => ({ id: g as TuneTab, label: GROUP_LABELS[g], icon: GROUP_ICON[g] })),
+  { id: 'view', label: '3D', icon: Box },
+];
 
-function TuneHead({ pg, group, onGroup }: { pg: Playground; group: TuneTab; onGroup: (g: TuneTab) => void }) {
-  return (
-    <div className="pt-tune-head">
-      <ToggleGroup
-        className="pt-groups"
-        value={[group]}
-        onValueChange={(v) => { if (v[0]) onGroup(v[0] as TuneTab); }}
-        aria-label="Setting group"
-      >
-        {[...GROUPS.map((g) => ({ id: g as TuneTab, label: GROUP_LABELS[g], icon: GROUP_ICON[g] })), { id: 'view' as TuneTab, label: 'View', icon: Box }].map((g) => {
-          const Ico = g.icon;
-          return (
-            <Tooltip.Root key={g.id}>
-              <Tooltip.Trigger delay={280} render={<Toggle className="pt-ibtn" value={g.id} aria-label={g.label} />}>
-                <Ico size={16} strokeWidth={1.75} />
-              </Tooltip.Trigger>
-              <Tip>{g.label}</Tip>
-            </Tooltip.Root>
-          );
-        })}
-      </ToggleGroup>
-      <div className="pt-colours">
-        <ColorField pg={pg} which="paper" />
-        <ColorField pg={pg} which="ink" />
-      </div>
-    </div>
-  );
-}
+/** Labels that need to fit the 80px label column. The slider keeps the full name. */
+const SHORT_LABEL: Partial<Record<string, string>> = { indexEvery: 'Index every' };
 
-function NameTip({ param }: { param: ParamDef }) {
-  return (
-    <Tooltip.Root>
-      <Tooltip.Trigger delay={360} render={<span className="pt-pname" />}>{param.label}</Tooltip.Trigger>
-      <Tip>{param.description}</Tip>
-    </Tooltip.Root>
-  );
-}
+/** Groups with more than four rows split into sections; the rest keep one, named after the group. */
+const SECTIONS: Partial<Record<GroupName, { title: string; keys: string[] }[]>> = {
+  terrain: [
+    { title: 'Shape', keys: ['peaks', 'spread', 'sharpness', 'variant'] },
+    { title: 'Surface', keys: ['roughness', 'terracing'] },
+  ],
+};
 
-function Reset({ param, value, onChange }: { param: ParamDef; value: number; onChange: (n: number) => void }) {
-  if (value === param.default) return null;
-  return <IconButton label="Reset" onClick={() => onChange(param.default)}><RotateCcw size={13} strokeWidth={1.75} /></IconButton>;
+function readParam(param: ParamDef, value: number) {
+  return param.integer ? String(value) : value.toFixed(2);
 }
 
 const PATHS: { id: CameraMotion; label: string }[] = [
@@ -331,156 +265,138 @@ const PATHS: { id: CameraMotion; label: string }[] = [
   { id: 'drone', label: 'Drone' },
 ];
 
-function RangeRow({ label, hint, value, min, max, step, digits, onChange, onReset }: {
-  label: string;
-  hint: string;
-  value: number;
-  min: number;
-  max: number;
-  step: number;
-  digits: number;
-  onChange: (n: number) => void;
-  onReset?: () => void;
-}) {
-  return (
-    <div className="pt-strip">
-      <Tooltip.Root>
-        <Tooltip.Trigger delay={360} render={<span className="pt-pname" />}>{label}</Tooltip.Trigger>
-        <Tip>{hint}</Tip>
-      </Tooltip.Root>
-      <Slider.Root
-        className="pt-slider"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        thumbAlignment="center"
-        onValueChange={(next) => onChange(typeof next === 'number' ? next : next[0])}
-      >
-        <Slider.Control className="pt-slider-control">
-          <Slider.Track className="pt-slider-track">
-            <Slider.Indicator className="pt-slider-ind" />
-            <Slider.Thumb className="pt-slider-thumb" aria-label={label} />
-          </Slider.Track>
-        </Slider.Control>
-      </Slider.Root>
-      <output>{value.toFixed(digits)}</output>
-      {onReset ? <IconButton label="Reset" onClick={onReset}><RotateCcw size={13} strokeWidth={1.75} /></IconButton> : <span />}
-    </div>
-  );
+const EXTENTS: { id: TerrainExtent; label: string }[] = [
+  { id: 'block', label: 'Block' },
+  { id: 'endless', label: 'Endless' },
+];
+
+type DetailLevel = 'low' | 'medium' | 'high';
+const DETAILS: { id: DetailLevel; label: string; value: number }[] = [
+  { id: 'low', label: 'Low', value: 0.12 },
+  { id: 'medium', label: 'Medium', value: DEFAULT_DETAIL },
+  { id: 'high', label: 'High', value: 1 },
+];
+
+function detailLevel(detail: number): DetailLevel {
+  return detail <= 0.2 ? 'low' : detail >= 0.8 ? 'high' : 'medium';
 }
+
+/** The playground's 3D extent default: endless. */
+const DEFAULT_EXTENT: TerrainExtent = 'endless';
 
 function ViewTune({ pg }: { pg: Playground }) {
   const s = pg.settings;
-  const stats = useStats(pg);
   const azimuth = ((s.camera.azimuth % 360) + 360) % 360;
   const cam = (patch: Partial<typeof s.camera>) => pg.change({ camera: patch });
+  const sceneChanged = s.extent !== DEFAULT_EXTENT || s.elevation !== DEFAULT_ELEVATION;
+  const cameraChanged = (Object.keys(DEFAULT_CAMERA) as (keyof typeof DEFAULT_CAMERA)[]).some((k) => s.camera[k] !== DEFAULT_CAMERA[k]);
   return (
-    <div className="pt-klist">
-      <RangeRow
-        label="Elevation"
-        hint="0 is flat like the map. Higher values make the terrain taller, with a rounded crest."
-        value={s.elevation} min={0} max={1} step={0.01} digits={2}
-        onChange={(n) => pg.change({ elevation: n })}
-        onReset={s.elevation === DEFAULT_ELEVATION ? undefined : () => pg.change({ elevation: DEFAULT_ELEVATION })}
-      />
-      <div className="pt-view-row">
-        <span className="pt-pname">Extent</span>
-        <div className="pt-chips">
-          {(['block', 'endless'] as TerrainExtent[]).map((id) => (
-            <button key={id} type="button" className={`pt-chip${s.extent === id ? ' is-on' : ''}`} onClick={() => pg.change({ extent: id })}>
-              {id === 'block' ? 'Block' : 'Endless'}
-            </button>
-          ))}
-        </div>
-      </div>
-      <RangeRow
-        label="Azimuth"
-        hint="Orbit around the terrain. Drag the view to move this too."
-        value={azimuth} min={0} max={360} step={1} digits={0}
-        onChange={(n) => cam({ azimuth: n })}
-        onReset={s.camera.azimuth === DEFAULT_CAMERA.azimuth ? undefined : () => cam({ azimuth: DEFAULT_CAMERA.azimuth })}
-      />
-      <RangeRow
-        label="Angle"
-        hint="Degrees above the horizon. The camera never goes below the terrain."
-        value={s.camera.elevation} min={2} max={80} step={1} digits={0}
-        onChange={(n) => cam({ elevation: n })}
-        onReset={s.camera.elevation === DEFAULT_CAMERA.elevation ? undefined : () => cam({ elevation: DEFAULT_CAMERA.elevation })}
-      />
-      <RangeRow
-        label="Distance"
-        hint="How far the camera sits. Scroll or pinch the view to zoom."
-        value={s.camera.radius} min={1.15} max={6.5} step={0.01} digits={2}
-        onChange={(n) => cam({ radius: n })}
-        onReset={s.camera.radius === DEFAULT_CAMERA.radius ? undefined : () => cam({ radius: DEFAULT_CAMERA.radius })}
-      />
-      <div className="pt-view-block">
-        <span className="pt-pname">Path</span>
-        <div className="pt-chips">
-          {PATHS.map((p) => (
-            <button key={p.id} type="button" className={`pt-chip${s.camera.motion === p.id ? ' is-on' : ''}`} onClick={() => cam({ motion: p.id })}>
-              {p.label}
-            </button>
-          ))}
-        </div>
-      </div>
-      <RangeRow
-        label="Detail"
-        hint="Mesh resolution. Low is the setting to try on a slow device."
-        value={s.detail} min={0} max={1} step={0.01} digits={2}
-        onChange={(n) => pg.change({ detail: n })}
-        onReset={s.detail === DEFAULT_DETAIL ? undefined : () => pg.change({ detail: DEFAULT_DETAIL })}
-      />
-      <div className="pt-chips">
-        <button type="button" className={`pt-chip${s.detail <= 0.2 ? ' is-on' : ''}`} onClick={() => pg.change({ detail: 0.12 })}>Low</button>
-        <button type="button" className={`pt-chip${s.detail > 0.2 && s.detail < 0.8 ? ' is-on' : ''}`} onClick={() => pg.change({ detail: DEFAULT_DETAIL })}>Medium</button>
-        <button type="button" className={`pt-chip${s.detail >= 0.8 ? ' is-on' : ''}`} onClick={() => pg.change({ detail: 1 })}>High</button>
-      </div>
-      <p className="pt-hint">{s.mode === '3d' ? `${stats.fps} fps · ${stats.frameMs.toFixed(1)} ms · ${stats.mesh}²` : 'Switch to 3D to read the frame time.'}</p>
-    </div>
+    <>
+      <Section title="Scene" resetIf={sceneChanged} onReset={() => pg.change({ extent: DEFAULT_EXTENT, elevation: DEFAULT_ELEVATION })}>
+        <SegRow label="Extent" options={EXTENTS} value={s.extent} onChange={(id) => pg.change({ extent: id })} />
+        <SliderRow
+          label="Elevation"
+          hint="0 is flat like the map. Higher values make the terrain taller, with a rounded crest."
+          value={s.elevation} min={0} max={1} step={0.01} shown={s.elevation.toFixed(2)}
+          onChange={(n) => pg.change({ elevation: n })}
+        />
+      </Section>
+      <Section title="Camera" resetIf={cameraChanged} onReset={() => cam({ ...DEFAULT_CAMERA })}>
+        <SegRow label="Motion" options={PATHS} value={s.camera.motion} onChange={(id) => cam({ motion: id })} />
+        <SliderRow
+          label="Azimuth"
+          hint="Orbit around the terrain. Drag the view to move this too."
+          value={azimuth} min={0} max={360} step={1} shown={`${azimuth.toFixed(0)}°`}
+          onChange={(n) => cam({ azimuth: n })}
+        />
+        <SliderRow
+          label="Angle"
+          hint="Degrees above the horizon. The camera never goes below the terrain."
+          value={s.camera.elevation} min={2} max={80} step={1} shown={`${s.camera.elevation.toFixed(0)}°`}
+          onChange={(n) => cam({ elevation: n })}
+        />
+        <SliderRow
+          label="Distance"
+          hint="How far the camera sits. Scroll or pinch the view to zoom."
+          value={s.camera.radius} min={1.15} max={6.5} step={0.01} shown={s.camera.radius.toFixed(2)}
+          onChange={(n) => cam({ radius: n })}
+        />
+      </Section>
+      <Section title="Quality" resetIf={s.detail !== DEFAULT_DETAIL} onReset={() => pg.change({ detail: DEFAULT_DETAIL })}>
+        <SegRow
+          label="Detail"
+          hint="Mesh resolution. Low is the setting to try on a slow device."
+          options={DETAILS}
+          value={detailLevel(s.detail)}
+          onChange={(id) => pg.change({ detail: DETAILS.find((d) => d.id === id)!.value })}
+        />
+      </Section>
+    </>
+  );
+}
+
+function ParamTune({ pg, group }: { pg: Playground; group: GroupName }) {
+  const params = paramsIn(group);
+  const valueOf = (p: ParamDef) => (pg.settings[p.group] as Record<string, number>)[p.key];
+  const sections = SECTIONS[group] ?? [{ title: GROUP_LABELS[group], keys: params.map((p) => p.key) }];
+  return (
+    <>
+      {sections.map((sec) => {
+        const own = sec.keys.map((k) => params.find((p) => p.key === k)).filter((p): p is ParamDef => Boolean(p));
+        const changed = own.some((p) => valueOf(p) !== p.default);
+        return (
+          <Section
+            key={sec.title}
+            title={sec.title}
+            resetIf={changed}
+            onReset={() => pg.change({ [group]: Object.fromEntries(own.map((p) => [p.key, p.default])) })}
+          >
+            {own.map((p) => {
+              const value = valueOf(p);
+              return (
+                <SliderRow
+                  key={p.key}
+                  label={SHORT_LABEL[p.key] ?? p.label}
+                  name={p.label}
+                  hint={p.description}
+                  value={value} min={p.min} max={p.max} step={p.step} shown={readParam(p, value)}
+                  onChange={(n) => pg.change({ [p.group]: { [p.key]: n } })}
+                />
+              );
+            })}
+          </Section>
+        );
+      })}
+    </>
   );
 }
 
 export function TuneStrip({ pg }: { pg: Playground }) {
-  const tune = useTune(pg);
+  const [group, setGroup] = useState<TuneTab>(pg.settings.mode === '3d' ? 'view' : 'lines');
+  useEffect(() => { if (pg.settings.mode === '3d') setGroup('view'); }, [pg.settings.mode]);
   return (
-    <div className="pt-tune">
-      <TuneHead pg={pg} group={tune.group} onGroup={tune.pickGroup} />
-      {tune.group === 'view' ? <ViewTune pg={pg} /> : (
-      <div className="pt-klist">
-        {tune.params.map((p) => {
-          const value = tune.valueOf(p);
-          return (
-            <div key={p.key} className="pt-strip">
-              <NameTip param={p} />
-              <ParamSlider param={p} value={value} onChange={(n) => tune.change(p, n)} />
-              <output>{readParam(p, value)}</output>
-              <Reset param={p} value={value} onChange={(n) => tune.change(p, n)} />
-          </div>
-        );
-      })}
-      </div>
-      )}
-    </div>
+    <>
+      <PopHead title="Tune" />
+      <Tabs items={TUNE_TABS} value={group} onChange={setGroup} label="Setting group" />
+      {group === 'view' ? <ViewTune pg={pg} /> : <ParamTune pg={pg} group={group} />}
+    </>
   );
 }
 
-export function Shell({ pg, tune, exporting, clusterRef, leading, children }: {
+export function Shell({ pg, place, tune, exporting, clusterRef, children }: {
   pg: Playground;
+  place?: ReactNode;
   tune: ReactNode;
   exporting: ReactNode;
   clusterRef?: Ref<HTMLDivElement>;
-  leading?: ReactNode;
   children?: ReactNode;
 }) {
   return (
     <>
       <Backdrop pg={pg} />
-      <Wordmark />
+      <Wordmark><Readout pg={pg} /></Wordmark>
       <div className="pt-top">
-        <Benchmark pg={pg} />
-        <Cluster pg={pg} tune={tune} exporting={exporting} clusterRef={clusterRef} leading={leading} />
+        <Cluster pg={pg} place={place} tune={tune} exporting={exporting} clusterRef={clusterRef} />
       </div>
       {children}
       <Dock pg={pg} />
@@ -496,55 +412,64 @@ export function useDismiss(close: () => void) {
   }, [close]);
 }
 
+type PopName = 'place' | 'tune' | 'export';
+
+/** Every cluster popover opens here: under the cluster, right-aligned, 10px below. */
+export function ClusterPositioner({ clusterRef, children }: { clusterRef: RefObject<HTMLDivElement | null>; children: ReactNode }) {
+  return (
+    <Popover.Portal>
+      <Popover.Positioner anchor={clusterRef} side="bottom" align="end" sideOffset={10} collisionPadding={{ top: 12, right: 8, bottom: 16, left: 8 }} positionMethod="fixed" className="pt-layer">
+        {children}
+      </Popover.Positioner>
+    </Popover.Portal>
+  );
+}
+
 export function GlassFrame({ pg, tune, exporting }: {
   pg: Playground;
   tune: ReactNode;
   exporting: (open: boolean, onOpenChange: (open: boolean) => void, clusterRef: RefObject<HTMLDivElement | null>) => ReactNode;
 }) {
   const clusterRef = useRef<HTMLDivElement>(null);
-  const [tuneOpen, setTuneOpen] = useState(false);
-  const [exp, setExp] = useState(false);
-  const [placeOpen, setPlaceOpen] = useState(false);
+  // One popover at a time: opening one closes the others.
+  const [open, setOpen] = useState<PopName | null>(null);
+  const openChange = (which: PopName) => (next: boolean) => setOpen((cur) => (next ? which : cur === which ? null : cur));
   const region = useRegion(pg);
-  const [placeUsed, setPlaceUsed] = useState(false);
-  if (placeOpen && !placeUsed) setPlaceUsed(true);
-  const close = useCallback(() => { setTuneOpen(false); setExp(false); setPlaceOpen(false); }, []);
+  const close = useCallback(() => setOpen(null), []);
   useDismiss(close);
+  const appearance = resolveMode(pg.settings.theme.mode, document.documentElement.dataset.theme !== 'light');
   return (
-    <Popover.Root open={tuneOpen} onOpenChange={(open) => { setTuneOpen(open); if (open) setExp(false); }}>
-      <Shell
-        pg={pg}
-        clusterRef={clusterRef}
-        leading={<PlaceButton pressed={placeOpen} onClick={() => { setPlaceOpen((v) => !v); setTuneOpen(false); setExp(false); }} />}
-        tune={(
+    <Shell
+      pg={pg}
+      clusterRef={clusterRef}
+      place={(
+        <Popover.Root open={open === 'place'} onOpenChange={openChange('place')}>
+          <PlaceButton hasPlace={Boolean(region.bbox)} />
+          <ClusterPositioner clusterRef={clusterRef}>
+            <Popover.Popup className="pt-pop pt-pop-wide pt-glass" initialFocus={false}>
+              <Suspense fallback={<PopHead title="Place" />}>
+                <PlacePanel region={region} appearance={appearance} />
+              </Suspense>
+            </Popover.Popup>
+          </ClusterPositioner>
+        </Popover.Root>
+      )}
+      tune={(
+        <Popover.Root open={open === 'tune'} onOpenChange={openChange('tune')}>
           <Tooltip.Root>
             <Tooltip.Trigger delay={180} render={<Popover.Trigger className="pt-ibtn" aria-label="Tune" />}>
               <SlidersHorizontal size={18} strokeWidth={1.75} />
             </Tooltip.Trigger>
             <Tip>Tune</Tip>
           </Tooltip.Root>
-        )}
-        exporting={exporting(exp, (open) => { setExp(open); if (open) { setTuneOpen(false); setPlaceOpen(false); } }, clusterRef)}
-      >
-        <RegionPill region={region} onOpen={() => setPlaceOpen(true)} />
-        {placeUsed && (
-          <Suspense fallback={null}>
-            <PlaceSheet
-              open={placeOpen}
-              onClose={() => setPlaceOpen(false)}
-              region={region}
-              appearance={resolveMode(pg.settings.theme.mode, document.documentElement.dataset.theme !== 'light')}
-            />
-          </Suspense>
-        )}
-        <Popover.Portal>
-          <Popover.Positioner anchor={clusterRef} side="bottom" align="end" sideOffset={10} collisionPadding={{ top: 12, right: 8, bottom: 16, left: 8 }} positionMethod="fixed" className="pt-layer">
-            <Popover.Popup className="pt-pop pt-glass pt-panel">
+          <ClusterPositioner clusterRef={clusterRef}>
+            <Popover.Popup className="pt-pop pt-glass">
               {tune}
             </Popover.Popup>
-          </Popover.Positioner>
-        </Popover.Portal>
-      </Shell>
-    </Popover.Root>
+          </ClusterPositioner>
+        </Popover.Root>
+      )}
+      exporting={exporting(open === 'export', openChange('export'), clusterRef)}
+    />
   );
 }
