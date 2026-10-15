@@ -10,9 +10,15 @@ export const lookSlug = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+
 
 export const findLook = (slug: string | null): Look | undefined => slug ? LOOKS.find((l) => lookSlug(l.name) === slug) : undefined;
 
-/** The library defaults, except that the playground's 3D terrain is endless. The library default stays 'block'. */
+/** The playground's 3D camera for generated terrain. The library's DEFAULT_CAMERA stays as it is. */
+export const PLAYGROUND_CAMERA = { azimuth: 349.7, elevation: 33.6, radius: 1.92 } as const;
+
+/**
+ * The library defaults, except for the playground's 3D view of generated terrain: endless, from
+ * PLAYGROUND_CAMERA. The library defaults stay 'block' and DEFAULT_CAMERA, so exported code states these.
+ */
 export const baseline = (input: SettingsInput = {}): Settings =>
-  mergeSettings(resolveSettings(input), { extent: input.extent ?? 'endless' });
+  mergeSettings(resolveSettings(input), { extent: input.extent ?? 'endless', camera: { ...PLAYGROUND_CAMERA, ...input.camera } });
 
 const HEX = /^#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
 const colourOut = (c: string) => HEX.test(c) ? c.slice(1) : c;

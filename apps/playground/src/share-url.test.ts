@@ -46,6 +46,15 @@ describe('share url', () => {
     roundTrip(s);
   });
 
+  it('uses the playground camera as the baseline and keeps it out of the URL', () => {
+    expect(baseline().camera).toMatchObject({ azimuth: 349.7, elevation: 33.6, radius: 1.92 });
+    expect(readSettings('mode=3d').camera).toMatchObject({ azimuth: 349.7, elevation: 33.6, radius: 1.92 });
+    expect(query(mergeSettings(baseline(), { mode: '3d' }))).toBe('mode=3d');
+    const map = mergeSettings(baseline(), { mode: '3d', camera: { azimuth: 341.8, elevation: 39.3, radius: 1.32 } });
+    expect(query(map)).toBe('mode=3d&az=341.8&ce=39.3&rd=1.32');
+    roundTrip(map);
+  });
+
   it('writes colours without # and reads them back', () => {
     const s = baseline({ style: 'gentle-summit', seed: 4, theme: { mode: 'dark', ink: '#9fb0cc', paper: '#0b0b0d' } });
     expect(query(s)).toBe('s=gentle-summit&seed=4&m=dark&ink=9fb0cc&paper=0b0b0d');
