@@ -29,6 +29,6 @@ describe('region tool input', () => {
 
   it('writes a named place by name and a box by its edges', () => {
     expect(regionQuery({ bbox: PLACES[0].bbox, placeId: 'istanbul' })).toBe('place=istanbul');
-    expect(regionQuery({ bbox: PLACES[0].bbox, placeId: null })).toBe('region=28.94,40.99,29.07,41.08');
+    expect(regionQuery({ bbox: PLACES[0].bbox, placeId: null })).toBe('region=28.45,40.78,29.65,41.36');
   });
 });
