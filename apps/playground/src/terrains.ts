@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { mergeSettings } from 'topographic';
+import { useCallback, useEffect, useRef } from 'react';
+import { mergeSettings, type Settings } from 'topographic';
 import type { BBox } from './region/pipeline';
 import { MAP_TERRAIN_DEFAULTS, sameBox } from './region/places';
 import { useRegion, type RegionController } from './region/useRegion';
@@ -26,6 +26,11 @@ export interface Terrains {
   shuffle(): void;
 }
 
+/** How long after the last change an edit is written to the active saved item. */
+const SAVE_DELAY = 500;
+/** How long after the last change the active saved item's picture is drawn again. */
+const THUMB_DELAY = 1000;
+
 export function useTerrains(pg: Playground): Terrains {
   const region = useRegion(pg);
   const saved = useSaved();
@@ -34,14 +39,41 @@ export function useTerrains(pg: Playground): Terrains {
 
   const activeSaved = region.bbox ? saved.items.find((it) => sameBox(it.bbox, region.bbox!)) ?? null : null;
 
-  // A new saved item gets its picture once its place has loaded.
+  // Edits to the active saved item are written back after half a second, except the camera:
+  // a click on the item always brings back the camera it was saved with.
+  const pending = useRef<{ id: string; settings: Settings } | null>(null);
+  const timer = useRef(0);
+  const { update } = saved;
+  const flush = useCallback(() => {
+    window.clearTimeout(timer.current);
+    const next = pending.current;
+    pending.current = null;
+    if (next) update(next.id, next.settings);
+  }, [update]);
+  const activeId = activeSaved?.id ?? null;
+  const savedCamera = activeSaved?.settings.camera;
   useEffect(() => {
-    if (region.status !== 'ready' || !region.field || !activeSaved || activeSaved.thumb) return;
+    if (!activeId || !savedCamera) return;
+    pending.current = { id: activeId, settings: { ...pg.settings, camera: { ...savedCamera } } };
+    window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(flush, SAVE_DELAY);
+  }, [pg.settings, activeId, savedCamera, flush]);
+  // A different item, or none: write what is still pending for the last one.
+  useEffect(() => flush, [activeId, flush]);
+
+  // The active item's picture: drawn once its place has loaded, and again a second after its settings change.
+  const thumbKey = activeSaved ? JSON.stringify({ ...activeSaved.settings, camera: null }) : '';
+  useEffect(() => {
+    if (region.status !== 'ready' || !region.field || !activeSaved) return;
     let dead = false;
-    const { id, settings } = activeSaved;
-    placeThumb(settings, region.field).then((url) => { if (!dead && url) saved.setThumb(id, url); });
-    return () => { dead = true; };
-  }, [region.status, region.field, activeSaved, saved]);
+    const { id, settings, thumb } = activeSaved;
+    const field = region.field;
+    const draw = () => placeThumb(settings, field).then((url) => { if (!dead && url) saved.setThumb(id, url); });
+    const wait = thumb ? window.setTimeout(draw, THUMB_DELAY) : (draw(), 0);
+    return () => { dead = true; window.clearTimeout(wait); };
+    // Keyed on the settings without the camera, so a camera drag does not redraw it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [region.status, region.field, activeId, thumbKey]);
 
   return {
     region,
@@ -55,8 +87,10 @@ export function useTerrains(pg: Playground): Terrains {
       saved.save({ bbox, placeId, settings });
     },
     openSaved(item) {
+      flush();
       if (!region.bbox || !sameBox(region.bbox, item.bbox)) region.showPlace(item.bbox, item.placeId);
-      live.current.replace(item.settings);
+      // The camera motion is a way of playing the view, not part of the terrain, so it stays.
+      live.current.replace(mergeSettings(item.settings, { camera: { motion: live.current.settings.camera.motion } }));
     },
     openLook(i) {
       if (region.bbox) region.clear();

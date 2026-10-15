@@ -112,6 +112,8 @@ export interface SavedStore {
   items: SavedTerrain[];
   save(entry: { bbox: BBox; placeId: string | null; settings: Settings }): SavedTerrain;
   remove(id: string): void;
+  /** Writes new settings into an item; the box and name stay. */
+  update(id: string, settings: Settings): void;
   setThumb(id: string, thumb: string): void;
 }
 
@@ -131,9 +133,14 @@ export function useSaved(): SavedStore {
     return item;
   }, [commit]);
   const remove = useCallback((id: string) => commit(live.current.filter((it) => it.id !== id)), [commit]);
+  const update = useCallback((id: string, settings: Settings) => {
+    const key = JSON.stringify(settings);
+    if (!live.current.some((it) => it.id === id && JSON.stringify(it.settings) !== key)) return;
+    commit(live.current.map((it) => (it.id === id ? { ...it, settings } : it)));
+  }, [commit]);
   const setThumb = useCallback((id: string, thumb: string) => {
     if (thumb.length > THUMB_MAX || !live.current.some((it) => it.id === id && it.thumb !== thumb)) return;
     commit(live.current.map((it) => (it.id === id ? { ...it, thumb } : it)));
   }, [commit]);
-  return { items, save, remove, setThumb };
+  return { items, save, remove, update, setThumb };
 }
