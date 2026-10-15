@@ -76,7 +76,7 @@ export function Section({ title, resetIf, onReset, children }: {
 }
 
 /** A number: label, slider, value. */
-export function SliderRow({ label, name, hint, value, min, max, step, shown, onChange }: {
+export function SliderRow({ label, name, hint, value, min, max, step, shown, valueText, disabled, onChange }: {
   label: string;
   /** The slider's accessible name, when it says more than the short label. */
   name?: string;
@@ -86,10 +86,14 @@ export function SliderRow({ label, name, hint, value, min, max, step, shown, onC
   max: number;
   step: number;
   shown: string;
+  /** The value as a screen reader should say it, when it differs from the number, such as "1.4 px". */
+  valueText?: string;
+  /** Dimmed and not interactive, for a setting that has no effect right now. */
+  disabled?: boolean;
   onChange: (n: number) => void;
 }) {
   return (
-    <div className="pt-row">
+    <div className={`pt-row${disabled ? ' is-off' : ''}`}>
       <span className="pt-row-label" title={hint}>{label}</span>
       <Slider.Root
         className="pt-slider"
@@ -98,12 +102,13 @@ export function SliderRow({ label, name, hint, value, min, max, step, shown, onC
         step={step}
         value={value}
         thumbAlignment="center"
+        disabled={disabled}
         onValueChange={(next) => onChange(typeof next === 'number' ? next : next[0])}
       >
         <Slider.Control className="pt-slider-control">
           <Slider.Track className="pt-slider-track">
             <Slider.Indicator className="pt-slider-ind" />
-            <Slider.Thumb className="pt-slider-thumb" aria-label={name ?? label} />
+            <Slider.Thumb className="pt-slider-thumb" aria-label={name ?? label} getAriaValueText={valueText ? () => valueText : undefined} />
           </Slider.Track>
         </Slider.Control>
       </Slider.Root>

@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { Heightfield } from 'topographic';
+import { DEFAULT_ELEVATION, type Heightfield } from 'topographic';
+import { baseline } from '../share-url';
 import type { Playground } from '../shared';
 import { limitMessage, limitProblem, spanOf, type BBox, type ReliefMode, type SmoothLevel, type Span } from './pipeline';
-import { findPlace } from './places';
+import { beforePlace, findPlace, MAP_TERRAIN_DEFAULTS, type BeforePlace } from './places';
 import { registerRegionTools } from './register';
 import { readRegion, writeRegion, type RegionQuery } from './url';
 import { withQuery, writeSettings } from '../share-url';
@@ -26,7 +27,13 @@ export interface RegionController {
   status: 'idle' | 'loading' | 'ready' | 'error';
   error: string | null;
   info: RegionInfo | null;
+  /** The loaded heightfield of the applied place, or null. */
+  field: Heightfield | null;
+  /** Applies a place with MAP_TERRAIN_DEFAULTS on top of the settings. */
   setPlace(bbox: BBox, placeId: string | null): void;
+  /** Applies a place and leaves the settings alone, for a saved terrain that brings its own. */
+  showPlace(bbox: BBox, placeId: string | null): void;
+  /** Returns to the generated terrain and to the lines, camera, extent and elevation from before the first place. */
   clear(): void;
 }
 
@@ -36,6 +43,12 @@ const SMOOTH: SmoothLevel = 'medium';
 
 function queryOf(bbox: BBox | null, placeId: string | null): RegionQuery {
   return { bbox, place: placeId };
+}
+
+/** Without a remembered state (a place opened from a link), Clear returns to the playground's defaults for the style. */
+function generatedView(style: string): BeforePlace {
+  const d = baseline({ style });
+  return { lines: d.lines, camera: d.camera, extent: d.extent, elevation: d.elevation ?? DEFAULT_ELEVATION };
 }
 
 export function useRegion(pg: Playground): RegionController {
@@ -48,6 +61,7 @@ export function useRegion(pg: Playground): RegionController {
   const [info, setInfo] = useState<RegionInfo | null>(null);
   const [generation, setGeneration] = useState(0);
   const fieldRef = useRef<Heightfield | null>(null);
+  const [field, setField] = useState<Heightfield | null>(null);
   const workerRef = useRef<Worker | null>(null);
   const [workerReady, setWorkerReady] = useState(false);
   const request = useRef(0);
@@ -86,6 +100,7 @@ export function useRegion(pg: Playground): RegionController {
       if (event.data.id !== id) return;
       if (!event.data.ok) {
         fieldRef.current = null;
+        setField(null);
         setInfo(null);
         setStatus('error');
         setError(event.data.error);
@@ -93,6 +108,7 @@ export function useRegion(pg: Playground): RegionController {
         return;
       }
       fieldRef.current = { samples: event.data.samples, size: event.data.size, aspect: event.data.aspect };
+      setField(fieldRef.current);
       setInfo({
         minM: event.data.minM,
         maxM: event.data.maxM,
@@ -128,27 +144,45 @@ export function useRegion(pg: Playground): RegionController {
   }, [generation, pg]);
 
   const name = findPlace(placeId)?.name ?? (bbox ? 'Custom' : '');
-  const setPlace = useCallback((next: BBox, id: string | null) => {
+  const pgRef = useRef(pg);
+  pgRef.current = pg;
+  const bboxRef = useRef(bbox);
+  bboxRef.current = bbox;
+  // The settings from before the first place, restored by clear().
+  const before = useRef<BeforePlace | null>(null);
+  const showPlace = useCallback((next: BBox, id: string | null) => {
     const problem = limitProblem(next);
     if (problem) {
       setError(limitMessage(problem));
       setStatus('error');
       return;
     }
+    if (!bboxRef.current && before.current === null) before.current = beforePlace(settingsRef.current);
+    bboxRef.current = next;
     setPlaceId(id);
     setBbox(next);
   }, []);
+  const setPlace = useCallback((next: BBox, id: string | null) => {
+    if (limitProblem(next)) return showPlace(next, id);
+    showPlace(next, id);
+    pgRef.current.change(MAP_TERRAIN_DEFAULTS);
+  }, [showPlace]);
   const clear = useCallback(() => {
+    const had = Boolean(bboxRef.current);
+    bboxRef.current = null;
     fieldRef.current = null;
+    setField(null);
     setBbox(null);
     setPlaceId(null);
     setInfo(null);
     setError(null);
     setStatus('idle');
     setGeneration((n) => n + 1);
+    if (had) pgRef.current.change(before.current ?? generatedView(settingsRef.current.style));
+    before.current = null;
   }, []);
   const agent: RegionController = {
-    bbox, placeId, name, status, error, info, setPlace, clear,
+    bbox, placeId, name, status, error, info, field, setPlace, showPlace, clear,
   };
   const liveRef = useRef(agent);
   liveRef.current = agent;

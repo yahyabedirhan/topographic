@@ -3,10 +3,11 @@ import { AttributionControl, Map as MapLibre, setWorkerUrl, type Map as MapMap }
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { limitMessage, limitProblem, spanOf, type BBox } from './pipeline';
-import { mapStyle, type MapAppearance } from './basemap';
-import { findPlace, FRAME, PLACES } from './places';
+import { mapStyle, ELEVATION_CREDIT, type MapAppearance } from './basemap';
+import { findPlace, FRAME, PLACES, sameBox } from './places';
 import type { RegionController } from './useRegion';
 import { km } from './controls';
+import { SegRow } from '../parts';
 
 setWorkerUrl(maplibreWorkerUrl);
 
@@ -35,24 +36,24 @@ function readFrame(map: MapMap, frame: HTMLElement, host: HTMLElement): BBox {
   };
 }
 
-/** Two boxes count as the same place when every edge is within about ten metres. */
-function sameBox(a: BBox, b: BBox): boolean {
-  const near = (x: number, y: number) => Math.abs(x - y) < 1e-4;
-  return near(a.west, b.west) && near(a.south, b.south) && near(a.east, b.east) && near(a.north, b.north);
-}
-
 /** A box chosen by name, or the applied one: it stands for the frame until the person pans or zooms. */
 interface Held {
   bbox: BBox;
   placeId: string | null;
 }
 
+const CITIES = PLACES.map((place) => ({ id: place.id, label: place.name }));
+
 /**
- * The Place popover's content: a map with a frame, quick city pills, and Apply. Moving the map or
- * picking a city only moves the frame; Apply makes the framed area the terrain. "Generated" returns
- * to the procedural terrain at once. The map keeps a 16:10 ratio, so the frame stays near 1.5:1.
+ * The Map popover's content: a map with a frame, a City choice, then Clear and Apply. Moving the map
+ * or picking a city only moves the frame; Apply makes the framed area the terrain (and a saved dock
+ * item). Clear returns to the generated terrain. The map keeps a 16:10 ratio, so the frame stays near 1.5:1.
  */
-export function PlacePanel({ region, appearance }: { region: RegionController; appearance: MapAppearance }) {
+export function PlacePanel({ region, onApply, appearance }: {
+  region: RegionController;
+  onApply: (bbox: BBox, placeId: string | null) => void;
+  appearance: MapAppearance;
+}) {
   const root = useRef<HTMLDivElement>(null);
   const host = useRef<HTMLDivElement>(null);
   const frame = useRef<HTMLDivElement>(null);
@@ -80,7 +81,7 @@ export function PlacePanel({ region, appearance }: { region: RegionController; a
         pitchWithRotate: false,
         maxPitch: 0,
       });
-      m.addControl(new AttributionControl({ compact: true }), 'top-right');
+      m.addControl(new AttributionControl({ compact: true, customAttribution: ELEVATION_CREDIT }), 'top-left');
       map = m;
       mapRef.current = m;
       const refresh = () => {
@@ -111,7 +112,7 @@ export function PlacePanel({ region, appearance }: { region: RegionController; a
     };
   }, [appearance]);
 
-  // Apply sits at the end of the pill row while the popover fits, and moves to a header row when it scrolls.
+  // Clear and Apply sit under the City row while the popover fits, and move above the map when it scrolls.
   useLayoutEffect(() => {
     const pop = root.current?.closest('.pt-pop');
     const body = root.current;
@@ -137,18 +138,21 @@ export function PlacePanel({ region, appearance }: { region: RegionController; a
   };
   const apply = () => {
     if (!candidate || problem) return;
-    region.setPlace(candidate.bbox, candidate.placeId);
+    onApply(candidate.bbox, candidate.placeId);
     setHeld(candidate);
   };
-  const applyButton = (
-    <button type="button" className="pt-use pt-apply" disabled={applied || !candidate || !!problem} onClick={apply}>
-      {applied ? (region.status === 'loading' ? 'Applying…' : 'Applied') : 'Apply'}
-    </button>
+  const actions = (
+    <div className="pt-place-actions">
+      {region.bbox ? <button type="button" className="pt-action pt-action-quiet pt-clear" onClick={region.clear}>Clear</button> : null}
+      <button type="button" className="pt-action pt-apply" disabled={applied || !candidate || !!problem} onClick={apply}>
+        {applied ? (region.status === 'loading' ? 'Applying…' : 'Applied') : 'Apply'}
+      </button>
+    </div>
   );
 
   return (
     <div ref={root} className="pt-place">
-      {scrolls && <div className="pt-place-head">{applyButton}</div>}
+      {scrolls && actions}
       <div className="pt-mapbox pt-map">
         <div ref={host} className="pt-map-host" />
         <div ref={frame} className="pt-map-frame" />
@@ -156,24 +160,10 @@ export function PlacePanel({ region, appearance }: { region: RegionController; a
           {problem ? limitMessage(problem) : applied && region.status === 'error' ? region.error : span ? `${km(span.widthM)} × ${km(span.heightM)}` : ''}
         </span>
       </div>
-      <div className="pt-pills">
-        <div className="pt-pill-set" role="group" aria-label="Places">
-          <button type="button" className="pt-pill" aria-pressed={!region.bbox} onClick={region.clear}>Generated</button>
-          {PLACES.map((place) => (
-            <button
-              key={place.id}
-              type="button"
-              className="pt-pill"
-              aria-pressed={Boolean(region.bbox) && region.placeId === place.id}
-              onClick={() => flyTo(place.id)}
-            >
-              {place.name}
-            </button>
-          ))}
-        </div>
-        {!scrolls && applyButton}
+      <div className="pt-place-cities">
+        <SegRow label="City" options={CITIES} value={held?.placeId ?? null} onChange={flyTo} />
       </div>
-      <p className="pt-attrib">Elevation: Mapzen Terrain Tiles, AWS Open Data.</p>
+      {!scrolls && actions}
     </div>
   );
 }

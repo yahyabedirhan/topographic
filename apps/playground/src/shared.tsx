@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useRef, useState, type MutableRefObject, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import {
   GROUPS, STYLES, THEME_DEFAULTS, clampParam, createTopographicBackground, mergeSettings, paramsIn, resolveMode, resolveSettings, rgbaToCss,
-  type GroupName, type ParamDef, type Settings, type SettingsInput, type TopographicBackground as Instance,
+  type GroupName, type Heightfield, type ParamDef, type Settings, type SettingsInput, type TopographicBackground as Instance,
 } from 'topographic';
 import { TopographicBackground } from 'topographic-react';
 import { registerTools } from './webmcp';
 import { configOf, readUrl } from './url';
 import { withQuery, writeSettings } from './share-url';
 import { LOOKS } from './looks';
+import { keepShape } from './shape';
 
 export interface Playground {
   settings: Settings;
@@ -15,7 +16,10 @@ export interface Playground {
   change(patch: SettingsInput): void;
   applyLook(i: number): void;
   lookIndex: number;
-  shuffle(): void;
+  /** Rolls new settings. With keepShape, the generated shape stays (a map place is applied). */
+  shuffle(keepShape?: boolean): void;
+  /** Replaces every setting, for a saved terrain. */
+  replace(next: Settings): void;
   instance: MutableRefObject<Instance | null>;
 }
 
@@ -113,12 +117,13 @@ export function usePlayground(): Playground {
     return LOOKS.findIndex((look) => terrainKey(resolveSettings(look.settings)) === key);
   }, [settings]);
 
-  const shuffle = () => {
+  const shuffle = (keep = false) => {
     cancelAnimationFrame(frame.current);
     const from = latest.current;
-    const goal = mergeSettings(rollSettings(), {
+    const rolled = mergeSettings(rollSettings(), {
       mode: from.mode, elevation: from.elevation, extent: from.extent, detail: from.detail, camera: from.camera,
     });
+    const goal = keep ? keepShape(rolled, from) : rolled;
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
       setSettings(goal);
       return;
@@ -135,6 +140,7 @@ export function usePlayground(): Playground {
   return {
     settings, mode, instance, lookIndex, shuffle,
     change: (patch) => setSettings((s) => mergeSettings(s, patch)),
+    replace: (next) => { cancelAnimationFrame(frame.current); setSettings(next); },
     applyLook: (i) => setSettings((s) => mergeSettings(resolveSettings(LOOKS[i].settings), {
       mode: s.mode, elevation: s.elevation, extent: s.extent, detail: s.detail, camera: s.camera,
     })),
@@ -245,28 +251,38 @@ export function Backdrop({ pg, className = 'pt-stage' }: { pg: Playground; class
   );
 }
 
+/** Dock thumbnails draw the 2D map a little bolder and centred, so the lines read at 84 × 48. */
+function thumbSettings(r: Settings): SettingsInput {
+  return {
+    ...r,
+    mode: '2d',
+    layout: { ...r.layout, anchor: 1, fade: 0 },
+    lines: {
+      ...r.lines,
+      count: Math.max(12, Math.round(r.lines.count * 0.8)),
+      width: Math.max(0.06, r.lines.width * 0.62),
+      opacity: Math.min(1, r.lines.opacity * 1.25),
+    },
+  };
+}
+
+function hiddenHost(width: number, height: number): HTMLDivElement {
+  const host = document.createElement('div');
+  Object.assign(host.style, { position: 'fixed', left: '-9999px', top: '0', width: `${width / 2}px`, height: `${height / 2}px` });
+  document.body.append(host);
+  return host;
+}
+
 export function useLookThumbs(width = 168, height = 96): string[] {
   const [urls, setUrls] = useState<string[]>([]);
   useEffect(() => {
     let dead = false;
-    const host = document.createElement('div');
-    Object.assign(host.style, { position: 'fixed', left: '-9999px', top: '0', width: `${width / 2}px`, height: `${height / 2}px` });
-    document.body.append(host);
+    const host = hiddenHost(width, height);
     const t = createTopographicBackground(host, { theme: resolveSettings(LOOKS[0].settings).theme });
     (async () => {
       const out: string[] = [];
       for (const look of LOOKS) {
-        const r = resolveSettings(look.settings);
-        t.update({
-          ...r,
-          layout: { ...r.layout, anchor: 1, fade: 0 },
-          lines: {
-            ...r.lines,
-            count: Math.max(12, Math.round(r.lines.count * 0.8)),
-            width: Math.max(0.06, r.lines.width * 0.62),
-            opacity: Math.min(1, r.lines.opacity * 1.25),
-          },
-        });
+        t.update(thumbSettings(resolveSettings(look.settings)));
         try { out.push(URL.createObjectURL(await t.snapshot({ frame: 4000, width, height }))); } catch { out.push(''); }
         if (dead) return;
         setUrls([...out]);
@@ -275,6 +291,31 @@ export function useLookThumbs(width = 168, height = 96): string[] {
     return () => { dead = true; };
   }, [width, height]);
   return urls;
+}
+
+/**
+ * A saved map terrain's dock picture: the place's heights in its own settings, drawn like a look
+ * thumbnail. Returns a small WebP (or JPEG) data URL that fits in localStorage, or null.
+ */
+export async function placeThumb(settings: Settings, field: Heightfield, width = 168, height = 96): Promise<string | null> {
+  const host = hiddenHost(width, height);
+  const t = createTopographicBackground(host, thumbSettings(settings));
+  try {
+    t.setHeightfield(field);
+    const blob = await t.snapshot({ frame: 4000, width, height });
+    const bitmap = await createImageBitmap(blob);
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    canvas.getContext('2d')!.drawImage(bitmap, 0, 0);
+    const webp = canvas.toDataURL('image/webp', 0.82);
+    return webp.startsWith('data:image/webp') ? webp : canvas.toDataURL('image/jpeg', 0.82);
+  } catch {
+    return null;
+  } finally {
+    t.destroy();
+    host.remove();
+  }
 }
 
 export const GROUP_LABELS: Record<GroupName, string> = { lines: 'Lines', terrain: 'Terrain', motion: 'Motion', layout: 'Layout' };

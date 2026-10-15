@@ -8,6 +8,9 @@ export const PLANET_TILEJSON = 'https://tiles.openfreemap.org/planet';
 
 export const MAP_CREDIT = 'OpenFreeMap © OpenMapTiles Data from OpenStreetMap';
 
+/** The terrain heights' source. It sits in the map's attribution control next to the map credit. */
+export const ELEVATION_CREDIT = 'Elevation: Mapzen Terrain Tiles, AWS Open Data';
+
 export type BasemapId = 'quiet' | 'liberty';
 export type MapAppearance = 'light' | 'dark';
 

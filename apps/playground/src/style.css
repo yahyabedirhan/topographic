@@ -47,9 +47,10 @@ input[type=color]{width:30px;height:24px;padding:0;border:0;border-radius:6px;ba
 .pt-ibtn:active{transform:scale(.96)}
 /* A fill in the cluster means one thing: this button's popover is open. 2D/3D shows its state by its icon. */
 .pt-cluster .pt-ibtn[data-popup-open]{background:color-mix(in srgb,var(--fg) 14%,transparent)}
-/* 2D/3D: a small icon over a caption that names the current mode. */
-.pt-ibtn.pt-mode{grid-template-rows:auto auto;align-content:center;justify-items:center;row-gap:2px}
-.pt-mode-tag{font:600 9px/1 var(--sans);font-variant-numeric:tabular-nums;letter-spacing:.02em}
+/* 2D/3D: the icon stays centred; a small badge on the top-right corner names the current mode. */
+.pt-ibtn.pt-mode{position:relative}
+.pt-mode-tag{position:absolute;top:-1px;right:-5px;padding:2px 3px;border-radius:999px;font:600 9px/1 var(--sans);font-variant-numeric:tabular-nums;letter-spacing:.02em;
+  color:var(--paper);background:var(--fg);box-shadow:0 0 0 1.5px color-mix(in srgb,var(--paper) 85%,transparent);pointer-events:none}
 /* Map carries a dot while a place is applied. */
 .pt-ibtn.has-dot{position:relative}
 .pt-ibtn.has-dot::after{content:'';position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--fg);box-shadow:0 0 0 2px color-mix(in srgb,var(--paper) 80%,transparent)}
@@ -67,6 +68,16 @@ input[type=color]{width:30px;height:24px;padding:0;border:0;border-radius:6px;ba
 .pt-thumb-name{position:absolute;left:0;right:0;bottom:0;padding:14px 8px 5px;font-size:10px;line-height:1.15;text-align:left;color:#fff;
   background:linear-gradient(transparent,rgba(0,0,0,.66));opacity:0;transition:opacity .2s}
 .pt-thumb:hover .pt-thumb-name,.pt-thumb[aria-current="true"] .pt-thumb-name{opacity:1}
+/* Saved map terrains: a small globe mark, a delete button on hover or focus, and a divider before the looks. */
+.pt-saved{position:relative;flex:none;scroll-snap-align:start}
+.pt-thumb-blank{display:block;width:100%;height:100%;background:color-mix(in srgb,var(--fg) 8%,transparent)}
+.pt-thumb-mark{position:absolute;top:5px;left:7px;color:#fff;filter:drop-shadow(0 0 2px rgba(0,0,0,.7))}
+button.pt-thumb-del{position:absolute;top:2px;right:2px;width:18px;height:18px;padding:0;border:0;border-radius:50%;display:grid;place-items:center;line-height:0;
+  color:var(--fg);background:color-mix(in srgb,var(--paper) 82%,transparent);box-shadow:inset 0 0 0 .5px var(--line);opacity:0;transition:opacity .15s}
+.pt-saved:hover button.pt-thumb-del,button.pt-thumb-del:focus-visible{opacity:1}
+button.pt-thumb-del:hover{background:var(--paper)}
+@media (hover:none){button.pt-thumb-del{opacity:1}}
+.pt-dock-divider{flex:none;align-self:center;width:1px;height:28px;background:var(--line)}
 /* The dock's right end: theme, shuffle, paper, ink. 28px circles and 28px slots, centres 30px apart. */
 .pt-dock-tools{display:flex;gap:2px;align-items:center;flex:none;padding-inline:6px 2px}
 .pt-tool-slot{width:28px;height:28px;display:grid;place-items:center}
@@ -126,6 +137,12 @@ button.pt-sec-reset:hover{background:color-mix(in srgb,var(--fg) 8%,transparent)
 .pt-row > .pt-seg,.pt-row > .pt-row-wide{grid-column:2 / -1}
 .pt-row > .pt-row-wide{justify-self:start}
 .pt-row .pt-slider-control{padding:0;height:22px}
+/* A row a map place overrides: dimmed and not interactive. */
+.pt-row.is-off{opacity:.4}
+.pt-row.is-off .pt-slider-control{cursor:default}
+.pt-place-note{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 8px;margin:4px 0 2px;color:var(--mut);font-size:12px;line-height:1.4}
+button.pt-text-btn{padding:0;border:0;border-radius:4px;background:none;box-shadow:none;color:var(--fg);font-size:12px;text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
+button.pt-text-btn:hover{background:none;text-decoration-color:currentColor}
 /* Segmented control: every choice. */
 .pt-seg{display:flex;padding:2px;border-radius:9px;background:color-mix(in srgb,var(--fg) 7%,transparent)}
 .pt-seg button{flex:1 1 0;min-width:0;height:24px;padding:0 2px;border:0;border-radius:7px;background:transparent;box-shadow:none;color:var(--mut);font-size:12px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -136,25 +153,32 @@ button.pt-sec-reset:hover{background:color-mix(in srgb,var(--fg) 8%,transparent)
 .pt-map-span{position:absolute;z-index:2;bottom:8px;padding:3px 8px;border-radius:999px;font:11px/1.2 var(--sans);color:#ecebe8;background:rgba(0,0,0,.45);
   backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);pointer-events:none;max-width:calc(100% - 20px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pt-map-span{right:10px;font-variant-numeric:tabular-nums}
-/* Place: the map, then the city pills with Apply at the row's end. Apply moves to a header row when the popover scrolls. */
-.pt-place-head{display:flex;justify-content:flex-end;margin:0 0 10px}
-.pt-pills{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px}
-.pt-pill-set{display:flex;flex-wrap:wrap;gap:6px;min-width:0}
-.pt-pills > .pt-apply{margin-left:auto}
-button.pt-pill{height:28px;padding:0 11px;border:0;border-radius:999px;background:color-mix(in srgb,var(--fg) 7%,transparent);box-shadow:none;color:var(--mut);font-size:12px;line-height:1;white-space:nowrap}
-button.pt-pill:hover{background:color-mix(in srgb,var(--fg) 11%,transparent);color:var(--fg)}
-button.pt-pill[aria-pressed="true"]{background:var(--seg-on);box-shadow:var(--seg-shadow);color:var(--fg)}
-.pt-place .pt-attrib{margin-top:10px;color:var(--mut);font-size:10.5px;line-height:1.3}
-button.pt-use{padding:7px 14px;border:0;border-radius:999px;background:var(--fg);color:var(--paper);font-size:13px;white-space:nowrap}
-button.pt-use:disabled{opacity:.38}
+/* Map: the map, the City row on the popover grid, then Clear and Apply at the end. They move above the map when the popover scrolls. */
+.pt-place-cities{margin-top:8px}
+.pt-place-actions{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:8px}
+.pt-place > .pt-place-actions:first-child{margin:0 0 10px}
 .pt-map{position:relative}
 .pt-map .pt-map-host{position:absolute;inset:0;background:var(--paper)}
 .pt-map-host .maplibregl-map{font-family:var(--sans)}
-.pt-map .pt-map-host .maplibregl-ctrl-attrib{background:color-mix(in srgb,var(--paper) 78%,transparent);color:var(--mut);font:10px/1.35 var(--sans);border-radius:8px}
-.pt-map .pt-map-host .maplibregl-ctrl-attrib a{color:var(--mut)}
+/* The map credit: a quiet (i) in the top-left corner that opens into a small glass label. The size readout keeps the bottom-right. */
+.pt-map .maplibregl-ctrl-top-left{top:8px;left:8px;right:8px;display:flex}
+.pt-map .maplibregl-ctrl-top-left .maplibregl-ctrl-attrib.maplibregl-compact{float:none;display:flex;align-items:flex-start;gap:2px;min-height:0;max-width:100%;margin:0;padding:2px;box-sizing:border-box;
+  border-radius:12px;color:var(--mut);font:10.5px/1.35 var(--sans);background:color-mix(in srgb,var(--paper) 72%,transparent);
+  box-shadow:inset 0 0 0 .5px var(--line);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.pt-map .maplibregl-ctrl-attrib.maplibregl-compact::after{content:none}
+.pt-map .maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-button{position:static;display:block;flex:none;width:18px;height:18px;border-radius:50%;cursor:pointer;
+  background:color-mix(in srgb,var(--fg) 8%,transparent);box-shadow:none;color:var(--mut)}
+.pt-map .maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-button::before{content:'i';display:block;font:italic 600 11px/18px Georgia,serif;text-align:center}
+.pt-map .maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-button:hover{color:var(--fg);background:color-mix(in srgb,var(--fg) 14%,transparent)}
+.pt-map .maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-button:focus{box-shadow:none}
+.pt-map .maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-button:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.pt-map .maplibregl-ctrl-attrib.maplibregl-compact-show{padding:2px 9px 2px 2px}
+.pt-map .maplibregl-ctrl-attrib.maplibregl-compact-show .maplibregl-ctrl-attrib-button{background:color-mix(in srgb,var(--fg) 14%,transparent);color:var(--fg)}
+.pt-map .maplibregl-ctrl-attrib-inner{padding:1px 0 1px 3px}
+.pt-map .maplibregl-ctrl-attrib a{color:var(--mut);text-decoration:none}
+.pt-map .maplibregl-ctrl-attrib a:hover{color:var(--fg);text-decoration:underline}
 .pt-map-frame{position:absolute;left:16%;right:16%;top:13%;bottom:16%;border:1.5px solid #fff;border-radius:14px;box-shadow:0 0 0 999px rgba(0,0,0,.38);pointer-events:none}
 :root[data-theme=light] .pt-map-frame{border-color:#1b1b1a;box-shadow:0 0 0 999px rgba(249,248,246,.55)}
-.pt-attrib{font-size:11px}
 .pt-export-block{display:grid;gap:8px;padding-top:8px}
 .pt-export-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .pt-export-head .pt-hint{flex:1;min-width:0}
@@ -176,6 +200,10 @@ button.pt-use:disabled{opacity:.38}
 :root[data-theme=light] .pt-syn-num{color:#215a96}
 .pt-action{justify-self:start;border:0;border-radius:999px;padding:8px 14px;background:var(--on);color:var(--on-fg);box-shadow:none}
 .pt-action:hover{background:var(--on)}
+.pt-action:disabled{opacity:.38;cursor:default}
+/* The quiet sibling of a primary action, such as Clear next to Apply. */
+.pt-action.pt-action-quiet{background:color-mix(in srgb,var(--fg) 8%,transparent);color:var(--fg)}
+.pt-action.pt-action-quiet:hover{background:color-mix(in srgb,var(--fg) 13%,transparent)}
 .pt-pngs{display:grid;gap:2px;padding:3px;border-radius:14px;background:color-mix(in srgb,var(--fg) 6%,transparent)}
 .pt-sec-body > .pt-pngs{margin-top:4px}
 .pt-size{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:8px 12px;border-radius:11px;background:transparent;box-shadow:none;text-align:left;color:var(--fg)}
