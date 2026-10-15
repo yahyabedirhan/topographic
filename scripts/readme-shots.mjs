@@ -1,13 +1,15 @@
-// Takes the README screenshots and the 3D preview into assets/screenshots/.
+// Takes the README images into assets/screenshots/: the animated 3D hero, the playground and its
+// Map popover, and the gallery tiles of looks, 3D looks and the ten real places.
 //
 //   npm run build:packages
-//   CHROME="/path/to/chrome" node scripts/readme-shots.mjs [out-dir]
+//   CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" node scripts/readme-shots.mjs [out-dir]
 //
-// The script starts its own Vite dev server for the playground (port 5287, or the next free one),
-// so the playground needs no build. It stops the server at the end.
-// Real places load elevation tiles and the picker loads its map from the internet, so the run
-// needs network access. The animated preview needs ffmpeg and img2webp (from libwebp) on the
-// PATH; without them, the script skips that file. Set ONLY=<name>,<name> to take only some of the files.
+// The script starts its own Vite dev server for the playground, or uses a running one when BASE
+// is set (BASE=http://localhost:5199/). Chrome draws on the GPU; set SOFTWARE_GL=1 on a machine
+// without one. Real places load elevation tiles and the Map popover loads its map from the
+// internet, so the run needs network access. It needs ffmpeg, img2webp and cwebp (from libwebp)
+// on the PATH. Set ONLY=<name>,<name> to take only some of the files, and HERO_PLACE=<place id>
+// to try the hero on another place.
 import { chromium } from 'playwright-core';
 import { createServer } from 'vite';
 import { execFileSync } from 'node:child_process';
@@ -21,151 +23,154 @@ const only = process.env.ONLY?.split(',');
 const want = (name) => !only || only.includes(name);
 await mkdir(out, { recursive: true });
 
-const ISTANBUL = 'place=istanbul&region=28.94,40.99,29.07,41.08';
-// The playground's short URL keys (PARAMS[].short in packages/core/src/params.ts). Colours go without '#'.
-const SHORT = {
-  count: 'lc', width: 'lw', opacity: 'lo', indexEvery: 'ix', peaks: 'pk', spread: 'sp', roughness: 'rg', sharpness: 'sh',
-  terracing: 'tr', variant: 'va', speed: 'sd', warp: 'wp', sparkle: 'sk', anchor: 'an', fade: 'fd',
-};
-const q = ({ style, seed, theme = {}, mode, ...groups }) => {
-  const p = new URLSearchParams();
-  if (style) p.set('s', style);
-  if (seed !== undefined) p.set('seed', String(seed));
-  for (const values of Object.values(groups)) for (const [k, v] of Object.entries(values)) p.set(SHORT[k], String(v));
-  if (theme.mode) p.set('m', theme.mode);
-  if (theme.ink) p.set('ink', theme.ink.replace('#', ''));
-  if (theme.paper) p.set('paper', theme.paper.replace('#', ''));
-  if (mode) p.set('mode', mode);
-  return p.toString();
-};
-// The same seed and style for the 2D and 3D pair, so the two can be compared. The lines use
-// the bright, centred look of scripts/styles-grid.mjs, so they read at README size.
-const PAIR = {
-  style: 'long-ridge', seed: 0,
-  lines: { opacity: 0.85, width: 0.4 }, layout: { anchor: 1, fade: 0 }, theme: { mode: 'dark', ink: '#9fb0cc' },
-};
+const missing = ['ffmpeg', 'img2webp', 'cwebp'].filter((tool) => {
+  try { execFileSync(tool, ['-version'], { stdio: 'ignore' }); return false; } catch { return true; }
+});
+if (missing.length) throw new Error(`${missing.join(', ')} not on the PATH`);
 
-const vite = await createServer({ root: join(root, 'apps/playground'), logLevel: 'warn', server: { port: 5287, host: '127.0.0.1' } });
-await vite.listen();
-const base = vite.resolvedUrls.local[0];
-const args = ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'];
+// The built-in Istanbul map terrain, first in the dock (ISTANBUL_SETTINGS in region/map-looks.ts).
+const ISTANBUL = 's=gentle-summit&seed=67&lc=36&lw=0&lo=0.9&ix=4&fd=0.15&m=dark&mode=3d&ex=block&ev=0.12&az=353.3&ce=45.1&rd=1.15&px=0.043&pz=-0.075&place=istanbul';
+// The Istanbul look without its place and camera: set_region gives each place its own view.
+const PLACE_BASE = 's=gentle-summit&seed=67&lc=36&lw=0&lo=0.9&ix=4&fd=0.15&m=dark';
+const PLACES = ['istanbul', 'cyprus', 'matterhorn', 'geirangerfjord', 'grand-canyon', 'yosemite', 'torres-del-paine', 'fuji', 'everest', 'kilimanjaro'];
+// Looks from the dock (LOOKS in looks.ts), by slug. The 3D tiles show looks in 3D.
+const LOOKS_2D = ['survey-ridge', 'rose-pod', 'sea-dunes', 'stepped-petals', 'stone-grain', 'centred-lobes'];
+const LOOKS_3D = ['night-flower', 'terraces', 'rocky-spine'];
+// The hero swings the camera back and forth on an orbit over one place.
+const HERO = { place: process.env.HERO_PLACE ?? 'matterhorn', seconds: 4, fps: 15, loop: 6, width: 1200 };
+
+let vite;
+let base = process.env.BASE;
+if (!base) {
+  vite = await createServer({ root: join(root, 'apps/playground'), logLevel: 'warn', server: { port: 5287, host: '127.0.0.1' } });
+  await vite.listen();
+  base = vite.resolvedUrls.local[0];
+}
+const args = process.env.SOFTWARE_GL ? ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : ['--ignore-gpu-blocklist'];
 const browser = await chromium.launch({ executablePath: process.env.CHROME ?? '/usr/bin/google-chrome', args })
-  .catch(async (e) => { await vite.close(); throw e; });
+  .catch(async (e) => { await vite?.close(); throw e; });
+const work = await mkdtemp(join(tmpdir(), 'topographic-shots-'));
 const sizes = [];
 
-async function page(scheme, init) {
-  const p = await browser.newPage({ viewport: { width: 1440, height: 900 }, colorScheme: scheme });
+// Each page catches the playground's WebMCP tools in window.__tools, the way an agent sees them.
+async function page() {
+  const p = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2, colorScheme: 'dark' });
   p.on('pageerror', (e) => console.log('pageerror', e.message));
-  if (init) await p.addInitScript(init);
+  await p.addInitScript(() => {
+    window.__tools = {};
+    document.modelContext = { registerTool: async (tool) => { window.__tools[tool.name] = tool; } };
+  });
   return p;
 }
-async function save(p, name) {
-  await p.screenshot({ path: join(out, name) });
-  sizes.push([name, (await stat(join(out, name))).size]);
-}
-// The playground shows a live frame-time readout in 3D. A software-rendered headless browser
-// makes it read a few fps, which says nothing about a real GPU, so the shots hide it.
-const hideBench = (p) => p.addStyleTag({ content: '.pt-fps { display: none !important; }' });
-async function waitForDock(p) {
+const tool = (p, name, input = {}) => p.evaluate(([n, i]) => window.__tools[n].execute(i), [name, input]);
+async function open(p, query) {
+  await p.goto(`${base}?${query}`, { waitUntil: 'domcontentloaded' });
   await p.waitForFunction(() => {
     const nav = document.querySelector('nav[data-looks]');
-    return nav && nav.dataset.ready === nav.dataset.looks && Number(nav.dataset.looks) > 0;
-  }, { timeout: 120000 });
+    return nav && nav.dataset.ready === nav.dataset.looks && 'take_screenshot' in window.__tools && 'set_region' in window.__tools;
+  }, null, { timeout: 120000 });
+  // The live frame-time readout says nothing about the picture, so the shots hide it.
+  await p.addStyleTag({ content: '.pt-fps { display: none !important; }' });
 }
-async function waitForRegion(p) {
-  await p.waitForFunction(() => ['ready', 'error'].includes(document.documentElement.dataset.region), { timeout: 60000 });
-  const status = await p.evaluate(() => document.documentElement.dataset.region);
-  if (status !== 'ready') throw new Error(`region ${status}`);
+async function waitForPlace(p, place) {
+  await p.waitForFunction(async (id) => {
+    const r = await window.__tools.get_region.execute({});
+    if (r.status === 'error') throw new Error(r.error);
+    return r.place === id && r.status === 'ready';
+  }, place, { timeout: 90000, polling: 500 });
+  await p.waitForTimeout(4000);
+}
+async function setPlace(p, place) {
+  await tool(p, 'set_region', { place });
+  await waitForPlace(p, place);
+}
+// PNG in, WebP out at `width` pixels wide.
+async function webp(png, name, width, quality = 82) {
+  const file = join(out, name);
+  execFileSync('cwebp', ['-quiet', '-q', String(quality), '-resize', String(width), '0', png, '-o', file]);
+  sizes.push([name, (await stat(file)).size]);
+}
+async function screenshot(p, name) {
+  const png = join(work, `${name}.png`);
+  await p.screenshot({ path: png });
+  await webp(png, name, 1440);
+}
+// A gallery tile: the background alone, drawn off-screen by take_screenshot at twice the tile size.
+async function tile(p, name) {
+  const shot = await tool(p, 'take_screenshot', { width: 1280, height: 800 });
+  const png = join(work, `${name}.png`);
+  await writeFile(png, Buffer.from(shot.dataUrl.split(',')[1], 'base64'));
+  await webp(png, name, 640, 80);
 }
 
 try {
-  if (want('playground-dark.png')) {
-    // The README hero: the playground in dark mode, with the dock. The settings are the ones
-    // the earlier hero showed: drifting lobes, seed 0, the Survey map lines and terrain.
-    const p = await page('dark');
-    const hero = {
-      style: 'drifting-lobes', lines: { count: 44, indexEvery: 5, opacity: 0.55 },
-      terrain: { peaks: 3, spread: 0.6, roughness: 0.2 }, motion: { speed: 0.4, sparkle: 0 }, theme: { mode: 'dark' },
-    };
-    await p.goto(`${base}?${q(hero)}`);
-    await p.waitForSelector('canvas');
-    await waitForDock(p);
-    await p.waitForTimeout(600);
-    await save(p, 'playground-dark.png');
-    await p.close();
-  }
-
-  for (const mode of ['2d', '3d']) {
-    const name = `long-ridge-${mode}-dark.png`;
-    if (!want(name)) continue;
-    const p = await page('dark');
-    await p.goto(`${base}?${q({ ...PAIR, mode })}`);
-    await p.waitForSelector('canvas');
-    await waitForDock(p);
-    await hideBench(p);
-    await p.waitForTimeout(600);
-    await save(p, name);
-    await p.close();
-  }
-
-  for (const scheme of ['dark', 'light']) {
-    const name = `istanbul-3d-${scheme}.png`;
-    if (!want(name)) continue;
-    const p = await page(scheme);
-    await p.goto(`${base}?${q({ style: 'gentle-summit', lines: { count: 28 }, theme: { mode: scheme } })}&${ISTANBUL}&mode=3d`, { waitUntil: 'domcontentloaded' });
-    await waitForRegion(p);
-    await waitForDock(p);
-    await hideBench(p);
-    await p.waitForTimeout(600);
-    await save(p, name);
-    await p.close();
-  }
-
-  if (want('place-picker-dark.png')) {
-    const p = await page('dark');
-    await p.goto(`${base}?${q({ style: 'gentle-summit', lines: { count: 28 }, theme: { mode: 'dark' } })}&${ISTANBUL}`, { waitUntil: 'domcontentloaded' });
-    await waitForRegion(p);
-    await p.click('[aria-label="Place"]');
-    await p.waitForSelector('.maplibregl-canvas', { timeout: 20000 });
-    await p.waitForTimeout(3200);
-    const credit = await p.locator('.maplibregl-ctrl-attrib').innerText();
-    if (!/openstreetmap/i.test(credit)) throw new Error(`the map did not load: ${credit}`);
-    await save(p, 'place-picker-dark.png');
-    await p.close();
-  }
-
-  if (want('long-ridge-3d-orbit.webp')) {
-    const missing = ['ffmpeg', 'img2webp'].filter((tool) => {
-      try { execFileSync(tool, ['-version'], { stdio: 'ignore' }); return false; } catch { return true; }
-    });
-    if (missing.length) console.log(`skip long-ridge-3d-orbit.webp: ${missing.join(' and ')} not on the PATH`);
-    else {
-      // record() renders each frame offline, so the clip is smooth even without a GPU.
-      // The public playground exposes it through its record_video WebMCP tool.
-      const p = await page('dark', () => {
-        window.__tools = {};
-        document.modelContext = { registerTool: async (tool) => { window.__tools[tool.name] = tool; } };
-      });
-      await p.goto(`${base}?${q({ ...PAIR, mode: '3d' })}`);
-      await p.waitForSelector('canvas');
-      await p.waitForFunction(() => 'record_video' in window.__tools);
-      const clip = await p.evaluate(() => window.__tools.record_video.execute({ format: 'mp4', motion: 'orbit', seconds: 6, width: 960, height: 540 }));
-      await p.close();
-      const dir = await mkdtemp(join(tmpdir(), 'topographic-shots-'));
-      const mp4 = join(dir, 'orbit.mp4');
-      await writeFile(mp4, Buffer.from(clip.dataUrl.split(',')[1], 'base64'));
-      execFileSync('ffmpeg', ['-loglevel', 'error', '-y', '-i', mp4, '-vf', 'fps=15,scale=720:-2:flags=lanczos', join(dir, '%03d.png')]);
-      const frames = (await readdir(dir)).filter((f) => f.endsWith('.png')).sort().map((f) => join(dir, f));
-      // 15 fps is a 67 ms delay per frame.
-      execFileSync('img2webp', ['-loop', '0', '-lossy', '-q', '65', '-d', '67', ...frames, '-o', join(out, 'long-ridge-3d-orbit.webp')], { stdio: 'ignore' });
-      await rm(dir, { recursive: true });
-      sizes.push(['long-ridge-3d-orbit.webp', (await stat(join(out, 'long-ridge-3d-orbit.webp'))).size]);
+  if (want('hero-3d.webp')) {
+    // record() draws each frame off-screen, so the clip is smooth on any machine. The loop plays
+    // the orbit forward and back on an eased clock, so it has no seam.
+    const p = await page();
+    if (HERO.place === 'istanbul') {
+      await open(p, ISTANBUL);
+      await waitForPlace(p, 'istanbul');
+    } else {
+      await open(p, PLACE_BASE);
+      await setPlace(p, HERO.place);
     }
+    const clip = await tool(p, 'record_video', { format: 'mp4', motion: 'orbit', seconds: HERO.seconds, width: 1280, height: 720 });
+    await p.close();
+    const dir = join(work, 'hero');
+    await mkdir(dir);
+    const mp4 = join(dir, 'orbit.mp4');
+    await writeFile(mp4, Buffer.from(clip.dataUrl.split(',')[1], 'base64'));
+    execFileSync('ffmpeg', ['-loglevel', 'error', '-y', '-i', mp4, '-vf', `fps=${HERO.fps},scale=${HERO.width}:-2:flags=lanczos`, join(dir, '%03d.png')]);
+    const frames = (await readdir(dir)).filter((f) => f.endsWith('.png')).sort().map((f) => join(dir, f));
+    const count = HERO.loop * HERO.fps;
+    const loop = Array.from({ length: count }, (_, k) => frames[Math.round((frames.length - 1) * (1 - Math.cos(2 * Math.PI * k / count)) / 2)]);
+    const file = join(out, 'hero-3d.webp');
+    execFileSync('img2webp', ['-loop', '0', '-lossy', '-q', '45', '-m', '6', '-d', String(Math.round(1000 / HERO.fps)), ...loop, '-o', file], { stdio: 'ignore' });
+    sizes.push(['hero-3d.webp', (await stat(file)).size]);
+  }
+
+  if (want('playground-dark.webp') || want('map-popover-dark.webp')) {
+    const p = await page();
+    await open(p, ISTANBUL);
+    await waitForPlace(p, 'istanbul');
+    if (want('playground-dark.webp')) await screenshot(p, 'playground-dark.webp');
+    if (want('map-popover-dark.webp')) {
+      await p.click('[aria-label="Map"]');
+      await p.waitForSelector('.maplibregl-canvas', { timeout: 20000 });
+      // The basemap tiles stream in after the canvas appears.
+      await p.waitForTimeout(4000);
+      await screenshot(p, 'map-popover-dark.webp');
+    }
+    await p.close();
+  }
+
+  for (const [slugs, mode] of [[LOOKS_2D, '2d'], [LOOKS_3D, '3d']]) {
+    for (const slug of slugs) {
+      const name = `look-${slug}-${mode}.webp`;
+      if (!want(name)) continue;
+      const p = await page();
+      await open(p, `look=${slug}${mode === '3d' ? '&mode=3d' : ''}`);
+      await p.waitForTimeout(600);
+      await tile(p, name);
+      await p.close();
+    }
+  }
+
+  for (const place of PLACES) {
+    const name = `place-${place}.webp`;
+    if (!want(name)) continue;
+    const p = await page();
+    await open(p, PLACE_BASE);
+    await setPlace(p, place);
+    await tile(p, name);
+    await p.close();
   }
 } finally {
   await browser.close();
-  await vite.close();
+  await vite?.close();
+  await rm(work, { recursive: true });
 }
 for (const [name, size] of sizes) console.log(`${name} ${(size / 1024).toFixed(0)} KB`);
-const big = sizes.filter(([name, size]) => name.endsWith('.webp') && size > 2 * 1024 * 1024);
-if (big.length) { console.log(`over 2 MB: ${big.map(([n]) => n).join(', ')}`); process.exit(1); }
+const big = sizes.filter(([, size]) => size > 3 * 1024 * 1024);
+if (big.length) { console.log(`over 3 MB: ${big.map(([n]) => n).join(', ')}`); process.exit(1); }

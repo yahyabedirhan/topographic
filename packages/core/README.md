@@ -4,10 +4,10 @@
 
 Try it live in the [playground](https://yahyabedirhan.github.io/topographic/).
 
-A JavaScript package for creating animated topographic backgrounds. One small WebGL shader, seven terrain styles and readable settings, with no dependencies.
+Animated contour-line backgrounds for the web, in 2D and 3D. Seven terrain styles, readable settings, real elevation through `setHeightfield()`, and no dependencies.
 
 ```sh
-npm install topographic
+npm install topographic@0.3.0
 ```
 
 **Web component:**
@@ -30,8 +30,9 @@ topographic.update({ terrain: { peaks: 3 } });
 **3D:** the same map as a terrain. 2D stays the default.
 
 ```js
-topographic.update({ mode: '3d', elevation: 0.7, camera: { motion: 'orbit' } });
-const clip = await topographic.record({ seconds: 4, format: 'mp4' });
+topographic.update({ mode: '3d', elevation: 0.7, extent: 'block', camera: { motion: 'orbit' } });
+const png = await topographic.snapshot({ width: 1920, height: 1080 });
+const clip = await topographic.record({ seconds: 6, motion: 'orbit', format: 'mp4' });
 ```
 
 For React, use [`topographic-react`](https://www.npmjs.com/package/topographic-react).

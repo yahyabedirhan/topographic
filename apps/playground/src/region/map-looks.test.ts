@@ -20,6 +20,14 @@ describe('built-in map terrains', () => {
     expect(Object.fromEntries(q)).toEqual(Object.fromEntries(new URLSearchParams(ISTANBUL_URL)));
   });
 
+  it.each([
+    ['geirangerfjord', '?look=rose-pod&lc=36&lw=0&lo=0.9&ix=4&ink=a8c7f0&mode=3d&ex=block&ev=0.16&az=341.8&ce=35&rd=1.32&px=0.033&pz=-0.049&place=geirangerfjord'],
+    ['fuji', '?look=rose-pod&lc=36&lw=0&lo=0.9&ix=4&ink=9fbecc&mode=3d&ex=block&ev=0.24&az=341.8&ce=30&rd=1.32&px=0.033&pz=-0.049&place=fuji'],
+    ['yosemite', '?look=rose-pod&lc=36&lw=0&lo=0.9&ix=4&ink=a8eff0&mode=3d&ex=block&ev=0.16&az=341.8&ce=35&rd=1.32&px=0.033&pz=-0.049&place=yosemite'],
+  ])('decodes %s to exactly the settings of the owner\'s link', (id, url) => {
+    expect(resolveSettings(findMapLook(id)!.settings)).toEqual(readSettings(url));
+  });
+
   it('uses each place\'s own box and name, with unique ids', () => {
     for (const look of MAP_LOOKS) {
       expect(look.bbox).toEqual(findPlace(look.placeId)!.bbox);
