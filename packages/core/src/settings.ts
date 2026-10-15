@@ -33,7 +33,8 @@ export interface CameraSettings {
 export const CAMERA_MOTIONS: readonly CameraMotion[] = ['still', 'orbit', 'push', 'flyover', 'drone'];
 export const DEFAULT_ELEVATION = 0.62;
 export const DEFAULT_DETAIL = 0.5;
-export const DEFAULT_CAMERA: CameraSettings = { azimuth: 42, elevation: 34, radius: 2.45, motion: 'still', panX: 0, panZ: 0 };
+export const DEFAULT_CAMERA: CameraSettings = { azimuth: 349.7, elevation: 33.6, radius: 1.92, motion: 'still', panX: 0, panZ: 0 };
+export const DEFAULT_EXTENT: TerrainExtent = 'endless';
 
 export interface Settings {
   style: StyleId;
@@ -131,7 +132,7 @@ export function defaultSettings(): Settings {
     lines: groupDefaults('lines'), terrain: groupDefaults('terrain'),
     motion: groupDefaults('motion'), layout: groupDefaults('layout'),
     theme: { mode: 'auto' },
-    mode: '2d', elevation: DEFAULT_ELEVATION, extent: 'block', detail: DEFAULT_DETAIL,
+    mode: '2d', elevation: DEFAULT_ELEVATION, extent: DEFAULT_EXTENT, detail: DEFAULT_DETAIL,
     camera: { ...DEFAULT_CAMERA },
   };
 }
@@ -240,7 +241,7 @@ export function toAttributes(s: Settings): Record<string, string> {
   if (s.theme.ink) out.ink = s.theme.ink;
   if (s.theme.paper) out.paper = s.theme.paper;
   if (s.mode !== '2d') out.mode = s.mode;
-  if (s.extent !== 'block') out.extent = s.extent;
+  if (s.extent !== d.extent) out.extent = s.extent;
   if (s.elevation !== d.elevation) out.elevation = String(s.elevation);
   if (s.detail !== d.detail) out.detail = String(s.detail);
   if (s.camera.azimuth !== d.camera.azimuth) out.azimuth = String(s.camera.azimuth);
@@ -265,7 +266,7 @@ export function toQuery(s: Settings): string {
   if (s.theme.ink) q.set('ink', s.theme.ink);
   if (s.theme.paper) q.set('paper', s.theme.paper);
   if (s.mode !== '2d') q.set('mode', s.mode);
-  if (s.extent !== 'block') q.set('ex', s.extent);
+  if (s.extent !== d.extent) q.set('ex', s.extent);
   if (s.elevation !== d.elevation) q.set('ev', String(s.elevation));
   if (s.detail !== d.detail) q.set('dl', String(s.detail));
   if (s.camera.azimuth !== d.camera.azimuth) q.set('az', String(s.camera.azimuth));
