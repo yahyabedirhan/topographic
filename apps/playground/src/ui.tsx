@@ -111,7 +111,7 @@ export function useStats(pg: Playground) {
   return stats;
 }
 
-/** The 3D frame-rate readout: plain text under the wordmark. */
+/** The 3D frame-rate readout: a quiet status line just above the dock's left edge. */
 export function Readout({ pg }: { pg: Playground }) {
   const stats = useStats(pg);
   if (pg.settings.mode !== '3d') return null;
@@ -249,6 +249,8 @@ export function Dock({ pg, terrains }: { pg: Playground; terrains: Terrains }) {
   const width = shown > 0 ? shown * THUMB + Math.max(0, shown - 1) * GAP + (shown > saved.items.length ? divider : 0) : 0;
   return (
     <div className="pt-dock-wrap" ref={wrap}>
+      <div className="pt-dock-col">
+      <Readout pg={pg} />
       <nav className="pt-dock pt-glass" aria-label="Examples" data-looks={LOOKS.length} data-ready={ready} data-saved={saved.items.length}>
         <div className="pt-thumbs" ref={scroller} style={{ width }}>
           {saved.items.map((item) => (
@@ -285,6 +287,7 @@ export function Dock({ pg, terrains }: { pg: Playground; terrains: Terrains }) {
           <span className="pt-tool-slot"><ColorField pg={pg} which="ink" /></span>
         </div>
       </nav>
+      </div>
     </div>
   );
 }
@@ -473,7 +476,7 @@ export function Shell({ pg, terrains, place, tune, exporting, clusterRef, childr
   return (
     <>
       <Backdrop pg={pg} />
-      <Wordmark><Readout pg={pg} /></Wordmark>
+      <Wordmark />
       <div className="pt-top">
         <Cluster pg={pg} place={place} tune={tune} exporting={exporting} clusterRef={clusterRef} />
       </div>

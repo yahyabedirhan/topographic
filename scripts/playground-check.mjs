@@ -126,7 +126,9 @@ try {
     c = await cfg(p);
     check(dragged !== null && q(p).get('az') === null && c.camera?.azimuth === 294.7 && q(p).get('look') === 'quiet-hill', `a look click brings back its camera after a drag (az ${dragged} -> ${c.camera?.azimuth})`);
   }
-  check(await p.locator('.pt-wordmark .pt-fps').isVisible() && /fps/.test(await p.locator('.pt-fps').innerText()) && await p.locator('.pt-bench').count() === 0, '3D shows the frame-rate readout under the wordmark');
+  const fpsAt = await p.evaluate(() => { const f = document.querySelector('.pt-fps').getBoundingClientRect(); const d = document.querySelector('.pt-dock').getBoundingClientRect(); return { gap: Math.round(d.top - f.bottom), left: Math.round(f.left - d.left) }; });
+  check(await p.locator('.pt-fps').isVisible() && /fps/.test(await p.locator('.pt-fps').innerText()) && await p.locator('.pt-wordmark .pt-fps').count() === 0 && fpsAt.gap === 10 && fpsAt.left >= 0 && fpsAt.left <= 8,
+    `3D shows the frame rate just above the dock's left edge (${JSON.stringify(fpsAt)})`);
   if (shots) await p.screenshot({ path: join(shots, 'playground-3d.png') });
   await p.getByRole('button', { name: 'Switch to 2D' }).click(); await settle(p);
   check(q(p).get('mode') === null && await p.locator('.pt-stage.is-3d').count() === 0 && await p.locator('.pt-fps').count() === 0, 'toggling back returns to 2D and hides the readout');

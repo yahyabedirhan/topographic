@@ -36,7 +36,9 @@ input[type=color]{width:30px;height:24px;padding:0;border:0;border-radius:6px;ba
 /* A tight paper-coloured halo keeps the wordmark and the readout legible over busy terrain. */
 .pt-wordmark a,.pt-fps{text-shadow:0 0 1px var(--paper),0 0 2px var(--paper),0 0 3px var(--paper),0 0 8px var(--paper),0 0 16px color-mix(in srgb,var(--paper) 80%,transparent)}
 /* The 3D frame-rate readout: plain text 12px under the wordmark, on a soft blurred paper patch. No glass. */
-.pt-fps{position:relative;isolation:isolate;margin-top:5px;font:500 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:0;color:color-mix(in srgb,var(--fg) 80%,var(--paper));white-space:nowrap;pointer-events:none}
+/* The 3D frame rate: a quiet status line 10px above the dock, on its left edge. */
+.pt-dock-col{position:relative;max-width:100%;display:flex}
+.pt-fps{position:absolute;left:4px;bottom:calc(100% + 10px);isolation:isolate;font:500 11px/1 var(--sans);font-variant-numeric:tabular-nums;letter-spacing:0;color:color-mix(in srgb,var(--fg) 80%,var(--paper));white-space:nowrap;pointer-events:none}
 .pt-fps::before{content:'';position:absolute;z-index:-1;inset:-5px -10px;border-radius:999px;background:color-mix(in srgb,var(--paper) 78%,transparent);filter:blur(7px)}
 .pt-hint{color:var(--mut);font-size:12.5px;line-height:1.45}
 .pt-cluster{display:flex;align-items:center;gap:2px;padding:6px;border-radius:999px;overflow:visible}
