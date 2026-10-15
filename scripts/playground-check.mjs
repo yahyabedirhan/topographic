@@ -114,10 +114,14 @@ try {
   // 3D toggle.
   await p.getByRole('button', { name: 'Switch to 3D' }).click(); await settle(p, 600);
   check(q(p).get('mode') === '3d' && await p.locator('.pt-stage.is-3d').count() === 1, '3D toggle sets mode=3d and the 3D stage');
+  c = await cfg(p);
+  check(await p.locator('.pt-mode .pt-mode-tag').innerText() === '3D' && c.camera?.azimuth === 349.7 && c.camera?.elevation === 33.6 && c.camera?.radius === 1.92 && q(p).get('az') === null,
+    `3D shows its badge and starts from the playground camera (${JSON.stringify(c.camera)})`);
   check(await p.locator('.pt-wordmark .pt-fps').isVisible() && /fps/.test(await p.locator('.pt-fps').innerText()) && await p.locator('.pt-bench').count() === 0, '3D shows the frame-rate readout under the wordmark');
   if (shots) await p.screenshot({ path: join(shots, 'playground-3d.png') });
   await p.getByRole('button', { name: 'Switch to 2D' }).click(); await settle(p);
   check(q(p).get('mode') === null && await p.locator('.pt-stage.is-3d').count() === 0 && await p.locator('.pt-fps').count() === 0, 'toggling back returns to 2D and hides the readout');
+  check(await p.locator('.pt-mode .pt-mode-tag').innerText() === '2D', '2D shows its badge');
 
   // One popover at a time, and only an open popover fills its cluster button.
   await p.getByRole('button', { name: 'Tune', exact: true }).click(); await settle(p);
@@ -126,38 +130,118 @@ try {
   check(await p.locator('.pt-cluster [data-popup-open]').count() === 1 && await p.locator('.pt-mode').evaluate((el) => getComputedStyle(el).backgroundColor) === 'rgba(0, 0, 0, 0)', 'only the open popover fills its button; 2D/3D never fills');
   await p.keyboard.press('Escape'); await settle(p);
 
-  // Place popover: MapLibre loads lazily and its tiles need the network.
+  // Map popover: MapLibre loads lazily and its tiles need the network.
+  const dockNav = p.locator('nav[data-looks]');
+  const savedCount = async (pg = p) => Number(await pg.locator('nav[data-looks]').getAttribute('data-saved'));
+  const VIEW_KEYS = ['lc', 'lw', 'lo', 'ix', 'mode', 'ex', 'ev', 'az', 'ce', 'rd'];
+  const viewOf = (pg) => Object.fromEntries(VIEW_KEYS.map((k) => [k, q(pg).get(k)]));
+  const MAP_VIEW = { lc: '36', lw: '0', lo: '0.9', ix: '4', mode: '3d', ex: 'block', ev: '0.12', az: '341.8', ce: '39.3', rd: '1.32' };
+  const sameView = (a, b) => VIEW_KEYS.every((k) => a[k] === b[k]);
+  const viewBefore = viewOf(p);
+  const settingsBefore = await cfg(p);
   await p.getByRole('button', { name: 'Map', exact: true }).click();
   const place = p.locator('.pt-pop-wide');
   await place.locator('.pt-map-host canvas').waitFor({ timeout: 30000 });
   check(await place.isVisible() && await p.locator('.pt-cluster [data-popup-open]').getAttribute('aria-label') === 'Map', 'Map opens its popover under the cluster');
   const apply = place.locator('button.pt-apply');
+  const clearBtn = place.getByRole('button', { name: 'Clear', exact: true });
   const pinDot = () => p.locator('.pt-cluster .pt-ibtn.has-dot').count();
   await p.waitForFunction(() => /km × [\d.]+ km/.test(document.querySelector('.pt-map-span')?.textContent ?? ''), null, { timeout: 30000 });
-  check(await apply.isEnabled() && await apply.innerText() === 'Apply' && await pinDot() === 0, 'with no place, a valid frame can be applied');
-  await apply.click(); await settle(p, 400);
-  check(!(await apply.isEnabled()) && await apply.innerText() !== 'Apply' && await pinDot() === 1 && q(p).get('region') !== null, `Apply uses the frame, shows Applied and the Place dot (?${q(p)})`);
-  const box = await place.locator('.pt-map-host').boundingBox();
-  await p.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-  await p.mouse.down(); await p.mouse.move(box.x + box.width / 2 + 80, box.y + box.height / 2 + 30, { steps: 8 }); await p.mouse.up();
-  await settle(p, 400);
-  check(await apply.isEnabled() && await apply.innerText() === 'Apply', 'moving the map enables Apply again');
-  await apply.click(); await settle(p, 400);
-  check(!(await apply.isEnabled()), 'Apply after a move applies the new frame');
-  const spanBefore = await place.locator('.pt-map-span').innerText();
-  const placeSearch = q(p).toString();
-  await place.getByRole('button', { name: 'London', exact: true }).click(); await settle(p, 900);
-  check(await apply.isEnabled() && q(p).toString() === placeSearch, `a city pill moves the map only (${spanBefore} -> ${await place.locator('.pt-map-span').innerText()})`);
-  await apply.click(); await settle(p, 400);
-  check(q(p).get('place') === 'london' && await place.getByRole('button', { name: 'London', exact: true }).getAttribute('aria-pressed') === 'true', `Apply on a city writes its name (?${q(p)})`);
-  await place.getByRole('button', { name: 'Generated', exact: true }).click(); await settle(p, 400);
-  check(q(p).get('place') === null && q(p).get('region') === null && await pinDot() === 0 && await apply.isEnabled(), 'Generated returns to the procedural terrain at once');
-  check(!/Too thin|Exaggerate|Smoothing|Use this place/.test(await place.innerText()), 'Place holds only the map, the pills and Apply');
+  check(await apply.isEnabled() && await apply.innerText() === 'Apply' && await pinDot() === 0 && await clearBtn.count() === 0, 'with no place, a valid frame can be applied and Clear is hidden');
+  const credit = await place.locator('.maplibregl-ctrl-attrib-inner').textContent();
+  check(/Mapzen Terrain Tiles/.test(credit) && /OpenStreetMap/.test(credit) && !/Mapzen/.test(await place.innerText()), `the map's attribution control carries the elevation credit (${credit})`);
+  const cities = place.getByRole('group', { name: 'City' });
+  check(await cities.evaluate((el) => el.classList.contains('pt-seg')) && (await cities.getByRole('button').allInnerTexts()).join() === 'Istanbul,San Francisco,London,New York', 'cities are a segmented control');
+  check(await apply.evaluate((el) => el.classList.contains('pt-action')) && await place.getByRole('button', { name: 'Generated' }).count() === 0, 'Apply is an action button and Generated is gone');
+  await apply.click(); await settle(p, 600);
+  c = await cfg(p);
+  check(sameView(viewOf(p), MAP_VIEW) && c.elevation === 0.12 && c.camera?.azimuth === 341.8 && c.camera?.elevation === 39.3 && c.camera?.radius === 1.32 && c.lines?.width === 0
+    && await p.locator('.pt-stage.is-3d').count() === 1, `Apply sets the map terrain view and 3D (?${q(p)})`);
+  check(!(await apply.isEnabled()) && await apply.innerText() !== 'Apply' && await pinDot() === 1 && q(p).get('region') !== null && await clearBtn.isVisible(), 'Apply shows Applied, Clear and the Map dot');
+  check(await savedCount() === 1 && await dockNav.locator('.pt-thumb').first().getAttribute('aria-label') === 'Map 1 map', 'Apply saves the terrain first in the dock');
   await p.keyboard.press('Escape'); await settle(p);
-  check(!(await place.isVisible()), 'Place closes on Escape');
+
+  // Tune dims what the heightfield replaces: every Terrain row and Motion's warp.
+  await p.getByRole('button', { name: 'Tune', exact: true }).click(); await settle(p);
+  const tune = p.locator('.pt-pop:not(.pt-pop-wide):not(.pt-export)');
+  await tune.getByRole('button', { name: 'Terrain', exact: true }).click(); await settle(p);
+  const peaks = tune.getByRole('slider', { name: 'Peaks' });
+  check(await peaks.isDisabled() && await tune.getByRole('slider', { name: 'Terracing' }).isDisabled() && /Shape comes from the map/.test(await tune.innerText())
+    && await tune.locator('.pt-sec-reset').count() === 0, 'with a place, Terrain sliders are disabled under a note');
+  await tune.getByRole('button', { name: 'Motion', exact: true }).click(); await settle(p);
+  check(await tune.getByRole('slider', { name: 'Warp' }).isDisabled() && await tune.getByRole('slider', { name: 'Speed' }).isEnabled() && await tune.getByRole('slider', { name: 'Sparkle' }).isEnabled(),
+    'with a place, Warp is disabled and Speed and Sparkle still work');
+  await tune.getByRole('button', { name: 'Terrain', exact: true }).click(); await settle(p);
+  await tune.getByRole('button', { name: 'Clear map' }).click(); await settle(p, 400);
+  check(await peaks.isEnabled() && !/Shape comes from the map/.test(await tune.innerText()) && await pinDot() === 0 && q(p).get('region') === null, 'Clear map enables the Terrain sliders again');
+  const restored = viewOf(p);
+  check(VIEW_KEYS.filter((k) => k !== 'mode').every((k) => restored[k] === viewBefore[k]) && JSON.stringify({ ...(await cfg(p)), mode: undefined }) === JSON.stringify({ ...settingsBefore, mode: undefined }),
+    `Clear restores the lines, camera, extent and elevation (?${q(p)})`);
+  await tune.getByRole('button', { name: 'Lines', exact: true }).click(); await settle(p);
+  const lw = tune.getByRole('slider', { name: 'Line width' });
+  check(/^\d+(\.\d)? px$/.test(await tune.locator('.pt-row', { has: p.getByRole('slider', { name: 'Line width' }) }).locator('output').innerText()) && /px$/.test(await lw.getAttribute('aria-valuetext')), 'line width reads in pixels');
+  check(await tune.evaluate((el) => el.firstElementChild?.classList.contains('pt-tabs')), 'Tune starts with its tab bar, no title');
+  await p.keyboard.press('Escape'); await settle(p);
+
+  // A city: the segment moves the frame only; Apply saves it under its name.
+  await p.getByRole('button', { name: 'Map', exact: true }).click(); await settle(p, 600);
+  const placeSearch = q(p).toString();
+  await cities.getByRole('button', { name: 'London' }).click(); await settle(p, 900);
+  check(await apply.isEnabled() && q(p).toString() === placeSearch, `a city moves the map only (${await place.locator('.pt-map-span').innerText()})`);
+  await apply.click(); await settle(p, 600);
+  check(q(p).get('place') === 'london' && await cities.getByRole('button', { name: 'London' }).getAttribute('aria-pressed') === 'true' && await savedCount() === 2
+    && await dockNav.locator('.pt-thumb').first().getAttribute('aria-label') === 'London map', `Apply on a city writes its name and saves it (?${q(p)})`);
+  await clearBtn.click(); await settle(p, 400);
+  check(q(p).get('place') === null && q(p).get('region') === null && await pinDot() === 0 && await clearBtn.count() === 0 && q(p).get('ev') === viewBefore.ev, 'Clear returns to the generated terrain and its elevation');
+  check(!/Too thin|Exaggerate|Smoothing|Use this place/.test(await place.innerText()), 'Map holds only the map, the cities, Clear and Apply');
+  await p.keyboard.press('Escape'); await settle(p);
+  check(!(await place.isVisible()), 'Map closes on Escape');
+
+  // Saved items: they stay after a reload, a click brings back place and colours, a look clears the place.
+  await p.reload(); await p.waitForSelector('.pt-stage canvas'); await settle(p);
+  check(await savedCount() === 2, 'saved map terrains stay after a reload');
+  await dockNav.getByRole('button', { name: 'London map' }).click(); await settle(p, 600);
+  const london = await cfg(p);
+  check(q(p).get('place') === 'london' && sameView(viewOf(p), MAP_VIEW) && await pinDot() === 1, `a saved item brings back its place and view (?${q(p)})`);
+  await p.waitForFunction(() => document.documentElement.dataset.region === 'ready', null, { timeout: 60000 }).catch(() => {});
+  await dockNav.getByRole('button', { name: 'Fine granite' }).click(); await settle(p, 600);
+  c = await cfg(p);
+  check(q(p).get('place') === null && c.style === 'granite' && c.seed === 191 && await pinDot() === 0, 'a built-in look clears the place and brings its shape');
+  await dockNav.getByRole('button', { name: 'London map' }).click(); await settle(p, 600);
+  check(q(p).get('place') === 'london' && JSON.stringify(await cfg(p)) === JSON.stringify(london), 'the saved item returns with its own colours');
+  // Edits to the active saved item are kept, except the camera.
+  await p.getByRole('button', { name: 'Ink colour' }).click();
+  await p.locator('.pt-pop-color .pt-swatch').nth(3).click(); await p.keyboard.press('Escape'); await settle(p, 900);
+  const ink = (await cfg(p)).theme?.ink;
+  const stage = await p.locator('.pt-stage').boundingBox();
+  await p.mouse.move(stage.x + stage.width / 2, stage.y + stage.height / 2); await p.mouse.down();
+  await p.mouse.move(stage.x + stage.width / 2 + 160, stage.y + stage.height / 2 - 40, { steps: 6 }); await p.mouse.up(); await settle(p, 900);
+  check(q(p).get('az') !== '341.8', `dragging moves the camera (az=${q(p).get('az')})`);
+  await p.reload(); await p.waitForSelector('.pt-stage canvas'); await settle(p);
+  await dockNav.getByRole('button', { name: 'London map' }).click(); await settle(p, 600);
+  c = await cfg(p);
+  check(c.theme?.ink === ink && ink !== london.theme?.ink && q(p).get('az') === '341.8', `the saved item kept the new ink (${ink}) and its own camera`);
+  // Delete: hover shows the ×.
+  await dockNav.locator('.pt-saved', { has: p.getByRole('button', { name: 'London map' }) }).hover();
+  if (shots) await dockNav.screenshot({ path: join(shots, 'dock-saved-hover.png') });
+  await dockNav.getByRole('button', { name: 'Delete London' }).click(); await settle(p);
+  check(await savedCount() === 1 && q(p).get('place') === 'london', 'delete removes the item and keeps the view');
+  await p.reload(); await p.waitForSelector('.pt-stage canvas'); await settle(p);
+  check(await savedCount() === 1 && await dockNav.getByRole('button', { name: 'London map' }).count() === 0, 'a deleted item stays gone after a reload');
   await p.close();
 
-  // The Place frame never opens too thin, and the popover stays above the dock, at laptop and phone sizes.
+  // Storage blocked: the page, Apply and the dock still work.
+  const blocked = await browser.newPage({ viewport: { width: 1280, height: 800 } }); watch(blocked);
+  await blocked.addInitScript(() => Object.defineProperty(window, 'localStorage', { get() { throw new Error('blocked'); } }));
+  await blocked.goto(base); await blocked.waitForSelector('.pt-stage canvas');
+  await blocked.getByRole('button', { name: 'Map', exact: true }).click();
+  await blocked.locator('.pt-pop-wide .pt-map-host canvas').waitFor({ timeout: 30000 });
+  await blocked.waitForFunction(() => /km × [\d.]+ km/.test(document.querySelector('.pt-map-span')?.textContent ?? ''), null, { timeout: 30000 });
+  await blocked.locator('.pt-pop-wide button.pt-apply').click(); await settle(blocked, 600);
+  check(await savedCount(blocked) === 1 && q(blocked).get('region') !== null, 'with storage blocked, Apply still works and the dock keeps the item for the session');
+  await blocked.close();
+
+  // The Map frame never opens too thin, and the popover stays above the dock, at laptop and phone sizes.
   for (const [width, height] of [[1280, 800], [1440, 900], [390, 844]]) {
     const v = await browser.newPage({ viewport: { width, height } }); watch(v);
     await v.goto(base + '?mode=3d'); await v.waitForSelector('.pt-stage canvas');
@@ -166,14 +250,14 @@ try {
     await pop.locator('.pt-map-host canvas').waitFor({ timeout: 30000 });
     await v.waitForFunction(() => /km × [\d.]+ km|Too|rectangle/.test(document.querySelector('.pt-map-span')?.textContent ?? ''), null, { timeout: 30000 }).catch(() => {});
     const text = await pop.innerText();
-    check(!text.includes('Too thin') && /\d km × [\d.]+ km/.test(text), `Place at ${width}×${height} opens with a valid frame (${(text.match(/[\d.]+ km × [\d.]+ km/) ?? ['none'])[0]})`);
+    check(!text.includes('Too thin') && /\d km × [\d.]+ km/.test(text), `Map at ${width}×${height} opens with a valid frame (${(text.match(/[\d.]+ km × [\d.]+ km/) ?? ['none'])[0]})`);
     const fit = await v.evaluate(() => {
       const pop = document.querySelector('.pt-pop-wide').getBoundingClientRect();
       const dock = document.querySelector('.pt-dock').getBoundingClientRect();
       const el = document.querySelector('.pt-pop-wide');
       return { gap: Math.round(dock.top - pop.bottom), scrolls: el.scrollHeight > el.clientHeight + 1 };
     });
-    check(fit.gap >= 10 && !fit.scrolls, `Place at ${width}×${height} stays above the dock without scrolling (gap ${fit.gap}px)`);
+    check(fit.gap >= 10 && !fit.scrolls, `Map at ${width}×${height} stays above the dock without scrolling (gap ${fit.gap}px)`);
     await v.close();
   }
 
@@ -229,9 +313,9 @@ try {
   check((await call('get_embed_code', { format: 'react' })).code.includes('<TopographicBackground'), 'get_embed_code');
   check((await call('get_install_instructions', { target: 'react' })).instructions.includes('npm install'), 'get_install_instructions');
   const region = await call('set_region', { place: 'istanbul' });
-  check(region.accepted === true && region.place === 'istanbul' && region.bbox.west === 28.94, `set_region accepts istanbul (${region.query})`);
+  check(region.accepted === true && region.place === 'istanbul' && region.bbox.west === 28.45, `set_region accepts istanbul (${region.query})`);
   const got = await call('get_region');
-  check(got.place === 'istanbul' && got.bbox?.north === 41.08, `get_region (${got.status})`);
+  check(got.place === 'istanbul' && got.bbox?.north === 41.36, `get_region (${got.status})`);
   check((await call('clear_region')).cleared === true && (await call('get_region')).bbox === null, 'clear_region');
   await agent.close();
 
