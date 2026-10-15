@@ -83,7 +83,12 @@ button.pt-compass:active{transform:scale(.94)}
 .pt-thumb:hover{background:transparent}
 .pt-thumb[aria-current="true"]{padding:1px}
 .pt-thumb-media{display:block;width:100%;height:100%;border-radius:16px;overflow:hidden;position:relative;background:var(--paper)}
-.pt-thumb img{display:block;width:100%;height:100%;object-fit:cover}
+.pt-thumb img{display:block;width:100%;height:100%;object-fit:cover;animation:pt-thumb-in .32s ease-out}
+/* A look's slot waits as a quiet paper tile with a slow shimmer until its picture is drawn. */
+.pt-thumb-media.is-loading::before{content:'';position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,color-mix(in srgb,var(--fg) 7%,transparent) 50%,transparent 70%) 0 0/250% 100%;animation:pt-shimmer 1.4s linear infinite}
+@keyframes pt-shimmer{from{background-position:100% 0}to{background-position:-150% 0}}
+@keyframes pt-thumb-in{from{opacity:0}}
+@media (prefers-reduced-motion:reduce){.pt-thumb-media.is-loading::before,.pt-thumb img{animation:none}}
 .pt-thumb-name{position:absolute;left:0;right:0;bottom:0;padding:14px 8px 5px;font-size:10px;line-height:1.15;text-align:left;color:#fff;
   background:linear-gradient(transparent,rgba(0,0,0,.72));text-shadow:0 0 3px rgba(0,0,0,.8);opacity:0;transition:opacity .2s}
 .pt-thumb:hover .pt-thumb-name,.pt-thumb[aria-current="true"] .pt-thumb-name{opacity:1}

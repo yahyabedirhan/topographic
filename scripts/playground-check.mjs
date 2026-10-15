@@ -37,6 +37,33 @@ try {
   const open = async (p, query) => { await p.goto(base + query); await p.waitForSelector('.pt-stage canvas'); await settle(p); };
   const p = await ctx.newPage(); watch(p);
 
+  // The dock opens at its final width: every look has a slot before its picture is drawn.
+  {
+    const d = await ctx.newPage(); watch(d);
+    // Samples every frame and every resize, from DOMContentLoaded until 2 s have passed and every look is drawn.
+    await d.addInitScript(() => document.addEventListener('DOMContentLoaded', () => {
+      const t0 = performance.now();
+      window.__dockW = [];
+      let ro = null;
+      const done = () => { const nav = document.querySelector('nav[data-looks]'); return performance.now() - t0 >= 2000 && nav && nav.dataset.ready === nav.dataset.looks; };
+      const tick = () => {
+        const nav = document.querySelector('nav.pt-dock');
+        if (nav) {
+          window.__dockW.push(nav.getBoundingClientRect().width);
+          if (!ro) { ro = new ResizeObserver(() => window.__dockW.push(nav.getBoundingClientRect().width)); ro.observe(nav); }
+        }
+        if (done()) { ro?.disconnect(); window.__dockDone = true; } else requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    }));
+    await d.goto(base);
+    await d.waitForFunction(() => window.__dockDone, null, { timeout: 120000 });
+    const widths = await d.evaluate(() => window.__dockW);
+    const spread = widths.length ? Math.max(...widths) - Math.min(...widths) : NaN;
+    check(widths.length >= 2 && spread <= 2, `the dock keeps its width while the looks draw (${widths.length} samples, ${spread.toFixed(1)}px spread)`);
+    await d.close();
+  }
+
   // URL state: short params load, and the page writes its state back as short params.
   await open(p, '?s=granite&lc=40');
   let c = await cfg(p);
@@ -158,9 +185,23 @@ try {
   const sameView = (a, b) => VIEW_KEYS.every((k) => a[k] === b[k]);
   const viewBefore = viewOf(p);
   const settingsBefore = await cfg(p);
+  // The first open loads the map chunk; the popover must appear once and stay for 3 s.
+  await p.evaluate(() => {
+    const t0 = performance.now();
+    window.__mapPop = { t0, seen: [] };
+    const tick = () => {
+      window.__mapPop.seen.push(Boolean(document.querySelector('.pt-pop-map')?.getClientRects().length));
+      if (performance.now() - t0 < 3000) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
   await p.getByRole('button', { name: 'Map', exact: true }).click();
   const place = p.locator('.pt-pop-wide');
   await place.locator('.pt-map-host canvas').waitFor({ timeout: 30000 });
+  await p.waitForFunction(() => performance.now() - window.__mapPop.t0 >= 3100, null, { timeout: 30000 });
+  const popSeen = await p.evaluate(() => window.__mapPop.seen);
+  const firstShown = popSeen.indexOf(true);
+  check(firstShown >= 0 && !popSeen.slice(firstShown).includes(false), `the Map popover stays open for 3 s after one click (${popSeen.length} frames, ${popSeen.slice(firstShown).filter((v) => !v).length} hidden)`);
   check(await place.isVisible() && await p.locator('.pt-cluster [data-popup-open]').getAttribute('aria-label') === 'Map', 'Map opens its popover under the cluster');
   const apply = place.locator('button.pt-apply');
   const clearBtn = place.getByRole('button', { name: 'Clear', exact: true });
