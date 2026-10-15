@@ -72,10 +72,12 @@ vec2 regionUv(){
 }
 float regionSample(vec2 uv){
 #if __VERSION__ >= 300
-  return texture(uHeightTex,clamp(uv,0.,1.)).r;
+  vec2 hl=texture(uHeightTex,clamp(uv,0.,1.)).rg;
 #else
-  return texture2D(uHeightTex,clamp(uv,0.,1.)).r;
+  vec2 hl=texture2D(uHeightTex,clamp(uv,0.,1.)).rg;
 #endif
+  // R is the high byte and G the low byte; the sum is linear, so filtering stays correct.
+  return dot(hl, vec2(65280., 255.)/65535.);
 }
 vec4 contourPaint(int s, vec2 p){
   float t=uTime*.08*uParams[3]; vec3 c=uInk.rgb; float n=uParams[0]; float px=uParams[1]; float a=1.;

@@ -227,9 +227,10 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
       const { samples, size } = heightField;
       const rgba = new Uint8Array(samples.length * 4);
       for (let i = 0; i < samples.length; i++) {
-        const v = Math.round(Math.min(1, Math.max(0, samples[i])) * 255);
+        // 16 bits across R (high byte) and G (low byte): 8 bits leave staircase contours on flat ground.
+        const v = Math.round(Math.min(1, Math.max(0, samples[i])) * 65535);
         const p = i * 4;
-        rgba[p] = v; rgba[p + 1] = v; rgba[p + 2] = v; rgba[p + 3] = 255;
+        rgba[p] = v >> 8; rgba[p + 1] = v & 255; rgba[p + 2] = 0; rgba[p + 3] = 255;
       }
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, size, size, 0, gl.RGBA, gl.UNSIGNED_BYTE, rgba);
     }
