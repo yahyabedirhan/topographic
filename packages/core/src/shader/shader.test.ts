@@ -27,6 +27,10 @@ describe('topographic shader source', () => {
     expect(TOPOGRAPHIC_FRAGMENT).toContain('regionSample');
     expect(TOPOGRAPHIC_FRAGMENT).not.toContain('#define REGION_FROM_MESH');
   });
+  it('shades the block walls from the same surface height the vertex shader lifts to', () => {
+    expect(terrainVertexSource(false)).toContain('surfaceY(p, aHeight)');
+    expect(terrainFragmentSource(false)).toContain('surfaceY(vP, regionSample(vUV))');
+  });
   it('wraps for both WebGL versions', () => {
     expect(wrapFragment(TOPOGRAPHIC_FRAGMENT, true).startsWith('#version 300 es')).toBe(true);
     expect(wrapFragment(TOPOGRAPHIC_FRAGMENT, false)).toContain('GL_OES_standard_derivatives');

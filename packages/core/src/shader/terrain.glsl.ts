@@ -1,21 +1,9 @@
 import { COMMON, COMMON_MATH, COMMON_UNIFORMS, wrapFragment } from './common.glsl.js';
 import { CONTOUR_FIELD, CONTOUR_PAINT } from './topographic.glsl.js';
 
-const VERT_BODY = /* glsl */ `
-attribute vec2 aUV;
-attribute float aSide;
-attribute float aLift;
-attribute float aHeight;
-uniform mat4 uViewProj;
+// The top surface's height, shared so the walls can shade relative to the rim above them.
+const SURFACE = /* glsl */ `
 uniform float uHeight;
-uniform float uReach;
-varying vec2 vP;
-varying vec3 vWorld;
-varying float vSide;
-varying vec2 vUV;
-${COMMON_UNIFORMS}
-${COMMON_MATH}
-${CONTOUR_FIELD}
 float reliefOf(float f){
   float n=max(uParams[0],1.);
   float h=clamp(uHeight,0.,1.);
@@ -27,6 +15,27 @@ float reliefOf(float f){
   dome=mix(dome, mix(dome,1.,.35), shoulder);
   return h*dome*mix(.6,.8,h);
 }
+float surfaceY(vec2 p, float h){
+  if(uHasHeight>0.5) return 0.02+uHeight*h*.62;
+  return 0.05+reliefOf(contourField(int(uStyle+.5), p).f);
+}
+`;
+
+const VERT_BODY = /* glsl */ `
+attribute vec2 aUV;
+attribute float aSide;
+attribute float aLift;
+attribute float aHeight;
+uniform mat4 uViewProj;
+uniform float uReach;
+varying vec2 vP;
+varying vec3 vWorld;
+varying float vSide;
+varying vec2 vUV;
+${COMMON_UNIFORMS}
+${COMMON_MATH}
+${CONTOUR_FIELD}
+${SURFACE}
 void main(){
   vec2 stretched=(aUV-0.5)*uReach;
   float viewA=uRes.x/max(uRes.y,1.);
@@ -37,11 +46,7 @@ void main(){
     fp=vec2(ra*s, s);
   }
   vec2 p=vec2(stretched.x*fp.x, stretched.y*fp.y);
-  float y=0.;
-  if(aLift>0.5){
-    if(uHasHeight>0.5) y=0.02+uHeight*aHeight*.62;
-    else y=0.05+reliefOf(contourField(int(uStyle+.5), p).f);
-  }
+  float y=aLift>0.5 ? surfaceY(p, aHeight) : 0.;
   vec3 world=vec3(p.x*.9, y, -p.y*.9);
   vP=p; vWorld=world; vSide=aSide; vUV=aUV;
   gl_Position=uViewProj*vec4(world,1.);
@@ -58,29 +63,28 @@ uniform float uReach;
 ${COMMON}
 ${CONTOUR_FIELD}
 ${CONTOUR_PAINT}
-vec4 strata(float y){
-  float spacing=.05;
-  float cell=y/spacing;
-  float fw=max(fwidth(cell),1e-3);
-  float d=abs(fract(cell));
-  d=min(d,1.-d);
-  float idx=abs(floor(cell+.5));
-  float isIx=mod(idx,5.)<.5?1.:0.;
-  float px=.11+.07*isIx;
-  float line=(1.-smoothstep(px*fw*.45, px*fw*.45+fw, d))*(1.+.25*isIx);
-  float rim=1.-smoothstep(.004,.012+fwidth(y), abs(y-0.012));
-  return paint(uInk.rgb, max(line, rim*.65)*.9*max(uParams[2],.35));
+${SURFACE}
+#define LIGHT_DIR normalize(vec3(-.32,.88,.36))
+// Walls stay close to the paper: a soft tint just under the rim that fades into the page at the base,
+// a touch lighter on the face that turns towards the light.
+vec4 wallPaint(){
+  float top=max(surfaceY(vP, regionSample(vUV)),1e-3);
+  float t=clamp(vWorld.y/top,0.,1.);
+  vec3 n=cross(dFdx(vWorld), dFdy(vWorld));
+  float face=length(n.xz)>1e-6 ? dot(normalize(n.xz), normalize(LIGHT_DIR.xz)) : 0.;
+  return paint(uInk.rgb, .15*t*t*(1.+.18*face));
 }
 void main(){
   int s=int(uStyle+.5);
-  vec4 color=vSide>0.5 ? strata(vWorld.y) : contourPaint(s, vP);
+  if(vSide>0.5){ OUT_COLOR=wallPaint(); return; }
+  vec4 color=contourPaint(s, vP);
   vec3 n=cross(dFdx(vWorld), dFdy(vWorld));
   float lenN=length(n);
-  float ndl=lenN>1e-5 ? abs(dot(n/lenN, normalize(vec3(-.32,.88,.36)))) : 1.;
+  float ndl=lenN>1e-5 ? abs(dot(n/lenN, LIGHT_DIR)) : 1.;
   float floorShade=uHasHeight>0.5 ? .9 : .76;
   color.rgb*=mix(floorShade,1.,ndl);
   // Fade to the clear colour after shading, so the endless plane's edge meets the paper exactly.
-  if(uReach>1.01 && vSide<0.5){
+  if(uReach>1.01){
     float e=length((vUV-0.5)*2.);
     color=mix(color, vec4(uPaper.rgb,uPaper.a), smoothstep(.58,1.,e));
   }
