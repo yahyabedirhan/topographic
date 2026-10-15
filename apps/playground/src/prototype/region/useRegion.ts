@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Heightfield } from 'topographic';
 import type { Playground } from '../shared';
 import { limitMessage, limitProblem, spanOf, type BBox, type ReliefMode, type SmoothLevel, type Span } from './pipeline';
 import { findPlace } from './places';
+import { registerRegionTools } from './register';
 import { readRegion, writeRegion, type RegionQuery } from './url';
 import type { BuildErr, BuildOk } from './worker';
 
@@ -126,29 +127,31 @@ export function useRegion(pg: Playground): RegionController {
   }, [generation, pg]);
 
   const name = findPlace(placeId)?.name ?? (bbox ? 'Custom' : '');
-
-  return {
-    bbox, placeId, name, relief, smooth, status, error, info,
-    setPlace(next, id) {
-      const problem = limitProblem(next);
-      if (problem) {
-        setError(limitMessage(problem));
-        setStatus('error');
-        return;
-      }
-      setPlaceId(id);
-      setBbox(next);
-    },
-    setRelief,
-    setSmooth,
-    clear() {
-      fieldRef.current = null;
-      setBbox(null);
-      setPlaceId(null);
-      setInfo(null);
-      setError(null);
-      setStatus('idle');
-      setGeneration((n) => n + 1);
-    },
+  const setPlace = useCallback((next: BBox, id: string | null) => {
+    const problem = limitProblem(next);
+    if (problem) {
+      setError(limitMessage(problem));
+      setStatus('error');
+      return;
+    }
+    setPlaceId(id);
+    setBbox(next);
+  }, []);
+  const clear = useCallback(() => {
+    fieldRef.current = null;
+    setBbox(null);
+    setPlaceId(null);
+    setInfo(null);
+    setError(null);
+    setStatus('idle');
+    setGeneration((n) => n + 1);
+  }, []);
+  const agent: RegionController = {
+    bbox, placeId, name, relief, smooth, status, error, info, setPlace, setRelief, setSmooth, clear,
   };
+  const liveRef = useRef(agent);
+  liveRef.current = agent;
+  useEffect(() => registerRegionTools(() => liveRef.current), []);
+
+  return agent;
 }

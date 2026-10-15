@@ -2,6 +2,7 @@ import type { Plugin } from 'vite';
 import { PARAMS, PRESETS, STYLES, defaultSettings } from 'topographic';
 import { INSTALL, TAGLINE } from './src/content';
 import { TOOL_DEFS } from './src/agent-tools';
+import { REGION_TOOL_DEFS } from './src/prototype/region/tools';
 
 export const SITE_URL = 'https://yahyabedirhan.github.io/topographic/';
 export const WEBMCP_SPEC = 'https://github.com/webmachinelearning/webmcp/blob/d0e4e0e0f039358cc9d93f90074116622bfebd53/index.bs';
@@ -22,6 +23,16 @@ ${toolsList()}
 ## Input schemas
 
 ${TOOL_DEFS.map((t) => `### ${t.name}\n\n\`\`\`json\n${JSON.stringify(t.inputSchema, null, 2)}\n\`\`\``).join('\n\n')}
+
+## Region prototype (dev only)
+
+The published page does not register these. They exist on the dev dock (\`npm run prototype\`, then \`/?variant=P2\`).
+
+A region is \`?region=west,south,east,north\` in degrees, or JSON such as \`{"bbox":[7.64,45.95,7.78,46.04]}\`. \`relief=measured\` opts out of the default dramatic stretch. \`smooth=light\` or \`smooth=strong\` opts out of medium. Named examples: \`place=zermatt\`, \`place=istanbul\`, \`place=chicago\`. \`?mode=3d\` still opts into the 3D view. The 2D map stays the default.
+
+${REGION_TOOL_DEFS.map((t) => `- \`${t.name}\`${t.readOnly ? ' (read-only)' : ''}: ${t.description}`).join('\n')}
+
+${REGION_TOOL_DEFS.map((t) => `### ${t.name}\n\n\`\`\`json\n${JSON.stringify(t.inputSchema, null, 2)}\n\`\`\``).join('\n\n')}
 `;
 }
 
@@ -166,6 +177,8 @@ Live playground: ${SITE_URL}
 
 The playground page holds its state in the URL as \`?config=<url-encoded JSON settings>\`, for example \`?config=${encodeURIComponent('{"style":"dunes","lines":{"count":24}}')}\`. Add \`?mode=3d\` to open the same settings as a terrain. In dev, \`?variant=P2\` or \`?mode=3d\` opens the dock playground (\`npm run prototype\`). The JSON shape is the \`settings\` object from the API docs.
 
+On that dev playground, a real place is \`?region=west,south,east,north\` (or JSON \`{"bbox":[west,south,east,north]}\`), with optional \`relief=measured\` and \`smooth=light|strong\`. Examples: \`place=zermatt\` (mountain), \`place=istanbul\` (hilly city), \`place=chicago\` (flat city). The published page has no region tools.
+
 ## Packages
 
 - [topographic](https://www.npmjs.com/package/topographic): core and the \`<topographic-bg>\` web component
@@ -179,6 +192,10 @@ ${PAGES().map((p) => `- [${p.title}](${p.path})`).join('\n')}
 ## WebMCP tools on the playground page
 
 ${toolsList()}
+
+Dev playground only (\`/?variant=P2\`), not registered on the published page:
+
+${REGION_TOOL_DEFS.map((t) => `- \`${t.name}\`${t.readOnly ? ' (read-only)' : ''}: ${t.description}`).join('\n')}
 
 Details and input schemas: [docs/webmcp.md](docs/webmcp.md).
 
