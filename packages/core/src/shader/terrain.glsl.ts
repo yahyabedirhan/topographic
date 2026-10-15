@@ -74,15 +74,16 @@ vec4 strata(float y){
 void main(){
   int s=int(uStyle+.5);
   vec4 color=vSide>0.5 ? strata(vWorld.y) : contourPaint(s, vP);
-  if(uReach>1.01 && vSide<0.5){
-    float e=length((vUV-0.5)*2.);
-    color=mix(color, vec4(uPaper.rgb,uPaper.a), smoothstep(.58,1.,e));
-  }
   vec3 n=cross(dFdx(vWorld), dFdy(vWorld));
   float lenN=length(n);
   float ndl=lenN>1e-5 ? abs(dot(n/lenN, normalize(vec3(-.32,.88,.36)))) : 1.;
   float floorShade=uHasHeight>0.5 ? .9 : .76;
   color.rgb*=mix(floorShade,1.,ndl);
+  // Fade to the clear colour after shading, so the endless plane's edge meets the paper exactly.
+  if(uReach>1.01 && vSide<0.5){
+    float e=length((vUV-0.5)*2.);
+    color=mix(color, vec4(uPaper.rgb,uPaper.a), smoothstep(.58,1.,e));
+  }
   OUT_COLOR=color;
 }
 `;
