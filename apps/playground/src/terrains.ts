@@ -39,8 +39,8 @@ export function useTerrains(pg: Playground): Terrains {
 
   const activeSaved = region.bbox ? saved.items.find((it) => sameBox(it.bbox, region.bbox!)) ?? null : null;
 
-  // Edits to the active saved item are written back after half a second, except the camera:
-  // a click on the item always brings back the camera it was saved with.
+  // Edits to the active saved item are written back half a second after the last change, the camera
+  // included, so a click on the item brings back the view it was left in. Built-in looks keep nothing.
   const pending = useRef<{ id: string; settings: Settings } | null>(null);
   const timer = useRef(0);
   const { update } = saved;
@@ -51,13 +51,12 @@ export function useTerrains(pg: Playground): Terrains {
     if (next) update(next.id, next.settings);
   }, [update]);
   const activeId = activeSaved?.id ?? null;
-  const savedCamera = activeSaved?.settings.camera;
   useEffect(() => {
-    if (!activeId || !savedCamera) return;
-    pending.current = { id: activeId, settings: { ...pg.settings, camera: { ...savedCamera } } };
+    if (!activeId) return;
+    pending.current = { id: activeId, settings: pg.settings };
     window.clearTimeout(timer.current);
     timer.current = window.setTimeout(flush, SAVE_DELAY);
-  }, [pg.settings, activeId, savedCamera, flush]);
+  }, [pg.settings, activeId, flush]);
   // A different item, or none: write what is still pending for the last one.
   useEffect(() => flush, [activeId, flush]);
 
@@ -89,8 +88,8 @@ export function useTerrains(pg: Playground): Terrains {
     openSaved(item) {
       flush();
       if (!region.bbox || !sameBox(region.bbox, item.bbox)) region.showPlace(item.bbox, item.placeId);
-      // The camera motion is a way of playing the view, not part of the terrain, so it stays.
-      live.current.replace(mergeSettings(item.settings, { camera: { motion: live.current.settings.camera.motion } }));
+      // The item's own settings, camera and motion included, as it was last left.
+      live.current.replace(item.settings);
     },
     openLook(i) {
       if (region.bbox) region.clear();

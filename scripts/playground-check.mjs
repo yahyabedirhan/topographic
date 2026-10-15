@@ -264,21 +264,29 @@ try {
   await p.waitForFunction(() => document.documentElement.dataset.region === 'ready', null, { timeout: 60000 }).catch(() => {});
   await dockNav.getByRole('button', { name: 'Fine granite' }).click(); await settle(p, 600);
   c = await cfg(p);
+  const lookAz = q(p).get('az');
   check(q(p).get('place') === null && c.style === 'granite' && c.seed === 191 && await pinDot() === 0, 'a built-in look clears the place and brings its shape');
   await dockNav.getByRole('button', { name: 'London map' }).click(); await settle(p, 600);
   check(q(p).get('place') === 'london' && JSON.stringify(await cfg(p)) === JSON.stringify(london), 'the saved item returns with its own colours');
-  // Edits to the active saved item are kept, except the camera.
+  // Edits to the active saved item are kept, the camera included.
   await p.getByRole('button', { name: 'Ink colour' }).click();
   await p.locator('.pt-pop-color .pt-swatch').nth(3).click(); await p.keyboard.press('Escape'); await settle(p, 900);
   const ink = (await cfg(p)).theme?.ink;
   const stage = await p.locator('.pt-stage').boundingBox();
   await p.mouse.move(stage.x + stage.width / 2, stage.y + stage.height / 2); await p.mouse.down();
   await p.mouse.move(stage.x + stage.width / 2 + 160, stage.y + stage.height / 2 - 40, { steps: 6 }); await p.mouse.up(); await settle(p, 900);
-  check(q(p).get('az') !== '341.8', `dragging moves the camera (az=${q(p).get('az')})`);
+  const draggedAz = q(p).get('az');
+  const draggedCe = q(p).get('ce');
+  check(draggedAz !== '341.8', `dragging moves the camera (az=${draggedAz})`);
+  await dockNav.getByRole('button', { name: 'Fine granite' }).click(); await settle(p, 600);
+  check(q(p).get('az') === lookAz, `a built-in look still resets to its own camera (az ${q(p).get('az')}, want ${lookAz})`);
+  await dockNav.getByRole('button', { name: 'London map' }).click(); await settle(p, 600);
+  check(q(p).get('az') === draggedAz && q(p).get('ce') === draggedCe, `the saved item comes back with the dragged camera (az ${q(p).get('az')}, want ${draggedAz})`);
   await p.reload(); await p.waitForSelector('.pt-stage canvas'); await settle(p);
+  await dockNav.getByRole('button', { name: 'Fine granite' }).click(); await settle(p, 400);
   await dockNav.getByRole('button', { name: 'London map' }).click(); await settle(p, 600);
   c = await cfg(p);
-  check(c.theme?.ink === ink && ink !== london.theme?.ink && q(p).get('az') === '341.8', `the saved item kept the new ink (${ink}) and its own camera`);
+  check(c.theme?.ink === ink && ink !== london.theme?.ink && q(p).get('az') === draggedAz, `after a reload the saved item kept the new ink (${ink}) and the dragged camera (az ${q(p).get('az')})`);
   // Delete: hover shows the ×.
   await dockNav.locator('.pt-saved', { has: p.getByRole('button', { name: 'London map' }) }).hover();
   if (shots) await dockNav.screenshot({ path: join(shots, 'dock-saved-hover.png') });
