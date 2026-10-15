@@ -266,6 +266,19 @@ export function rollOff(t: number, tMin: number, tMax: number): number {
   return LOW + (HIGH - LOW) * t;
 }
 
+/** The sea mask's blur in grid cells: enough to round off the grid's steps. */
+const COAST_SIGMA = 1.5;
+
+/**
+ * How much of the land height a cell keeps, from the share of sea around it: (1 - share)^6. It falls
+ * smoothly and reaches 0 only in open sea, so it never brings back the grid's steps, and it is steep
+ * enough that a strait two cells wide stays below the paper threshold.
+ */
+export function coastRamp(seaShare: number): number {
+  const land = Math.min(1, Math.max(0, 1 - seaShare));
+  return land ** 6;
+}
+
 export interface FieldStats {
   samples: Float32Array;
   size: number;
@@ -276,7 +289,7 @@ export interface FieldStats {
 }
 
 /**
- * Sea water is clamped to 0 so a strait stays a flat floor.
+ * Sea water is clamped to 0 so a strait stays a flat floor, and the coast fades smoothly into it.
  * Dramatic stretches the local range to fill the block, which is what makes a flat city readable.
  * Measured keeps 400 m as a full-height span, so a flat city stays flat and a mountain range still fills the block.
  */
@@ -308,19 +321,24 @@ export function shapeField(
     span = Math.max(reliefM, MEASURED_RELIEF_M);
   }
   const unit = new Float32Array(clamped.length);
-  const sea = new Uint8Array(meters.length);
+  const sea = new Float32Array(meters.length);
   // Dramatic rolls the tails off instead of clipping them, so summits above the 98th percentile keep their shape.
   const tMax = (maxM - lo) / span;
   const tMin = (minM - lo) / span;
   for (let i = 0; i < clamped.length; i++) {
     sea[i] = meters[i] <= 0 ? 1 : 0;
     const t = (clamped[i] - lo) / span;
-    unit[i] = relief === 'dramatic' ? rollOff(t, tMin, tMax) : Math.min(1, Math.max(0, t));
+    unit[i] = sea[i] ? 0 : relief === 'dramatic' ? rollOff(t, tMin, tMax) : Math.min(1, Math.max(0, t));
   }
   const extra = reliefM < 12 ? 1.8 : reliefM < 30 ? 1.25 : 1;
-  const samples = smooth(unit, size, SMOOTH_SIGMA[level] * extra);
+  const sigma = SMOOTH_SIGMA[level] * extra;
+  const samples = smooth(unit, size, sigma);
+  // Sea cells enter the blur at 0, and the blurred sea mask then fades the land towards the water, so
+  // the coast follows a smooth line between cells instead of the grid's steps. Open water further than
+  // the kernel's reach stays exactly 0, which the shader draws as paper.
+  const seaShare = smooth(sea, size, COAST_SIGMA);
   for (let i = 0; i < samples.length; i++) {
-    samples[i] = sea[i] ? 0 : Math.min(1, Math.max(0, samples[i]));
+    samples[i] = Math.min(1, Math.max(0, samples[i])) * coastRamp(seaShare[i]);
   }
   return { samples, size, aspect: spanOf(bbox).aspect, minM, maxM, reliefM };
 }

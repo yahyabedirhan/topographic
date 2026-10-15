@@ -117,8 +117,53 @@ describe('resample and shape', () => {
     const shaped = shapeField(meters, 4, bbox, 'dramatic', 'light');
     expect(shaped.minM).toBe(0);
     expect(shaped.maxM).toBe(80);
-    expect(shaped.samples[0]).toBe(0);
-    expect(shaped.samples[4]).toBe(0);
+    // Sea cells stay under the paper threshold for any line count; open water further out is exactly 0 (see coast).
+    for (const i of [0, 1, 4, 5, 8, 12]) expect(shaped.samples[i]).toBeLessThan(0.5 / 100);
+  });
+});
+
+describe('coast', () => {
+  // A shallow diagonal coast: land east of x = 20 + 0.3 y, sea west of it, on a 64 grid.
+  const size = 64;
+  const bbox: BBox = { west: 29, south: 41, east: 29.08, north: 41.06 };
+  const meters = new Float32Array(size * size);
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) meters[y * size + x] = x > 20 + 0.3 * y ? 30 + x : -15;
+  const shaped = shapeField(meters, size, bbox, 'dramatic', 'medium');
+  const at = (x: number, y: number) => shaped.samples[y * size + x];
+  /** Where a row first rises above the paper threshold the shader uses for 36 lines, between cells. */
+  const crossing = (y: number, level = 0.5 / 36) => {
+    for (let x = 1; x < size; x++) {
+      const a = at(x - 1, y), b = at(x, y);
+      if (a < level && b >= level) return x - 1 + (level - a) / (b - a);
+    }
+    return NaN;
+  };
+
+  it('keeps open water exactly flat at 0', () => {
+    for (let y = 0; y < size; y++) for (let x = 0; x < 12; x++) expect(at(x, y)).toBe(0);
+  });
+
+  it('follows the coast between cells instead of in grid steps', () => {
+    // The true coast moves 0.3 cells a row. A staircase moves 0 or 1 (off by 0.7); a smooth coast stays near 0.3.
+    for (const lines of [12, 36, 80]) {
+      const xs = Array.from({ length: 40 }, (_, i) => crossing(i + 12, 0.5 / lines));
+      const steps = xs.slice(1).map((x, i) => x - xs[i]);
+      for (const step of steps) expect(Math.abs(step - 0.3)).toBeLessThan(0.25);
+    }
+  });
+
+  it('ramps up from the sea instead of a one-cell wall', () => {
+    const row = 30;
+    const start = Math.ceil(crossing(row));
+    expect(at(start, row)).toBeLessThan(at(start + 2, row));
+    expect(at(start + 2, row)).toBeLessThan(at(start + 5, row));
+  });
+
+  it('keeps a two-cell strait as water', () => {
+    const grid = new Float32Array(size * size).fill(40);
+    for (let y = 0; y < size; y++) { grid[y * size + 31] = -20; grid[y * size + 32] = -20; }
+    const strait = shapeField(grid, size, bbox, 'dramatic', 'medium').samples;
+    expect(strait[32 * size + 31]).toBeLessThan(0.5 / 36);
   });
 });
 
