@@ -2,7 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useSta
 import { Popover } from '@base-ui-components/react/popover';
 import { Toggle } from '@base-ui-components/react/toggle';
 import { Tooltip } from '@base-ui-components/react/tooltip';
-import { Box, Dices, Earth, Frame, Map, Moon, Mountain, SlidersHorizontal, Spline, Sun, Wind, X } from 'lucide-react';
+import { Box, ChevronRight, Dices, Earth, Frame, Map, Moon, Mountain, SlidersHorizontal, Spline, Sun, Wind, X } from 'lucide-react';
 import { MapButton } from './region/controls';
 import { MAP_LOOKS } from './region/map-looks';
 import { Minimap } from './region/Minimap';
@@ -222,6 +222,8 @@ function SavedThumb({ item, current, onOpen, onDelete }: {
 export function Dock({ pg, terrains, onOpenMap }: { pg: Playground; terrains: Terrains; onOpenMap?: () => void }) {
   const thumbs = useLookThumbs(168, 96);
   const { saved, activeSaved, activeMapLook, lookIndex } = terrains;
+  // A phone spends the saved width on one more preview, so the tile shrinks slightly.
+  const thumb = innerWidth <= 720 ? 66 : THUMB;
   const wrap = useRef<HTMLDivElement>(null);
   const tools = useRef<HTMLDivElement>(null);
   const scroller = useRef<HTMLDivElement>(null);
@@ -229,22 +231,23 @@ export function Dock({ pg, terrains, onOpenMap }: { pg: Playground; terrains: Te
   const maps = MAP_LOOKS.length + saved.items.length;
   const items = maps + LOOKS.length;
   const divider = maps ? DIVIDER : 0;
-  const [visible, setVisible] = useState(() => Math.min(LOOKS.length, Math.max(1, Math.floor((Math.min(1100, innerWidth) - 180) / (THUMB + GAP)))));
+  const [visible, setVisible] = useState(() => Math.min(LOOKS.length, Math.max(1, Math.floor((Math.min(1100, innerWidth) - 80) / (thumb + GAP)))));
+  const [scroll, setScroll] = useState({ left: 0, max: 0, overflow: false });
   // Measured before the first paint, so the dock opens at its final width.
   useLayoutEffect(() => {
     const el = wrap.current;
     const tool = tools.current;
     if (!el || !tool) return;
     const measure = () => {
-      const avail = el.clientWidth - tool.offsetWidth - 20 - divider;
-      const n = Math.max(1, Math.min(items, Math.floor((avail + GAP) / (THUMB + GAP))));
+      const avail = el.clientWidth - tool.offsetWidth - 8 - divider;
+      const n = Math.max(1, Math.min(items, Math.floor((avail + GAP) / (thumb + GAP))));
       setVisible(n);
     };
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     measure();
     return () => ro.disconnect();
-  }, [items, divider]);
+  }, [items, divider, thumb]);
   const mapLookIndex = activeMapLook ? MAP_LOOKS.indexOf(activeMapLook) : -1;
   const savedIndex = activeSaved ? saved.items.indexOf(activeSaved) : -1;
   const selected = mapLookIndex >= 0 ? mapLookIndex
@@ -255,19 +258,33 @@ export function Dock({ pg, terrains, onOpenMap }: { pg: Playground; terrains: Te
     if (!sc || selected < 0) return;
     const maxStart = Math.max(0, items - visible);
     const start = Math.min(maxStart, Math.max(0, selected - Math.floor((visible - 1) / 2)));
-    sc.scrollTo({ left: start * (THUMB + GAP) + (start >= maps && start > 0 ? divider : 0), behavior: 'smooth' });
-  }, [selected, visible, items, divider, maps]);
+    sc.scrollTo({ left: start * (thumb + GAP) + (start >= maps && start > 0 ? divider : 0), behavior: 'smooth' });
+  }, [selected, visible, items, divider, maps, thumb]);
+  useEffect(() => {
+    const sc = scroller.current;
+    if (!sc) return;
+    const read = () => {
+      const max = Math.max(0, sc.scrollWidth - sc.clientWidth);
+      setScroll({ left: sc.scrollLeft, max, overflow: max > 4 });
+    };
+    read();
+    sc.addEventListener('scroll', read, { passive: true });
+    const ro = new ResizeObserver(read);
+    ro.observe(sc);
+    return () => { sc.removeEventListener('scroll', read); ro.disconnect(); };
+  }, [visible, items]);
   const ready = thumbs.reduce((count, url) => count + (url ? 1 : 0), 0);
   // Every look has a slot from the first frame; a look's picture fades in when it is drawn.
   const shown = Math.min(visible, items);
-  const width = shown > 0 ? shown * THUMB + Math.max(0, shown - 1) * GAP + (shown > maps ? divider : 0) : 0;
+  const width = shown > 0 ? shown * thumb + Math.max(0, shown - 1) * GAP + (shown > maps ? divider : 0) : 0;
   return (
     <div className="pt-dock-wrap" ref={wrap}>
       <div className="pt-dock-col">
       <Readout pg={pg} />
       <Minimap pg={pg} terrains={terrains} onOpenMap={onOpenMap} />
-      <nav className="pt-dock pt-glass" aria-label="Examples" data-looks={LOOKS.length} data-ready={ready} data-saved={saved.items.length}>
-        <div className="pt-thumbs" ref={scroller} style={{ width }}>
+      <nav className="pt-dock pt-glass" aria-label="Examples" data-looks={LOOKS.length} data-ready={ready} data-saved={saved.items.length} style={{ ['--thumb' as string]: `${thumb}px` }}>
+        <div className="pt-thumb-row">
+        <div className={`pt-thumbs${scroll.overflow && scroll.left < scroll.max - 4 ? ' is-more' : ''}${scroll.left > 4 ? ' is-back' : ''}`} ref={scroller} style={{ width }}>
           {MAP_LOOKS.map((look) => (
             <SavedThumb key={look.id} item={look} current={look === activeMapLook} onOpen={() => terrains.openMapLook(look)} />
           ))}
@@ -297,7 +314,13 @@ export function Dock({ pg, terrains, onOpenMap }: { pg: Playground; terrains: Te
             </button>
           ))}
         </div>
-        {/* Theme, shuffle, then the two colours. */}
+          {scroll.overflow && scroll.left < scroll.max - 4 ? (
+            <button type="button" className="pt-scroll-more" aria-label="More terrains" onClick={() => scroller.current?.scrollBy({ left: thumb + GAP, behavior: 'smooth' })}>
+              <ChevronRight size={16} strokeWidth={1.75} />
+            </button>
+          ) : null}
+        </div>
+        {/* Theme, shuffle, then the two colours, in a 2×2 grid. */}
         <div className="pt-dock-tools" ref={tools}>
           <ThemeToggle pg={pg} />
           <IconButton label="Shuffle" side="top" className="pt-tool" onClick={terrains.shuffle}><Dices size={16} strokeWidth={1.75} /></IconButton>
