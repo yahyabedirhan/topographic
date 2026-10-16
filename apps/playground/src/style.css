@@ -79,10 +79,11 @@ button.pt-compass:active{transform:scale(.94)}
 .pt-tip{padding:5px 8px;border-radius:8px;background:var(--on);color:var(--on-fg);font-size:12px;line-height:1.2;box-shadow:0 8px 24px rgba(0,0,0,.28)}
 .pt-dock-wrap{position:fixed;z-index:5;left:12px;right:12px;bottom:12px;display:flex;justify-content:center;pointer-events:none}
 .pt-dock{pointer-events:auto;display:flex;align-items:center;gap:4px;padding:8px;border-radius:24px;max-width:100%;overflow:hidden}
+.pt-thumb-row{position:relative;min-width:0;display:flex;align-items:center}
 /* Exactly one thumbnail tall: with "always show scroll bars", a horizontal bar would otherwise add space under the looks. */
 .pt-thumbs{display:flex;gap:4px;height:48px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;scrollbar-gutter:auto;padding:0;scroll-snap-type:x mandatory;flex:none}
 .pt-thumbs::-webkit-scrollbar{display:none}
-.pt-thumb{flex:none;width:84px;height:48px;padding:0;border:0;border-radius:999px;background:transparent;box-shadow:none;scroll-snap-align:start;line-height:0;transition:padding .28s cubic-bezier(.22,1,.36,1)}
+.pt-thumb{flex:none;width:var(--thumb,84px);height:48px;padding:0;border:0;border-radius:999px;background:transparent;box-shadow:none;scroll-snap-align:start;line-height:0;transition:padding .28s cubic-bezier(.22,1,.36,1)}
 .pt-thumb:hover{background:transparent}
 .pt-thumb[aria-current="true"]{padding:1px}
 .pt-thumb-media{display:block;width:100%;height:100%;border-radius:16px;overflow:hidden;position:relative;background:var(--paper)}
@@ -108,7 +109,18 @@ button.pt-thumb-del:hover{background:var(--paper)}
 @media (hover:none){button.pt-thumb-del{opacity:1}}
 .pt-dock-divider{flex:none;align-self:center;width:1px;height:28px;background:var(--line)}
 /* The dock's right end: theme, shuffle, paper, ink. 28px circles and 28px slots, centres 30px apart. */
-.pt-dock-tools{display:flex;gap:2px;align-items:center;flex:none;padding-inline:6px 2px}
+.pt-dock-tools{display:grid;grid-template-columns:28px 28px;gap:4px;align-content:center;flex:none;padding-inline:4px 0}
+.pt-dock[data-dock='b']{flex-direction:column;align-items:stretch;gap:6px}
+.pt-dock[data-dock='b'] .pt-thumb-row,.pt-dock[data-dock='b'] .pt-thumbs{width:100%}
+.pt-dock[data-dock='b'] .pt-dock-tools{justify-content:center;justify-self:center;padding:2px 0 0}
+.pt-thumbs.is-more{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent)}
+.pt-thumbs.is-back:not(.is-more){-webkit-mask-image:linear-gradient(90deg,transparent,#000 28px);mask-image:linear-gradient(90deg,transparent,#000 28px)}
+.pt-thumbs.is-back.is-more{-webkit-mask-image:linear-gradient(90deg,transparent,#000 28px,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(90deg,transparent,#000 28px,#000 calc(100% - 28px),transparent)}
+button.pt-scroll-more{position:absolute;right:1px;top:50%;transform:translateY(-50%);width:22px;height:22px;padding:0;border:0;border-radius:50%;display:grid;place-items:center;color:var(--fg);
+  background:color-mix(in srgb,var(--paper) 82%,transparent);box-shadow:inset 0 0 0 .5px var(--line);z-index:1}
+button.pt-scroll-more:hover{background:var(--paper)}
+.pt-scroll-track{position:relative;height:3px;margin:0 8px;border-radius:99px;background:color-mix(in srgb,var(--fg) 14%,transparent)}
+.pt-scroll-track i{position:absolute;top:0;height:100%;border-radius:99px;background:var(--mut)}
 .pt-tool-slot{width:28px;height:28px;display:grid;place-items:center}
 button.pt-tool{width:28px;height:28px;padding:0;border:0;border-radius:50%;display:grid;place-items:center;color:var(--fg);line-height:0;
   background:color-mix(in srgb,var(--fg) 7%,transparent);box-shadow:inset 0 0 0 .5px var(--line)}
@@ -355,14 +367,15 @@ button.pt-card[aria-pressed="true"]{background:var(--seg-on);box-shadow:var(--se
   .pt-top{top:12px;right:8px;gap:6px}
   .pt-cluster{padding:4px}
   .pt-ibtn{width:34px;height:34px}
-  .pt-dock-wrap{left:8px;right:8px;bottom:12px}
+  .pt-dock-wrap{left:4px;right:4px;bottom:12px}
+  .pt-dock{padding:4px}
   .pt-pop{width:min(var(--pop-w),calc(100vw - 16px));max-height:calc(100dvh - 138px)}
   .pt-pop-wide{max-height:calc(100dvh - 150px)}
   .pt-mapbox{height:360px}
   .pt-place-actions .pt-action{padding:0 12px}
   .pt-pop-color{width:max-content}
   .pt-row{grid-template-columns:16px 60px minmax(0,1fr) 40px;column-gap:8px}
-  .pt-dock-tools{padding-inline:4px 0}
+  .pt-dock-tools{padding-inline:2px 0}
   .pt-minimap{width:100px;height:100px;border-radius:16px}
   button.pt-minimap-map{padding:7px}
   button.pt-compass{top:3px;right:3px;width:24px;height:24px}
