@@ -27,7 +27,7 @@ The same lines can also be shown as a 3D landscape. You can view it from any ang
 |---|---|---|
 | ![Night flower in 3D: blue rings rising to a soft dome](assets/screenshots/look-night-flower-3d.webp) | ![Terraces in 3D: amber lines stepping up a hill](assets/screenshots/look-terraces-3d.webp) | ![Rocky spine in 3D: brown lines over a rough ridge on light paper](assets/screenshots/look-rocky-spine-3d.webp) |
 
-The landscape can also come from a real place, using real height data. The playground has ten places ready to use. You can also choose any area up to 300 km wide.
+The landscape can also come from a real place, using real height data. The [playground](https://yahyabedirhan.github.io/topographic/) has ten places ready to use. You can also choose any area up to 300 km wide.
 
 | | | | | |
 |---|---|---|---|---|
@@ -85,11 +85,11 @@ topographic.update({ mode: '3d', elevation: 0.7, extent: 'block', camera: { moti
 - `elevation` sets how tall the land is, from 0 (flat) to 1 (tall).
 - `extent` is `endless` (the default) or `block`. With `endless`, the land fades out at the edges. With `block`, the land sits on a square base.
 - `camera` sets where you look from: `azimuth` is the direction (349.7 by default), `elevation` is the height angle (33.6) and `radius` is the distance (1.92). `motion` makes the camera move: `still`, `orbit`, `push`, `flyover` or `drone`.
-- In the playground, drag to turn around the land. Scroll with two fingers to move it. Use ⌘/Ctrl + scroll or pinch to zoom. Double-click to centre it again.
+- In the [playground](https://yahyabedirhan.github.io/topographic/), drag to turn around the land. Scroll with two fingers to move it. Use ⌘/Ctrl + scroll or pinch to zoom. Double-click to centre it again.
 
 ### Real places
 
-In the playground, open **Map**, choose an area up to 300 km wide, and click **Apply**. The playground downloads the height data for that area and shows it in 3D. In your own code, you can pass any grid of heights to `setHeightfield({ samples, size, aspect })`. Each height is a number from 0 (lowest) to 1 (highest).
+In the [playground](https://yahyabedirhan.github.io/topographic/), open **Map**, choose an area up to 300 km wide, and click **Apply**. The playground downloads the height data for that area and shows it in 3D. In your own code, you can pass any grid of heights to `setHeightfield({ samples, size, aspect })`. Each height is a number from 0 (lowest) to 1 (highest).
 
 ![The Map popover over Istanbul: a dark map with a white frame around the city, the place menu above, and Clear and Applied below](assets/screenshots/map-popover-dark.webp)
 
@@ -104,7 +104,7 @@ const clip = await topographic.record({ seconds: 6, motion: 'orbit', format: 'mp
 
 ### AI agents
 
-The playground has plain-text docs for AI tools at [`llms.txt`](https://yahyabedirhan.github.io/topographic/llms.txt). In browsers that support [WebMCP](https://github.com/webmachinelearning/webmcp), an AI agent can use the playground directly. It can change the settings, choose a place, take a screenshot, record a video and get the code.
+The [playground](https://yahyabedirhan.github.io/topographic/) has plain-text docs for AI tools at [`llms.txt`](https://yahyabedirhan.github.io/topographic/llms.txt). In browsers that support [WebMCP](https://github.com/webmachinelearning/webmcp), an AI agent can use the playground directly. It can change the settings, choose a place, take a screenshot, record a video and get the code.
 
 The [guide](docs/guide.md) lists every setting with its range and default. It also covers [3D](docs/guide.md#three-dimensions), [PNG export](docs/guide.md#snapshots-and-png-export), colours and themes, server rendering and the [WebMCP tools](docs/guide.md#webmcp-tools).
 
@@ -112,7 +112,7 @@ The [guide](docs/guide.md) lists every setting with its range and default. It al
 
 ![How topographic fits together: the web component, the React component and the playground call one public API, which also takes an optional heightfield. Settings resolve from the params table, styles and presets, and one WebGL renderer draws them as a 2D contour shader or a 3D terrain pass, whose frames record() encodes as video.](assets/images/diagrams/library-architecture.png)
 
-The web component, the React component and the playground all use the same code. One renderer draws both 2D and 3D.
+The web component, the React component and the [playground](https://yahyabedirhan.github.io/topographic/) all use the same code. One renderer draws both 2D and 3D.
 
 ![One terrain, two views: settings, or an optional heightfield, feed one shared contour field. In 2D a fragment shader paints its lines on every pixel. In 3D a mesh is lifted by the same field, painted with the same lines and seen through a moving camera.](assets/images/diagrams/terrain-two-views.png)
 
@@ -120,7 +120,7 @@ The web component, the React component and the playground all use the same code.
 
 ![How a real place becomes a terrain in the playground: the Map popover gives a bounding box, a worker fetches Terrarium elevation tiles, stitches and resamples them to a 256 by 256 grid, scales the relief and smooths it, and the region hook hands the heightfield to the renderer with setHeightfield().](assets/images/diagrams/real-place-pipeline.png)
 
-The playground downloads height data for the area, smooths it and turns it into a grid of heights. `setHeightfield()` then draws it. The [low-level design](docs/low-level-design.md) explains each part.
+The [playground](https://yahyabedirhan.github.io/topographic/) downloads height data for the area, smooths it and turns it into a grid of heights. `setHeightfield()` then draws it. The [low-level design](docs/low-level-design.md) explains each part.
 
 ## Contributing
 
