@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { DEFAULT_ELEVATION, resolveSettings, type Heightfield, type Settings } from 'topographic';
-import { schedulePageUrl } from '../page-history';
+import { flushPageUrl, schedulePageUrl } from '../page-history';
 import { withQuery, writeSettings } from '../share-url';
-import type { Playground } from '../shared';
+import { stagePointerBusy, type Playground } from '../shared';
 import { limitMessage, limitProblem, spanOf, type BBox, type ReliefMode, type SmoothLevel, type Span } from './pipeline';
 import { beforePlace, findPlace, restoredKeys, terrainDefaults, type BeforePlace } from './places';
 import { registerRegionTools } from './register';
@@ -87,6 +87,7 @@ export function useRegion(pg: Playground): RegionController {
     const q = new URLSearchParams(location.search);
     writeRegion(q, queryOf(bbox, placeId));
     schedulePageUrl(withQuery(location.pathname, writeSettings(q.toString(), settingsRef.current), location.hash));
+    if (!stagePointerBusy()) flushPageUrl();
   }, [bbox, placeId]);
 
   useEffect(() => {

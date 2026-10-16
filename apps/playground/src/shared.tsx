@@ -5,7 +5,7 @@ import {
 } from 'topographic';
 import { TopographicBackground } from 'topographic-react';
 import { anchorFromDrag } from './anchor';
-import { bindPageUrlFlush, schedulePageUrl } from './page-history';
+import { bindPageUrlFlush, flushPageUrl, schedulePageUrl } from './page-history';
 import { registerTools } from './webmcp';
 import { configOf, readUrl } from './url';
 import { withQuery, writeSettings } from './share-url';
@@ -107,6 +107,8 @@ export function usePlayground(): Playground {
   useEffect(() => { document.documentElement.dataset.theme = mode; }, [mode]);
   useEffect(() => {
     schedulePageUrl(withQuery(location.pathname, writeSettings(location.search, settings), location.hash));
+    // A drag keeps the pointer down, so those writes stay on the trail. A click or a tool call flushes.
+    if (!stagePointerBusy()) flushPageUrl();
   }, [settings]);
   useEffect(() => bindPageUrlFlush(), []);
   const latest = useRef(settings);
