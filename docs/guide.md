@@ -361,6 +361,8 @@ The playground (`apps/playground`) is the project's live demo page.
 
 To run it, use `npm install && npm run dev`.
 
+A public build does not include the debug heartbeat. Set `VITE_TOPOGRAPHIC_DEBUG=1` for that build to include it. The heartbeat records errors, WebGL context loss, how many contexts are alive, canvas size and memory. It shows a small on-screen log and posts batches to `./__debug`. `vite` and `vite preview` print those batches. A static host has no such path, and the page ignores the failed post. A URL cannot turn the heartbeat on.
+
 ## WebMCP tools
 
 [WebMCP](https://github.com/webmachinelearning/webmcp) lets a web page give tools to AI agents in the browser. In browsers that support it, the playground registers these tools with `document.modelContext.registerTool()`. Without WebMCP, no tools are registered.
