@@ -14,7 +14,7 @@ topographic draws animated contour lines with WebGL, as a flat map or a 3D terra
 
 ## Examples
 
-**Looks.** There are seven terrain styles. You set the lines, colours and motion. The same seed always gives the same terrain.
+Each setting changes the terrain, its lines, colours and motion, so the number of styles has no limit. The same settings always give the same terrain.
 
 | | | |
 |---|---|---|
