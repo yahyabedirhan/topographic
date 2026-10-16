@@ -2,32 +2,32 @@
 
 <h1 align="center">topographic</h1>
 
-<p align="center">WebGL contour-line backgrounds for the web, in 2D and 3D,<br>from procedural terrain or real elevation data.</p>
+<p align="center">Contour-line backgrounds for the web, in 2D and 3D.</p>
 
 <p align="center"><a href="https://yahyabedirhan.github.io/topographic/"><b>Open the playground</b></a> · <a href="#install">Install</a> · <a href="docs/guide.md">Guide</a></p>
 
 ![Fine granite in 3D: a summit ringed by pale contour lines, gullies fanning out to a dark horizon](assets/screenshots/hero.webp)
 
-topographic renders animated contour lines from a procedural terrain or a heightfield, as a 2D fragment shader or a 3D mesh. The npm package has no runtime dependencies and ships a web component and a React wrapper. The playground edits the settings and exports embed code, PNG and video.
+topographic draws animated contour lines with WebGL, as a flat map or a 3D terrain. The terrain comes from a built-in style or from real elevation data. The npm package has no dependencies. It includes a web component and a React component. In the playground, you change the settings and export code, PNG or video.
 
 ![The playground in dark mode: Istanbul in 3D behind the page, the dock of looks along the bottom, the controls at the top right and a minimap of the place in the corner](assets/screenshots/playground-dark.webp)
 
 ## Examples
 
-**Looks.** Seven terrain styles. Lines, colours and motion are settings, and a given seed always renders the same terrain.
+**Looks.** There are seven terrain styles. You set the lines, colours and motion. The same seed always gives the same terrain.
 
 | | | |
 |---|---|---|
 | ![Survey ridge: pale lines around a long ridge on dark paper](assets/screenshots/look-survey-ridge-2d.webp) | ![Sea dunes: blue-green dune lines on deep teal](assets/screenshots/look-sea-dunes-2d.webp) | ![Rose pod: faint rose lines on near-black](assets/screenshots/look-rose-pod-2d.webp) |
 | ![Stepped petals: plum lines on pale pink paper](assets/screenshots/look-stepped-petals-2d.webp) | ![Stone grain: graphite lines on warm stone paper](assets/screenshots/look-stone-grain-2d.webp) | ![Centred lobes: navy rings on pale blue paper](assets/screenshots/look-centred-lobes-2d.webp) |
 
-**3D.** `mode: '3d'` draws the same contour field on a mesh, seen through a camera.
+**3D.** Set `mode: '3d'` to show the same map as a terrain, with a camera.
 
 | | | |
 |---|---|---|
 | ![Night flower in 3D: blue rings rising to a soft dome](assets/screenshots/look-night-flower-3d.webp) | ![Terraces in 3D: amber lines stepping up a hill](assets/screenshots/look-terraces-3d.webp) | ![Rocky spine in 3D: brown lines over a rough ridge on light paper](assets/screenshots/look-rocky-spine-3d.webp) |
 
-**Real places.** Heightfields built from Terrarium elevation tiles. The playground has ten preset places and accepts any area up to 300 km on a side.
+**Real places.** The terrain can come from real elevation data. The playground has ten preset places. You can also select any area up to 300 km wide.
 
 | | | | | |
 |---|---|---|---|---|
@@ -64,11 +64,11 @@ import { TopographicBackground } from 'topographic-react';
 <TopographicBackground styleName="long-ridge" style={{ height: '100vh' }} />
 ```
 
-The [playground](https://yahyabedirhan.github.io/topographic/)'s **Export** generates this code for the current settings.
+**Export** in the [playground](https://yahyabedirhan.github.io/topographic/) gives you this code for your settings.
 
 ## 2D and 3D
 
-**Settings.** Every look comes from one set of readable settings: a `style` and `seed`, then `lines`, `terrain`, `motion`, `layout` and `theme`. Change them live with `topographic.update({ terrain: { peaks: 3 } })`. Rendering pauses while the canvas is off-screen or the tab is hidden, follows `prefers-reduced-motion`, and falls back to a plain colour without WebGL.
+**Settings.** Every look comes from one set of readable settings: a `style` and `seed`, then `lines`, `terrain`, `motion`, `layout` and `theme`. Change them live with `topographic.update({ terrain: { peaks: 3 } })`. Rendering pauses when the canvas is not visible. It respects `prefers-reduced-motion`. Without WebGL, it shows a plain colour.
 
 **3D.** Add `mode: '3d'`. 2D stays the default, and the same seed gives the same map in both.
 
@@ -77,7 +77,7 @@ topographic.update({ mode: '3d', elevation: 0.7, extent: 'block', camera: { moti
 ```
 
 - `elevation` is the vertical scale, from 0 (flat) to 1.
-- `extent` is `endless` (the default), a plane that fades into the paper colour, or `block`, a finite slab with shaded sides.
+- `extent` is `endless` (the default) or `block`. `endless` fades into the background. `block` is a slab with sides.
 - `camera` places the view (`azimuth` 349.7, `elevation` 33.6, `radius` 1.92 by default), and `motion` moves it: `still`, `orbit`, `push`, `flyover` or `drone`.
 - In the playground, drag to orbit, scroll with two fingers to pan, ⌘/Ctrl + scroll or pinch to zoom, and double-click to recentre.
 
