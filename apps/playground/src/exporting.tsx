@@ -13,6 +13,7 @@ import { shareUrl } from './url';
 import { type Playground } from './shared';
 import { Glyph, Tabs, Tip, useWidth } from './parts';
 import { GLYPHS, pathArt, timelineArt, type GlyphName } from './track-art';
+import { visualVariants } from './variants';
 
 type FormatId = 'link' | 'png' | 'video' | 'react' | 'html' | 'json';
 
@@ -93,8 +94,22 @@ function keyName(key: string): [string, GlyphName | null] {
 function LinkBlock({ pg }: { pg: Playground }) {
   const url = shareUrl(pg.settings);
   const entries = [...new URL(url).searchParams.entries()];
+  const linkVariant = visualVariants(location.search).link;
+  const src = useViewPicture(pg, 320, 180);
+  const bare = url.replace(/^https?:\/\//, '');
   return (
-    <div className="pt-export-block">
+    <div className="pt-export-block" data-link={linkVariant}>
+      {linkVariant === 'a' ? (
+        <figure className="pt-link-shot">
+          {src ? <img src={src} alt="The terrain this link opens" /> : <div className="pt-link-wait" aria-hidden="true" />}
+          <figcaption>Link preview</figcaption>
+        </figure>
+      ) : (
+        <figure className="pt-link-card">
+          {src ? <img src={src} alt="The terrain this link opens" /> : <div className="pt-link-wait" aria-hidden="true" />}
+          <figcaption>{bare}</figcaption>
+        </figure>
+      )}
       <p className="pt-hint">{entries.length ? 'This link opens with these parameters:' : 'This link opens the playground as it starts: nothing is changed yet.'}</p>
       {entries.length ? (
         <ul className="pt-urlchips" aria-label="Link settings">
