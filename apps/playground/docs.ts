@@ -60,7 +60,7 @@ Other settings:
 - \`elevation\` (attribute \`elevation\`): 0 to 1, default 0.62. 3D height. 0 is flat like the 2D map; higher values make the terrain taller, with a rounded crest.
 - \`extent\` (attribute \`extent\`): \`endless\` (default) continues the terrain past the view. \`block\` is a finite tabletop whose cut sides carry thin ink layer lines.
 - \`detail\` (attribute \`detail\`): 0 to 1, default 0.5. Mesh resolution, from 32² to 160². Use a low value on a slow device.
-- \`quality\` (attribute \`quality\`): \`auto\` (default), \`low\`, \`medium\` or \`high\`. \`auto\` follows the device and steps down if frames miss 60 Hz, or 120 Hz once that refresh has been seen. The other values stay put. The tier caps the pixel ratio, the pixel count and the mesh size.
+- \`quality\` (attribute \`quality\`): \`auto\` (default), \`low\`, \`medium\` or \`high\`. \`auto\` starts a phone at low and a desktop at high, then steps down if frames miss 60 Hz, or 120 Hz once that refresh has been seen. It does not step back up. The other values stay put. The tier caps the pixel ratio, the pixel count and the mesh size.
 - \`camera.azimuth\` (attribute \`azimuth\`): degrees around the terrain. Any finite number. Default 349.7.
 - \`camera.elevation\` (attribute \`camera-elevation\`): degrees above the horizon, 2 to 80. The camera never goes below the terrain. Default 33.6.
 - \`camera.radius\` (attribute \`radius\`): distance from the terrain centre, 1.15 to 6.5. Default 1.92.
@@ -125,13 +125,13 @@ function apiMd(): string {
 
 Mounts a canvas inside \`element\` (it fills the element) and returns an instance.
 
-- \`settings\`: partial settings, see [params.md](params.md). Shape: \`{ style, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera }\`. \`mode\` is \`'2d' | '3d'\` and defaults to \`'2d'\`. \`quality\` is \`'auto' | 'low' | 'medium' | 'high'\` and defaults to \`'auto'\`. \`auto\` picks a tier from the device and steps down if presented frames miss 60 Hz, or 120 Hz once a frame under 12 ms has been seen. It does not step back up.
+- \`settings\`: partial settings, see [params.md](params.md). Shape: \`{ style, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera }\`. \`mode\` is \`'2d' | '3d'\` and defaults to \`'2d'\`. \`quality\` is \`'auto' | 'low' | 'medium' | 'high'\` and defaults to \`'auto'\`. \`auto\` starts a phone at low and a desktop at high, then steps down if presented frames miss 60 Hz, or 120 Hz once a frame under 12 ms has been seen. It does not step back up.
 - \`options\`: \`{ maxPixelRatio = 2, maxPixels = 4147200, forceWebGL1 = false, benchmark = false }\`. \`benchmark\` keeps a 3D view drawing while it is visible so \`stats\` can be read.
 
 Instance:
 
 - \`update(partialSettings)\`: merges, clamps and applies live. Only changed uniforms reach the GPU.
-- \`snapshot({ frame?, width?, height?, region?, motion? }) => Promise<Blob>\`: renders one PNG off-screen. \`frame\` is the animation time in ms. Give one side to keep the aspect ratio. \`region\` (\`{ x, y, width, height }\`, fractions from the top-left) keeps only that slice of the view, drawn at full detail. \`motion\` draws the 3D view along that camera path at its pose for \`frame\`, like that moment of \`record\`. The live canvas is not resized. Rejects without WebGL. In 3D it includes the current camera.
+- \`snapshot({ frame?, width?, height?, region?, motion?, patch?, field? }) => Promise<Blob>\`: renders one PNG off-screen. \`frame\` is the animation time in ms. Give one side to keep the aspect ratio. \`region\` (\`{ x, y, width, height }\`, fractions from the top-left) keeps only that slice of the view, drawn at full detail. \`motion\` draws the 3D view along that camera path at its pose for \`frame\`, like that moment of \`record\`. \`patch\` and \`field\` draw this image from temporary settings and a temporary height grid, then put the live view back, so the page does not flash and a second WebGL context is not required. The live canvas is not resized. Rejects without WebGL. In 3D it includes the current camera.
 - \`record({ seconds?, fps?, width?, height?, frame?, format?, motion? }) => Promise<Blob>\`: renders a 3D clip with a moving camera. \`format\` is \`'mp4'\` (default) or \`'webm'\`. \`motion\` is \`orbit\`, \`push\`, \`flyover\`, \`drone\` or \`still\`. The live canvas is not resized. Rejects without WebGL or when the browser cannot encode that format.
 - \`setInsets({ top, right, bottom, left } | null)\`: the space page UI covers on each side of the view, in CSS px. The 3D picture slides (a lens shift, not a camera move) so the terrain centres in the part left free. 2D, \`snapshot\` and \`record\` ignore it and centre in their own frame. \`insets\` reads it back.
 - \`clampPan(panX, panZ) => [x, z]\`: the pan kept over the terrain as it is drawn now.

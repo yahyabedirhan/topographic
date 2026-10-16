@@ -54,13 +54,11 @@ export function readDeviceSignals(view: Pick<Window, 'navigator' | 'matchMedia'>
 }
 
 /**
- * Where `auto` starts. Phones start at medium so a 120 Hz screen can be reached;
- * the frame loop steps down to low if frames miss 16.7 ms (or 8.3 ms once a
- * 120 Hz beat has been seen). Desktops start at high.
+ * Where `auto` starts. A phone starts at low: the iPhone 14 Pro already holds 60 fps there, and
+ * opening at medium allocates a larger canvas that is then thrown away. Desktops start at high.
  */
 export function detectTier(signals: DeviceSignals): TierId {
-  if (signals.saveData) return 'low';
-  if (signals.mobile) return signals.memory !== undefined && signals.memory <= 2 ? 'low' : 'medium';
+  if (signals.saveData || signals.mobile) return 'low';
   if ((signals.memory !== undefined && signals.memory <= 4) || signals.cores <= 4) return 'medium';
   return 'high';
 }

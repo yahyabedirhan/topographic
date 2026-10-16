@@ -71,13 +71,14 @@ export function useRegion(pg: Playground): RegionController {
   const request = useRef(0);
 
   useEffect(() => {
+    if (!bbox || workerRef.current) return;
     const worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
     workerRef.current = worker;
     setWorkerReady(true);
-    return () => {
-      worker.terminate();
-      workerRef.current = null;
-    };
+  }, [bbox]);
+  useEffect(() => () => {
+    workerRef.current?.terminate();
+    workerRef.current = null;
   }, []);
 
   const settingsRef = useRef(pg.settings);

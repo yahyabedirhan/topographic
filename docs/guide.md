@@ -270,6 +270,7 @@ const blob = await topographic.snapshot({ width: 1920, height: 1080, frame: 4000
 ```
 
 - It draws in the background. The live canvas keeps its size and keeps animating.
+- `patch` and `field` draw that image from temporary settings and a temporary height grid. The live view is put back before the call returns, so the page does not flash and a second WebGL context is not required.
 - To keep the on-screen shape, give only `width` or only `height`. If you give neither, you get the current drawing size.
 - `frame` is the animation time in milliseconds. The same settings and the same frame always give the same image.
 - `region` keeps only part of the view: `{ x, y, width, height }`, as fractions measured from the top-left corner. The image is exactly that part of the screen, at `width` × `height` pixels. For example, you can take a phone-shaped strip from a wide window.
@@ -286,7 +287,7 @@ The playground's PNG export uses this. The sizes are 2× the window, a phone siz
 - **Still when nothing moves:** when `motion.speed` is 0, there is no animation loop. It draws again only when something changes.
 - **Reduced motion:** when the system asks for reduced motion, it draws one still frame and ignores speed.
 - **Pixel limit:** the pixel ratio is at most 2, and `quality` can cap it lower. Very large canvases draw at a lower resolution above `maxPixels`. The GPU code smooths the lines, so they stay sharp.
-- **Graphics budget:** `quality: 'auto'` starts a phone at medium and steps down when frames miss the refresh period. It does not step back up. Set `low`, `medium` or `high` to keep one tier.
+- **Graphics budget:** `quality: 'auto'` starts a phone at low and a desktop at high, then steps down when frames miss the refresh period. It does not step back up. Set `low`, `medium` or `high` to keep one tier.
 - **Screen readers:** the canvas is `aria-hidden`, because it is only decoration. Put real content on top of it.
 - **Readability:** `layout.fade` makes the lines softer behind a text column in the centre. `layout.anchor` moves the main summit from the side (0) to the centre (1).
 
