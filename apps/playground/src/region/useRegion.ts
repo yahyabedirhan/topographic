@@ -55,7 +55,11 @@ export function useRegion(pg: Playground): RegionController {
   const initialProblem = initial.bbox ? limitProblem(initial.bbox) : null;
   const [bbox, setBbox] = useState<BBox | null>(initialProblem ? null : initial.bbox);
   const [placeId, setPlaceId] = useState<string | null>(initial.place);
-  const [status, setStatus] = useState<RegionController['status']>(initialProblem ? 'error' : initial.bbox ? 'loading' : 'idle');
+  const [status, setStatus] = useState<RegionController['status']>(() => {
+    const next = initialProblem ? 'error' : initial.bbox ? 'loading' : 'idle';
+    if (typeof document !== 'undefined') document.documentElement.dataset.region = next;
+    return next;
+  });
   const [error, setError] = useState<string | null>(initialProblem ? limitMessage(initialProblem) : null);
   const [info, setInfo] = useState<RegionInfo | null>(null);
   const [generation, setGeneration] = useState(0);
@@ -86,7 +90,9 @@ export function useRegion(pg: Playground): RegionController {
 
   useEffect(() => {
     document.documentElement.dataset.region = status;
-    return () => { delete document.documentElement.dataset.region; };
+    if (status === 'loading') document.documentElement.dataset.loading = 'terrain';
+    else delete document.documentElement.dataset.loading;
+    return () => { delete document.documentElement.dataset.region; delete document.documentElement.dataset.loading; };
   }, [status]);
 
   useEffect(() => {

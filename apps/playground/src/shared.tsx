@@ -367,10 +367,11 @@ function useStageInsets(pg: Playground) {
   return apply;
 }
 
-export function Backdrop({ pg, className = 'pt-stage' }: { pg: Playground; className?: string }) {
+export function Backdrop({ pg, hold = false, className = 'pt-stage' }: { pg: Playground; hold?: boolean; className?: string }) {
   const s = pg.settings;
   const orbit = useOrbit(pg);
   const insets = useStageInsets(pg);
+  useEffect(() => { pg.instance.current?.hold(hold); }, [hold, pg.instance]);
   return (
     <TopographicBackground
       ref={orbit.node}
@@ -394,7 +395,7 @@ export function Backdrop({ pg, className = 'pt-stage' }: { pg: Playground; class
       onPointerMove={orbit.onPointerMove}
       onPointerUp={orbit.onPointerUp}
       onPointerCancel={orbit.onPointerCancel}
-      onReady={(t) => { pg.instance.current = t; if (t) insets.current(); }}
+      onReady={(t) => { pg.instance.current = t; if (t) { t.hold(hold); insets.current(); } }}
     />
   );
 }
