@@ -21,7 +21,7 @@ Each setting changes the terrain, its lines, colours and motion, so the number o
 | ![Survey ridge: pale lines around a long ridge on dark paper](assets/screenshots/look-survey-ridge-2d.webp) | ![Sea dunes: blue-green dune lines on deep teal](assets/screenshots/look-sea-dunes-2d.webp) | ![Rose pod: faint rose lines on near-black](assets/screenshots/look-rose-pod-2d.webp) |
 | ![Stepped petals: plum lines on pale pink paper](assets/screenshots/look-stepped-petals-2d.webp) | ![Stone grain: graphite lines on warm stone paper](assets/screenshots/look-stone-grain-2d.webp) | ![Centred lobes: navy rings on pale blue paper](assets/screenshots/look-centred-lobes-2d.webp) |
 
-**3D.** Set `mode: '3d'` to show the same map as a terrain, with a camera.
+**3D.** The same contour lines can also be shown as a 3D landscape. You can view it from any angle.
 
 | | | |
 |---|---|---|
