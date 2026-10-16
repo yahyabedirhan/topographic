@@ -22,6 +22,7 @@ import {
   Backdrop, ColorPicker, GROUP_LABELS, INK_SWATCHES, PAPER_SWATCHES, Wordmark, currentColour, rollColour, useLookThumbs,
   type Playground,
 } from './shared';
+import { TerrainLoading } from './loading';
 
 // MapLibre is large, so the place panel loads the first time Map opens.
 const PlacePanel = lazy(() => import('./region/Picker').then((m) => ({ default: m.PlacePanel })));
@@ -614,7 +615,8 @@ export function Shell({ pg, terrains, place, tune, exporting, clusterRef, onOpen
 }) {
   return (
     <>
-      <Backdrop pg={pg} />
+      <Backdrop pg={pg} hold={terrains.region.status === 'loading'} />
+      {terrains.region.status === 'loading' ? <TerrainLoading /> : null}
       <GlRecovery pg={pg} />
       <Wordmark />
       <div className="pt-top">

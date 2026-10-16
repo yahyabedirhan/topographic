@@ -25,6 +25,8 @@ function snapshot(agent: RegionAgent) {
     bbox: agent.bbox,
     place: agent.placeId,
     status: agent.status,
+    loading: agent.status === 'loading',
+    message: agent.status === 'loading' ? 'Loading terrain' : null,
     error: agent.error,
     reliefM: agent.info?.reliefM ?? null,
     minM: agent.info?.minM ?? null,
