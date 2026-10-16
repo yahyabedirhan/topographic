@@ -10,6 +10,36 @@
     <title>topographic: animated topographic backgrounds</title>
     <link rel="alternate" type="text/plain" href="llms.txt" title="LLM docs" />
     <meta name="description" content="Design an animated topographic background for your website and copy it." />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="topographic" />
+    <meta property="og:title" content="topographic: animated topographic backgrounds" />
+    <meta property="og:description" content="Design an animated topographic background for your website and copy it." />
+    <meta property="og:url" content="https://yahyabedirhan.github.io/topographic/" />
+    <meta property="og:image" content="https://yahyabedirhan.github.io/topographic/og-a.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="A dark granite topographic terrain, drawn as contour lines." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="topographic: animated topographic backgrounds" />
+    <meta name="twitter:description" content="Design an animated topographic background for your website and copy it." />
+    <meta name="twitter:image" content="https://yahyabedirhan.github.io/topographic/og-a.png" />
+    <meta name="twitter:image:alt" content="A dark granite topographic terrain, drawn as contour lines." />
+    <script>
+      (function () {
+        var q = new URLSearchParams(location.search);
+        var id = (q.get('og') || q.get('variant')) === 'b' ? 'b' : 'a';
+        var src = 'https://yahyabedirhan.github.io/topographic/og-' + id + '.png';
+        var alt = id === 'b' ? 'Pale dunes drawn as contour lines on warm paper.' : 'A dark granite topographic terrain, drawn as contour lines.';
+        [['property', 'og:image'], ['name', 'twitter:image']].forEach(function (pair) {
+          var el = document.querySelector('meta[' + pair[0] + '="' + pair[1] + '"]');
+          if (el) el.setAttribute('content', src);
+        });
+        [['property', 'og:image:alt'], ['name', 'twitter:image:alt']].forEach(function (pair) {
+          var el = document.querySelector('meta[' + pair[0] + '="' + pair[1] + '"]');
+          if (el) el.setAttribute('content', alt);
+        });
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
