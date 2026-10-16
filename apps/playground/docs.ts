@@ -60,6 +60,7 @@ Other settings:
 - \`elevation\` (attribute \`elevation\`): 0 to 1, default 0.62. 3D height. 0 is flat like the 2D map; higher values make the terrain taller, with a rounded crest.
 - \`extent\` (attribute \`extent\`): \`endless\` (default) continues the terrain past the view. \`block\` is a finite tabletop whose cut sides carry thin ink layer lines.
 - \`detail\` (attribute \`detail\`): 0 to 1, default 0.5. Mesh resolution, from 32² to 160². Use a low value on a slow device.
+- \`quality\` (attribute \`quality\`): \`auto\` (default), \`low\`, \`medium\` or \`high\`. \`auto\` follows the device and steps down if frames miss 60 Hz, or 120 Hz once that refresh has been seen. The other values stay put. The tier caps the pixel ratio, the pixel count and the mesh size.
 - \`camera.azimuth\` (attribute \`azimuth\`): degrees around the terrain. Any finite number. Default 349.7.
 - \`camera.elevation\` (attribute \`camera-elevation\`): degrees above the horizon, 2 to 80. The camera never goes below the terrain. Default 33.6.
 - \`camera.radius\` (attribute \`radius\`): distance from the terrain centre, 1.15 to 6.5. Default 1.92.
@@ -146,15 +147,15 @@ Behaviour:
 - Uses WebGL2, then WebGL1. Without either, or while the context is lost, the element shows the paper colour. A restored context resumes. If the browser never restores it, the canvas is replaced and the view comes back on its own. Drawing does not call \`gl.finish\`, and the backing store is left alone when a resize reports the same size.
 - \`prefers-reduced-motion: reduce\` renders a single still frame.
 - Animation pauses when the element is off-screen or the tab is hidden.
-- Pixel budget: the device pixel ratio is capped at \`maxPixelRatio\`, and the canvas scales down past \`maxPixels\`.
+- Pixel budget: \`quality\` caps the device pixel ratio, the pixel count and the mesh. \`maxPixelRatio\` and \`maxPixels\` are the ceiling above that.
 
 ## <topographic-bg>
 
-\`import 'topographic/element'\` registers the element. Attributes: \`style-name\`, \`seed\`, \`theme\`, \`ink\`, \`paper\`, \`mode\`, \`elevation\`, \`extent\`, \`detail\`, \`azimuth\`, \`camera-elevation\`, \`radius\`, \`camera-motion\`, \`pan-x\`, \`pan-z\`, plus one per numeric setting (see [params.md](params.md)). Attribute changes apply live, and a removed attribute returns to its default. \`element.topographic\` is the instance, and \`element.snapshot(opts)\` is a shortcut.
+\`import 'topographic/element'\` registers the element. Attributes: \`style-name\`, \`seed\`, \`theme\`, \`ink\`, \`paper\`, \`mode\`, \`elevation\`, \`extent\`, \`detail\`, \`quality\`, \`azimuth\`, \`camera-elevation\`, \`radius\`, \`camera-motion\`, \`pan-x\`, \`pan-z\`, plus one per numeric setting (see [params.md](params.md)). Attribute changes apply live, and a removed attribute returns to its default. \`element.topographic\` is the instance, and \`element.snapshot(opts)\` is a shortcut.
 
 ## React: <TopographicBackground> and useTopographicBackground
 
-\`<TopographicBackground styleName lines terrain motion layout theme seed mode elevation extent detail camera options onReady {...divProps}>\` renders a div with the background, and children on top. It is SSR-safe: the server renders an empty div.
+\`<TopographicBackground styleName lines terrain motion layout theme seed mode elevation extent detail quality camera options onReady {...divProps}>\` renders a div with the background, and children on top. It is SSR-safe: the server renders an empty div.
 
 \`useTopographicBackground(settings, options)\` returns a ref to put on any element. \`ref.topographic\` is the instance while mounted.
 
@@ -180,7 +181,9 @@ Live playground: ${SITE_URL}
 
 The playground page holds its state in short query params. Only values that differ from a base are written. The base is the style's defaults, or a named look from the dock (\`look=night-lobes\`). Keys: \`s\` style, \`seed\`, one short key per parameter (${PARAMS.map((p) => `\`${p.short}\` ${p.label.toLowerCase()}`).join(', ')}), \`m\` theme (light, dark or auto), \`ink\` and \`paper\` colours (hex without \`#\`), \`mode=3d\`, \`ex\` extent (endless is the default, so only \`ex=block\` is written), \`ev\` elevation, \`dl\` detail, \`ql\` quality (auto is the default, so only \`low\`, \`medium\` or \`high\` is written), \`az\` azimuth, \`ce\` camera elevation, \`rd\` radius, \`cm\` camera motion, \`px\` and \`pz\` the pan (only when off centre). The library's default camera (azimuth 349.7, camera elevation 33.6, radius 1.92) is not written. Examples: \`?s=dunes&lc=24\`, \`?look=night-lobes&mode=3d&cm=orbit\`, \`?s=gentle-summit&seed=4&m=dark&ink=9fb0cc&paper=0b0b0d\`.
 
-A real place is \`?region=west,south,east,north\` (or JSON \`{"bbox":[west,south,east,north]}\`). Named places: ${PLACES.map((p) => `\`place=${p.id}\``).join(', ')}. Place params combine with the settings params, for example \`?look=night-lobes&lc=40&place=istanbul\`.
+A real place is \`?region=west,south,east,north\` (or JSON \`{"bbox":[west,south,east,north]}\`). Named places: ${PLACES.map((p) => `\`place=${p.id}\``).join(', ')}. Place params combine with the settings params, for example \`?look=night-lobes&lc=40&place=istanbul\`. While those heights are still loading, the page sets \`data-loading=terrain\`, hides the default terrain, and \`get_region\` returns \`loading: true\` with message \`Loading terrain\`.
+
+In the playground, drag in 3D to orbit. A horizontal drag in 2D changes \`layout.anchor\` (0 keeps the summit to the side, 1 centres it). The dock shows terrain previews, fades the end that still has more, and a chevron scrolls to the next one. Theme, shuffle and the two colours sit in a 2×2 grid. The link tab shows a labelled still of the terrain the link opens. The page's share image is \`og-a.png\`, a dark granite still, with \`twitter:card\` set to \`summary_large_image\`.
 
 ## Packages
 
