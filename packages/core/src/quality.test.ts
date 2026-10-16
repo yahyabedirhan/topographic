@@ -3,9 +3,9 @@ import { detectTier, FRAME_MS, stepTier, tierFor } from './quality.js';
 import { fromQuery, resolveSettings, terrainSegments, toQuery } from './settings.js';
 
 describe('quality tiers', () => {
-  it('starts phones at medium and a tiny phone at low', () => {
-    expect(detectTier({ mobile: true, cores: 6, saveData: false })).toBe('medium');
-    expect(detectTier({ mobile: true, cores: 4, memory: 2, saveData: false })).toBe('low');
+  it('starts phones at low', () => {
+    expect(detectTier({ mobile: true, cores: 6, saveData: false })).toBe('low');
+    expect(detectTier({ mobile: true, cores: 4, memory: 4, saveData: false })).toBe('low');
     expect(detectTier({ mobile: false, cores: 8, memory: 8, saveData: false })).toBe('high');
     expect(detectTier({ mobile: false, cores: 4, memory: 8, saveData: false })).toBe('medium');
   });
