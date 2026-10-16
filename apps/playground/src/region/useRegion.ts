@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { DEFAULT_ELEVATION, resolveSettings, type Heightfield, type Settings } from 'topographic';
-import type { Playground } from '../shared';
+import { flushPageUrl, schedulePageUrl } from '../page-history';
+import { withQuery, writeSettings } from '../share-url';
+import { stagePointerBusy, type Playground } from '../shared';
 import { limitMessage, limitProblem, spanOf, type BBox, type ReliefMode, type SmoothLevel, type Span } from './pipeline';
 import { beforePlace, findPlace, restoredKeys, terrainDefaults, type BeforePlace } from './places';
 import { registerRegionTools } from './register';
 import { readRegion, writeRegion, type RegionQuery } from './url';
-import { withQuery, writeSettings } from '../share-url';
 import type { BuildErr, BuildOk } from './worker';
 
 export interface RegionInfo {
@@ -55,7 +56,11 @@ export function useRegion(pg: Playground): RegionController {
   const initialProblem = initial.bbox ? limitProblem(initial.bbox) : null;
   const [bbox, setBbox] = useState<BBox | null>(initialProblem ? null : initial.bbox);
   const [placeId, setPlaceId] = useState<string | null>(initial.place);
-  const [status, setStatus] = useState<RegionController['status']>(initialProblem ? 'error' : initial.bbox ? 'loading' : 'idle');
+  const [status, setStatus] = useState<RegionController['status']>(() => {
+    const next = initialProblem ? 'error' : initial.bbox ? 'loading' : 'idle';
+    if (typeof document !== 'undefined') document.documentElement.dataset.region = next;
+    return next;
+  });
   const [error, setError] = useState<string | null>(initialProblem ? limitMessage(initialProblem) : null);
   const [info, setInfo] = useState<RegionInfo | null>(null);
   const [generation, setGeneration] = useState(0);
@@ -66,27 +71,30 @@ export function useRegion(pg: Playground): RegionController {
   const request = useRef(0);
 
   useEffect(() => {
+    if (!bbox || workerRef.current) return;
     const worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
     workerRef.current = worker;
     setWorkerReady(true);
-    return () => {
-      worker.terminate();
-      workerRef.current = null;
-    };
+  }, [bbox]);
+  useEffect(() => () => {
+    workerRef.current?.terminate();
+    workerRef.current = null;
   }, []);
 
   const settingsRef = useRef(pg.settings);
   settingsRef.current = pg.settings;
-  useEffect(() => {
+  useLayoutEffect(() => {
     const q = new URLSearchParams(location.search);
     writeRegion(q, queryOf(bbox, placeId));
-    const next = withQuery(location.pathname, writeSettings(q.toString(), settingsRef.current), location.hash);
-    if (next !== location.pathname + location.search + location.hash) history.replaceState(null, '', next);
+    schedulePageUrl(withQuery(location.pathname, writeSettings(q.toString(), settingsRef.current), location.hash));
+    if (!stagePointerBusy()) flushPageUrl();
   }, [bbox, placeId]);
 
   useEffect(() => {
     document.documentElement.dataset.region = status;
-    return () => { delete document.documentElement.dataset.region; };
+    if (status === 'loading') document.documentElement.dataset.loading = 'terrain';
+    else delete document.documentElement.dataset.loading;
+    return () => { delete document.documentElement.dataset.region; delete document.documentElement.dataset.loading; };
   }, [status]);
 
   useEffect(() => {

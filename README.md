@@ -85,11 +85,12 @@ topographic.update({ mode: '3d', elevation: 0.7, extent: 'block', camera: { moti
 - `elevation` sets how tall the land is, from 0 (flat) to 1 (tall).
 - `extent` is `endless` (the default) or `block`. With `endless`, the land fades out at the edges. With `block`, the land sits on a square base.
 - `camera` sets where you look from: `azimuth` is the direction (349.7 by default), `elevation` is the height angle (33.6) and `radius` is the distance (1.92). `motion` makes the camera move: `still`, `orbit`, `push`, `flyover` or `drone`.
-- In the [playground](https://yahyabedirhan.github.io/topographic/), drag to turn around the land. Scroll with two fingers to move it. Use ⌘/Ctrl + scroll or pinch to zoom. Double-click to centre it again.
+- `quality` is `auto`, `low`, `medium` or `high`. `auto` follows the device and steps down when frames miss 60 Hz, or 120 Hz on a faster screen. The other values stay put.
+- In the [playground](https://yahyabedirhan.github.io/topographic/), drag in 3D to turn around the land. Scroll with two fingers to move it. Use ⌘/Ctrl + scroll or pinch to zoom. Double-click to centre it again. In 2D, drag moves the summit from the side toward the centre.
 
 ### Real places
 
-In the [playground](https://yahyabedirhan.github.io/topographic/), open **Map**, choose an area up to 300 km wide, and click **Apply**. The playground downloads the height data for that area and shows it in 3D. In your own code, you can pass any grid of heights to `setHeightfield({ samples, size, aspect })`. Each height is a number from 0 (lowest) to 1 (highest).
+In the [playground](https://yahyabedirhan.github.io/topographic/), open **Map**, choose an area up to 300 km wide, and click **Apply**. The playground downloads the height data for that area and shows it in 3D. A shared link to a place waits for those heights, and shows contour rings instead of the default terrain. In your own code, you can pass any grid of heights to `setHeightfield({ samples, size, aspect })`. Each height is a number from 0 (lowest) to 1 (highest).
 
 ![The Map popover over Istanbul: a dark map with a white frame around the city, the place menu above, and Clear and Applied below](assets/screenshots/map-popover-dark.webp)
 

@@ -22,7 +22,7 @@ export function Hero() {
 }
 ```
 
-For the 3D terrain, add `mode="3d"`, and optionally `elevation`, `extent`, `detail` and `camera`:
+For the 3D terrain, add `mode="3d"`, and optionally `elevation`, `extent`, `detail`, `quality` and `camera`:
 
 ```tsx
 <TopographicBackground styleName="long-ridge" mode="3d" extent="block" camera={{ motion: 'orbit' }} style={{ height: '100vh' }} />

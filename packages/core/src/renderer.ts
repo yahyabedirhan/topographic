@@ -4,6 +4,7 @@ import { mergeSettings, resolveSettings, toUniforms, type CameraMotion, type Set
 import { resolveTheme, rgbaToCss, type ResolvedTheme } from './theme.js';
 import { VERTEX_100, VERTEX_300, wrapFragment } from './shader/common.glsl.js';
 import { TOPOGRAPHIC_FRAGMENT } from './shader/topographic.glsl.js';
+import { detectTier, readDeviceSignals, stepTier, tierFor, type TierId } from './quality.js';
 import { createTerrainPass } from './terrain3d.js';
 import { snapshotFrame, type SnapshotRegion } from './snapshot.js';
 import { encodeVideo } from './video.js';
@@ -32,6 +33,13 @@ export interface SnapshotOptions {
   region?: SnapshotRegion;
   /** Draws the 3D view with this camera path, at its pose for `frame`: the same picture as that frame of `record`. */
   motion?: CameraMotion;
+  /**
+   * Drawn only into this image. The live view is put back before the call yields, so the page does not
+   * flash and no second WebGL context is required.
+   */
+  patch?: SettingsInput;
+  /** Elevation grid used only for this image. Omit to keep the live one. */
+  field?: Heightfield | null;
 }
 
 export type RendererStatus = 'webgl2' | 'webgl1' | 'fallback' | 'lost' | 'destroyed';
@@ -43,6 +51,8 @@ export interface RendererStats {
   frameMs: number;
   /** Mesh segments along one side. 0 in 2D. */
   mesh: number;
+  /** The quality tier actually drawing. `auto` has already been resolved. */
+  quality: TierId;
 }
 
 export interface RecordOptions {
@@ -68,6 +78,11 @@ export interface TopographicBackground {
   record(opts?: RecordOptions): Promise<Blob>;
   /** Use a real elevation grid for the contours, or null for the procedural style. */
   setHeightfield(field: Heightfield | null): void;
+  /**
+   * Stops drawing while another WebGL view (a map, a snapshot batch) needs the GPU.
+   * The paper colour stays. Pass false to draw again.
+   */
+  hold(paused: boolean): void;
   /**
    * The space page UI covers on each side of the view, in CSS pixels. The 3D picture slides (a lens
    * shift, not a camera move) so the terrain centres in the part left free. Snapshots and clips ignore
@@ -111,19 +126,26 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
   let quadBuffer: WebGLBuffer | null = null;
   let statFps = 0;
   let statFrame = 0;
-  let statDraw = 0;
-  let lastSample = 0;
   let ema = 0;
 
   let frameMs = 0;
   let lastNow = 0;
   let raf = 0;
   let inView = true;
+  let held = false;
   let theme: ResolvedTheme;
   let col = 0.3;
   let insets: ViewInsets = { top: 0, right: 0, bottom: 0, left: 0 };
+  let recoveryTimer = 0;
+  const signals = readDeviceSignals(view);
+  let tierId: TierId = detectTier(signals);
+  const gaps: number[] = [];
+  let sawFast = false;
+  let gapTick = 0;
+  const paramsBuf = new Float32Array(16);
+  let heightBytes = new Uint8Array(4);
 
-  const canvas = doc.createElement('canvas');
+  let canvas = doc.createElement('canvas');
   canvas.setAttribute('aria-hidden', 'true');
   canvas.style.cssText = 'display:block;width:100%;height:100%;';
   el.prepend(canvas);
@@ -157,7 +179,11 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
   }
 
   function initGL(): boolean {
-    const attrs: WebGLContextAttributes = { alpha: true, premultipliedAlpha: false, antialias: false, depth: true, stencil: false };
+    const attrs: WebGLContextAttributes = {
+      alpha: true, premultipliedAlpha: false, antialias: false, depth: true, stencil: false,
+      // A phone already has one full-screen context. High-performance asks iOS for a bigger GPU pool.
+      powerPreference: signals.mobile ? 'low-power' : 'default',
+    };
     let webgl2 = false;
     if (!gl) {
       if (!opts.forceWebGL1) gl = canvas.getContext('webgl2', attrs);
@@ -187,7 +213,7 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
     gl.disable(gl.BLEND);
     locations.clear();
     sent.clear();
-    status = webgl2 ? 'webgl2' : 'webgl1';
+    setStatus(webgl2 ? 'webgl2' : 'webgl1');
     return true;
   }
 
@@ -205,8 +231,13 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
     else gl.uniform4f(loc, value[0], value[1], value[2], value[3]);
   }
 
+  function setStatus(next: RendererStatus): void {
+    status = next;
+    canvas.dataset.gl = next;
+  }
+
   function applySettings(): void {
-    const u = toUniforms(settings);
+    const u = toUniforms(settings, paramsBuf);
     set('uParams', u.uParams);
     set('uStyle', u.uStyle);
     set('uSeed', u.uSeed);
@@ -222,14 +253,21 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
     const rect = el.getBoundingClientRect();
     cssW = Math.max(1, rect.width);
     cssH = Math.max(1, rect.height);
-    let ratio = Math.min(view.devicePixelRatio || 1, opts.maxPixelRatio);
-    const budget = Math.sqrt(opts.maxPixels / (cssW * cssH * ratio * ratio));
+    const tier = tierFor(settings.quality, signals, tierId);
+    let ratio = Math.min(view.devicePixelRatio || 1, opts.maxPixelRatio, tier.maxPixelRatio);
+    const budget = Math.sqrt(Math.min(opts.maxPixels, tier.maxPixels) / (cssW * cssH * ratio * ratio));
     if (budget < 1) ratio *= budget;
-    canvas.width = Math.max(1, Math.round(cssW * ratio));
-    canvas.height = Math.max(1, Math.round(cssH * ratio));
+    const bw = Math.max(1, Math.round(cssW * ratio));
+    const bh = Math.max(1, Math.round(cssH * ratio));
     col = Math.min(TEXT_COLUMN_HALF_WIDTH_PX, cssW / 2) / cssH;
+    // Assigning canvas width drops the drawing buffer and allocates a new one.
+    // iOS does not reliably free the previous buffer, so a dock resize that
+    // reports the same size must not touch it.
+    if (canvas.width !== bw || canvas.height !== bh) {
+      canvas.width = bw;
+      canvas.height = bh;
+    }
     draw();
-    sampleDraw();
   }
 
   function uploadHeight(): void {
@@ -246,14 +284,15 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]));
     } else {
       const { samples, size } = heightField;
-      const rgba = new Uint8Array(samples.length * 4);
+      const need = samples.length * 4;
+      if (heightBytes.length !== need) heightBytes = new Uint8Array(need);
       for (let i = 0; i < samples.length; i++) {
         // 16 bits across R (high byte) and G (low byte): 8 bits leave staircase contours on flat ground.
         const v = Math.round(Math.min(1, Math.max(0, samples[i])) * 65535);
         const p = i * 4;
-        rgba[p] = v >> 8; rgba[p + 1] = v & 255; rgba[p + 2] = 0; rgba[p + 3] = 255;
+        heightBytes[p] = v >> 8; heightBytes[p + 1] = v & 255; heightBytes[p + 2] = 0; heightBytes[p + 3] = 255;
       }
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, size, size, 0, gl.RGBA, gl.UNSIGNED_BYTE, rgba);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, size, size, 0, gl.RGBA, gl.UNSIGNED_BYTE, heightBytes);
     }
     gl.activeTexture(gl.TEXTURE0);
     uploadedVersion = heightVersion;
@@ -297,7 +336,7 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
 
   /** Draws a frame. `live` frames take the lens shift for the page's insets; exports centre in their own frame. */
   function paint(w = canvas.width, h = canvas.height, pose?: Pose, force3d = false, live = true): void {
-    if (!gl || !program || status === 'lost' || status === 'destroyed') return;
+    if (!gl || !program || gl.isContextLost() || status === 'lost' || status === 'destroyed' || held) return;
     gl.viewport(0, 0, w, h);
     const three = force3d || settings.mode === '3d';
     if (three) {
@@ -314,6 +353,7 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
         field: heightField,
         heightVersion,
         shift: [sx, sy + blockLift(at, aspect, block)],
+        meshCap: tierFor(settings.quality, signals, tierId).meshCap,
       });
       if (terrain.ok) return;
     }
@@ -324,24 +364,8 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
     paint(w, h, pose, force3d);
   }
 
-  function sampleDraw(): void {
-    if (!gl || settings.mode !== '3d' || !terrain.ok) return;
-    const now = performance.now();
-    if (now - lastSample < 700 && statDraw > 0) return;
-    lastSample = now;
-    gl.finish();
-    const t = performance.now();
-    for (let i = 0; i < 4; i++) paint();
-    gl.finish();
-    statDraw = Math.max(0, (performance.now() - t) / 4);
-    if (!shouldAnimate()) {
-      statFrame = statDraw;
-      statFps = statDraw > 0 ? 1000 / statDraw : 0;
-    }
-  }
-
   const shouldAnimate = () => {
-    if ((status !== 'webgl2' && status !== 'webgl1') || !inView || doc.visibilityState === 'hidden' || reducedMotion?.matches) return false;
+    if (held || (status !== 'webgl2' && status !== 'webgl1') || !inView || doc.visibilityState === 'hidden' || reducedMotion?.matches) return false;
     if (opts.benchmark && settings.mode === '3d') return true;
     if (settings.motion.speed > 0) return true;
     return settings.mode === '3d' && settings.camera.motion !== 'still';
@@ -349,12 +373,28 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
 
   function tick(now: number): void {
     raf = 0;
+    // iOS can drop the drawing buffer without a context-lost event. The canvas goes black and the
+    // process may follow. Treat a zero buffer like a loss so the page rebuilds it.
+    if ((status === 'webgl2' || status === 'webgl1') && gl && canvas.width > 0 && (gl.isContextLost() || gl.drawingBufferWidth === 0)) {
+      setStatus('lost');
+      lastNow = 0;
+      scheduleRecovery();
+      return;
+    }
     const dt = lastNow ? Math.min(100, Math.max(0, now - lastNow)) : 0;
     lastNow = now;
     if (dt > 0) {
       ema = ema ? ema * 0.88 + dt * 0.12 : dt;
       statFrame = ema;
       statFps = 1000 / ema;
+      if (dt < 12) sawFast = true;
+      gaps.push(dt);
+      if (gaps.length > 30) gaps.shift();
+      gapTick++;
+      if (settings.quality === 'auto' && gapTick % 24 === 0) {
+        const next = stepTier(tierId, gaps, sawFast);
+        if (next !== tierId) { tierId = next; gaps.length = 0; resize(); }
+      }
     }
     frameMs += dt;
     draw();
@@ -364,28 +404,91 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
     if (!shouldAnimate()) { if (raf) view.cancelAnimationFrame(raf); raf = 0; lastNow = 0; return; }
     if (!raf) raf = view.requestAnimationFrame(tick);
   }
-  const restart = () => { schedule(); draw(); sampleDraw(); };
+  const restart = () => { schedule(); draw(); };
 
   const resizeObserver = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => resize()) : null;
   const intersection = typeof IntersectionObserver !== 'undefined'
     ? new IntersectionObserver(([entry]) => { inView = entry?.isIntersecting ?? true; schedule(); }) : null;
   const onSchemeChange = () => { refreshTheme(); draw(); };
-  const onLost = (e: Event) => { e.preventDefault(); status = 'lost'; schedule(); };
-  const onRestored = () => {
+  function dropGpu(): void {
+    if (gl && !gl.isContextLost()) {
+      if (program) gl.deleteProgram(program);
+      if (quadBuffer) gl.deleteBuffer(quadBuffer);
+      if (heightTex) gl.deleteTexture(heightTex);
+    }
+    // dispose clears the terrain pass even when the context is already lost.
+    if (gl) terrain.dispose(gl);
     program = null;
+    quadBuffer = null;
     heightTex = null;
     uploadedVersion = -1;
-    if (gl) terrain.dispose(gl);
-    if (initGL()) { resize(); schedule(); } else status = 'fallback';
+    locations.clear();
+    sent.clear();
+  }
+
+  /** Builds shaders again on the current context, after a loss or a fresh canvas. */
+  function rebuildGpu(): boolean {
+    dropGpu();
+    if (!gl || gl.isContextLost()) return false;
+    if (!initGL()) { setStatus('fallback'); return false; }
+    resize();
+    schedule();
+    return true;
+  }
+
+  function listen(target: HTMLCanvasElement): void {
+    target.addEventListener('webglcontextlost', onLost);
+    target.addEventListener('webglcontextrestored', onRestored);
+  }
+
+  /**
+   * iOS often never fires webglcontextrestored after a memory loss, and the canvas stays blank.
+   * If the context is still lost shortly after, throw the canvas away and make a new one.
+   */
+  function scheduleRecovery(): void {
+    view.clearTimeout(recoveryTimer);
+    recoveryTimer = view.setTimeout(() => {
+      if (status !== 'lost') return;
+      const old = canvas;
+      old.removeEventListener('webglcontextlost', onLost);
+      old.removeEventListener('webglcontextrestored', onRestored);
+      dropGpu();
+      try { gl?.getExtension('WEBGL_lose_context')?.loseContext(); } catch { /* already gone */ }
+      gl = null;
+      const next = doc.createElement('canvas');
+      next.setAttribute('aria-hidden', 'true');
+      next.style.cssText = old.style.cssText;
+      next.style.background = old.style.background;
+      old.replaceWith(next);
+      canvas = next;
+      listen(next);
+      if (!initGL()) { setStatus('fallback'); return; }
+      resize();
+      schedule();
+    }, 700);
+  }
+
+  const onLost = (e: Event) => {
+    e.preventDefault();
+    if (status === 'destroyed') return;
+    setStatus('lost');
+    if (raf) view.cancelAnimationFrame(raf);
+    raf = 0;
+    lastNow = 0;
+    scheduleRecovery();
+  };
+  const onRestored = () => {
+    if (status === 'destroyed') return;
+    view.clearTimeout(recoveryTimer);
+    if (!rebuildGpu()) scheduleRecovery();
   };
 
   refreshTheme();
   if (!initGL()) {
-    status = 'fallback';
+    setStatus('fallback');
     console.warn('[topographic] WebGL unavailable, showing the paper colour');
   }
-  canvas.addEventListener('webglcontextlost', onLost);
-  canvas.addEventListener('webglcontextrestored', onRestored);
+  listen(canvas);
   doc.addEventListener('visibilitychange', schedule);
   reducedMotion?.addEventListener?.('change', restart);
   darkScheme?.addEventListener?.('change', onSchemeChange);
@@ -429,20 +532,21 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
       const p = framed({ azimuth: 0, elevation: 0, radius: 0, panX, panZ }, cssW / Math.max(1, cssH));
       return [p.panX ?? 0, p.panZ ?? 0];
     },
-    canvas,
+    get canvas() { return canvas; },
     get stats() {
       return {
         fps: Math.round(statFps),
-        frameMs: Number((shouldAnimate() ? statFrame : (statDraw > 0 ? statDraw : statFrame)).toFixed(2)),
+        frameMs: Number(statFrame.toFixed(2)),
         mesh: settings.mode === '3d' ? terrain.mesh : 0,
+        quality: tierFor(settings.quality, signals, tierId).id,
       };
     },
     update(patch) {
       if (status === 'destroyed') return;
       settings = mergeSettings(settings, patch);
       if (patch.theme) refreshTheme();
-      draw();
-      sampleDraw();
+      if (patch.quality !== undefined) resize();
+      else draw();
       schedule();
     },
     setHeightfield(field) {
@@ -450,7 +554,18 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
       heightField = field;
       heightVersion += 1;
       draw();
-      sampleDraw();
+      schedule();
+    },
+    hold(paused) {
+      if (status === 'destroyed' || held === paused) return;
+      held = paused;
+      if (paused) {
+        if (raf) view.cancelAnimationFrame(raf);
+        raf = 0;
+        lastNow = 0;
+        return;
+      }
+      draw();
       schedule();
     },
     setInsets(next) {
@@ -469,12 +584,23 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
       const max = gl.getParameter(gl.MAX_RENDERBUFFER_SIZE) as number;
       if (w < 1 || h < 1 || f.frameWidth > max || f.frameHeight > max) throw new Error(`[topographic] snapshot size must be 1..${max}px`);
       const savedFrame = frameMs;
+      const savedSettings = settings;
+      const savedField = heightField;
+      const savedVersion = heightVersion;
       if (o.frame !== undefined) frameMs = o.frame;
+      if (o.patch) { settings = mergeSettings(settings, o.patch); refreshTheme(); }
+      if (o.field !== undefined) { heightField = o.field; heightVersion += 1; }
       const pose = o.motion ? cameraPose({ ...settings.camera, motion: o.motion }, frameMs / 1000) : undefined;
       const pixels = new Uint8Array(w * h * 4);
       const rect = { x: f.x, y: f.frameHeight - f.y - h, width: w, height: h };
       try { readback(f.frameWidth, f.frameHeight, pixels, pose, Boolean(o.motion), rect); }
-      finally { frameMs = savedFrame; draw(); }
+      finally {
+        frameMs = savedFrame;
+        settings = savedSettings;
+        if (o.patch) refreshTheme();
+        if (o.field !== undefined) { heightField = savedField; heightVersion = savedVersion; uploadedVersion = -1; }
+        draw();
+      }
       // GL rows run bottom-up; flip into an ImageData
       const out = doc.createElement('canvas');
       out.width = w; out.height = h;
@@ -526,7 +652,8 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
     },
     destroy() {
       if (status === 'destroyed') return;
-      status = 'destroyed';
+      setStatus('destroyed');
+      view.clearTimeout(recoveryTimer);
       if (raf) view.cancelAnimationFrame(raf);
       resizeObserver?.disconnect();
       intersection?.disconnect();

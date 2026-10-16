@@ -92,7 +92,7 @@ export const REGION_TOOL_DEFS: ToolDef[] = [
     name: 'get_region',
     title: 'Get region',
     readOnly: true,
-    description: 'Returns the current region, its height range, load status and the URL query.',
+    description: 'Returns the current region, its height range, load status and the URL query. loading is true and message is "Loading terrain" while a shared place is still fetching, before the default terrain is shown.',
     inputSchema: { type: 'object', properties: {} },
   },
   {

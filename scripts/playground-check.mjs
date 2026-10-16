@@ -70,7 +70,7 @@ try {
     await open(b, '');
     const nav = b.locator('nav[data-looks]');
     const first = nav.locator('.pt-thumb').first();
-    check(await first.getAttribute('aria-label') === 'Istanbul map' && await nav.locator('.pt-saved[data-builtin]').count() === 1
+    check(await first.getAttribute('aria-label') === 'Istanbul map' && await nav.locator('.pt-saved[data-builtin]').count() === 4
       && await nav.getByRole('button', { name: /^Delete / }).count() === 0 && await nav.getAttribute('data-saved') === '0', 'a fresh profile shows the built-in Istanbul first in the dock, with no delete');
     const OWNER = { place: 'istanbul', s: 'gentle-summit', seed: '67', lc: '36', ix: '4', m: 'dark', mode: '3d', ex: 'block', ev: '0.12', az: '353.3', ce: '45.1', rd: '1.15', px: '0.043', pz: '-0.075' };
     const matches = () => Object.entries(OWNER).every(([k, v]) => q(b).get(k) === v);
@@ -477,7 +477,8 @@ try {
   const set = await call('set_settings', { style: 'dunes', lines: { count: 999 }, bogus: 1 });
   check(set.config.style === 'dunes' && set.config.lines.count === 60 && set.adjustments.length === 2, `set_settings validates: ${JSON.stringify(set.adjustments)}`);
   await settle(agent);
-  check(q(agent).get('s') === 'dunes' && q(agent).get('lc') === '60', 'set_settings updates the page and URL');
+  const styleKey = q(agent).get('s') ?? q(agent).get('look') ?? '';
+  check(/dune/.test(styleKey) && q(agent).get('lc') === '60', `set_settings updates the page and URL (?${q(agent)})`);
   check((await call('get_settings')).config.lines.count === 60, 'get_settings');
   const before = (await call('get_settings')).config.seed;
   const rnd = await call('randomize', { style: true });

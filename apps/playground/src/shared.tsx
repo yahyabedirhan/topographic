@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useRef, useState, type MutableRefObject, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type MutableRefObject, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import {
-  GROUPS, STYLES, THEME_DEFAULTS, clampParam, createTopographicBackground, mergeSettings, panBy, paramsIn, resolveMode, resolveSettings, rgbaToCss,
+  GROUPS, STYLES, THEME_DEFAULTS, clampParam, mergeSettings, panBy, paramsIn, resolveMode, resolveSettings, rgbaToCss,
   type GroupName, type Heightfield, type ParamDef, type Settings, type SettingsInput, type TopographicBackground as Instance,
 } from 'topographic';
 import { TopographicBackground } from 'topographic-react';
+import { anchorFromDrag } from './anchor';
+import { bindPageUrlFlush, flushPageUrl, schedulePageUrl } from './page-history';
 import { registerTools } from './webmcp';
 import { configOf, readUrl } from './url';
 import { withQuery, writeSettings } from './share-url';
@@ -103,10 +105,12 @@ export function usePlayground(): Playground {
   }, []);
   const mode = resolveMode(settings.theme.mode, prefersDark);
   useEffect(() => { document.documentElement.dataset.theme = mode; }, [mode]);
-  useEffect(() => {
-    const next = withQuery(location.pathname, writeSettings(location.search, settings), location.hash);
-    if (next !== location.pathname + location.search + location.hash) history.replaceState(null, '', next);
+  useLayoutEffect(() => {
+    schedulePageUrl(withQuery(location.pathname, writeSettings(location.search, settings), location.hash));
+    // A drag keeps the pointer down, so those writes stay on the trail. A click or a tool call flushes.
+    if (!stagePointerBusy()) flushPageUrl();
   }, [settings]);
+  useEffect(() => bindPageUrlFlush(), []);
   const latest = useRef(settings);
   latest.current = settings;
   useEffect(() => registerTools({ getSettings: () => latest.current, setSettings, instance: () => instance.current }), []);
@@ -192,6 +196,7 @@ function useOrbit(pg: Playground) {
   const pinch = useRef<{ dist: number; radius: number; x: number; y: number; panX: number; panZ: number } | null>(null);
   const glide = useRef(0);
   const wheelPan = useRef(0);
+  const layoutDrag = useRef<{ id: number; x: number; anchor: number } | null>(null);
 
   /** The pan after dragging (dx, dy) pixels from `from`, kept over the terrain. */
   const panned = (from: { panX: number; panZ: number }, dx: number, dy: number) => {
@@ -258,9 +263,17 @@ function useOrbit(pg: Playground) {
   }, []);
   const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
     const current = live.current;
+    if (current.settings.mode === '2d') {
+      if (e.button !== 0) return;
+      e.currentTarget.setPointerCapture(e.pointerId);
+      noteStagePointer(true);
+      layoutDrag.current = { id: e.pointerId, x: e.clientX, anchor: current.settings.layout.anchor };
+      return;
+    }
     if (current.settings.mode !== '3d') return;
     stopGlide();
     e.currentTarget.setPointerCapture(e.pointerId);
+    noteStagePointer(true);
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     const cam = current.settings.camera;
     if (pointers.current.size >= 2) {
@@ -280,8 +293,28 @@ function useOrbit(pg: Playground) {
     }
     drag.current = { id: e.pointerId, x: e.clientX, y: e.clientY, azimuth: cam.azimuth, elevation: cam.elevation };
   };
+  const queued = useRef<Settings | null>(null);
+  const flushId = useRef(0);
+  // The canvas updates on this event. React, the URL and the sliders catch up once per frame.
+  const push = (patch: SettingsInput) => {
+    const current = live.current;
+    const base = queued.current ?? current.settings;
+    queued.current = mergeSettings(base, patch);
+    current.instance.current?.update(patch);
+    if (!flushId.current) flushId.current = requestAnimationFrame(() => {
+      flushId.current = 0;
+      const next = queued.current;
+      queued.current = null;
+      if (next) current.replace(next);
+    });
+  };
   const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
     const current = live.current;
+    const lay = layoutDrag.current;
+    if (lay && lay.id === e.pointerId && current.settings.mode === '2d') {
+      push({ layout: { anchor: anchorFromDrag(lay.anchor, e.clientX - lay.x, e.currentTarget.clientWidth || innerWidth) } });
+      return;
+    }
     if (current.settings.mode !== '3d' || !pointers.current.has(e.pointerId)) return;
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     const two = pinch.current;
@@ -291,21 +324,27 @@ function useOrbit(pg: Playground) {
       const dist = Math.max(1, Math.hypot(a.x - b.x, a.y - b.y));
       const radius = Math.min(6.5, Math.max(1.15, two.radius * (two.dist / dist)));
       const moved = panned(two, (a.x + b.x) / 2 - two.x, (a.y + b.y) / 2 - two.y);
-      current.change({ camera: { radius: Number(radius.toFixed(2)), ...moved } });
+      push({ camera: { radius: Number(radius.toFixed(2)), ...moved } });
       return;
     }
     const held = pan.current;
     if (held && held.id === e.pointerId) {
-      current.change({ camera: panned(held, e.clientX - held.x, e.clientY - held.y) });
+      push({ camera: panned(held, e.clientX - held.x, e.clientY - held.y) });
       return;
     }
     const orbit = drag.current;
     if (!orbit || orbit.id !== e.pointerId) return;
     const azimuth = wrapDegrees(orbit.azimuth - (e.clientX - orbit.x) * 0.32);
     const elevation = Math.min(80, Math.max(2, orbit.elevation - (e.clientY - orbit.y) * 0.2));
-    current.change({ camera: { azimuth, elevation: Number(elevation.toFixed(1)), motion: 'still' } });
+    push({ camera: { azimuth, elevation: Number(elevation.toFixed(1)), motion: 'still' } });
   };
   const onPointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (flushId.current) { cancelAnimationFrame(flushId.current); flushId.current = 0; }
+    const pendingSettings = queued.current;
+    queued.current = null;
+    if (pointers.current.has(e.pointerId) || layoutDrag.current?.id === e.pointerId) noteStagePointer(false);
+    if (pendingSettings) live.current.replace(pendingSettings);
+    if (layoutDrag.current?.id === e.pointerId) layoutDrag.current = null;
     pointers.current.delete(e.pointerId);
     if (drag.current?.id === e.pointerId) drag.current = null;
     if (pan.current?.id === e.pointerId) { pan.current = null; e.currentTarget.style.cursor = ''; }
@@ -350,14 +389,15 @@ function useStageInsets(pg: Playground) {
   return apply;
 }
 
-export function Backdrop({ pg, className = 'pt-stage' }: { pg: Playground; className?: string }) {
+export function Backdrop({ pg, hold = false, className = 'pt-stage' }: { pg: Playground; hold?: boolean; className?: string }) {
   const s = pg.settings;
   const orbit = useOrbit(pg);
   const insets = useStageInsets(pg);
+  useEffect(() => { pg.instance.current?.hold(hold); }, [hold, pg.instance]);
   return (
     <TopographicBackground
       ref={orbit.node}
-      className={`${className}${s.mode === '3d' ? ' is-3d' : ''}`}
+      className={`${className}${s.mode === '3d' ? ' is-3d' : ' is-2d'}`}
       aria-hidden="true"
       styleName={s.style}
       seed={s.seed}
@@ -370,13 +410,14 @@ export function Backdrop({ pg, className = 'pt-stage' }: { pg: Playground; class
       elevation={s.elevation}
       extent={s.extent}
       detail={s.detail}
+      quality={s.quality}
       camera={s.camera}
       options={BENCHMARK}
       onPointerDown={orbit.onPointerDown}
       onPointerMove={orbit.onPointerMove}
       onPointerUp={orbit.onPointerUp}
       onPointerCancel={orbit.onPointerCancel}
-      onReady={(t) => { pg.instance.current = t; if (t) insets.current(); }}
+      onReady={(t) => { pg.instance.current = t; attachLiveRenderer(t); if (t) { t.hold(hold); insets.current(); } }}
     />
   );
 }
@@ -396,29 +437,62 @@ function thumbSettings(r: Settings): SettingsInput {
   };
 }
 
-function hiddenHost(width: number, height: number): HTMLDivElement {
-  const host = document.createElement('div');
-  Object.assign(host.style, { position: 'fixed', left: '-9999px', top: '0', width: `${width / 2}px`, height: `${height / 2}px` });
-  document.body.append(host);
-  return host;
+/** The page's one WebGL context. Dock pictures borrow it instead of opening a second one. */
+let liveRenderer: Instance | null = null;
+export function attachLiveRenderer(t: Instance | null): void {
+  liveRenderer = t;
 }
+
+let thumbQueue: Promise<unknown> = Promise.resolve();
+function enqueueThumb<T>(job: () => Promise<T>): Promise<T> {
+  const run = thumbQueue.then(job, job);
+  thumbQueue = run.then(() => undefined, () => undefined);
+  return run;
+}
+
+/** True while a finger or button is down on the stage, so thumbnail readbacks wait. */
+let stagePointers = 0;
+export function noteStagePointer(down: boolean): void {
+  stagePointers = Math.max(0, stagePointers + (down ? 1 : -1));
+}
+export const stagePointerBusy = () => stagePointers > 0;
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export function useLookThumbs(width = 168, height = 96): string[] {
   const [urls, setUrls] = useState<string[]>([]);
   useEffect(() => {
     let dead = false;
-    const host = hiddenHost(width, height);
-    const t = createTopographicBackground(host, { theme: resolveSettings(LOOKS[0].settings).theme });
-    (async () => {
-      const out: string[] = [];
-      for (const look of LOOKS) {
-        t.update(thumbSettings(resolveSettings(look.settings)));
-        try { out.push(URL.createObjectURL(await t.snapshot({ frame: 4000, width, height }))); } catch { out.push(''); }
-        if (dead) return;
-        setUrls([...out]);
+    const made: string[] = [];
+    // The live view is the only WebGL context. A second one, even a tiny one, is what gets iOS to
+    // kill the tab a few seconds after load. Pictures are borrowed one at a time, after first paint.
+    const run = async () => {
+      const opened = performance.now();
+      while (!dead && !liveRenderer) {
+        if (performance.now() - opened > 8000) return;
+        await wait(40);
       }
-    })().finally(() => { t.destroy(); host.remove(); });
-    return () => { dead = true; };
+      await wait(1200);
+      for (const look of LOOKS) {
+        while (!dead && stagePointerBusy()) await wait(80);
+        const t = liveRenderer;
+        if (dead || !t) return;
+        try {
+          const blob = await enqueueThumb(() => t.snapshot({
+            frame: 4000, width, height, patch: thumbSettings(resolveSettings(look.settings)),
+          }));
+          const url = URL.createObjectURL(blob);
+          made.push(url);
+          if (!dead) setUrls([...made]);
+        } catch { /* the view was lost; leave the empty slot */ }
+        await wait(80);
+      }
+    };
+    void run();
+    return () => {
+      dead = true;
+      for (const url of made) URL.revokeObjectURL(url);
+    };
   }, [width, height]);
   return urls;
 }
@@ -442,18 +516,20 @@ function placeThumbSettings(r: Settings): SettingsInput {
  * (or JPEG) data URL that fits in localStorage, or null.
  */
 export async function placeThumb(settings: Settings, field: Heightfield, width = 168, height = 96): Promise<string | null> {
+  const t = liveRenderer;
+  if (!t) return null;
   // Draw the place at its own aspect and twice the size, large enough to cover the thumbnail, then
   // crop the middle and scale it down, which smooths the thin lines like a look's picture.
   const aspect = Math.max(field.aspect || 1, 0.05);
   const SS = 2;
   const drawW = Math.round((aspect > width / height ? height * aspect : width) * SS);
   const drawH = Math.round((aspect > width / height ? height : width / aspect) * SS);
-  const host = hiddenHost(drawW, drawH);
-  const t = createTopographicBackground(host, placeThumbSettings(settings));
   try {
-    // A softer copy of the heights: at this size every small hill would draw as a speck of noise.
-    t.setHeightfield({ ...field, samples: smooth(field.samples, field.size, 2.5) });
-    const blob = await t.snapshot({ frame: 4000, width: drawW, height: drawH });
+    const blob = await enqueueThumb(() => t.snapshot({
+      frame: 4000, width: drawW, height: drawH,
+      patch: placeThumbSettings(settings),
+      field: { ...field, samples: smooth(field.samples, field.size, 2.5) },
+    }));
     const bitmap = await createImageBitmap(blob);
     const canvas = document.createElement('canvas');
     canvas.width = width;
@@ -461,13 +537,11 @@ export async function placeThumb(settings: Settings, field: Heightfield, width =
     const ctx = canvas.getContext('2d')!;
     ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(bitmap, (drawW - width * SS) / 2, (drawH - height * SS) / 2, width * SS, height * SS, 0, 0, width, height);
+    bitmap.close();
     const webp = canvas.toDataURL('image/webp', 0.86);
     return webp.startsWith('data:image/webp') ? webp : canvas.toDataURL('image/jpeg', 0.86);
   } catch {
     return null;
-  } finally {
-    t.destroy();
-    host.remove();
   }
 }
 

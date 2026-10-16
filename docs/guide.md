@@ -48,7 +48,7 @@ The call adds a canvas inside `element`. The canvas fills the element, so give t
 | `setHeightfield({ samples, size, aspect } \| null)` | Draws the lines from your own elevation data (a height map) instead of the style's shape. The data is a square grid. `samples` is a `Float32Array` of `size × size` values, from 0 (low) to 1 (high). Row 0 is the south edge. `aspect` is the place's width divided by its height. `null` brings back the style's own shape. |
 | `setInsets({ top, right, bottom, left } \| null)` | Tells the 3D view how much space your page's UI covers on each side, in CSS pixels. A toolbar or a dock are examples. The 3D picture then moves so the terrain is centred in the free space. The camera does not move, so orbiting still turns around the terrain. 2D does not change. Snapshots and videos ignore this setting (see [Snapshots](#snapshots-and-png-export)). `null` clears it. `insets` reads it back. |
 | `clampPan(panX, panZ)` | Returns the pan as `[x, z]`, limited so the view stays over the terrain. This is the same limit the renderer uses for `camera.panX` and `camera.panZ`. |
-| `stats` | `{ fps, frameMs, mesh }` for the 3D view. `mesh` is 0 in 2D. |
+| `stats` | `{ fps, frameMs, mesh, quality }` for the 3D view. `mesh` is 0 in 2D. `quality` is the tier actually drawing: `low`, `medium` or `high`. |
 | `pose` | `{ azimuth, elevation, radius, panX, panZ }`: where the 3D camera is now on its motion path. At azimuth 0, the camera looks from the south and north is at the top of the screen. The angle grows clockwise, as seen from above. So as it grows, north turns towards the right of the screen. |
 | `destroy()` | Stops drawing. Removes the listeners and the canvas, and frees the WebGL context. |
 | `settings` | The current settings, with every value filled in. |
@@ -59,8 +59,8 @@ The call adds a canvas inside `element`. The canvas fills the element, so give t
 
 | Option | Default | What it does |
 |---|---|---|
-| `maxPixelRatio` | `2` | The highest device pixel ratio to draw at. |
-| `maxPixels` | `4147200` (1920×1080×2) | The most pixels to draw. Above this, the canvas draws at a lower resolution. |
+| `maxPixelRatio` | `2` | The highest device pixel ratio to draw at. A `quality` setting can cap it further. |
+| `maxPixels` | `4147200` (1920×1080×2) | The most pixels to draw. Above this, the canvas draws at a lower resolution. A `quality` setting can cap this further. |
 | `forceWebGL1` | `false` | Skip WebGL2. Useful for testing. |
 
 ### Web component: `<topographic-bg>`
@@ -89,7 +89,7 @@ import { TopographicBackground, useTopographicBackground } from 'topographic-rea
 />
 ```
 
-- Props: `styleName`, `seed`, `lines`, `terrain`, `motion`, `layout`, `theme`, `mode`, `elevation`, `extent`, `detail`, `camera`, `options`, `onReady`, plus any `div` props. Children are drawn on top.
+- Props: `styleName`, `seed`, `lines`, `terrain`, `motion`, `layout`, `theme`, `mode`, `elevation`, `extent`, `detail`, `quality`, `camera`, `options`, `onReady`, plus any `div` props. Children are drawn on top.
 - The prop is `styleName`, not `style`. `style` stays React's normal inline style.
 - Each group of settings updates only when its values change. A new object with the same values does nothing.
 - `onReady(instance)` gives you the instance after mount, for example to call `snapshot`. It gives `null` on unmount.
@@ -116,6 +116,7 @@ The settings are in groups. Pass only the values you want to change:
   motion:  { speed, warp, sparkle },
   layout:  { anchor, fade },
   theme:   { mode, ink, paper },
+  quality: 'auto',
 }
 ```
 
@@ -166,6 +167,7 @@ A value outside its range is moved to the nearest limit. Whole-number settings a
 | `elevation` | `elevation` | 0–1 | 0.62 | How tall the 3D terrain is. 0 is flat, like the map. Higher values make it taller, with a rounded top. |
 | `extent` | `extent` | `endless`, `block` | `endless` | `endless` is a plane that fades into the background colour. `block` is a solid slab. Its sides fade softly into the background colour. |
 | `detail` | `detail` | 0–1 | 0.5 | How many points the 3D surface has, from a 32² grid to a 160² grid. |
+| `quality` | `quality` | `auto`, `low`, `medium`, `high` | `auto` | Graphics budget. `auto` follows the device and steps down if frames miss 60 Hz, or 120 Hz once that refresh has been seen. `low`, `medium` and `high` stay put. The budget caps the pixel ratio, the pixel count and the mesh size. |
 | `camera.azimuth` | `azimuth` | any finite number | 349.7 | The camera's angle around the terrain, in degrees. |
 | `camera.elevation` | `camera-elevation` | 2–80 | 33.6 | The camera's angle above the horizon, in degrees. The camera never goes below the terrain. |
 | `camera.radius` | `radius` | 1.15–6.5 | 1.92 | The camera's distance from the centre of the terrain. |
@@ -268,6 +270,7 @@ const blob = await topographic.snapshot({ width: 1920, height: 1080, frame: 4000
 ```
 
 - It draws in the background. The live canvas keeps its size and keeps animating.
+- `patch` and `field` draw that image from temporary settings and a temporary height grid. The live view is put back before the call returns, so the page does not flash and a second WebGL context is not required.
 - To keep the on-screen shape, give only `width` or only `height`. If you give neither, you get the current drawing size.
 - `frame` is the animation time in milliseconds. The same settings and the same frame always give the same image.
 - `region` keeps only part of the view: `{ x, y, width, height }`, as fractions measured from the top-left corner. The image is exactly that part of the screen, at `width` × `height` pixels. For example, you can take a phone-shaped strip from a wide window.
@@ -283,7 +286,8 @@ The playground's PNG export uses this. The sizes are 2× the window, a phone siz
 - **Paused when hidden:** drawing stops when the element is off-screen or the tab is hidden. It starts again when it is visible.
 - **Still when nothing moves:** when `motion.speed` is 0, there is no animation loop. It draws again only when something changes.
 - **Reduced motion:** when the system asks for reduced motion, it draws one still frame and ignores speed.
-- **Pixel limit:** the pixel ratio is at most 2. Very large canvases draw at a lower resolution above `maxPixels`. The GPU code smooths the lines, so they stay sharp.
+- **Pixel limit:** the pixel ratio is at most 2, and `quality` can cap it lower. Very large canvases draw at a lower resolution above `maxPixels`. The GPU code smooths the lines, so they stay sharp.
+- **Graphics budget:** `quality: 'auto'` starts a phone at low and a desktop at high, then steps down when frames miss the refresh period. It does not step back up. Set `low`, `medium` or `high` to keep one tier.
 - **Screen readers:** the canvas is `aria-hidden`, because it is only decoration. Put real content on top of it.
 - **Readability:** `layout.fade` makes the lines softer behind a text column in the centre. `layout.anchor` moves the main summit from the side (0) to the centre (1).
 
@@ -294,7 +298,7 @@ The playground's PNG export uses this. The sizes are 2× the window, a phone siz
 | WebGL2 available | Full rendering (`status: 'webgl2'`) |
 | Only WebGL1 | The same rendering through WebGL1 (`'webgl1'`) |
 | No WebGL at all | Only the paper colour, and one console warning (`'fallback'`) |
-| The GPU context is lost | Only the paper colour until the browser restores the context. Then drawing starts again (`'lost'`) |
+| The GPU context is lost | Only the paper colour until the browser restores the context. If the browser never restores it, the canvas is replaced and drawing starts again (`'lost'` until then) |
 
 ## Server rendering and Next.js
 
@@ -308,7 +312,8 @@ Nothing uses the DOM or WebGL until the code runs in the browser.
 
 The playground (`apps/playground`) is the project's live demo page.
 
-- The page background is the preview. The dock at the bottom holds, in order: your saved map terrains, the built-in looks as thumbnails, the light/dark switch, **Shuffle**, and the paper and ink colours. Each item in the dock is a complete terrain. One click changes the shape and the colours together.
+- The page background is the preview. The dock at the bottom holds your saved map terrains, then the built-in looks as thumbnails. On a phone the previews are a little narrower, so four of them fit. The row fades at an end that still has terrains, and a chevron scrolls to the next one. Theme, **Shuffle**, paper and ink sit in a 2×2 grid on the right. Each item in the dock is a complete terrain. One click changes the shape and the colours together.
+- In 2D, drag moves the summit. Anchor 0 keeps it to the side. Anchor 1 puts it in the centre. The value stays in the URL as `an`.
 - In 3D, you can use these gestures:
   - Drag: turn the camera around the terrain.
   - Two-finger scroll: pan. The terrain follows your fingers and can't leave the screen. A right-drag, Shift+drag or two-finger touch drag also pans.
@@ -322,11 +327,11 @@ The playground (`apps/playground`) is the project's live demo page.
   - Every row has a small icon. Each slider's track shows what the setting does, such as thicker lines, rougher ground or wider waves.
   - Choices are icon buttons. The selected one shows its name.
   - Line width shows in pixels (0.5 to 4 px).
-  - The 3D tab holds the scene (extent and elevation), the camera (motion, azimuth, angle and distance) and the detail level.
-  - In 3D, the frame rate shows just above the dock, at its left edge.
+  - The 3D tab holds the scene (extent and elevation), the camera (motion, azimuth, angle and distance), the detail level and the graphics budget (Auto, Low, Med or High).
+  - In 3D, the frame rate shows just above the dock, at its left edge, with the graphics tier that is actually drawing.
   - When a map place is applied, the Terrain sliders and Motion's Warp are dimmed, because the place sets the shape. A note with **Clear map** is above them.
 - **Export** gives you a link, a PNG, a 4 second 3D video as MP4 or WebM, and the code as React, HTML or JSON.
-  - The link tab shows each of the link's parameters as a key and value.
+  - The link tab shows a labelled still of the terrain the link will open, then each of the link's parameters as a key and value.
   - The PNG tab shows the view with a frame for each size: 2× the window, a phone (1170 × 2532) or 1920 × 1080. If a size has a different shape from the window, it crops the view. Drag its frame, or use the arrow keys, to choose the part to keep. For example, choose which part of a wide view goes on a phone. The frame is centred each time Export opens. The image is exactly that part of the screen, at full detail.
   - The Video tab previews the video. Drag the timeline to see any moment of the selected camera path. The path is drawn from above.
   - The code tabs number their lines. They colour the values that come from your settings.
@@ -343,15 +348,20 @@ The playground (`apps/playground`) is the project's live demo page.
   - **Clear** goes back to the generated terrain. It also brings back the lines, camera, extent and elevation you had before. After Cyprus, it also brings back your style and colours.
   - When a map terrain is active, a small map above the right end of the dock shows the area you framed. In 3D, it turns with the camera, so it always matches the terrain on screen. Its compass points north. Click the compass to turn the camera back to north at the top (azimuth 0). Click the small map to open the map. In 2D, north is already at the top, so the small map does not turn.
   - The map loads only when you open it. It needs a network connection.
+  - A link that opens a place hides the canvas until the heights arrive, so the default terrain does not flash. Contour rings draw in while it waits, on a desktop and on a phone. With reduced motion, the rings stay still. The page sets `data-loading` to `terrain`, and `get_region` returns `loading: true` with the message `Loading terrain`.
 - The URL stores the settings as short keys, so a link shows the same background.
   - It stores only the values that are different from the style's defaults or from a named look: `?s=dunes&lc=24`, `?look=night-lobes&mode=3d`.
   - Colours have no `#` (`ink=9fb0cc`).
   - 3D uses the library defaults unless the URL changes them: endless, azimuth 349.7, angle 33.6 and distance 1.92.
   - A pan away from the centre adds `px` and `pz`.
+  - Quality writes `ql` when it is `low`, `medium` or `high`. `auto` is the default, so it is left out.
+  - The address bar updates a few times a second at most, and again when a drag or pinch ends. A gesture does not write the URL on every frame.
   - `?place=istanbul` or `?region=west,south,east,north` opens a real place.
 - It serves `/llms.txt`, `/llms-full.txt` and `/docs/*.md`. These files are made from the settings table in the code.
 
 To run it, use `npm install && npm run dev`.
+
+A public build does not include the debug heartbeat. Set `VITE_TOPOGRAPHIC_DEBUG=1` for that build to include it. The heartbeat records errors, WebGL context loss, how many contexts are alive, canvas size and memory. It shows a small on-screen log and posts batches to `./__debug`. `vite` and `vite preview` print those batches. A static host has no such path, and the page ignores the failed post. A URL cannot turn the heartbeat on.
 
 ## WebMCP tools
 
@@ -360,7 +370,7 @@ To run it, use `npm install && npm run dev`.
 | Tool | What it does |
 |---|---|
 | `list_styles` | Lists the styles and presets, with their ids and descriptions. |
-| `get_settings` | Returns the current settings and the shortest config JSON. |
+| `get_settings` | Returns the current settings, the shortest config JSON, and the graphics tier that is drawing (`quality`, `fps`, `frameMs`, `mesh`). |
 | `set_settings` | Applies some settings. Reports values that were moved into range and keys that were ignored. |
 | `randomize` | Picks a new random seed. With `{ "style": true }`, it also picks a random style. |
 | `take_screenshot` | Returns a PNG of the background as a data URL, 1200 px wide by default. An optional `region` (`{ x, y, width, height }`, as fractions of the view) keeps only that part. |
@@ -368,7 +378,7 @@ To run it, use `npm install && npm run dev`.
 | `get_embed_code` | Returns code for `html`, `react`, `vanilla` or `json`. |
 | `get_install_instructions` | Returns setup steps for `npm`, `web-component`, `react` or `vanilla`. |
 | `set_region` | Draws a real place as the terrain. Use a named `place` or a bounding box in degrees. `relief` and `smooth` are optional. |
-| `get_region` | Returns the current region, relief, smoothing, load status and URL query. |
+| `get_region` | Returns the current region, relief, smoothing, load status and URL query. While heights are still loading, `loading` is true and `message` is `Loading terrain`. |
 | `clear_region` | Removes the region and brings back the generated terrain. |
 
 The input schemas are in `/docs/webmcp.md` on the playground. WebMCP needs a secure page (HTTPS or localhost).
