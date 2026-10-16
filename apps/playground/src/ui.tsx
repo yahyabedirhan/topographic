@@ -226,7 +226,7 @@ export function Dock({ pg, terrains, onOpenMap }: { pg: Playground; terrains: Te
   const { saved, activeSaved, activeMapLook, lookIndex } = terrains;
   const dockVariant = visualVariants(location.search).dock;
   // Variant A spends the saved width on one more preview, so the tile shrinks slightly on a phone.
-  const thumb = dockVariant === 'a' && innerWidth <= 720 ? 72 : THUMB;
+  const thumb = dockVariant === 'a' && innerWidth <= 720 ? 66 : THUMB;
   const wrap = useRef<HTMLDivElement>(null);
   const tools = useRef<HTMLDivElement>(null);
   const scroller = useRef<HTMLDivElement>(null);
@@ -243,8 +243,8 @@ export function Dock({ pg, terrains, onOpenMap }: { pg: Playground; terrains: Te
     if (!el || !tool) return;
     const measure = () => {
       // Variant B stacks the controls under the previews, so they don't take width.
-      const toolsW = dockVariant === 'a' ? tool.offsetWidth + 8 : 0;
-      const avail = el.clientWidth - toolsW - 12 - divider;
+      const toolsW = dockVariant === 'a' ? tool.offsetWidth : 0;
+      const avail = el.clientWidth - toolsW - 8 - divider;
       const n = Math.max(1, Math.min(items, Math.floor((avail + GAP) / (thumb + GAP))));
       setVisible(n);
     };

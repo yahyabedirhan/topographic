@@ -1,3 +1,5 @@
+export const VARIANT_KEYS = ['variant', 'dock', 'link', 'loading', 'og'] as const;
+
 export type VariantId = 'a' | 'b';
 
 export interface VisualVariants {

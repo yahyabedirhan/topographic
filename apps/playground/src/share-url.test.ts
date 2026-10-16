@@ -3,6 +3,7 @@ import { mergeSettings, resolveSettings, type Settings } from 'topographic';
 import { LOOKS } from './looks';
 import cameras from './looks.cameras.json';
 import { findLook, HOME_QUERY, lookSlug, readSettings, settingsParams, writeSettings } from './share-url';
+import { shareUrl } from './url';
 
 const query = (s: Settings) => new URLSearchParams(settingsParams(s)).toString();
 const roundTrip = (s: Settings) => expect(readSettings(writeSettings('', s))).toEqual(s);
@@ -14,6 +15,12 @@ describe('share url', () => {
     const slugs = LOOKS.map((l) => lookSlug(l.name));
     expect(new Set(slugs).size).toBe(LOOKS.length);
     for (const look of LOOKS) roundTrip(resolveSettings(look.settings));
+  });
+
+  it('leaves prototype switches out of a copied link', () => {
+    const home = readSettings('');
+    expect(shareUrl(home, { origin: 'https://example.test', pathname: '/', search: '?link=b&dock=a&place=istanbul' }))
+      .toBe('https://example.test/?place=istanbul');
   });
 
   it('writes nothing for the home view, and names the style otherwise', () => {

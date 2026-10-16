@@ -1,5 +1,6 @@
 import { GROUPS, paramsIn, resolveSettings, type Settings, type SettingsInput } from 'topographic';
 import { readSettings, withQuery, writeSettings } from './share-url';
+import { VARIANT_KEYS } from './variants';
 
 export function configOf(s: Settings): SettingsInput & { style: string } {
   const d = resolveSettings({ style: s.style });
@@ -28,5 +29,8 @@ export function configOf(s: Settings): SettingsInput & { style: string } {
 export const readUrl = (search = window.location.search): Settings => readSettings(search);
 
 /** The page URL for these settings. It keeps the region params already in the page URL. */
-export const shareUrl = (s: Settings, loc: Pick<Location, 'origin' | 'pathname' | 'search'> = window.location) =>
-  withQuery(loc.origin + loc.pathname, writeSettings(loc.search, s));
+export const shareUrl = (s: Settings, loc: Pick<Location, 'origin' | 'pathname' | 'search'> = window.location) => {
+  const q = new URLSearchParams(writeSettings(loc.search, s));
+  for (const key of VARIANT_KEYS) q.delete(key);
+  return withQuery(loc.origin + loc.pathname, q.toString().replace(/%2C/gi, ','));
+};
