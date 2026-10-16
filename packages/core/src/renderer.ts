@@ -33,6 +33,13 @@ export interface SnapshotOptions {
   region?: SnapshotRegion;
   /** Draws the 3D view with this camera path, at its pose for `frame`: the same picture as that frame of `record`. */
   motion?: CameraMotion;
+  /**
+   * Drawn only into this image. The live view is put back before the call yields, so the page does not
+   * flash and no second WebGL context is required.
+   */
+  patch?: SettingsInput;
+  /** Elevation grid used only for this image. Omit to keep the live one. */
+  field?: Heightfield | null;
 }
 
 export type RendererStatus = 'webgl2' | 'webgl1' | 'fallback' | 'lost' | 'destroyed';
@@ -172,7 +179,11 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
   }
 
   function initGL(): boolean {
-    const attrs: WebGLContextAttributes = { alpha: true, premultipliedAlpha: false, antialias: false, depth: true, stencil: false };
+    const attrs: WebGLContextAttributes = {
+      alpha: true, premultipliedAlpha: false, antialias: false, depth: true, stencil: false,
+      // A phone already has one full-screen context. High-performance asks iOS for a bigger GPU pool.
+      powerPreference: signals.mobile ? 'low-power' : 'default',
+    };
     let webgl2 = false;
     if (!gl) {
       if (!opts.forceWebGL1) gl = canvas.getContext('webgl2', attrs);
@@ -362,6 +373,14 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
 
   function tick(now: number): void {
     raf = 0;
+    // iOS can drop the drawing buffer without a context-lost event. The canvas goes black and the
+    // process may follow. Treat a zero buffer like a loss so the page rebuilds it.
+    if ((status === 'webgl2' || status === 'webgl1') && gl && canvas.width > 0 && (gl.isContextLost() || gl.drawingBufferWidth === 0)) {
+      setStatus('lost');
+      lastNow = 0;
+      scheduleRecovery();
+      return;
+    }
     const dt = lastNow ? Math.min(100, Math.max(0, now - lastNow)) : 0;
     lastNow = now;
     if (dt > 0) {
@@ -565,12 +584,23 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
       const max = gl.getParameter(gl.MAX_RENDERBUFFER_SIZE) as number;
       if (w < 1 || h < 1 || f.frameWidth > max || f.frameHeight > max) throw new Error(`[topographic] snapshot size must be 1..${max}px`);
       const savedFrame = frameMs;
+      const savedSettings = settings;
+      const savedField = heightField;
+      const savedVersion = heightVersion;
       if (o.frame !== undefined) frameMs = o.frame;
+      if (o.patch) { settings = mergeSettings(settings, o.patch); refreshTheme(); }
+      if (o.field !== undefined) { heightField = o.field; heightVersion += 1; }
       const pose = o.motion ? cameraPose({ ...settings.camera, motion: o.motion }, frameMs / 1000) : undefined;
       const pixels = new Uint8Array(w * h * 4);
       const rect = { x: f.x, y: f.frameHeight - f.y - h, width: w, height: h };
       try { readback(f.frameWidth, f.frameHeight, pixels, pose, Boolean(o.motion), rect); }
-      finally { frameMs = savedFrame; draw(); }
+      finally {
+        frameMs = savedFrame;
+        settings = savedSettings;
+        if (o.patch) refreshTheme();
+        if (o.field !== undefined) { heightField = savedField; heightVersion = savedVersion; uploadedVersion = -1; }
+        draw();
+      }
       // GL rows run bottom-up; flip into an ImageData
       const out = doc.createElement('canvas');
       out.width = w; out.height = h;
