@@ -281,6 +281,21 @@ function useOrbit(pg: Playground) {
     }
     drag.current = { id: e.pointerId, x: e.clientX, y: e.clientY, azimuth: cam.azimuth, elevation: cam.elevation };
   };
+  const queued = useRef<Settings | null>(null);
+  const flushId = useRef(0);
+  // The canvas updates on this event. React, the URL and the sliders catch up once per frame.
+  const push = (patch: SettingsInput) => {
+    const current = live.current;
+    const base = queued.current ?? current.settings;
+    queued.current = mergeSettings(base, patch);
+    current.instance.current?.update(patch);
+    if (!flushId.current) flushId.current = requestAnimationFrame(() => {
+      flushId.current = 0;
+      const next = queued.current;
+      queued.current = null;
+      if (next) current.replace(next);
+    });
+  };
   const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
     const current = live.current;
     if (current.settings.mode !== '3d' || !pointers.current.has(e.pointerId)) return;
@@ -292,19 +307,19 @@ function useOrbit(pg: Playground) {
       const dist = Math.max(1, Math.hypot(a.x - b.x, a.y - b.y));
       const radius = Math.min(6.5, Math.max(1.15, two.radius * (two.dist / dist)));
       const moved = panned(two, (a.x + b.x) / 2 - two.x, (a.y + b.y) / 2 - two.y);
-      current.change({ camera: { radius: Number(radius.toFixed(2)), ...moved } });
+      push({ camera: { radius: Number(radius.toFixed(2)), ...moved } });
       return;
     }
     const held = pan.current;
     if (held && held.id === e.pointerId) {
-      current.change({ camera: panned(held, e.clientX - held.x, e.clientY - held.y) });
+      push({ camera: panned(held, e.clientX - held.x, e.clientY - held.y) });
       return;
     }
     const orbit = drag.current;
     if (!orbit || orbit.id !== e.pointerId) return;
     const azimuth = wrapDegrees(orbit.azimuth - (e.clientX - orbit.x) * 0.32);
     const elevation = Math.min(80, Math.max(2, orbit.elevation - (e.clientY - orbit.y) * 0.2));
-    current.change({ camera: { azimuth, elevation: Number(elevation.toFixed(1)), motion: 'still' } });
+    push({ camera: { azimuth, elevation: Number(elevation.toFixed(1)), motion: 'still' } });
   };
   const onPointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (pointers.current.has(e.pointerId)) noteStagePointer(false);
@@ -372,6 +387,7 @@ export function Backdrop({ pg, className = 'pt-stage' }: { pg: Playground; class
       elevation={s.elevation}
       extent={s.extent}
       detail={s.detail}
+      quality={s.quality}
       camera={s.camera}
       options={BENCHMARK}
       onPointerDown={orbit.onPointerDown}

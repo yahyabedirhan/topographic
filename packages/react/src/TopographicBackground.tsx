@@ -16,6 +16,8 @@ export interface TopographicBackgroundSettingsProps {
   elevation?: number;
   extent?: SettingsInput['extent'];
   detail?: number;
+  /** auto follows the device. low, medium and high stay put. */
+  quality?: SettingsInput['quality'];
   camera?: SettingsInput['camera'];
 }
 
@@ -51,7 +53,7 @@ export function useTopographicBackground<T extends HTMLElement = HTMLDivElement>
     return () => { t.destroy(); ref.topographic = null; };
   }, [ref, stableOptions]);
 
-  const { styleName, seed, mode, elevation, extent, detail } = settings;
+  const { styleName, seed, mode, elevation, extent, detail, quality } = settings;
   const lines = useByValue(settings.lines);
   const terrain = useByValue(settings.terrain);
   const motion = useByValue(settings.motion);
@@ -69,6 +71,7 @@ export function useTopographicBackground<T extends HTMLElement = HTMLDivElement>
   useEffect(() => { if (elevation !== undefined) ref.topographic?.update({ elevation }); }, [ref, elevation]);
   useEffect(() => { if (extent !== undefined) ref.topographic?.update({ extent }); }, [ref, extent]);
   useEffect(() => { if (detail !== undefined) ref.topographic?.update({ detail }); }, [ref, detail]);
+  useEffect(() => { if (quality !== undefined) ref.topographic?.update({ quality }); }, [ref, quality]);
   useEffect(() => { if (camera) ref.topographic?.update({ camera }); }, [ref, camera]);
 
   return ref;
@@ -84,10 +87,10 @@ export interface TopographicBackgroundProps extends TopographicBackgroundSetting
 
 /** A <div> with a topographic background. Size it like any div; children render on top. */
 export const TopographicBackground = forwardRef<HTMLDivElement, TopographicBackgroundProps>(function TopographicBackground(
-  { styleName, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, camera, options, onReady, style, children, ...div },
+  { styleName, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera, options, onReady, style, children, ...div },
   forwarded,
 ) {
-  const ref = useTopographicBackground<HTMLDivElement>({ styleName, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, camera }, options);
+  const ref = useTopographicBackground<HTMLDivElement>({ styleName, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera }, options);
   const stableOptions = useByValue(options);
   const ready = useRef(onReady);
   ready.current = onReady;

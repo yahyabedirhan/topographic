@@ -124,7 +124,7 @@ function apiMd(): string {
 
 Mounts a canvas inside \`element\` (it fills the element) and returns an instance.
 
-- \`settings\`: partial settings, see [params.md](params.md). Shape: \`{ style, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, camera }\`. \`mode\` is \`'2d' | '3d'\` and defaults to \`'2d'\`.
+- \`settings\`: partial settings, see [params.md](params.md). Shape: \`{ style, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera }\`. \`mode\` is \`'2d' | '3d'\` and defaults to \`'2d'\`. \`quality\` is \`'auto' | 'low' | 'medium' | 'high'\` and defaults to \`'auto'\`. \`auto\` picks a tier from the device and steps down if presented frames miss 60 Hz, or 120 Hz once a frame under 12 ms has been seen. It does not step back up.
 - \`options\`: \`{ maxPixelRatio = 2, maxPixels = 4147200, forceWebGL1 = false, benchmark = false }\`. \`benchmark\` keeps a 3D view drawing while it is visible so \`stats\` can be read.
 
 Instance:
@@ -135,7 +135,7 @@ Instance:
 - \`setInsets({ top, right, bottom, left } | null)\`: the space page UI covers on each side of the view, in CSS px. The 3D picture slides (a lens shift, not a camera move) so the terrain centres in the part left free. 2D, \`snapshot\` and \`record\` ignore it and centre in their own frame. \`insets\` reads it back.
 - \`clampPan(panX, panZ) => [x, z]\`: the pan kept over the terrain as it is drawn now.
 - \`pose\`: \`{ azimuth, elevation, radius, panX, panZ }\`, where the 3D camera is now along its path.
-- \`stats\`: \`{ fps, frameMs, mesh }\` while a 3D view is drawing. \`frameMs\` is the time spent drawing one frame. \`mesh\` is the segments along one side, or 0 in 2D.
+- \`stats\`: \`{ fps, frameMs, mesh, quality }\` while a 3D view is drawing. \`frameMs\` is the time spent drawing one frame. \`mesh\` is the segments along one side, or 0 in 2D. \`quality\` is the tier actually drawing: \`low\`, \`medium\` or \`high\`.
 - \`destroy()\`: stops the loop, removes observers and the canvas, and releases the WebGL context.
 - \`settings\`: the current resolved settings.
 - \`status\`: \`'webgl2' | 'webgl1' | 'fallback' | 'lost' | 'destroyed'\`.
@@ -178,7 +178,7 @@ function llmsTxt(): string {
 
 Live playground: ${SITE_URL}
 
-The playground page holds its state in short query params. Only values that differ from a base are written. The base is the style's defaults, or a named look from the dock (\`look=night-lobes\`). Keys: \`s\` style, \`seed\`, one short key per parameter (${PARAMS.map((p) => `\`${p.short}\` ${p.label.toLowerCase()}`).join(', ')}), \`m\` theme (light, dark or auto), \`ink\` and \`paper\` colours (hex without \`#\`), \`mode=3d\`, \`ex\` extent (endless is the default, so only \`ex=block\` is written), \`ev\` elevation, \`dl\` detail, \`az\` azimuth, \`ce\` camera elevation, \`rd\` radius, \`cm\` camera motion, \`px\` and \`pz\` the pan (only when off centre). The library's default camera (azimuth 349.7, camera elevation 33.6, radius 1.92) is not written. Examples: \`?s=dunes&lc=24\`, \`?look=night-lobes&mode=3d&cm=orbit\`, \`?s=gentle-summit&seed=4&m=dark&ink=9fb0cc&paper=0b0b0d\`.
+The playground page holds its state in short query params. Only values that differ from a base are written. The base is the style's defaults, or a named look from the dock (\`look=night-lobes\`). Keys: \`s\` style, \`seed\`, one short key per parameter (${PARAMS.map((p) => `\`${p.short}\` ${p.label.toLowerCase()}`).join(', ')}), \`m\` theme (light, dark or auto), \`ink\` and \`paper\` colours (hex without \`#\`), \`mode=3d\`, \`ex\` extent (endless is the default, so only \`ex=block\` is written), \`ev\` elevation, \`dl\` detail, \`ql\` quality (auto is the default, so only \`low\`, \`medium\` or \`high\` is written), \`az\` azimuth, \`ce\` camera elevation, \`rd\` radius, \`cm\` camera motion, \`px\` and \`pz\` the pan (only when off centre). The library's default camera (azimuth 349.7, camera elevation 33.6, radius 1.92) is not written. Examples: \`?s=dunes&lc=24\`, \`?look=night-lobes&mode=3d&cm=orbit\`, \`?s=gentle-summit&seed=4&m=dark&ink=9fb0cc&paper=0b0b0d\`.
 
 A real place is \`?region=west,south,east,north\` (or JSON \`{"bbox":[west,south,east,north]}\`). Named places: ${PLACES.map((p) => `\`place=${p.id}\``).join(', ')}. Place params combine with the settings params, for example \`?look=night-lobes&lc=40&place=istanbul\`.
 

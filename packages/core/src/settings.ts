@@ -1,4 +1,5 @@
 import { GROUPS, PARAMS, clampParam, paramsIn, type GroupName, type GroupValues, type ParamDef } from './params.js';
+import { QUALITIES, type QualityName } from './quality.js';
 import { DEFAULT_STYLE, findStyle, type DeepPartialSettings, type StyleId } from './styles.js';
 
 export type ThemeMode = 'auto' | 'light' | 'dark';
@@ -52,6 +53,11 @@ export interface Settings {
   extent: TerrainExtent;
   /** 0 is the coarsest mesh, 1 the finest. */
   detail: number;
+  /**
+   * Graphics budget. `auto` starts from the device and steps down if frames miss
+   * 60 Hz, or 120 Hz once that refresh has been seen. The other values stay put.
+   */
+  quality: QualityName;
   camera: CameraSettings;
 }
 
@@ -87,10 +93,15 @@ export function meshResolution(detail: number): number {
   return Math.round(32 + t * 128);
 }
 
-/** A real place uses a finer mesh than the procedural default so the coast stays smooth. */
-export function terrainSegments(detail: number, hasField: boolean): number {
+/**
+ * A real place asks for a finer mesh than the procedural default so the coast stays smooth.
+ * `cap` is the active quality tier. It wins over that floor so a phone never builds a 192² mesh.
+ */
+export function terrainSegments(detail: number, hasField: boolean, cap = 192): number {
+  const limit = Math.min(255, Math.max(8, Math.round(cap)));
   const base = meshResolution(detail);
-  return hasField ? Math.max(base, 192) : base;
+  const wanted = hasField ? Math.max(base, Math.min(192, limit)) : base;
+  return Math.min(wanted, limit);
 }
 
 function clampCamera(input: Partial<CameraSettings> | undefined, base: CameraSettings): CameraSettings {
@@ -123,6 +134,10 @@ function applyView(into: Settings, input: SettingsInput | undefined): void {
     else warnOnce(`unknown extent "${String(input.extent)}", using "${into.extent}"`);
   }
   if (input.detail !== undefined) into.detail = stepped(input.detail, 0, 1, into.detail, 0.01);
+  if (input.quality !== undefined) {
+    if (QUALITIES.includes(input.quality)) into.quality = input.quality;
+    else warnOnce(`unknown quality "${String(input.quality)}", using "${into.quality}"`);
+  }
   if (input.camera) into.camera = clampCamera(input.camera, into.camera);
 }
 
@@ -133,6 +148,7 @@ export function defaultSettings(): Settings {
     motion: groupDefaults('motion'), layout: groupDefaults('layout'),
     theme: { mode: 'auto' },
     mode: '2d', elevation: DEFAULT_ELEVATION, extent: DEFAULT_EXTENT, detail: DEFAULT_DETAIL,
+    quality: 'auto',
     camera: { ...DEFAULT_CAMERA },
   };
 }
@@ -210,6 +226,7 @@ export function fromAttributes(get: (name: string) => string | null): SettingsIn
   const extent = get('extent'); if (extent) input.extent = extent;
   const elevation = get('elevation'); if (elevation !== null && elevation !== '') input.elevation = Number(elevation);
   const detail = get('detail'); if (detail !== null && detail !== '') input.detail = Number(detail);
+  const quality = get('quality'); if (quality) input.quality = quality as QualityName;
   const azimuth = get('azimuth');
   const cameraElevation = get('camera-elevation');
   const radius = get('radius');
@@ -246,6 +263,7 @@ export function toAttributes(s: Settings): Record<string, string> {
   if (s.extent !== d.extent) out.extent = s.extent;
   if (s.elevation !== d.elevation) out.elevation = String(s.elevation);
   if (s.detail !== d.detail) out.detail = String(s.detail);
+  if (s.quality !== d.quality) out.quality = s.quality;
   if (s.camera.azimuth !== d.camera.azimuth) out.azimuth = String(s.camera.azimuth);
   if (s.camera.elevation !== d.camera.elevation) out['camera-elevation'] = String(s.camera.elevation);
   if (s.camera.radius !== d.camera.radius) out.radius = String(s.camera.radius);
@@ -271,6 +289,7 @@ export function toQuery(s: Settings): string {
   if (s.extent !== d.extent) q.set('ex', s.extent);
   if (s.elevation !== d.elevation) q.set('ev', String(s.elevation));
   if (s.detail !== d.detail) q.set('dl', String(s.detail));
+  if (s.quality !== d.quality) q.set('ql', s.quality);
   if (s.camera.azimuth !== d.camera.azimuth) q.set('az', String(s.camera.azimuth));
   if (s.camera.elevation !== d.camera.elevation) q.set('ce', String(s.camera.elevation));
   if (s.camera.radius !== d.camera.radius) q.set('rd', String(s.camera.radius));
@@ -284,7 +303,7 @@ export function fromQuery(query: string): SettingsInput {
   const q = new URLSearchParams(query);
   const byShort = new Map((PARAMS as readonly ParamDef[]).map((p) => [p.short, p.attr]));
   const viewShort: Record<string, string> = {
-    elevation: 'ev', extent: 'ex', detail: 'dl', azimuth: 'az', 'camera-elevation': 'ce', radius: 'rd', 'camera-motion': 'cm', 'pan-x': 'px', 'pan-z': 'pz',
+    elevation: 'ev', extent: 'ex', detail: 'dl', quality: 'ql', azimuth: 'az', 'camera-elevation': 'ce', radius: 'rd', 'camera-motion': 'cm', 'pan-x': 'px', 'pan-z': 'pz',
   };
   return fromAttributes((name) => {
     if (name === 'style-name') return q.get('s');

@@ -27,6 +27,7 @@ export const SETTINGS_SCHEMA = {
     elevation: { type: 'number', minimum: 0, maximum: 1, description: '3D height. 0 is flat like the map; higher values make the terrain taller, with a rounded crest.' },
     extent: { type: 'string', enum: ['block', 'endless'], description: 'block is a finite tabletop with cut sides. endless continues past the view. The playground defaults to endless.' },
     detail: { type: 'number', minimum: 0, maximum: 1, description: '3D mesh resolution. 0 is coarsest, 1 is finest.' },
+    quality: { type: 'string', enum: ['auto', 'low', 'medium', 'high'], description: 'Graphics budget. auto follows the device and steps down if frames miss 60 Hz, or 120 Hz when that refresh is seen. low, medium and high stay put.' },
     camera: {
       type: 'object', additionalProperties: false,
       properties: {
@@ -54,7 +55,7 @@ export const TOOL_DEFS: ToolDef[] = [
     description: 'Lists the terrain styles and the presets, with ids, names and descriptions.',
     inputSchema: { type: 'object', properties: {} } },
   { name: 'get_settings', title: 'Get settings', readOnly: true,
-    description: 'Returns the current settings: the full resolved object and the minimal config JSON (only non-default values).',
+    description: 'Returns the current settings: the full resolved object, the minimal config JSON (only non-default values), and the graphics tier actually drawing (quality, fps, frameMs, mesh).',
     inputSchema: { type: 'object', properties: {} } },
   { name: 'set_settings', title: 'Set settings', readOnly: false,
     description: 'Changes the background. Takes a partial settings object; values are merged into the current settings, clamped to their ranges, and applied live. Returns the resulting config and any adjustments made.',

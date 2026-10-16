@@ -1,7 +1,7 @@
 import { DEFAULT_STYLE, PARAMS, fromQuery, mergeSettings, resolveSettings, type ParamDef, type Settings } from 'topographic';
 import { LOOKS, type Look } from './looks';
 
-const VIEW = ['m', 'ink', 'paper', 'mode', 'ex', 'ev', 'dl', 'az', 'ce', 'rd', 'cm', 'px', 'pz'] as const;
+const VIEW = ['m', 'ink', 'paper', 'mode', 'ex', 'ev', 'dl', 'ql', 'az', 'ce', 'rd', 'cm', 'px', 'pz'] as const;
 
 /** Every query key the settings own. The region keys belong to region/url.ts. */
 export const SETTINGS_KEYS: readonly string[] = ['look', 's', 'seed', ...(PARAMS as readonly ParamDef[]).map((p) => p.short), ...VIEW];
@@ -27,6 +27,7 @@ function diff(s: Settings, base: Settings): [string, string][] {
   put('ex', s.extent, base.extent);
   put('ev', s.elevation, base.elevation);
   put('dl', s.detail, base.detail);
+  put('ql', s.quality, base.quality);
   put('az', s.camera.azimuth, base.camera.azimuth);
   put('ce', s.camera.elevation, base.camera.elevation);
   put('rd', s.camera.radius, base.camera.radius);
