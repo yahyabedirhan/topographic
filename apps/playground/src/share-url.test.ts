@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { mergeSettings, resolveSettings, type Settings } from 'topographic';
 import { LOOKS } from './looks';
 import cameras from './looks.cameras.json';
-import { findLook, lookSlug, readSettings, settingsParams, writeSettings } from './share-url';
+import { findLook, HOME_QUERY, lookSlug, readSettings, settingsParams, writeSettings } from './share-url';
 
 const query = (s: Settings) => new URLSearchParams(settingsParams(s)).toString();
 const roundTrip = (s: Settings) => expect(readSettings(writeSettings('', s))).toEqual(s);
@@ -16,8 +16,12 @@ describe('share url', () => {
     for (const look of LOOKS) roundTrip(resolveSettings(look.settings));
   });
 
-  it('writes nothing for the default page and only the style for style defaults', () => {
-    expect(query(resolveSettings())).toBe('');
+  it('writes nothing for the home view, and names the style otherwise', () => {
+    const home = readSettings('');
+    expect(home).toEqual(readSettings(HOME_QUERY));
+    expect(query(home)).toBe('');
+    expect(query(resolveSettings())).toBe('s=drifting-lobes');
+    roundTrip(resolveSettings());
     expect(query(resolveSettings({ style: 'dunes' }))).toBe('s=dunes');
     roundTrip(resolveSettings({ style: 'dunes' }));
   });
@@ -70,7 +74,7 @@ describe('share url', () => {
     for (const look of LOOKS) {
       const s = mergeSettings(resolveSettings(look.settings), { mode: '3d' });
       expect(s.camera).toMatchObject((cameras as Record<string, object>)[look.name]);
-      expect(query(s)).toBe(`look=${lookSlug(look.name)}&mode=3d`);
+      expect(query(s)).toBe(`look=${lookSlug(look.name)}&mode=3d` === HOME_QUERY ? '' : `look=${lookSlug(look.name)}&mode=3d`);
       roundTrip(s);
     }
     const moved = mergeSettings(nightLobes, { mode: '3d', camera: { azimuth: 12 } });

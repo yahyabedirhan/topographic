@@ -36,10 +36,14 @@ function diff(s: Settings, base: Settings): [string, string][] {
   return out;
 }
 
+/** What a bare playground URL shows. Written as no settings params at all. */
+export const HOME_QUERY = 'look=fine-granite&mode=3d';
+
 const same = (a: Settings, b: Settings) => !diff(a, b).length && a.theme.ink === b.theme.ink && a.theme.paper === b.theme.paper;
 
 /** The settings as the fewest query params: a diff against the style defaults or against a look of the same style. */
 export function settingsParams(s: Settings): [string, string][] {
+  if (same(decode(new URLSearchParams(HOME_QUERY)), s)) return [];
   const plain = diff(s, { ...resolveSettings({ style: s.style }), style: DEFAULT_STYLE });
   let best = plain;
   for (const look of LOOKS) {
@@ -48,10 +52,14 @@ export function settingsParams(s: Settings): [string, string][] {
     const entries: [string, string][] = [['look', lookSlug(look.name)], ...diff(s, base)];
     if (entries.length < best.length && same(decode(new URLSearchParams(entries)), s)) best = entries;
   }
-  return best;
+  // An empty query means the home view, so other settings always name their style.
+  return best.length ? best : [['s', s.style]];
 }
 
-export const readSettings = (search: string): Settings => decode(new URLSearchParams(search));
+export function readSettings(search: string): Settings {
+  const q = new URLSearchParams(search);
+  return decode(SETTINGS_KEYS.some((key) => q.has(key)) ? q : new URLSearchParams(HOME_QUERY));
+}
 
 function decode(q: URLSearchParams): Settings {
   const look = findLook(q.get('look'));
