@@ -8,7 +8,7 @@
 
 ![Fine granite in 3D: a summit ringed by pale contour lines, gullies fanning out to a dark horizon](assets/screenshots/hero.webp)
 
-topographic draws animated contour lines with WebGL, as a flat map or a 3D terrain. The terrain comes from a built-in style or from real elevation data. The npm package has no dependencies. It includes a web component and a React component. In the playground, you change the settings and export code, PNG or video.
+topographic draws animated contour lines with WebGL, as a flat map or a 3D terrain. The terrain comes from a built-in style or from real elevation data. The npm package has no dependencies. It includes a web component and a React component. In the [playground](https://yahyabedirhan.github.io/topographic/), you change the settings and export code, PNG or video.
 
 ![The playground in dark mode: Istanbul in 3D behind the page, the dock of looks along the bottom, the controls at the top right and a minimap of the place in the corner](assets/screenshots/playground-dark.webp)
 
