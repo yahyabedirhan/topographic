@@ -93,8 +93,13 @@ function keyName(key: string): [string, GlyphName | null] {
 function LinkBlock({ pg }: { pg: Playground }) {
   const url = shareUrl(pg.settings);
   const entries = [...new URL(url).searchParams.entries()];
+  const src = useViewPicture(pg, 320, 180);
   return (
     <div className="pt-export-block">
+      <figure className="pt-link-shot">
+        {src ? <img src={src} alt="The terrain this link opens" /> : <div className="pt-link-wait" aria-hidden="true" />}
+        <figcaption>Link preview</figcaption>
+      </figure>
       <p className="pt-hint">{entries.length ? 'This link opens with these parameters:' : 'This link opens the playground as it starts: nothing is changed yet.'}</p>
       {entries.length ? (
         <ul className="pt-urlchips" aria-label="Link settings">
