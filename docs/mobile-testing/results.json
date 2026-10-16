@@ -1,0 +1,283 @@
+{
+  "shots": [
+    "default-iphone-se.png",
+    "default-iphone-14-pro.png",
+    "default-moto-g4.png",
+    "dock-a-iphone-14-pro.png",
+    "dock-a-iphone-se.png",
+    "dock-b-iphone-14-pro.png",
+    "dock-b-iphone-se.png",
+    "link-a-iphone-14-pro.png",
+    "link-b-iphone-14-pro.png",
+    "loading-a-slow3g-iphone-14-pro.png",
+    "loading-b-slow3g-iphone-14-pro.png",
+    "tier-iphone-se.png",
+    "tier-iphone-14-pro.png",
+    "tier-moto-g4.png",
+    "anchor-2d-iphone-14-pro.png"
+  ],
+  "results": [
+    {
+      "device": "iphone-se",
+      "cpu": 4,
+      "seconds": 74.4,
+      "crashed": false,
+      "notes": [
+        "png downloaded",
+        "locator.click: Error: strict mode violation: getByRole('button', { name: 'PNG' }) resolved to 2 elements:\n    1) <button type=\"button\" tabindex=\"-1\" class=\"pt-tab\" data-pressed=\"\" ",
+        "video attempted"
+      ],
+      "errors": [],
+      "end": {
+        "tier": "low",
+        "fpsText": "10 fps · 95.5 ms · 64² · low",
+        "gl": "webgl2",
+        "w": 375,
+        "h": 667,
+        "css": [
+          375,
+          667
+        ],
+        "heap": 41935292,
+        "canvasBytes": 1500750,
+        "recover": false,
+        "region": "ready",
+        "mode": "pt-stage is-3d",
+        "lost": 2,
+        "restored": 0
+      },
+      "frameP50": 83.4,
+      "frameP95": 383.4,
+      "frames": 393,
+      "longCount": 82,
+      "longP50": 109,
+      "longP95": 835,
+      "heap": 41935292,
+      "canvasBytes": 1500750,
+      "tier": "low",
+      "gl": "webgl2",
+      "lost": 2,
+      "restored": 0,
+      "recoverVisible": false
+    },
+    {
+      "device": "iphone-se",
+      "cpu": 6,
+      "seconds": 70.2,
+      "crashed": false,
+      "notes": [
+        "locator.click: Timeout 4000ms exceeded.\nCall log:\n  - waiting for getByRole('button', { name: 'Switch to 2D', exact: true }).first()\n    - locator resolved to <button tabindex=\"0\" ",
+        "png downloaded",
+        "video attempted"
+      ],
+      "errors": [],
+      "end": {
+        "tier": "low",
+        "fpsText": "10 fps · 95.6 ms · 64² · low",
+        "gl": "webgl2",
+        "w": 375,
+        "h": 667,
+        "css": [
+          375,
+          667
+        ],
+        "heap": 34090817,
+        "canvasBytes": 1500750,
+        "recover": false,
+        "region": "ready",
+        "mode": "pt-stage is-3d",
+        "lost": 2,
+        "restored": 0
+      },
+      "frameP50": 83.4,
+      "frameP95": 466.6,
+      "frames": 309,
+      "longCount": 99,
+      "longP50": 96,
+      "longP95": 1075,
+      "heap": 34090817,
+      "canvasBytes": 1500750,
+      "tier": "low",
+      "gl": "webgl2",
+      "lost": 2,
+      "restored": 0,
+      "recoverVisible": false
+    },
+    {
+      "device": "iphone-14-pro",
+      "cpu": 4,
+      "seconds": 72.4,
+      "crashed": false,
+      "notes": [
+        "locator.click: Timeout 3000ms exceeded.\nCall log:\n  - waiting for locator('.pt-thumb').nth(3)\n    - locator resolved to <button type=\"button\" class=\"pt-thumb\" id=\"base-ui-:ro:\" ari",
+        "png downloaded",
+        "locator.click: Error: strict mode violation: getByRole('button', { name: 'PNG' }) resolved to 2 elements:\n    1) <button type=\"button\" tabindex=\"-1\" class=\"pt-tab\" data-pressed=\"\" ",
+        "locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for getByRole('button', { name: 'PNG' })\n"
+      ],
+      "errors": [],
+      "end": {
+        "tier": "low",
+        "fpsText": "10 fps · 100.0 ms · 64² · low",
+        "gl": "webgl2",
+        "w": 393,
+        "h": 852,
+        "css": [
+          393,
+          852
+        ],
+        "heap": 23981849,
+        "canvasBytes": 2009016,
+        "recover": false,
+        "region": "ready",
+        "mode": "pt-stage is-3d",
+        "lost": 1,
+        "restored": 0
+      },
+      "frameP50": 133.3,
+      "frameP95": 283.4,
+      "frames": 471,
+      "longCount": 72,
+      "longP50": 107,
+      "longP95": 1841,
+      "heap": 23981849,
+      "canvasBytes": 2009016,
+      "tier": "low",
+      "gl": "webgl2",
+      "lost": 1,
+      "restored": 0,
+      "recoverVisible": false
+    },
+    {
+      "device": "iphone-14-pro",
+      "cpu": 6,
+      "seconds": 70.5,
+      "crashed": false,
+      "notes": [
+        "locator.click: Timeout 4000ms exceeded.\nCall log:\n  - waiting for getByRole('button', { name: 'Switch to 2D', exact: true }).first()\n    - locator resolved to <button tabindex=\"0\" ",
+        "png downloaded",
+        "video attempted"
+      ],
+      "errors": [],
+      "end": {
+        "tier": "low",
+        "fpsText": "11 fps · 90.4 ms · 64² · low",
+        "gl": "webgl2",
+        "w": 393,
+        "h": 852,
+        "css": [
+          393,
+          852
+        ],
+        "heap": 40224943,
+        "canvasBytes": 2009016,
+        "recover": false,
+        "region": "ready",
+        "mode": "pt-stage is-3d",
+        "lost": 2,
+        "restored": 0
+      },
+      "frameP50": 83.4,
+      "frameP95": 666.7,
+      "frames": 285,
+      "longCount": 88,
+      "longP50": 111,
+      "longP95": 1227,
+      "heap": 40224943,
+      "canvasBytes": 2009016,
+      "tier": "low",
+      "gl": "webgl2",
+      "lost": 2,
+      "restored": 0,
+      "recoverVisible": false
+    },
+    {
+      "device": "moto-g4",
+      "cpu": 4,
+      "seconds": 70.1,
+      "crashed": false,
+      "notes": [
+        "locator.click: Timeout 4000ms exceeded.\nCall log:\n  - waiting for getByRole('button', { name: 'Switch to 2D', exact: true }).first()\n    - locator resolved to <button tabindex=\"0\" ",
+        "png downloaded",
+        "locator.click: Error: strict mode violation: getByRole('button', { name: 'PNG' }) resolved to 2 elements:\n    1) <button type=\"button\" tabindex=\"-1\" class=\"pt-tab\" data-pressed=\"\" ",
+        "video attempted"
+      ],
+      "errors": [],
+      "end": {
+        "tier": "low",
+        "fpsText": "10 fps · 97.6 ms · 64² · low",
+        "gl": "webgl2",
+        "w": 360,
+        "h": 640,
+        "css": [
+          360,
+          640
+        ],
+        "heap": 39711882,
+        "canvasBytes": 1382400,
+        "recover": false,
+        "region": "ready",
+        "mode": "pt-stage is-3d",
+        "lost": 2,
+        "restored": 0
+      },
+      "frameP50": 83.3,
+      "frameP95": 333.4,
+      "frames": 414,
+      "longCount": 87,
+      "longP50": 96,
+      "longP95": 692,
+      "heap": 39711882,
+      "canvasBytes": 1382400,
+      "tier": "low",
+      "gl": "webgl2",
+      "lost": 2,
+      "restored": 0,
+      "recoverVisible": false
+    },
+    {
+      "device": "moto-g4",
+      "cpu": 6,
+      "seconds": 70.1,
+      "crashed": false,
+      "notes": [
+        "locator.click: Timeout 4000ms exceeded.\nCall log:\n  - waiting for getByRole('button', { name: 'Switch to 2D', exact: true }).first()\n    - locator resolved to <button tabindex=\"0\" ",
+        "png downloaded",
+        "locator.click: Error: strict mode violation: getByRole('button', { name: 'PNG' }) resolved to 2 elements:\n    1) <button type=\"button\" tabindex=\"-1\" class=\"pt-tab\" data-pressed=\"\" ",
+        "video attempted"
+      ],
+      "errors": [],
+      "end": {
+        "tier": "low",
+        "fpsText": "11 fps · 93.5 ms · 64² · low",
+        "gl": "webgl2",
+        "w": 360,
+        "h": 640,
+        "css": [
+          360,
+          640
+        ],
+        "heap": 35568135,
+        "canvasBytes": 1382400,
+        "recover": false,
+        "region": "ready",
+        "mode": "pt-stage is-3d",
+        "lost": 2,
+        "restored": 0
+      },
+      "frameP50": 83.3,
+      "frameP95": 366.6,
+      "frames": 413,
+      "longCount": 88,
+      "longP50": 90,
+      "longP95": 706,
+      "heap": 35568135,
+      "canvasBytes": 1382400,
+      "tier": "low",
+      "gl": "webgl2",
+      "lost": 2,
+      "restored": 0,
+      "recoverVisible": false
+    }
+  ],
+  "stressMs": 60000
+}
