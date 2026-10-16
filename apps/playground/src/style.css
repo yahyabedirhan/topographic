@@ -38,8 +38,8 @@ html[data-region='loading'] .pt-stage canvas{visibility:hidden}
 }
 .pt-recover{position:fixed;z-index:4;left:50%;top:42%;transform:translate(-50%,-50%);padding:10px 14px;border-radius:999px;
   font:500 13px/1 var(--sans);color:var(--fg);background:color-mix(in srgb,var(--paper) 88%,transparent);box-shadow:inset 0 0 0 .5px var(--line);pointer-events:none}
-.pt-stage.is-3d{cursor:grab;touch-action:none}
-.pt-stage.is-3d:active{cursor:grabbing}
+.pt-stage.is-3d,.pt-stage.is-2d{cursor:grab;touch-action:none}
+.pt-stage.is-3d:active,.pt-stage.is-2d:active{cursor:grabbing}
 .pt-top{position:fixed;z-index:6;top:16px;right:16px;display:flex;align-items:stretch;gap:8px;width:max-content}
 .pt-glass{background:color-mix(in srgb,var(--paper) 50%,transparent);box-shadow:inset 0 0 0 .5px var(--line),inset 0 1px 0 rgba(255,255,255,.08),0 18px 50px -24px rgba(0,0,0,.65);
   backdrop-filter:blur(22px) saturate(1.5);-webkit-backdrop-filter:blur(22px) saturate(1.5)}

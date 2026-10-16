@@ -4,6 +4,7 @@ import {
   type GroupName, type Heightfield, type ParamDef, type Settings, type SettingsInput, type TopographicBackground as Instance,
 } from 'topographic';
 import { TopographicBackground } from 'topographic-react';
+import { anchorFromDrag } from './anchor';
 import { registerTools } from './webmcp';
 import { configOf, readUrl } from './url';
 import { withQuery, writeSettings } from './share-url';
@@ -192,6 +193,7 @@ function useOrbit(pg: Playground) {
   const pinch = useRef<{ dist: number; radius: number; x: number; y: number; panX: number; panZ: number } | null>(null);
   const glide = useRef(0);
   const wheelPan = useRef(0);
+  const layoutDrag = useRef<{ id: number; x: number; anchor: number } | null>(null);
 
   /** The pan after dragging (dx, dy) pixels from `from`, kept over the terrain. */
   const panned = (from: { panX: number; panZ: number }, dx: number, dy: number) => {
@@ -258,6 +260,13 @@ function useOrbit(pg: Playground) {
   }, []);
   const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
     const current = live.current;
+    if (current.settings.mode === '2d') {
+      if (e.button !== 0) return;
+      e.currentTarget.setPointerCapture(e.pointerId);
+      noteStagePointer(true);
+      layoutDrag.current = { id: e.pointerId, x: e.clientX, anchor: current.settings.layout.anchor };
+      return;
+    }
     if (current.settings.mode !== '3d') return;
     stopGlide();
     e.currentTarget.setPointerCapture(e.pointerId);
@@ -298,6 +307,11 @@ function useOrbit(pg: Playground) {
   };
   const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
     const current = live.current;
+    const lay = layoutDrag.current;
+    if (lay && lay.id === e.pointerId && current.settings.mode === '2d') {
+      push({ layout: { anchor: anchorFromDrag(lay.anchor, e.clientX - lay.x, e.currentTarget.clientWidth || innerWidth) } });
+      return;
+    }
     if (current.settings.mode !== '3d' || !pointers.current.has(e.pointerId)) return;
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     const two = pinch.current;
@@ -322,7 +336,8 @@ function useOrbit(pg: Playground) {
     push({ camera: { azimuth, elevation: Number(elevation.toFixed(1)), motion: 'still' } });
   };
   const onPointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (pointers.current.has(e.pointerId)) noteStagePointer(false);
+    if (pointers.current.has(e.pointerId) || layoutDrag.current?.id === e.pointerId) noteStagePointer(false);
+    if (layoutDrag.current?.id === e.pointerId) layoutDrag.current = null;
     pointers.current.delete(e.pointerId);
     if (drag.current?.id === e.pointerId) drag.current = null;
     if (pan.current?.id === e.pointerId) { pan.current = null; e.currentTarget.style.cursor = ''; }
@@ -375,7 +390,7 @@ export function Backdrop({ pg, hold = false, className = 'pt-stage' }: { pg: Pla
   return (
     <TopographicBackground
       ref={orbit.node}
-      className={`${className}${s.mode === '3d' ? ' is-3d' : ''}`}
+      className={`${className}${s.mode === '3d' ? ' is-3d' : ' is-2d'}`}
       aria-hidden="true"
       styleName={s.style}
       seed={s.seed}
