@@ -46,7 +46,9 @@ function arm(immediate: boolean): void {
   const t = now();
   const earliest = Math.max(quietUntil, lastWrite + MIN_GAP_MS);
   const due = immediate ? earliest : Math.max(dirtyAt + TRAIL_MS, earliest);
-  timer = window.setTimeout(commit, Math.max(0, due - t));
+  const delay = Math.max(0, due - t);
+  if (delay === 0) commit();
+  else timer = globalThis.setTimeout(commit, delay);
 }
 
 function commit(): void {
@@ -70,7 +72,7 @@ function commit(): void {
     lastWrite = now();
   } catch {
     quietUntil = now() + BACKOFF_MS;
-    timer = window.setTimeout(commit, BACKOFF_MS);
+    timer = globalThis.setTimeout(commit, BACKOFF_MS);
   }
 }
 
