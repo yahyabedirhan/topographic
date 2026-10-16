@@ -47,16 +47,20 @@ function arm(immediate: boolean): void {
   const earliest = Math.max(quietUntil, lastWrite + MIN_GAP_MS);
   const due = immediate ? earliest : Math.max(dirtyAt + TRAIL_MS, earliest);
   const delay = Math.max(0, due - t);
-  if (delay === 0) commit();
-  else timer = globalThis.setTimeout(commit, delay);
+  if (delay === 0) commit(immediate);
+  else timer = globalThis.setTimeout(() => commit(immediate), delay);
 }
 
-function commit(): void {
+function commit(force: boolean): void {
   timer = 0;
   if (pending === null) return;
   const t = now();
-  if (t < quietUntil || t < lastWrite + MIN_GAP_MS) {
-    arm(true);
+  if (t < quietUntil) {
+    timer = globalThis.setTimeout(() => commit(force), quietUntil - t);
+    return;
+  }
+  if (!force && t < lastWrite + MIN_GAP_MS) {
+    timer = globalThis.setTimeout(() => commit(false), lastWrite + MIN_GAP_MS - t);
     return;
   }
   const next = pending;
@@ -72,7 +76,7 @@ function commit(): void {
     lastWrite = now();
   } catch {
     quietUntil = now() + BACKOFF_MS;
-    timer = globalThis.setTimeout(commit, BACKOFF_MS);
+    timer = globalThis.setTimeout(() => commit(false), BACKOFF_MS);
   }
 }
 
@@ -91,10 +95,11 @@ export function schedulePageUrl(next: string): void {
   arm(false);
 }
 
-/** Write the queued URL now, still honouring the rate cap and a backoff. */
+/** Write the queued URL now. A gesture end does not wait out the four-a-second cap. A backoff still holds. */
 export function flushPageUrl(): void {
   if (pending === null) return;
-  arm(true);
+  clearTimer();
+  commit(true);
 }
 
 /** Pointer-up, pinch-end and page hide flush the URL the gesture finished on. */

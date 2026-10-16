@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type MutableRefObject, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type MutableRefObject, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import {
   GROUPS, STYLES, THEME_DEFAULTS, clampParam, mergeSettings, panBy, paramsIn, resolveMode, resolveSettings, rgbaToCss,
   type GroupName, type Heightfield, type ParamDef, type Settings, type SettingsInput, type TopographicBackground as Instance,
@@ -105,7 +105,7 @@ export function usePlayground(): Playground {
   }, []);
   const mode = resolveMode(settings.theme.mode, prefersDark);
   useEffect(() => { document.documentElement.dataset.theme = mode; }, [mode]);
-  useEffect(() => {
+  useLayoutEffect(() => {
     schedulePageUrl(withQuery(location.pathname, writeSettings(location.search, settings), location.hash));
     // A drag keeps the pointer down, so those writes stay on the trail. A click or a tool call flushes.
     if (!stagePointerBusy()) flushPageUrl();
@@ -339,7 +339,11 @@ function useOrbit(pg: Playground) {
     push({ camera: { azimuth, elevation: Number(elevation.toFixed(1)), motion: 'still' } });
   };
   const onPointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (flushId.current) { cancelAnimationFrame(flushId.current); flushId.current = 0; }
+    const pendingSettings = queued.current;
+    queued.current = null;
     if (pointers.current.has(e.pointerId) || layoutDrag.current?.id === e.pointerId) noteStagePointer(false);
+    if (pendingSettings) live.current.replace(pendingSettings);
     if (layoutDrag.current?.id === e.pointerId) layoutDrag.current = null;
     pointers.current.delete(e.pointerId);
     if (drag.current?.id === e.pointerId) drag.current = null;

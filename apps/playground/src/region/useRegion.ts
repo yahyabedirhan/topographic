@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { DEFAULT_ELEVATION, resolveSettings, type Heightfield, type Settings } from 'topographic';
 import { flushPageUrl, schedulePageUrl } from '../page-history';
 import { withQuery, writeSettings } from '../share-url';
@@ -83,7 +83,7 @@ export function useRegion(pg: Playground): RegionController {
 
   const settingsRef = useRef(pg.settings);
   settingsRef.current = pg.settings;
-  useEffect(() => {
+  useLayoutEffect(() => {
     const q = new URLSearchParams(location.search);
     writeRegion(q, queryOf(bbox, placeId));
     schedulePageUrl(withQuery(location.pathname, writeSettings(q.toString(), settingsRef.current), location.hash));
