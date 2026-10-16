@@ -18,6 +18,8 @@ export interface TerrainFrame {
   heightVersion: number;
   /** Lens shift in clip space, so the picture centres in the part of the view that UI leaves free. */
   shift?: readonly [number, number];
+  /** Quality tier's mesh cap. Omitted keeps the full place mesh. */
+  meshCap?: number;
 }
 
 export interface TerrainPass {
@@ -167,7 +169,7 @@ export function createTerrainPass(): TerrainPass {
     draw(gl, webgl2, frame) {
       if (!init(gl, webgl2) || !program) return;
       const { settings, theme, pose } = frame;
-      const nextSegments = terrainSegments(settings.detail, Boolean(frame.field));
+      const nextSegments = terrainSegments(settings.detail, Boolean(frame.field), frame.meshCap);
       const nextBlock = settings.extent === 'block';
       gl.useProgram(program);
       if (nextSegments !== segments || nextBlock !== block || frame.heightVersion !== builtHeight) {

@@ -4,6 +4,7 @@ import { mergeSettings, resolveSettings, toUniforms, type CameraMotion, type Set
 import { resolveTheme, rgbaToCss, type ResolvedTheme } from './theme.js';
 import { VERTEX_100, VERTEX_300, wrapFragment } from './shader/common.glsl.js';
 import { TOPOGRAPHIC_FRAGMENT } from './shader/topographic.glsl.js';
+import { detectTier, readDeviceSignals, stepTier, tierFor, type TierId } from './quality.js';
 import { createTerrainPass } from './terrain3d.js';
 import { snapshotFrame, type SnapshotRegion } from './snapshot.js';
 import { encodeVideo } from './video.js';
@@ -43,6 +44,8 @@ export interface RendererStats {
   frameMs: number;
   /** Mesh segments along one side. 0 in 2D. */
   mesh: number;
+  /** The quality tier actually drawing. `auto` has already been resolved. */
+  quality: TierId;
 }
 
 export interface RecordOptions {
@@ -127,6 +130,11 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
   let col = 0.3;
   let insets: ViewInsets = { top: 0, right: 0, bottom: 0, left: 0 };
   let recoveryTimer = 0;
+  const signals = readDeviceSignals(view);
+  let tierId: TierId = detectTier(signals);
+  const gaps: number[] = [];
+  let sawFast = false;
+  let gapTick = 0;
   const paramsBuf = new Float32Array(16);
   let heightBytes = new Uint8Array(4);
 
@@ -234,8 +242,9 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
     const rect = el.getBoundingClientRect();
     cssW = Math.max(1, rect.width);
     cssH = Math.max(1, rect.height);
-    let ratio = Math.min(view.devicePixelRatio || 1, opts.maxPixelRatio);
-    const budget = Math.sqrt(opts.maxPixels / (cssW * cssH * ratio * ratio));
+    const tier = tierFor(settings.quality, signals, tierId);
+    let ratio = Math.min(view.devicePixelRatio || 1, opts.maxPixelRatio, tier.maxPixelRatio);
+    const budget = Math.sqrt(Math.min(opts.maxPixels, tier.maxPixels) / (cssW * cssH * ratio * ratio));
     if (budget < 1) ratio *= budget;
     const bw = Math.max(1, Math.round(cssW * ratio));
     const bh = Math.max(1, Math.round(cssH * ratio));
@@ -333,6 +342,7 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
         field: heightField,
         heightVersion,
         shift: [sx, sy + blockLift(at, aspect, block)],
+        meshCap: tierFor(settings.quality, signals, tierId).meshCap,
       });
       if (terrain.ok) return;
     }
@@ -358,6 +368,14 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
       ema = ema ? ema * 0.88 + dt * 0.12 : dt;
       statFrame = ema;
       statFps = 1000 / ema;
+      if (dt < 12) sawFast = true;
+      gaps.push(dt);
+      if (gaps.length > 30) gaps.shift();
+      gapTick++;
+      if (settings.quality === 'auto' && gapTick % 24 === 0) {
+        const next = stepTier(tierId, gaps, sawFast);
+        if (next !== tierId) { tierId = next; gaps.length = 0; resize(); }
+      }
     }
     frameMs += dt;
     draw();
@@ -501,13 +519,15 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
         fps: Math.round(statFps),
         frameMs: Number(statFrame.toFixed(2)),
         mesh: settings.mode === '3d' ? terrain.mesh : 0,
+        quality: tierFor(settings.quality, signals, tierId).id,
       };
     },
     update(patch) {
       if (status === 'destroyed') return;
       settings = mergeSettings(settings, patch);
       if (patch.theme) refreshTheme();
-      draw();
+      if (patch.quality !== undefined) resize();
+      else draw();
       schedule();
     },
     setHeightfield(field) {

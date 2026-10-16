@@ -25,7 +25,7 @@ const blobToDataUrl = (b: Blob) => new Promise<string>((resolve, reject) => {
   const r = new FileReader(); r.onload = () => resolve(String(r.result)); r.onerror = () => reject(r.error); r.readAsDataURL(b);
 });
 
-const TOP_KEYS = ['style', 'seed', 'theme', 'lines', 'terrain', 'motion', 'layout', 'mode', 'elevation', 'extent', 'detail', 'camera'];
+const TOP_KEYS = ['style', 'seed', 'theme', 'lines', 'terrain', 'motion', 'layout', 'mode', 'elevation', 'extent', 'detail', 'quality', 'camera'];
 
 function adjustments(input: Record<string, unknown>, out: Settings): string[] {
   const notes: string[] = [];
@@ -33,7 +33,8 @@ function adjustments(input: Record<string, unknown>, out: Settings): string[] {
   if (typeof input.mode === 'string' && input.mode !== out.mode) notes.push(`mode: ${JSON.stringify(input.mode)} adjusted to ${out.mode}`);
   if (typeof input.extent === 'string' && input.extent !== out.extent) notes.push(`extent: ${JSON.stringify(input.extent)} adjusted to ${out.extent}`);
   if (typeof input.elevation === 'number' && input.elevation !== out.elevation) notes.push(`elevation: ${input.elevation} adjusted to ${out.elevation}`);
-  if (typeof input.detail === 'number' && input.detail !== out.detail) notes.push(`detail: ${input.detail} adjusted to ${out.detail}`);
+      if (typeof input.detail === 'number' && input.detail !== out.detail) notes.push(`detail: ${input.detail} adjusted to ${out.detail}`);
+      if (typeof input.quality === 'string' && input.quality !== out.quality) notes.push(`quality: ${JSON.stringify(input.quality)} adjusted to ${out.quality}`);
   for (const [g, v] of Object.entries(input)) {
     if (!TOP_KEYS.includes(g)) { notes.push(`ignored unknown key "${g}"`); continue; }
     if (v && typeof v === 'object' && g !== 'theme') {
@@ -58,7 +59,15 @@ export function registerTools(page: PageBridge): () => void {
       styles: STYLES.map(({ id, name, description }) => ({ id, name, description })),
       presets: PRESETS.map((p) => ({ name: p.name, settings: p.settings })),
     }),
-    get_settings: () => ({ settings: page.getSettings(), config: configOf(page.getSettings()) }),
+    get_settings: () => {
+      const settings = page.getSettings();
+      const stats = page.instance()?.stats;
+      return {
+        settings,
+        config: configOf(settings),
+        graphics: stats ? { quality: stats.quality, fps: stats.fps, frameMs: stats.frameMs, mesh: stats.mesh } : null,
+      };
+    },
     set_settings: (input) => {
       if (!input || typeof input !== 'object') throw new Error('expected a settings object');
       const next = mergeSettings(page.getSettings(), input as SettingsInput);

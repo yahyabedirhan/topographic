@@ -12,6 +12,7 @@ import { ignoredWithPlace } from './shape';
 import type { Terrains } from './terrains';
 import {
   DEFAULT_CAMERA, DEFAULT_DETAIL, DEFAULT_ELEVATION, DEFAULT_EXTENT, GROUPS, paramsIn, resolveMode,
+  type QualityName,
   type CameraMotion, type GroupName, type ParamDef, type TerrainExtent,
 } from 'topographic';
 import { LOOK_CAMERAS, LOOKS } from './looks';
@@ -363,6 +364,13 @@ const DETAILS: { id: DetailLevel; label: string; glyph: GlyphName; value: number
   { id: 'high', label: 'High', glyph: 'high', value: 1 },
 ];
 
+const BUDGETS: { id: QualityName; label: string; glyph: GlyphName }[] = [
+  { id: 'auto', label: 'Auto', glyph: 'medium' },
+  { id: 'low', label: 'Low', glyph: 'low' },
+  { id: 'medium', label: 'Med', glyph: 'medium' },
+  { id: 'high', label: 'High', glyph: 'high' },
+];
+
 function detailLevel(detail: number): DetailLevel {
   return detail <= 0.2 ? 'low' : detail >= 0.8 ? 'high' : 'medium';
 }
@@ -472,7 +480,7 @@ function ViewTune({ pg }: { pg: Playground }) {
           onChange={(n) => cam({ radius: n })}
         />
       </Section>
-      <Section title="Quality" resetIf={!off && s.detail !== DEFAULT_DETAIL} onReset={() => pg.change({ detail: DEFAULT_DETAIL })}>
+      <Section title="Quality" resetIf={!off && (s.detail !== DEFAULT_DETAIL || s.quality !== 'auto')} onReset={() => pg.change({ detail: DEFAULT_DETAIL, quality: 'auto' })}>
         <SegRow
           label="Detail"
           icon="detail"
@@ -481,6 +489,15 @@ function ViewTune({ pg }: { pg: Playground }) {
           value={detailLevel(s.detail)}
           disabled={off}
           onChange={(id) => pg.change({ detail: DETAILS.find((d) => d.id === id)!.value })}
+        />
+        <SegRow
+          label="Budget"
+          icon="detail"
+          hint="auto follows this device and steps down if frames miss 60 Hz, or 120 Hz when that refresh is seen."
+          options={BUDGETS}
+          value={s.quality}
+          disabled={off}
+          onChange={(id) => pg.change({ quality: id })}
         />
       </Section>
     </>

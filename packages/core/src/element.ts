@@ -3,7 +3,7 @@ import { createTopographicBackground, type TopographicBackground, type SnapshotO
 import { fromAttributes, resolveSettings, type SettingsInput } from './settings.js';
 
 export const ELEMENT_ATTRIBUTES: readonly string[] = [
-  'style-name', 'seed', 'theme', 'ink', 'paper', 'mode', 'elevation', 'extent', 'detail',
+  'style-name', 'seed', 'theme', 'ink', 'paper', 'mode', 'elevation', 'extent', 'detail', 'quality',
   'azimuth', 'camera-elevation', 'radius', 'camera-motion', 'pan-x', 'pan-z', ...PARAMS.map((p) => p.attr),
 ];
 

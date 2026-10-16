@@ -59,7 +59,7 @@ The call adds a canvas inside `element`. The canvas fills the element, so give t
 
 | Option | Default | What it does |
 |---|---|---|
-| `maxPixelRatio` | `2` | The highest device pixel ratio to draw at. |
+| `maxPixelRatio` | `2` | The highest device pixel ratio to draw at. A `quality` setting can cap it further. |
 | `maxPixels` | `4147200` (1920×1080×2) | The most pixels to draw. Above this, the canvas draws at a lower resolution. |
 | `forceWebGL1` | `false` | Skip WebGL2. Useful for testing. |
 

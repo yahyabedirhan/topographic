@@ -12,4 +12,5 @@ export {
   type RenderMode, type TerrainExtent, type CameraMotion, type CameraSettings,
 } from './settings.js';
 export { parseColor, resolveTheme, resolveMode, rgbaToCss, THEME_DEFAULTS, type RGBA, type ResolvedTheme } from './theme.js';
+export { QUALITY_TIERS, QUALITIES, detectTier, readDeviceSignals, stepTier, tierFor, FRAME_MS, type QualityName, type QualityTier, type TierId, type DeviceSignals } from './quality.js';
 export { TOPOGRAPHIC_FRAGMENT } from './shader/topographic.glsl.js';
