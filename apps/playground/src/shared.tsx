@@ -5,6 +5,7 @@ import {
 } from 'topographic';
 import { TopographicBackground } from 'topographic-react';
 import { anchorFromDrag } from './anchor';
+import { bindPageUrlFlush, schedulePageUrl } from './page-history';
 import { registerTools } from './webmcp';
 import { configOf, readUrl } from './url';
 import { withQuery, writeSettings } from './share-url';
@@ -105,9 +106,9 @@ export function usePlayground(): Playground {
   const mode = resolveMode(settings.theme.mode, prefersDark);
   useEffect(() => { document.documentElement.dataset.theme = mode; }, [mode]);
   useEffect(() => {
-    const next = withQuery(location.pathname, writeSettings(location.search, settings), location.hash);
-    if (next !== location.pathname + location.search + location.hash) history.replaceState(null, '', next);
+    schedulePageUrl(withQuery(location.pathname, writeSettings(location.search, settings), location.hash));
   }, [settings]);
+  useEffect(() => bindPageUrlFlush(), []);
   const latest = useRef(settings);
   latest.current = settings;
   useEffect(() => registerTools({ getSettings: () => latest.current, setSettings, instance: () => instance.current }), []);

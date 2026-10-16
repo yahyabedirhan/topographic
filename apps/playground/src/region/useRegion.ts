@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { DEFAULT_ELEVATION, resolveSettings, type Heightfield, type Settings } from 'topographic';
+import { schedulePageUrl } from '../page-history';
+import { withQuery, writeSettings } from '../share-url';
 import type { Playground } from '../shared';
 import { limitMessage, limitProblem, spanOf, type BBox, type ReliefMode, type SmoothLevel, type Span } from './pipeline';
 import { beforePlace, findPlace, restoredKeys, terrainDefaults, type BeforePlace } from './places';
 import { registerRegionTools } from './register';
 import { readRegion, writeRegion, type RegionQuery } from './url';
-import { withQuery, writeSettings } from '../share-url';
 import type { BuildErr, BuildOk } from './worker';
 
 export interface RegionInfo {
@@ -84,8 +85,7 @@ export function useRegion(pg: Playground): RegionController {
   useEffect(() => {
     const q = new URLSearchParams(location.search);
     writeRegion(q, queryOf(bbox, placeId));
-    const next = withQuery(location.pathname, writeSettings(q.toString(), settingsRef.current), location.hash);
-    if (next !== location.pathname + location.search + location.hash) history.replaceState(null, '', next);
+    schedulePageUrl(withQuery(location.pathname, writeSettings(q.toString(), settingsRef.current), location.hash));
   }, [bbox, placeId]);
 
   useEffect(() => {

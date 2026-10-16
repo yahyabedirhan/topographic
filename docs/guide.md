@@ -354,6 +354,7 @@ The playground (`apps/playground`) is the project's live demo page.
   - 3D uses the library defaults unless the URL changes them: endless, azimuth 349.7, angle 33.6 and distance 1.92.
   - A pan away from the centre adds `px` and `pz`.
   - Quality writes `ql` when it is `low`, `medium` or `high`. `auto` is the default, so it is left out.
+  - The address bar updates a few times a second at most, and again when a drag or pinch ends. A gesture does not write the URL on every frame.
   - `?place=istanbul` or `?region=west,south,east,north` opens a real place.
 - It serves `/llms.txt`, `/llms-full.txt` and `/docs/*.md`. These files are made from the settings table in the code.
 
