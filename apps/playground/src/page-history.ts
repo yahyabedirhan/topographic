@@ -22,7 +22,7 @@ const MIN_GAP_MS = 250;
 const BACKOFF_MS = 10_000;
 
 let pending: string | null = null;
-let timer = 0;
+let timer: ReturnType<typeof setTimeout> | 0 = 0;
 let lastWrite = Number.NEGATIVE_INFINITY;
 let quietUntil = 0;
 let dirtyAt = -1;

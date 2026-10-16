@@ -39,7 +39,7 @@ describe('terrain boundary', () => {
   });
 
   it('stays on the recovery line when the error is still there', () => {
-    function View() {
+    function View(): never {
       throw new Error('still broken');
     }
     const prev = console.error;
