@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type MutableRefObject, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import {
-  GROUPS, STYLES, THEME_DEFAULTS, clampParam, createTopographicBackground, mergeSettings, panBy, paramsIn, resolveMode, resolveSettings, rgbaToCss,
+  GROUPS, STYLES, THEME_DEFAULTS, clampParam, mergeSettings, panBy, paramsIn, resolveMode, resolveSettings, rgbaToCss,
   type GroupName, type Heightfield, type ParamDef, type Settings, type SettingsInput, type TopographicBackground as Instance,
 } from 'topographic';
 import { TopographicBackground } from 'topographic-react';
@@ -410,7 +410,7 @@ export function Backdrop({ pg, hold = false, className = 'pt-stage' }: { pg: Pla
       onPointerMove={orbit.onPointerMove}
       onPointerUp={orbit.onPointerUp}
       onPointerCancel={orbit.onPointerCancel}
-      onReady={(t) => { pg.instance.current = t; if (t) { t.hold(hold); insets.current(); } }}
+      onReady={(t) => { pg.instance.current = t; attachLiveRenderer(t); if (t) { t.hold(hold); insets.current(); } }}
     />
   );
 }
@@ -430,14 +430,18 @@ function thumbSettings(r: Settings): SettingsInput {
   };
 }
 
-function hiddenHost(width: number, height: number): HTMLDivElement {
-  const host = document.createElement('div');
-  Object.assign(host.style, { position: 'fixed', left: '-9999px', top: '0', width: `${width / 2}px`, height: `${height / 2}px` });
-  document.body.append(host);
-  return host;
+/** The page's one WebGL context. Dock pictures borrow it instead of opening a second one. */
+let liveRenderer: Instance | null = null;
+export function attachLiveRenderer(t: Instance | null): void {
+  liveRenderer = t;
 }
 
-/** True while a finger or button is down on the stage, so thumbnail readbacks wait. */
+let thumbQueue: Promise<unknown> = Promise.resolve();
+function enqueueThumb<T>(job: () => Promise<T>): Promise<T> {
+  const run = thumbQueue.then(job, job);
+  thumbQueue = run.then(() => undefined, () => undefined);
+  return run;
+}
 let stagePointers = 0;
 export function noteStagePointer(down: boolean): void {
   stagePointers = Math.max(0, stagePointers + (down ? 1 : -1));
@@ -450,25 +454,36 @@ export function useLookThumbs(width = 168, height = 96): string[] {
   const [urls, setUrls] = useState<string[]>([]);
   useEffect(() => {
     let dead = false;
-    const host = hiddenHost(width, height);
-    // A second WebGL context beside the full-screen one is enough to get iOS to kill the tab.
-    // Keep this one tiny, and never read pixels back while the person is dragging.
-    const t = createTopographicBackground(host, { theme: resolveSettings(LOOKS[0].settings).theme }, {
-      maxPixelRatio: 1, maxPixels: width * height,
-    });
-    (async () => {
-      const out: string[] = [];
-      for (const look of LOOKS) {
-        while (!dead && stagePointerBusy()) await wait(48);
-        if (dead) return;
-        t.update(thumbSettings(resolveSettings(look.settings)));
-        try { out.push(URL.createObjectURL(await t.snapshot({ frame: 4000, width, height }))); } catch { out.push(''); }
-        if (dead) return;
-        setUrls([...out]);
-        await wait(16);
+    const made: string[] = [];
+    // The live view is the only WebGL context. A second one, even a tiny one, is what gets iOS to
+    // kill the tab a few seconds after load. Pictures are borrowed one at a time, after first paint.
+    const run = async () => {
+      const opened = performance.now();
+      while (!dead && !liveRenderer) {
+        if (performance.now() - opened > 8000) return;
+        await wait(40);
       }
-    })().finally(() => { t.destroy(); host.remove(); });
-    return () => { dead = true; };
+      await wait(1200);
+      for (const look of LOOKS) {
+        while (!dead && stagePointerBusy()) await wait(80);
+        const t = liveRenderer;
+        if (dead || !t) return;
+        try {
+          const blob = await enqueueThumb(() => t.snapshot({
+            frame: 4000, width, height, patch: thumbSettings(resolveSettings(look.settings)),
+          }));
+          const url = URL.createObjectURL(blob);
+          made.push(url);
+          if (!dead) setUrls([...made]);
+        } catch { /* the view was lost; leave the empty slot */ }
+        await wait(80);
+      }
+    };
+    void run();
+    return () => {
+      dead = true;
+      for (const url of made) URL.revokeObjectURL(url);
+    };
   }, [width, height]);
   return urls;
 }
@@ -492,18 +507,20 @@ function placeThumbSettings(r: Settings): SettingsInput {
  * (or JPEG) data URL that fits in localStorage, or null.
  */
 export async function placeThumb(settings: Settings, field: Heightfield, width = 168, height = 96): Promise<string | null> {
+  const t = liveRenderer;
+  if (!t) return null;
   // Draw the place at its own aspect and twice the size, large enough to cover the thumbnail, then
   // crop the middle and scale it down, which smooths the thin lines like a look's picture.
   const aspect = Math.max(field.aspect || 1, 0.05);
   const SS = 2;
   const drawW = Math.round((aspect > width / height ? height * aspect : width) * SS);
   const drawH = Math.round((aspect > width / height ? height : width / aspect) * SS);
-  const host = hiddenHost(drawW, drawH);
-  const t = createTopographicBackground(host, placeThumbSettings(settings), { maxPixelRatio: 1, maxPixels: drawW * drawH });
   try {
-    // A softer copy of the heights: at this size every small hill would draw as a speck of noise.
-    t.setHeightfield({ ...field, samples: smooth(field.samples, field.size, 2.5) });
-    const blob = await t.snapshot({ frame: 4000, width: drawW, height: drawH });
+    const blob = await enqueueThumb(() => t.snapshot({
+      frame: 4000, width: drawW, height: drawH,
+      patch: placeThumbSettings(settings),
+      field: { ...field, samples: smooth(field.samples, field.size, 2.5) },
+    }));
     const bitmap = await createImageBitmap(blob);
     const canvas = document.createElement('canvas');
     canvas.width = width;
@@ -511,13 +528,11 @@ export async function placeThumb(settings: Settings, field: Heightfield, width =
     const ctx = canvas.getContext('2d')!;
     ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(bitmap, (drawW - width * SS) / 2, (drawH - height * SS) / 2, width * SS, height * SS, 0, 0, width, height);
+    bitmap.close();
     const webp = canvas.toDataURL('image/webp', 0.86);
     return webp.startsWith('data:image/webp') ? webp : canvas.toDataURL('image/jpeg', 0.86);
   } catch {
     return null;
-  } finally {
-    t.destroy();
-    host.remove();
   }
 }
 
