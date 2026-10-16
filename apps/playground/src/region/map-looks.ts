@@ -29,7 +29,7 @@ export interface MapLook {
 }
 
 /**
- * Istanbul, decoded with readSettings from the owner's link
+ * Istanbul, decoded with readSettings from the query
  * `?s=gentle-summit&seed=67&lc=36&lw=0&lo=0.9&ix=4&fd=0.15&m=dark&mode=3d&ex=block&ev=0.12&az=353.3&ce=45.1&rd=1.15&px=0.043&pz=-0.075&place=istanbul`.
  */
 export const ISTANBUL_SETTINGS = {
@@ -49,7 +49,7 @@ export const ISTANBUL_SETTINGS = {
 
 /**
  * Geirangerfjord, Mount Fuji and Yosemite share the rose pod look with their own ink, elevation and camera
- * angle, decoded from the owner's links `?look=rose-pod&lc=36&lw=0&lo=0.9&ix=4&ink=…&mode=3d&ex=block&ev=…&az=341.8&ce=…&rd=1.32&px=0.033&pz=-0.049&place=…`.
+ * angle, decoded from `?look=rose-pod&lc=36&lw=0&lo=0.9&ix=4&ink=…&mode=3d&ex=block&ev=…&az=341.8&ce=…&rd=1.32&px=0.033&pz=-0.049&place=…`.
  */
 function rosePod(ink: string, elevation: number, cameraElevation: number): SettingsInput {
   return {

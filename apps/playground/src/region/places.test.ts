@@ -65,7 +65,7 @@ describe('example places', () => {
     });
   });
 
-  it('gives Cyprus the settings of the owner\'s link, Istanbul the map terrain view and each landscape its own camera and elevation', () => {
+  it('gives Cyprus the settings of its reference query, Istanbul the map terrain view and each landscape its own camera and elevation', () => {
     const link = readSettings('?look=stone-grain&lc=37&lw=0&lo=0.92&ix=6&sd=1.3&sk=0.35&an=0.43&fd=0.22&m=dark&ink=a9c7e4&paper=10151c&mode=3d&ex=block&ev=0.06&az=3&ce=80&rd=1.18');
     const { detail: _detail, quality: _quality, ...rest } = link;
     expect(CYPRUS_DEFAULTS).toEqual({ ...rest, camera: { azimuth: 3, elevation: 80, radius: 1.18 } });
