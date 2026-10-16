@@ -154,6 +154,7 @@ export function PlacePanel({ region, onApply, appliedName, appearance }: {
     // Start the map only once the popover has its size, so the first fit uses the real frame.
     const start = () => {
       const target = bboxRef.current ?? findPlace('istanbul')?.bbox ?? PLACES[0].bbox;
+      const coarse = matchMedia('(pointer: coarse)').matches;
       const m = new MapLibre({
         container: el,
         style: mapStyle(location.search, appearance),
@@ -164,6 +165,12 @@ export function PlacePanel({ region, onApply, appliedName, appearance }: {
         pitchWithRotate: false,
         touchPitch: false,
         maxPitch: 0,
+        fadeDuration: 0,
+        // The terrain already holds a full-screen context. A second one at device DPR is what
+        // gets an iPhone tab killed, so the map stays under a fixed pixel budget.
+        pixelRatio: Math.min(window.devicePixelRatio || 1, coarse ? 1.5 : 2),
+        maxCanvasSize: coarse ? [1024, 1024] : [2048, 2048],
+        canvasContextAttributes: { antialias: false, powerPreference: coarse ? 'low-power' : 'default' },
       });
       m.touchZoomRotate.disableRotation();
       map = m;

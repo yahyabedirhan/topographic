@@ -92,6 +92,7 @@ export function createTerrainPass(): TerrainPass {
   let count = 0;
   let mesh = 0;
   let builtHeight = -1;
+  const paramsBuf = new Float32Array(16);
   const locations = new Map<string, WebGLUniformLocation | null>();
   const sent = new Map<string, string>();
 
@@ -191,7 +192,7 @@ export function createTerrainPass(): TerrainPass {
       gl.disable(gl.BLEND);
       gl.clearColor(theme.paper[0], theme.paper[1], theme.paper[2], theme.paper[3]);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-      const u = toUniforms(settings);
+      const u = toUniforms(settings, paramsBuf);
       setv(gl, 'uParams', u.uParams);
       set1(gl, 'uStyle', u.uStyle);
       set1(gl, 'uSeed', u.uSeed);
@@ -220,9 +221,9 @@ export function createTerrainPass(): TerrainPass {
       gl.drawElements(gl.TRIANGLES, topCount, gl.UNSIGNED_SHORT, 0);
     },
     dispose(gl) {
-      if (program) gl.deleteProgram(program);
-      if (vbo) gl.deleteBuffer(vbo);
-      if (ibo) gl.deleteBuffer(ibo);
+      const oldProgram = program;
+      const oldVbo = vbo;
+      const oldIbo = ibo;
       program = null;
       vbo = null;
       ibo = null;
@@ -232,6 +233,11 @@ export function createTerrainPass(): TerrainPass {
       builtHeight = -1;
       locations.clear();
       sent.clear();
+      try {
+        if (oldProgram) gl.deleteProgram(oldProgram);
+        if (oldVbo) gl.deleteBuffer(oldVbo);
+        if (oldIbo) gl.deleteBuffer(oldIbo);
+      } catch { /* the context is already gone */ }
     },
   };
 }

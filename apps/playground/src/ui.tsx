@@ -543,6 +543,25 @@ export function TuneStrip({ pg, region }: { pg: Playground; region: RegionContro
   );
 }
 
+/** Shown only while the GPU context is gone. The renderer replaces it on its own. */
+function GlRecovery({ pg }: { pg: Playground }) {
+  const [lost, setLost] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    let id = 0;
+    const tick = () => {
+      if (!alive) return;
+      const next = pg.instance.current?.status === 'lost';
+      setLost((cur) => (cur === next ? cur : next));
+      id = window.setTimeout(tick, 200);
+    };
+    tick();
+    return () => { alive = false; window.clearTimeout(id); };
+  }, [pg]);
+  if (!lost) return null;
+  return <div className="pt-recover" role="status">Bringing the terrain back</div>;
+}
+
 export function Shell({ pg, terrains, place, tune, exporting, clusterRef, onOpenMap, children }: {
   pg: Playground;
   terrains: Terrains;
@@ -556,6 +575,7 @@ export function Shell({ pg, terrains, place, tune, exporting, clusterRef, onOpen
   return (
     <>
       <Backdrop pg={pg} />
+      <GlRecovery pg={pg} />
       <Wordmark />
       <div className="pt-top">
         <Cluster pg={pg} place={place} tune={tune} exporting={exporting} clusterRef={clusterRef} />
