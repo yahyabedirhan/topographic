@@ -143,7 +143,7 @@ Instance:
 
 Behaviour:
 
-- Uses WebGL2, then WebGL1. Without either, or while the context is lost, the element shows the paper colour. A restored context resumes.
+- Uses WebGL2, then WebGL1. Without either, or while the context is lost, the element shows the paper colour. A restored context resumes. If the browser never restores it, the canvas is replaced and the view comes back on its own. Drawing does not call \`gl.finish\`, and the backing store is left alone when a resize reports the same size.
 - \`prefers-reduced-motion: reduce\` renders a single still frame.
 - Animation pauses when the element is off-screen or the tab is hidden.
 - Pixel budget: the device pixel ratio is capped at \`maxPixelRatio\`, and the canvas scales down past \`maxPixels\`.

@@ -181,9 +181,11 @@ export function mergeSettings(current: Settings, patch: SettingsInput): Settings
 
 export type ParamUniforms = { uParams: Float32Array; uCenter: number; uFade: number; uStyle: number; uSeed: number };
 
-/** Settings -> shader uniform values (colours are handled by the theme). */
-export function toUniforms(s: Settings): ParamUniforms {
-  const out: ParamUniforms = { uParams: new Float32Array(16), uCenter: 0, uFade: 0, uStyle: findStyle(s.style)!.index, uSeed: s.seed };
+/** Settings -> shader uniform values (colours are handled by the theme). Pass `into` to reuse one buffer across frames. */
+export function toUniforms(s: Settings, into?: Float32Array): ParamUniforms {
+  const uParams = into ?? new Float32Array(16);
+  if (into) into.fill(0);
+  const out: ParamUniforms = { uParams, uCenter: 0, uFade: 0, uStyle: findStyle(s.style)!.index, uSeed: s.seed };
   for (const def of PARAMS as readonly ParamDef[]) {
     const raw = (s[def.group] as Record<string, number>)[def.key];
     const v = def.toUniform ? def.toUniform(raw) : raw;

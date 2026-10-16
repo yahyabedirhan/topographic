@@ -261,6 +261,7 @@ function useOrbit(pg: Playground) {
     if (current.settings.mode !== '3d') return;
     stopGlide();
     e.currentTarget.setPointerCapture(e.pointerId);
+    noteStagePointer(true);
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     const cam = current.settings.camera;
     if (pointers.current.size >= 2) {
@@ -306,6 +307,7 @@ function useOrbit(pg: Playground) {
     current.change({ camera: { azimuth, elevation: Number(elevation.toFixed(1)), motion: 'still' } });
   };
   const onPointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (pointers.current.has(e.pointerId)) noteStagePointer(false);
     pointers.current.delete(e.pointerId);
     if (drag.current?.id === e.pointerId) drag.current = null;
     if (pan.current?.id === e.pointerId) { pan.current = null; e.currentTarget.style.cursor = ''; }
@@ -403,19 +405,35 @@ function hiddenHost(width: number, height: number): HTMLDivElement {
   return host;
 }
 
+/** True while a finger or button is down on the stage, so thumbnail readbacks wait. */
+let stagePointers = 0;
+export function noteStagePointer(down: boolean): void {
+  stagePointers = Math.max(0, stagePointers + (down ? 1 : -1));
+}
+export const stagePointerBusy = () => stagePointers > 0;
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export function useLookThumbs(width = 168, height = 96): string[] {
   const [urls, setUrls] = useState<string[]>([]);
   useEffect(() => {
     let dead = false;
     const host = hiddenHost(width, height);
-    const t = createTopographicBackground(host, { theme: resolveSettings(LOOKS[0].settings).theme });
+    // A second WebGL context beside the full-screen one is enough to get iOS to kill the tab.
+    // Keep this one tiny, and never read pixels back while the person is dragging.
+    const t = createTopographicBackground(host, { theme: resolveSettings(LOOKS[0].settings).theme }, {
+      maxPixelRatio: 1, maxPixels: width * height,
+    });
     (async () => {
       const out: string[] = [];
       for (const look of LOOKS) {
+        while (!dead && stagePointerBusy()) await wait(48);
+        if (dead) return;
         t.update(thumbSettings(resolveSettings(look.settings)));
         try { out.push(URL.createObjectURL(await t.snapshot({ frame: 4000, width, height }))); } catch { out.push(''); }
         if (dead) return;
         setUrls([...out]);
+        await wait(16);
       }
     })().finally(() => { t.destroy(); host.remove(); });
     return () => { dead = true; };
@@ -449,7 +467,7 @@ export async function placeThumb(settings: Settings, field: Heightfield, width =
   const drawW = Math.round((aspect > width / height ? height * aspect : width) * SS);
   const drawH = Math.round((aspect > width / height ? height : width / aspect) * SS);
   const host = hiddenHost(drawW, drawH);
-  const t = createTopographicBackground(host, placeThumbSettings(settings));
+  const t = createTopographicBackground(host, placeThumbSettings(settings), { maxPixelRatio: 1, maxPixels: drawW * drawH });
   try {
     // A softer copy of the heights: at this size every small hill would draw as a speck of noise.
     t.setHeightfield({ ...field, samples: smooth(field.samples, field.size, 2.5) });
