@@ -2,7 +2,7 @@
 
 <h1 align="center">topographic</h1>
 
-<p align="center">Contour-line backgrounds for the web, in 2D and 3D.</p>
+<p align="center">Animated topographic maps for web backgrounds, rendered with WebGL in 2D and 3D.</p>
 
 <p align="center"><a href="https://yahyabedirhan.github.io/topographic/"><b>Open the playground</b></a> · <a href="#install">Install</a> · <a href="docs/guide.md">Guide</a></p>
 
