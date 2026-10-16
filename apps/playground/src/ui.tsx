@@ -100,14 +100,17 @@ function ModeToggle({ pg }: { pg: Playground }) {
 }
 
 export function useStats(pg: Playground) {
-  const [stats, setStats] = useState({ fps: 0, frameMs: 0, mesh: 0 });
+  const [stats, setStats] = useState({ fps: 0, frameMs: 0, mesh: 0, quality: '' });
   useEffect(() => {
     if (pg.settings.mode !== '3d') return;
     let alive = true;
     let id = 0;
     const tick = () => {
       const next = pg.instance.current?.stats;
-      if (alive && next) setStats(next);
+      if (alive && next) {
+        setStats(next);
+        document.documentElement.dataset.tier = next.quality;
+      }
       id = window.setTimeout(tick, 400);
     };
     tick();
@@ -120,7 +123,7 @@ export function useStats(pg: Playground) {
 export function Readout({ pg }: { pg: Playground }) {
   const stats = useStats(pg);
   if (pg.settings.mode !== '3d') return null;
-  return <div className="pt-fps" aria-live="polite">{`${stats.fps} fps · ${stats.frameMs.toFixed(1)} ms · ${stats.mesh}²`}</div>;
+  return <div className="pt-fps" data-tier={stats.quality} aria-live="polite">{`${stats.fps} fps · ${stats.frameMs.toFixed(1)} ms · ${stats.mesh}² · ${stats.quality}`}</div>;
 }
 
 export function Cluster({ pg, place, tune, exporting, clusterRef }: {
