@@ -40,7 +40,7 @@ The landscape can also come from a real place, using real height data. The playg
 npm install topographic@0.3.0
 ```
 
-**HTML.** A web component:
+In plain HTML, use the web component:
 
 ```html
 <script type="module">import 'topographic/element';</script>
@@ -48,7 +48,7 @@ npm install topographic@0.3.0
 <topographic-bg style-name="long-ridge" style="position:fixed;inset:0;z-index:-1"></topographic-bg>
 ```
 
-**JavaScript:**
+In JavaScript:
 
 ```js
 import { createTopographicBackground } from 'topographic';
@@ -56,7 +56,7 @@ import { createTopographicBackground } from 'topographic';
 const topographic = createTopographicBackground(document.querySelector('#hero'), { style: 'long-ridge' });
 ```
 
-**React** (`npm install topographic@0.3.0 topographic-react@0.3.0`):
+In React, install `topographic-react` too (`npm install topographic@0.3.0 topographic-react@0.3.0`):
 
 ```tsx
 import { TopographicBackground } from 'topographic-react';
@@ -66,13 +66,17 @@ import { TopographicBackground } from 'topographic-react';
 
 In the [playground](https://yahyabedirhan.github.io/topographic/), **Export** gives you this code with your settings filled in.
 
-## 2D and 3D
+## Usage
 
-**Settings.** You control the background with one settings object. `style` picks the basic shape of the land. `seed` is a number that picks one version of that shape. `lines`, `terrain`, `motion`, `layout` and `theme` change the rest. You can change settings at any time with `topographic.update({ terrain: { peaks: 3 } })`.
+### Settings
+
+You control the background with one settings object. `style` picks the basic shape of the land. `seed` is a number that picks one version of that shape. `lines`, `terrain`, `motion`, `layout` and `theme` change the rest. You can change settings at any time with `topographic.update({ terrain: { peaks: 3 } })`.
 
 The background stops drawing when it is not on screen. It does not move for people who turn on reduced motion. If the browser cannot run WebGL, it shows a plain colour.
 
-**3D.** Add `mode: '3d'` to show the landscape in 3D. 2D is the default. The same settings give the same land in 2D and 3D.
+### 3D
+
+Add `mode: '3d'` to show the landscape in 3D. 2D is the default. The same settings give the same land in 2D and 3D.
 
 ```js
 topographic.update({ mode: '3d', elevation: 0.7, extent: 'block', camera: { motion: 'orbit' } });
@@ -83,18 +87,24 @@ topographic.update({ mode: '3d', elevation: 0.7, extent: 'block', camera: { moti
 - `camera` sets where you look from: `azimuth` is the direction (349.7 by default), `elevation` is the height angle (33.6) and `radius` is the distance (1.92). `motion` makes the camera move: `still`, `orbit`, `push`, `flyover` or `drone`.
 - In the playground, drag to turn around the land. Scroll with two fingers to move it. Use ⌘/Ctrl + scroll or pinch to zoom. Double-click to centre it again.
 
-**Real places.** In the playground, open **Map**, choose an area up to 300 km wide, and click **Apply**. The playground downloads the height data for that area and shows it in 3D. In your own code, you can pass any grid of heights to `setHeightfield({ samples, size, aspect })`. Each height is a number from 0 (lowest) to 1 (highest).
+### Real places
+
+In the playground, open **Map**, choose an area up to 300 km wide, and click **Apply**. The playground downloads the height data for that area and shows it in 3D. In your own code, you can pass any grid of heights to `setHeightfield({ samples, size, aspect })`. Each height is a number from 0 (lowest) to 1 (highest).
 
 ![The Map popover over Istanbul: a dark map with a white frame around the city, the place menu above, and Clear and Applied below](assets/screenshots/map-popover-dark.webp)
 
-**Export.** `snapshot()` saves a PNG image at any size. It can also save only part of the view, for example a phone-sized crop. `record()` saves a 3D video as MP4 or WebM. Both work in the background, so the page does not change while they run.
+### Export
+
+`snapshot()` saves a PNG image at any size. It can also save only part of the view, for example a phone-sized crop. `record()` saves a 3D video as MP4 or WebM. Both work in the background, so the page does not change while they run.
 
 ```js
 const png = await topographic.snapshot({ width: 1920, height: 1080 });
 const clip = await topographic.record({ seconds: 6, motion: 'orbit', format: 'mp4' });
 ```
 
-**AI agents.** The playground has plain-text docs for AI tools at [`llms.txt`](https://yahyabedirhan.github.io/topographic/llms.txt). In browsers that support [WebMCP](https://github.com/webmachinelearning/webmcp), an AI agent can use the playground directly. It can change the settings, choose a place, take a screenshot, record a video and get the code.
+### AI agents
+
+The playground has plain-text docs for AI tools at [`llms.txt`](https://yahyabedirhan.github.io/topographic/llms.txt). In browsers that support [WebMCP](https://github.com/webmachinelearning/webmcp), an AI agent can use the playground directly. It can change the settings, choose a place, take a screenshot, record a video and get the code.
 
 The [guide](docs/guide.md) lists every setting with its range and default. It also covers [3D](docs/guide.md#three-dimensions), [PNG export](docs/guide.md#snapshots-and-png-export), colours and themes, server rendering and the [WebMCP tools](docs/guide.md#webmcp-tools).
 
