@@ -37,6 +37,11 @@ const SAVE_DELAY = 500;
 /** How long after the last change the active saved item's picture is drawn again. */
 const THUMB_DELAY = 1000;
 
+/** A built-in map terrain's settings with the viewer's detail and budget. */
+function viewerQuality(look: MapLook, now: Settings): Settings {
+  return mergeSettings(resolveSettings(look.settings), { detail: now.detail, quality: now.quality });
+}
+
 export function useTerrains(pg: Playground): Terrains {
   const region = useRegion(pg);
   const saved = useSaved();
@@ -48,7 +53,7 @@ export function useTerrains(pg: Playground): Terrains {
   const [mapLookId, setMapLookId] = useState<string | null>(() => {
     const key = JSON.stringify(pg.settings);
     return MAP_LOOKS.find((look) => region.bbox && sameBox(look.bbox, region.bbox) && region.placeId === look.placeId
-      && JSON.stringify(resolveSettings(look.settings)) === key)?.id ?? null;
+      && JSON.stringify(viewerQuality(look, pg.settings)) === key)?.id ?? null;
   });
   const openLookItem = findMapLook(mapLookId);
   const activeMapLook = openLookItem && region.bbox && sameBox(region.bbox, openLookItem.bbox) ? openLookItem : null;
@@ -117,8 +122,8 @@ export function useTerrains(pg: Playground): Terrains {
       flush();
       setMapLookId(look.id);
       if (!region.bbox || !sameBox(region.bbox, look.bbox)) region.showPlace(look.bbox, look.placeId);
-      // Always the defined settings, camera and pan included: a built-in keeps no edits.
-      live.current.replace(resolveSettings(look.settings));
+      // Always the defined settings, camera and pan included: a built-in keeps no edits. Detail and budget stay the viewer's.
+      live.current.replace(viewerQuality(look, live.current.settings));
     },
     openLook(i) {
       setMapLookId(null);

@@ -16,6 +16,7 @@ import {
   type CameraMotion, type GroupName, type ParamDef, type TerrainExtent,
 } from 'topographic';
 import { LOOK_CAMERAS, LOOKS } from './looks';
+import { PLAYGROUND_QUALITY } from './share-url';
 import { OffNote, Preview, Section, SegRow, SliderRow, Tabs, Tip, type TabItem } from './parts';
 import { contourArt, flowArt, layoutArt, rigArt, terrainArt, type GlyphName, type TrackKind } from './track-art';
 import {
@@ -515,7 +516,7 @@ function ViewTune({ pg }: { pg: Playground }) {
           onChange={(n) => { tuned('camera', 'radius'); cam({ radius: n }); }}
         />
       </Section>
-      <Section title="Quality" resetIf={!off && (s.detail !== DEFAULT_DETAIL || s.quality !== 'auto')} onReset={() => pg.change({ detail: DEFAULT_DETAIL, quality: 'auto' })}>
+      <Section title="Quality" resetIf={!off && (s.detail !== PLAYGROUND_QUALITY.detail || s.quality !== PLAYGROUND_QUALITY.quality)} onReset={() => pg.change(PLAYGROUND_QUALITY)}>
         <SegRow
           label="Detail"
           icon="detail"

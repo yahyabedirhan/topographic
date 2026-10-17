@@ -43,7 +43,6 @@ export const ISTANBUL_SETTINGS = {
   mode: '3d',
   elevation: 0.12,
   extent: 'block',
-  detail: 0.5,
   camera: { azimuth: 353.3, elevation: 45.1, radius: 1.15, motion: 'still', panX: 0.043, panZ: -0.075 },
 } as const satisfies SettingsInput;
 
@@ -63,8 +62,7 @@ function rosePod(ink: string, elevation: number, cameraElevation: number): Setti
     mode: '3d',
     elevation,
     extent: 'block',
-    detail: 0.5,
-    camera: { azimuth: 341.8, elevation: cameraElevation, radius: 1.32, motion: 'still', panX: 0.033, panZ: -0.049 },
+      camera: { azimuth: 341.8, elevation: cameraElevation, radius: 1.32, motion: 'still', panX: 0.033, panZ: -0.049 },
   };
 }
 
