@@ -7,6 +7,9 @@ export function startPostHog(key: string, host: string, props: SuperProperties):
   posthog.init(key, {
     api_host: host,
     persistence: 'memory',
+    // No cookies or stored ids: the server counts daily unique visitors from a salted hash that rotates each day.
+    // This needs the project's cookieless server hash setting on.
+    cookieless_mode: 'always',
     disable_session_recording: true,
     autocapture: false,
     capture_pageview: true,

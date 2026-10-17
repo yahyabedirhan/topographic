@@ -2,7 +2,7 @@
  * Product analytics for the playground. It is built in only when `VITE_POSTHOG_KEY` is set.
  * Without a key, `track` does nothing and posthog-js is not part of the build.
  *
- * PostHog runs cookieless (`persistence: 'memory'`), with no session recording and no autocapture.
+ * PostHog runs cookieless (`persistence: 'memory'`, `cookieless_mode: 'always'`), with no session recording and no autocapture.
  * Events carry only the small, fixed properties typed below: never free text, colours or the URL state.
  */
 
