@@ -4,6 +4,7 @@ import { consent, type Consent } from './consent';
 import { EVENT_INFO, SUPER_PROPS } from './privacy-content';
 import { latestUpdates } from './changelog';
 import changelog from '../../../CHANGELOG.md?raw';
+import hero from './assets/hero.webp';
 
 const LABEL: Record<Consent, string> = {
   all: 'Analytics are on in this browser.',
@@ -52,8 +53,8 @@ function OptOut() {
           : <button type="button" className="pt-pill" aria-label="Opt in to analytics" onClick={() => { optIn(); setState('all'); }}>Opt in</button>)}
       </div>
       <p className="pt-muted">The choice is saved in this browser, so each browser and device opts out separately. Opting out sends one last <code>analytics_opted_out</code> event, then nothing. Opting in applies on the next page load.</p>
-      <p className="pt-small">You can also add <code>?optout</code> (page views only), <code>?optout=all</code> (nothing at all) or <code>?optin</code> to any address.</p>
-      <p className="pt-small"><a href={PRIVACY_MD}>PRIVACY.md</a></p>
+      <p>You can also add <code>?optout</code> (page views only), <code>?optout=all</code> (nothing at all) or <code>?optin</code> to any address.</p>
+      <p><a href={PRIVACY_MD}>PRIVACY.md</a></p>
     </>
   );
 }
@@ -69,11 +70,12 @@ export function About({ home }: { home: string }) {
     <main className="pt-privacy">
       <p><a href={home}>topographic</a></p>
       <h1>About</h1>
+      <img className="pt-hero" src={hero} alt="Fine granite in 3D: a summit ringed by pale contour lines, gullies fanning out to a dark horizon" width={1280} height={720} />
       <p className="pt-lead">Topographic draws animated topographic contour backgrounds in 2D or 3D, from generated terrain or real places picked on a map. Export a scene as an image, a video, a React component, HTML or JSON. It is open source under the Apache 2.0 license.</p>
 
       <section aria-labelledby="pv-maintainer">
         <h2 id="pv-maintainer">Maintainer</h2>
-        <p>Made and maintained by Yahya Bedirhan Pak since October 2026.</p>
+        <p>Made and maintained by <a href="https://yahyapak.dev/">Yahya Bedirhan Pak</a> since October 2026.</p>
         <Socials />
         <ul className="pt-rows">
           <li><a href={REPO} target="_blank" rel="noopener noreferrer"><span>GitHub</span><span>yahyabedirhan/topographic</span></a></li>

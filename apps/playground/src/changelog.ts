@@ -11,7 +11,8 @@ function summarize(bullet: string): string {
     .replace(/\s*[\u2013\u2014]\s*/g, ', ')
     .trim();
   const end = text.search(/\.(\s|$)/);
-  return end > 0 ? text.slice(0, end + 1) : text;
+  const sentence = end > 0 ? text.slice(0, end + 1) : text;
+  return sentence ? sentence[0].toUpperCase() + sentence.slice(1) : sentence;
 }
 
 /** The newest `count` bullets of CHANGELOG.md, each labelled with its version heading. */
