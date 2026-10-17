@@ -365,7 +365,7 @@ A public build does not include the debug heartbeat. Set `VITE_TOPOGRAPHIC_DEBUG
 
 ### Analytics and error reports
 
-The playground can send product analytics to PostHog and errors to Sentry. Both are set at build time, and both are off without their variable: the call sites do nothing, and the client is not in the build. The npm packages never include either, and `scripts/check-public-bundle.mjs` fails the build if they do.
+The playground can send analytics to PostHog and errors to Sentry. Both are set at build time, and both are off without their variable: the call sites do nothing, and the client is not in the build. The npm packages never include either, and `scripts/check-public-bundle.mjs` fails the build if they do.
 
 | Variable | Effect |
 | --- | --- |
@@ -375,7 +375,7 @@ The playground can send product analytics to PostHog and errors to Sentry. Both 
 
 Each client loads in its own chunk when the page is idle after the first paint.
 
-- **PostHog** runs without cookies or local storage (`persistence: 'memory'`), with no session recording and no autocapture, and it respects Do Not Track. It sends pageview and pageleave (time on page, referrer and UTM parameters), plus `dice_clicked`, `export_clicked` with the format, `link_copied`, and one `performance_sample` about 20 seconds into a visible visit: median and 10th-percentile fps, refresh rate, quality tier, viewport, device pixel ratio, GPU renderer, device memory and browser family.
+- **PostHog** runs without cookies or local storage (`persistence: 'memory'`), with no session recording and no autocapture, and it respects Do Not Track. It sends pageview and pageleave (referrer and UTM parameters), plus `dice_clicked`, `export_clicked` with the format, `link_copied`, and one `performance_sample` about 20 seconds into a visible visit: median and 10th-percentile fps, refresh rate, quality tier, viewport, device pixel ratio, GPU renderer, device memory and browser family.
 - **Sentry** reports errors only, with no tracing or replay and no user data, cookies, headers or query string. It reports error-boundary crashes and lost WebGL contexts, tagged with the quality tier and GPU. A small buffer keeps errors from before it loads, and one page sends at most 10 reports.
 
 The playground is a Cloudflare Worker with static assets. With Workers Builds, add these as build variables (the Worker's Settings, then Build, then Variables and secrets). Vite reads them while building, so set them before the deploy that should use them.
