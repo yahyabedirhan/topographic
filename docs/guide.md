@@ -375,8 +375,17 @@ The playground can send product analytics to PostHog and errors to Sentry. Both 
 
 Each client loads in its own chunk when the page is idle after the first paint.
 
-- **PostHog** runs without cookies or local storage (`persistence: 'memory'`), with no session recording and no autocapture, and it respects Do Not Track. It sends pageview and pageleave (time on page, referrer and UTM parameters), plus `dice_clicked`, `export_clicked` with the format, `link_copied`, and one `performance_sample` about 20 seconds into a visible visit: median and 10th-percentile fps, refresh rate, quality tier, viewport, device pixel ratio, GPU renderer, device memory and browser family.
+- **PostHog** runs without cookies or stored ids (`persistence: 'memory'`, `cookieless_mode: 'always'`, which needs the project's cookieless server hash setting), with no session recording and no autocapture, and it respects Do Not Track. It sends pageview and pageleave (time on page, referrer and UTM parameters) and the typed events in `apps/playground/src/analytics.ts`:
+  - Navigation: `ui_click` (header links), `view_mode_changed`, `panel_opened`, `panel_closed` (with time open), `export_tab_changed`.
+  - Looks and settings: `dock_item_clicked`, `saved_terrain_deleted`, `place_applied`, `region_loaded`, `setting_changed`, `quality_changed`, `theme_toggled`, `shuffle_clicked`, `colour_changed`.
+  - Sharing and export: `link_copied`, `code_copied`, `export_image_downloaded`, `export_image_failed`, `export_video_started`, `export_video_completed`, `export_video_failed`.
+  - `performance_sample`, once about 20 seconds into a visible visit: median and 10th-percentile fps, refresh rate, quality tier, viewport, device pixel ratio, GPU renderer, device memory, browser, OS, long frames, context losses and time to first frame.
+  - `analytics_opted_out`, once, from the Opt out button.
+
+  Every event carries fixed super properties: `site`, `app`, `app_version`, `viewport_class`, `is_mobile`, `platform`, `os` and `initial_view_mode`. Properties never hold free text, colours or the query string.
 - **Sentry** reports errors only, with no tracing or replay and no user data, cookies, headers or query string. It reports error-boundary crashes and lost WebGL contexts, tagged with the quality tier and GPU. A small buffer keeps errors from before it loads, and one page sends at most 10 reports.
+
+Visitors can opt out with `?optout` (pageviews only, no error reports), `?optout=all` (nothing; neither client loads) or `?optin`, or with the button on `/privacy`. The choice is kept in local storage under `topographic:analytics`, per browser. [PRIVACY.md](../PRIVACY.md) and the `/privacy` page list every event; `privacy-content.ts` is typed against the event map, and a test checks that PRIVACY.md names every event.
 
 The playground is a Cloudflare Worker with static assets. With Workers Builds, add these as build variables (the Worker's Settings, then Build, then Variables and secrets). Vite reads them while building, so set them before the deploy that should use them.
 
