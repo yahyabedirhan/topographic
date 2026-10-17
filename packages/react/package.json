@@ -1,14 +1,14 @@
 {
   "name": "topographic-react",
-  "version": "0.3.0",
-  "description": "React component and hook for topographic backgrounds.",
+  "version": "0.4.0",
+  "description": "React component and hook for topographic: animated contour backgrounds in 2D or as a 3D terrain, with real elevation data, styles and automatic quality tiers.",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/yahyabedirhan/topographic.git",
     "directory": "packages/react"
   },
-  "homepage": "https://topographic.yahyapak.dev/",
+  "homepage": "https://topographic.yahyapak.dev",
   "bugs": {
     "url": "https://github.com/yahyabedirhan/topographic/issues"
   },
@@ -16,11 +16,21 @@
     "topography",
     "topographic",
     "contour",
+    "contour-lines",
     "background",
+    "animated-background",
     "webgl",
     "shader",
-    "animated-background",
-    "react"
+    "3d",
+    "terrain",
+    "heightmap",
+    "elevation",
+    "dem",
+    "map",
+    "quality-tiers",
+    "webmcp",
+    "react",
+    "react-component"
   ],
   "type": "module",
   "sideEffects": false,
@@ -40,7 +50,7 @@
     "NOTICE"
   ],
   "dependencies": {
-    "topographic": "^0.3.0"
+    "topographic": "^0.4.0"
   },
   "peerDependencies": {
     "react": "^18 || ^19"

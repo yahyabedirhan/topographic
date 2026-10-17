@@ -1,8 +1,13 @@
 name: pages
 
+# The playground moved to https://topographic.yahyapak.dev.
+# This keeps old GitHub Pages links working by redirecting them there,
+# keeping the path and the query string.
+
 on:
   push:
     branches: [main]
+    paths: [.github/workflows/pages.yml]
   workflow_dispatch:
 
 permissions:
@@ -18,18 +23,32 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-      - run: npm ci
-      - run: npm run build
-        env:
-          BASE_PATH: /topographic/
+      - name: Write redirect pages
+        run: |
+          mkdir site
+          cat > site/index.html <<'HTML'
+          <!doctype html>
+          <html lang="en">
+            <head>
+              <meta charset="utf-8" />
+              <title>topographic has moved</title>
+              <link rel="canonical" href="https://topographic.yahyapak.dev/" />
+              <meta name="robots" content="noindex" />
+              <meta http-equiv="refresh" content="0; url=https://topographic.yahyapak.dev/" />
+              <script>
+                var p = location.pathname.replace(/^\/topographic\/?/, '/');
+                location.replace('https://topographic.yahyapak.dev' + p + location.search + location.hash);
+              </script>
+            </head>
+            <body>
+              <p>topographic has moved to <a href="https://topographic.yahyapak.dev/">topographic.yahyapak.dev</a>.</p>
+            </body>
+          </html>
+          HTML
+          cp site/index.html site/404.html
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: apps/playground/dist
+          path: site
 
   deploy:
     needs: build

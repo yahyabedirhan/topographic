@@ -37,7 +37,7 @@ The landscape can also come from a real place, using real height data. The [play
 ## Install
 
 ```sh
-npm install topographic@0.3.0
+npm install topographic@0.4.0
 ```
 
 In plain HTML, use the web component:
@@ -56,7 +56,7 @@ import { createTopographicBackground } from 'topographic';
 const topographic = createTopographicBackground(document.querySelector('#hero'), { style: 'long-ridge' });
 ```
 
-In React, install `topographic-react` too (`npm install topographic@0.3.0 topographic-react@0.3.0`):
+In React, install `topographic-react` too (`npm install topographic@0.4.0 topographic-react@0.4.0`):
 
 ```tsx
 import { TopographicBackground } from 'topographic-react';
