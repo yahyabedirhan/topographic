@@ -89,7 +89,7 @@ import { TopographicBackground, useTopographicBackground } from 'topographic-rea
 />
 ```
 
-- Props: `styleName`, `seed`, `lines`, `terrain`, `motion`, `layout`, `theme`, `mode`, `elevation`, `extent`, `detail`, `quality`, `camera`, `options`, `onReady`, plus any `div` props. Children are drawn on top.
+- Props: `styleName`, `seed`, `lines`, `terrain`, `motion`, `layout`, `theme`, `mode`, `elevation`, `extent`, `detail`, `quality`, `camera`, `view2d`, `options`, `onReady`, plus any `div` props. Children are drawn on top.
 - The prop is `styleName`, not `style`. `style` stays React's normal inline style.
 - Each group of settings updates only when its values change. A new object with the same values does nothing.
 - `onReady(instance)` gives you the instance after mount, for example to call `snapshot`. It gives `null` on unmount.
@@ -170,10 +170,10 @@ A value outside its range is moved to the nearest limit. Whole-number settings a
 | `quality` | `quality` | `auto`, `low`, `medium`, `high` | `auto` | Graphics budget. `auto` follows the device and steps down if frames miss 60 Hz, or 120 Hz once that refresh has been seen. `low`, `medium` and `high` stay put. The budget caps the pixel ratio, the pixel count and the mesh size. |
 | `camera.azimuth` | `azimuth` | any finite number | 349.7 | The camera's angle around the terrain, in degrees. |
 | `camera.elevation` | `camera-elevation` | 2–80 | 33.6 | The camera's angle above the horizon, in degrees. The camera never goes below the terrain. |
-| `camera.radius` | `radius` | 1.15–6.5 | 1.92 | The camera's distance from the centre of the terrain. |
+| `camera.radius` | `radius` | 0.4–6.5 | 1.92 | The camera's distance from the centre of the terrain. |
 | `camera.motion` | `camera-motion` | `still`, `orbit`, `push`, `flyover`, `drone` | `still` | Makes the camera move. `motion.speed` still animates the terrain shape. |
 | `camera.panX`, `camera.panZ` | `pan-x`, `pan-z` | −6–6 | 0 | The point the camera looks at, moved from the centre of the terrain. X is east and Z is south, in terrain units. The camera and every motion path turn around this point. The point stays over the terrain, so part of the terrain is always in view. |
-| `camera.zoom` | `zoom` | 1–8 | 1 | How far the 2D map is zoomed in around the pan. 1 shows the whole view. 3D ignores it. 2D also uses the pan, so both views show the same place in the middle. |
+| `view2d.x`, `view2d.y`, `view2d.zoom` | `view-x`, `view-y`, `view-zoom` | −6–6, −6–6, 1–8 | 0, 0, 1 | The 2D map's own pan and zoom, apart from the 3D camera: the point at the centre of the view, x to the right and y up in screen heights, and how far it is zoomed in. 3D ignores it. |
 
 ```js
 createTopographicBackground(el, {
@@ -322,7 +322,7 @@ The playground (`apps/playground`) is the project's live demo page.
   - Double tap: zoom in. Two finger tap: zoom out.
   - Double-click: move the pan smoothly back to the centre.
 
-  2D and 3D share the pan, so switching keeps the same place in the middle. The 2D zoom is the camera's `zoom`, `zm` in the URL. The Anchor setting still places the summit in 2D: 0 keeps it to the side, 1 puts it in the centre.
+  2D and 3D keep their own pan and zoom: the 2D view is `view2d` (`vx`, `vy`, `vz` in the URL), the 3D view is the camera. The Anchor setting still places the summit in 2D: 0 keeps it to the side, 1 puts it in the centre.
   The terrain is centred in the space between the top buttons and the dock, not behind the dock. The pan and the zoom are part of the camera. A saved map terrain keeps them. A click on a look, or the camera reset in Tune, moves the camera back to the centre.
 - The buttons at the top right are **Map**, 2D/3D, **Tune** and **Export**. Each one opens its panel below the buttons. Only one panel is open at a time. The 2D/3D button has a small badge that shows the current mode.
 - **Tune** opens the settings, one tab at a time: Lines, Terrain, Motion, Layout and 3D.
@@ -357,7 +357,7 @@ The playground (`apps/playground`) is the project's live demo page.
   - It stores only the values that are different from the style's defaults or from a named look: `?s=dunes&lc=24`, `?look=night-lobes&mode=3d`.
   - Colours have no `#` (`ink=9fb0cc`).
   - 3D uses the library defaults unless the URL changes them: endless, azimuth 349.7, angle 33.6 and distance 1.92.
-  - A pan away from the centre adds `px` and `pz`, and a 2D zoom adds `zm`.
+  - A pan away from the centre adds `px` and `pz`. A 2D pan or zoom adds `vx`, `vy` and `vz`.
   - Quality writes `ql` when it is `low`, `medium` or `high`. `auto` is the default, so it is left out.
   - The address bar updates a few times a second at most, and again when a drag or pinch ends. A gesture does not write the URL on every frame.
   - `?place=istanbul` or `?region=west,south,east,north` opens a real place.

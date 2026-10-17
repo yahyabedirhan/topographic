@@ -25,7 +25,7 @@ const blobToDataUrl = (b: Blob) => new Promise<string>((resolve, reject) => {
   const r = new FileReader(); r.onload = () => resolve(String(r.result)); r.onerror = () => reject(r.error); r.readAsDataURL(b);
 });
 
-const TOP_KEYS = ['style', 'seed', 'theme', 'lines', 'terrain', 'motion', 'layout', 'mode', 'elevation', 'extent', 'detail', 'quality', 'camera'];
+const TOP_KEYS = ['style', 'seed', 'theme', 'lines', 'terrain', 'motion', 'layout', 'mode', 'elevation', 'extent', 'detail', 'quality', 'camera', 'view2d'];
 
 function adjustments(input: Record<string, unknown>, out: Settings): string[] {
   const notes: string[] = [];

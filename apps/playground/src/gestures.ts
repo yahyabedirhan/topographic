@@ -1,28 +1,30 @@
 import { ZOOM_MAX, ZOOM_MIN } from 'topographic';
 
 /**
- * The 2D view's geometry for the pointer controls. The renderer draws the field point
- * (panX / 0.9, -panZ / 0.9) at the view centre, zoom times closer, with the view `height` pixels
- * tall. These helpers keep the ground under a pointer under it while it moves or zooms.
+ * The 2D view's geometry for the pointer controls. The renderer draws the field point (x, y) at the
+ * view centre, zoom times closer, with the screen height as the unit at zoom 1 and y up. These
+ * helpers keep the ground under a pointer under it while it moves or zooms. `half` is how far the
+ * centre may go from the middle, so some of the terrain always stays in view.
  */
-export interface View2d { panX: number; panZ: number; zoom: number }
+export interface View2d { x: number; y: number; zoom: number }
 
 const round3 = (n: number) => Number(n.toFixed(3));
+const within = (v: number, h: number) => Math.min(h, Math.max(-h, v));
 
-/** The view after dragging (dx, dy) pixels: the ground follows the pointer. */
-export function pan2d(from: View2d, dx: number, dy: number, height: number): Pick<View2d, 'panX' | 'panZ'> {
-  const k = 0.9 / (Math.max(1, height) * from.zoom);
-  return { panX: round3(from.panX - dx * k), panZ: round3(from.panZ - dy * k) };
+/** The view after dragging (dx, dy) pixels on a view `height` pixels tall: the ground follows the pointer. */
+export function pan2d(from: View2d, dx: number, dy: number, height: number, half: readonly [number, number]): View2d {
+  const k = 1 / (Math.max(1, height) * from.zoom);
+  return { x: round3(within(from.x - dx * k, half[0])), y: round3(within(from.y + dy * k, half[1])), zoom: from.zoom };
 }
 
 /**
  * The view at `zoom` (clamped), keeping the ground at (ox, oy) pixels from the view centre in place.
  * Without an offset it zooms around the centre.
  */
-export function zoom2d(from: View2d, zoom: number, ox = 0, oy = 0, height = 1): View2d {
+export function zoom2d(from: View2d, zoom: number, ox: number, oy: number, height: number, half: readonly [number, number]): View2d {
   const next = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, zoom));
-  const k = (0.9 / Math.max(1, height)) * (1 / from.zoom - 1 / next);
-  return { panX: round3(from.panX + ox * k), panZ: round3(from.panZ + oy * k), zoom: round3(next) };
+  const k = (1 / Math.max(1, height)) * (1 / from.zoom - 1 / next);
+  return { x: round3(within(from.x + ox * k, half[0])), y: round3(within(from.y - oy * k, half[1])), zoom: round3(next) };
 }
 
 /**

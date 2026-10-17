@@ -12,7 +12,7 @@ uniform vec4 uInk;
 uniform vec4 uPaper;
 uniform float uHasHeight;
 uniform float uHeightAspect;
-// 2D only: the field point at the view centre (xy) and the zoom (z).
+// 2D only: the field point at the view centre (xy) and the zoom (z), from settings.view2d.
 uniform vec3 uView;
 `;
 

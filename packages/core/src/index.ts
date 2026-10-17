@@ -7,7 +7,7 @@ export { STYLES, DEFAULT_STYLE, findStyle, type Style, type StyleId } from './st
 export { PRESETS, type Preset } from './presets.js';
 export {
   defaultSettings, resolveSettings, mergeSettings, toUniforms, fromAttributes, toAttributes, toQuery, fromQuery,
-  meshResolution, terrainSegments, CAMERA_MOTIONS, DEFAULT_CAMERA, DEFAULT_EXTENT, DEFAULT_DETAIL, DEFAULT_ELEVATION, ZOOM_MIN, ZOOM_MAX,
+  meshResolution, terrainSegments, CAMERA_MOTIONS, DEFAULT_CAMERA, DEFAULT_EXTENT, DEFAULT_DETAIL, DEFAULT_ELEVATION, DEFAULT_VIEW2D, RADIUS_MIN, RADIUS_MAX, ZOOM_MIN, ZOOM_MAX,
   type Settings, type SettingsInput, type ThemeSettings, type ThemeMode,
   type RenderMode, type TerrainExtent, type CameraMotion, type CameraSettings,
 } from './settings.js';

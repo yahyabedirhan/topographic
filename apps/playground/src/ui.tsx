@@ -11,7 +11,7 @@ import type { SavedTerrain } from './saved';
 import { ignoredWithPlace } from './shape';
 import type { Terrains } from './terrains';
 import {
-  DEFAULT_CAMERA, DEFAULT_DETAIL, DEFAULT_ELEVATION, DEFAULT_EXTENT, GROUPS, paramsIn, resolveMode,
+  DEFAULT_CAMERA, DEFAULT_DETAIL, DEFAULT_ELEVATION, DEFAULT_EXTENT, GROUPS, RADIUS_MAX, RADIUS_MIN, paramsIn, resolveMode,
   type QualityName,
   type CameraMotion, type GroupName, type ParamDef, type TerrainExtent,
 } from 'topographic';
@@ -512,7 +512,7 @@ function ViewTune({ pg }: { pg: Playground }) {
         <SliderRow
           label="Distance" icon="distance" art="distance"
           hint="How far the camera sits. Scroll or pinch the view to zoom."
-          value={s.camera.radius} min={1.15} max={6.5} step={0.01} shown={s.camera.radius.toFixed(2)} disabled={off}
+          value={s.camera.radius} min={RADIUS_MIN} max={RADIUS_MAX} step={0.01} shown={s.camera.radius.toFixed(2)} disabled={off}
           onChange={(n) => { tuned('camera', 'radius'); cam({ radius: n }); }}
         />
       </Section>

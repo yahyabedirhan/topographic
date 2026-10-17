@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type MutableRefObject, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import {
-  GROUPS, STYLES, THEME_DEFAULTS, clampParam, mergeSettings, panBy, paramsIn, resolveMode, resolveSettings, rgbaToCss,
+  GROUPS, RADIUS_MAX, RADIUS_MIN, STYLES, THEME_DEFAULTS, clampParam, mergeSettings, panBy, paramsIn, resolveMode, resolveSettings, rgbaToCss,
   type GroupName, type Heightfield, type ParamDef, type Settings, type SettingsInput, type TopographicBackground as Instance,
 } from 'topographic';
 import { TopographicBackground } from 'topographic-react';
@@ -127,7 +127,7 @@ export function usePlayground(): Playground {
     cancelAnimationFrame(frame.current);
     const from = latest.current;
     const rolled = mergeSettings(rollSettings(), {
-      mode: from.mode, elevation: from.elevation, extent: from.extent, detail: from.detail, quality: from.quality, camera: from.camera,
+      mode: from.mode, elevation: from.elevation, extent: from.extent, detail: from.detail, quality: from.quality, camera: from.camera, view2d: from.view2d,
     });
     const goal = keep ? keepShape(rolled, from) : rolled;
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -162,6 +162,7 @@ function terrainKey(s: Settings): string {
   delete config.detail;
   delete config.quality;
   delete config.camera;
+  delete config.view2d;
   return JSON.stringify(config);
 }
 
@@ -180,6 +181,7 @@ interface TwoFingers {
   at: number;
   kind: 'tilt' | 'pinch' | null;
   camera: Settings['camera'];
+  view2d: Settings['view2d'];
 }
 
 /**
@@ -195,7 +197,7 @@ function useOrbit(pg: Playground) {
   const node = useRef<HTMLDivElement | null>(null);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const drag = useRef<{ id: number; x: number; y: number; azimuth: number; elevation: number } | null>(null);
-  const pan = useRef<{ id: number; x: number; y: number; panX: number; panZ: number; zoom: number; at: number; touch: boolean; moved: boolean } | null>(null);
+  const pan = useRef<{ id: number; x: number; y: number; panX: number; panZ: number; view2d: Settings['view2d']; at: number; touch: boolean; moved: boolean } | null>(null);
   const two = useRef<TwoFingers | null>(null);
   const lastTap = useRef<{ at: number; x: number; y: number } | null>(null);
   const lastPointer = useRef('mouse');
@@ -219,16 +221,16 @@ function useOrbit(pg: Playground) {
     });
   };
 
-  /** The pan after dragging (dx, dy) pixels from `from`, kept over the terrain. */
-  const panned = (from: { panX: number; panZ: number; zoom: number }, dx: number, dy: number) => {
-    const s = now();
+  /** How far the 2D view centre may go: half the view, so some of the terrain stays on screen. */
+  const half2d = (): [number, number] => {
+    const el = node.current;
+    return [(el?.clientWidth || innerWidth) / height() / 2, 0.5];
+  };
+  /** The 3D pan after dragging (dx, dy) pixels from `from`, kept over the terrain. */
+  const panned = (from: { panX: number; panZ: number }, dx: number, dy: number) => {
     const t = live.current.instance.current;
-    let x: number, z: number;
-    if (s.mode === '2d') ({ panX: x, panZ: z } = pan2d(from, dx, dy, height()));
-    else {
-      const pose = t?.pose ?? s.camera;
-      [x, z] = panBy({ ...pose, ...from }, dx, dy, height());
-    }
+    const pose = t?.pose ?? now().camera;
+    const [x, z] = panBy({ ...pose, ...from }, dx, dy, height());
     const [panX, panZ] = t ? t.clampPan(x, z) : [x, z];
     return { panX: round3(panX), panZ: round3(panZ) };
   };
@@ -240,10 +242,10 @@ function useOrbit(pg: Playground) {
       const r = node.current?.getBoundingClientRect();
       const ox = r && x !== undefined ? x - r.left - r.width / 2 : 0;
       const oy = r && y !== undefined ? y - r.top - r.height / 2 : 0;
-      push({ camera: zoom2d(s.camera, s.camera.zoom * factor, ox, oy, height()) });
+      push({ view2d: zoom2d(s.view2d, s.view2d.zoom * factor, ox, oy, height(), half2d()) });
       return;
     }
-    const radius = Math.min(6.5, Math.max(1.15, s.camera.radius / factor));
+    const radius = Math.min(RADIUS_MAX, Math.max(RADIUS_MIN, s.camera.radius / factor));
     push({ camera: { radius: Number(radius.toFixed(2)), motion: 'still' } });
   };
 
@@ -281,15 +283,20 @@ function useOrbit(pg: Playground) {
     // A double tap zooms in instead; touch browsers can send a double click after it.
     const onDouble = () => {
       if (lastPointer.current === 'touch') return;
-      const { panX, panZ } = now().camera;
-      if (!panX && !panZ) return;
+      const s = now();
+      const flat = s.mode === '2d';
+      const [a, b] = flat ? [s.view2d.x, s.view2d.y] : [s.camera.panX, s.camera.panZ];
+      if (!a && !b) return;
+      const at = (k: number): SettingsInput => (flat
+        ? { view2d: { x: round3(a * k), y: round3(b * k) } }
+        : { camera: { panX: round3(a * k), panZ: round3(b * k) } });
       stopGlide();
-      if (reducedMotion()) { push({ camera: { panX: 0, panZ: 0 } }); return; }
+      if (reducedMotion()) { push(at(0)); return; }
       const t0 = performance.now();
-      const step = (at: number) => {
-        const t = Math.min(1, (at - t0) / 420);
+      const step = (now: number) => {
+        const t = Math.min(1, (now - t0) / 420);
         const k = (1 - t) ** 3;
-        push({ camera: { panX: round3(panX * k), panZ: round3(panZ * k) } });
+        push(at(k));
         glide.current = t < 1 ? requestAnimationFrame(step) : 0;
       };
       glide.current = requestAnimationFrame(step);
@@ -309,7 +316,7 @@ function useOrbit(pg: Playground) {
     const [a, b] = [...pointers.current.values()];
     two.current = {
       dist: Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)), angle: Math.atan2(b.y - a.y, b.x - a.x),
-      x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, at: performance.now(), kind: null, camera: now().camera,
+      x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, at: performance.now(), kind: null, camera: now().camera, view2d: now().view2d,
     };
     drag.current = null;
     pan.current = null;
@@ -324,7 +331,7 @@ function useOrbit(pg: Playground) {
     noteStagePointer(true);
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (pointers.current.size >= 2) { startTwo(); return; }
-    const cam = now().camera;
+    const { camera: cam, view2d } = now();
     if (mode === '3d' && (e.button === 2 || e.button === 1 || e.metaKey || e.ctrlKey || e.shiftKey)) {
       drag.current = { id: e.pointerId, x: e.clientX, y: e.clientY, azimuth: cam.azimuth, elevation: cam.elevation };
       e.currentTarget.style.cursor = 'move';
@@ -332,7 +339,7 @@ function useOrbit(pg: Playground) {
     }
     if (e.button !== 0) return;
     pan.current = {
-      id: e.pointerId, x: e.clientX, y: e.clientY, panX: cam.panX, panZ: cam.panZ, zoom: cam.zoom,
+      id: e.pointerId, x: e.clientX, y: e.clientY, panX: cam.panX, panZ: cam.panZ, view2d,
       at: performance.now(), touch: e.pointerType === 'touch', moved: false,
     };
   };
@@ -357,12 +364,13 @@ function useOrbit(pg: Playground) {
         const spread = dist / fingers.dist;
         if (is3d) {
           const turn = (Math.atan2(b.y - a.y, b.x - a.x) - fingers.angle) * 180 / Math.PI;
-          const radius = Math.min(6.5, Math.max(1.15, cam.radius / spread));
+          const radius = Math.min(RADIUS_MAX, Math.max(RADIUS_MIN, cam.radius / spread));
           push({ camera: { radius: Number(radius.toFixed(2)), azimuth: wrapDegrees(cam.azimuth - turn), motion: 'still', ...panned(cam, midDx, midDy) } });
         } else {
           const r = node.current?.getBoundingClientRect();
-          const zoomed = zoom2d(cam, cam.zoom * spread, fingers.x - (r?.left ?? 0) - (r?.width ?? 0) / 2, fingers.y - (r?.top ?? 0) - (r?.height ?? 0) / 2, height());
-          push({ camera: { ...zoomed, ...pan2d(zoomed, midDx, midDy, height()) } });
+          const v = fingers.view2d;
+          const zoomed = zoom2d(v, v.zoom * spread, fingers.x - (r?.left ?? 0) - (r?.width ?? 0) / 2, fingers.y - (r?.top ?? 0) - (r?.height ?? 0) / 2, height(), half2d());
+          push({ view2d: pan2d(zoomed, midDx, midDy, height(), half2d()) });
         }
       }
       return;
@@ -370,7 +378,8 @@ function useOrbit(pg: Playground) {
     const held = pan.current;
     if (held && held.id === e.pointerId) {
       if (Math.hypot(e.clientX - held.x, e.clientY - held.y) > 6) held.moved = true;
-      push({ camera: panned(held, e.clientX - held.x, e.clientY - held.y) });
+      const dx = e.clientX - held.x, dy = e.clientY - held.y;
+      push(now().mode === '2d' ? { view2d: pan2d(held.view2d, dx, dy, height(), half2d()) } : { camera: panned(held, dx, dy) });
       return;
     }
     const orbit = drag.current;

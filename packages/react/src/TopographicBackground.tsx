@@ -19,6 +19,8 @@ export interface TopographicBackgroundSettingsProps {
   /** auto follows the device. low, medium and high stay put. */
   quality?: SettingsInput['quality'];
   camera?: SettingsInput['camera'];
+  /** The 2D map's own pan and zoom. 3D ignores it. */
+  view2d?: SettingsInput['view2d'];
 }
 
 export interface TopographicBackgroundRef<T extends HTMLElement = HTMLDivElement> extends MutableRefObject<T | null> {
@@ -60,6 +62,7 @@ export function useTopographicBackground<T extends HTMLElement = HTMLDivElement>
   const layout = useByValue(settings.layout);
   const theme = useByValue(settings.theme);
   const camera = useByValue(settings.camera);
+  const view2d = useByValue(settings.view2d);
   useEffect(() => { if (styleName !== undefined) ref.topographic?.update({ style: styleName }); }, [ref, styleName]);
   useEffect(() => { if (seed !== undefined) ref.topographic?.update({ seed }); }, [ref, seed]);
   useEffect(() => { if (lines) ref.topographic?.update({ lines }); }, [ref, lines]);
@@ -73,6 +76,7 @@ export function useTopographicBackground<T extends HTMLElement = HTMLDivElement>
   useEffect(() => { if (detail !== undefined) ref.topographic?.update({ detail }); }, [ref, detail]);
   useEffect(() => { if (quality !== undefined) ref.topographic?.update({ quality }); }, [ref, quality]);
   useEffect(() => { if (camera) ref.topographic?.update({ camera }); }, [ref, camera]);
+  useEffect(() => { if (view2d) ref.topographic?.update({ view2d }); }, [ref, view2d]);
 
   return ref;
 }
@@ -87,10 +91,10 @@ export interface TopographicBackgroundProps extends TopographicBackgroundSetting
 
 /** A <div> with a topographic background. Size it like any div; children render on top. */
 export const TopographicBackground = forwardRef<HTMLDivElement, TopographicBackgroundProps>(function TopographicBackground(
-  { styleName, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera, options, onReady, style, children, ...div },
+  { styleName, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera, view2d, options, onReady, style, children, ...div },
   forwarded,
 ) {
-  const ref = useTopographicBackground<HTMLDivElement>({ styleName, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera }, options);
+  const ref = useTopographicBackground<HTMLDivElement>({ styleName, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera, view2d }, options);
   const stableOptions = useByValue(options);
   const ready = useRef(onReady);
   ready.current = onReady;

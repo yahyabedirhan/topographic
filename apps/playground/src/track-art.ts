@@ -237,7 +237,7 @@ export function rigArt(S: RigLook, W: number, H: number): string {
   const ang = S.angle * Math.PI / 180;
   const c = Math.cos(ang);
   const s = Math.sin(ang);
-  const dist = lerp(36, Math.min(tx - gx0 + 4, (tgt.y - 8) / Math.max(s, 0.2)), clamp((S.distance - 1.15) / (6.5 - 1.15) * 1.6));
+  const dist = lerp(36, Math.min(tx - gx0 + 4, (tgt.y - 8) / Math.max(s, 0.2)), clamp((S.distance - 0.4) / (6.5 - 0.4) * 1.6));
   const c2 = { x: tgt.x - dist * c, y: tgt.y - dist * s };
   const ar = 20;
   const side = `<path d="M${gx0} ${gy}H${gx1}" stroke-width="1" opacity=".4"/><path d="${prof}" stroke-width="1.3" fill="currentColor" fill-opacity=".08"/>`
