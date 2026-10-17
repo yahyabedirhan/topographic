@@ -55,7 +55,7 @@ export function Privacy({ home }: { home: string }) {
           <li><code>?optout=all</code> sends nothing. The analytics and error scripts are not loaded.</li>
           <li><code>?optin</code> undoes either.</li>
         </ul>
-        <p>Leaving all events sends one last <code>analytics_opted_out</code> event, then nothing. Your choice is saved in this browser&apos;s local storage, so each browser and device keeps its own. Clearing site data resets it. Browsers with Do Not Track on send no analytics.</p>
+        <p>Leaving all events from this page sends one last <code>analytics_opted_out</code> event. Your choice is saved in this browser&apos;s local storage, so each browser and device keeps its own. Clearing site data resets it. Browsers with Do Not Track on send no analytics.</p>
       </section>
 
       <section aria-labelledby="pv-auto">
