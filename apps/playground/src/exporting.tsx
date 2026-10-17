@@ -13,6 +13,7 @@ import { shareUrl } from './url';
 import { type Playground } from './shared';
 import { Glyph, Tabs, Tip, useWidth } from './parts';
 import { GLYPHS, pathArt, timelineArt, type GlyphName } from './track-art';
+import { track } from './analytics';
 
 type FormatId = 'link' | 'png' | 'video' | 'react' | 'html' | 'json';
 
@@ -48,10 +49,10 @@ function useCopied(): [boolean, (text: string) => void] {
 }
 
 /** A compact copy action: a copy glyph and its label, then a check and "Copied". */
-function CopyAction({ text, label = 'Copy', quiet = false }: { text: string; label?: string; quiet?: boolean }) {
+function CopyAction({ text, label = 'Copy', quiet = false, onCopy }: { text: string; label?: string; quiet?: boolean; onCopy?: () => void }) {
   const [copied, copy] = useCopied();
   return (
-    <Button className={`pt-action pt-copy${quiet ? ' pt-action-quiet' : ''}${copied ? ' is-done' : ''}`} onClick={() => copy(text)}>
+    <Button className={`pt-action pt-copy${quiet ? ' pt-action-quiet' : ''}${copied ? ' is-done' : ''}`} onClick={() => { onCopy?.(); copy(text); }}>
       {copied
         ? <span className="pt-copy-ico pt-pop-in" key="done"><Check size={14} strokeWidth={2.25} /></span>
         : <span className="pt-copy-ico" key="idle"><Copy size={14} strokeWidth={1.75} /></span>}
@@ -119,7 +120,7 @@ function LinkBlock({ pg }: { pg: Playground }) {
       ) : null}
       <div className="pt-linkrow">
         <code title={url}>{url.replace(/^https?:\/\//, '')}</code>
-        <CopyAction text={url} label="Copy link" />
+        <CopyAction text={url} label="Copy link" onCopy={() => track('link_copied')} />
       </div>
     </div>
   );
@@ -490,7 +491,11 @@ export function ExportMenu({ pg, open, onOpenChange, clusterRef }: {
   const [size, setSize] = useState<CropId>('screen');
   const [crops, setCrops] = useState<Crops>(CENTRED);
   // The crop belongs to this look at the view: it starts centred each time the menu opens.
-  const change = useCallback((next: boolean) => { if (!next) setCrops(CENTRED); onOpenChange(next); }, [onOpenChange]);
+  const change = useCallback((next: boolean) => {
+    if (next) track('export_clicked', { format });
+    else setCrops(CENTRED);
+    onOpenChange(next);
+  }, [onOpenChange, format]);
   return (
     <Popover.Root open={open} onOpenChange={change}>
       <Tooltip.Root>
@@ -502,7 +507,7 @@ export function ExportMenu({ pg, open, onOpenChange, clusterRef }: {
       <Popover.Portal>
         <Popover.Positioner anchor={clusterRef} side="bottom" align="end" sideOffset={10} collisionPadding={{ top: 12, right: 8, bottom: 16, left: 8 }} positionMethod="fixed" className="pt-layer">
           <Popover.Popup className="pt-pop pt-glass pt-export" aria-label="Export" initialFocus={false}>
-            <Tabs items={FORMATS} value={format} onChange={setFormat} label="Export format" />
+            <Tabs items={FORMATS} value={format} onChange={(f) => { track('export_clicked', { format: f }); setFormat(f); }} label="Export format" />
             {format === 'link' && <LinkBlock pg={pg} />}
             {format === 'png' && <PngBlock pg={pg} size={size} setSize={setSize} crops={crops} setCrops={setCrops} />}
             {format === 'video' && <VideoBlock pg={pg} />}

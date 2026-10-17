@@ -23,6 +23,8 @@ import {
   type Playground,
 } from './shared';
 import { TerrainLoading } from './loading';
+import { track } from './analytics';
+import { noteFps } from './perf';
 
 // MapLibre is large, so the place panel loads the first time Map opens.
 const PlacePanel = lazy(() => import('./region/Picker').then((m) => ({ default: m.PlacePanel })));
@@ -108,6 +110,7 @@ export function useStats(pg: Playground) {
       const next = pg.instance.current?.stats;
       if (alive && next) {
         setStats(next);
+        noteFps(next.fps);
         document.documentElement.dataset.tier = next.quality;
       }
       id = window.setTimeout(tick, 400);
@@ -167,7 +170,7 @@ export function ColorField({ pg, which }: { pg: Playground; which: 'ink' | 'pape
           <Popover.Popup className="pt-pop pt-glass pt-pop-color">
             <div className="pt-color-head">
               <Popover.Title className="pt-pop-title">{name}</Popover.Title>
-              <button type="button" className="pt-dice" aria-label={`Random ${name.toLowerCase()} colour`} onClick={() => pg.change({ theme: { [which]: rollColour(which) } })}>
+              <button type="button" className="pt-dice" aria-label={`Random ${name.toLowerCase()} colour`} onClick={() => { track('dice_clicked', { target: which }); pg.change({ theme: { [which]: rollColour(which) } }); }}>
                 <Dices size={15} strokeWidth={1.75} />
               </button>
             </div>
@@ -327,7 +330,7 @@ export function Dock({ pg, terrains, onOpenMap }: { pg: Playground; terrains: Te
         {/* Theme, shuffle, then the two colours, in a 2×2 grid. */}
         <div className="pt-dock-tools" ref={tools}>
           <ThemeToggle pg={pg} />
-          <IconButton label="Shuffle" side="top" className="pt-tool" onClick={terrains.shuffle}><Dices size={16} strokeWidth={1.75} /></IconButton>
+          <IconButton label="Shuffle" side="top" className="pt-tool" onClick={() => { track('dice_clicked', { target: 'shuffle' }); terrains.shuffle(); }}><Dices size={16} strokeWidth={1.75} /></IconButton>
           <span className="pt-tool-slot"><ColorField pg={pg} which="paper" /></span>
           <span className="pt-tool-slot"><ColorField pg={pg} which="ink" /></span>
         </div>
