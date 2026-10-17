@@ -1,5 +1,6 @@
 /** The PostHog client, in its own chunk. Imported only by `analytics.ts` in a build with a key. */
-import posthog from 'posthog-js';
+// The slim build has capture, pageview and pageleave, without replay, surveys or the toolbar.
+import posthog from 'posthog-js/dist/module.slim';
 
 export function startPostHog(key: string, host: string): (event: string, props: Record<string, unknown>) => void {
   posthog.init(key, {
