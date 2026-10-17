@@ -73,7 +73,7 @@ export function About({ home }: { home: string }) {
 
       <section aria-labelledby="pv-maintainer">
         <h2 id="pv-maintainer">Maintainer</h2>
-        <p>Made and maintained by Yahya Bedirhan Pak since October 2026.</p>
+        <p>Made and maintained by <a href="https://yahyapak.dev/">Yahya Bedirhan Pak</a> since October 2026.</p>
         <Socials />
         <ul className="pt-rows">
           <li><a href={REPO} target="_blank" rel="noopener noreferrer"><span>GitHub</span><span>yahyabedirhan/topographic</span></a></li>
