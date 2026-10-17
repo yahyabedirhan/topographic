@@ -4,6 +4,7 @@ import { consent, type Consent } from './consent';
 import { EVENT_INFO, SUPER_PROPS } from './privacy-content';
 import { latestUpdates } from './changelog';
 import changelog from '../../../CHANGELOG.md?raw';
+import hero from './assets/hero.webp';
 
 const LABEL: Record<Consent, string> = {
   all: 'Analytics are on in this browser.',
@@ -69,6 +70,7 @@ export function About({ home }: { home: string }) {
     <main className="pt-privacy">
       <p><a href={home}>topographic</a></p>
       <h1>About</h1>
+      <img className="pt-hero" src={hero} alt="Fine granite in 3D: a summit ringed by pale contour lines, gullies fanning out to a dark horizon" width={1280} height={720} />
       <p className="pt-lead">Topographic draws animated topographic contour backgrounds in 2D or 3D, from generated terrain or real places picked on a map. Export a scene as an image, a video, a React component, HTML or JSON. It is open source under the Apache 2.0 license.</p>
 
       <section aria-labelledby="pv-maintainer">
