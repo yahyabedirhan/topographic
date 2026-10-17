@@ -29,12 +29,14 @@ export interface CameraSettings {
    */
   panX: number;
   panZ: number;
+  /** How far the 2D map is zoomed in around the pan. 1 shows the whole view; 3D ignores it. */
+  zoom: number;
 }
 
 export const CAMERA_MOTIONS: readonly CameraMotion[] = ['still', 'orbit', 'push', 'flyover', 'drone'];
 export const DEFAULT_ELEVATION = 0.62;
 export const DEFAULT_DETAIL = 0.5;
-export const DEFAULT_CAMERA: CameraSettings = { azimuth: 349.7, elevation: 33.6, radius: 1.92, motion: 'still', panX: 0, panZ: 0 };
+export const DEFAULT_CAMERA: CameraSettings = { azimuth: 349.7, elevation: 33.6, radius: 1.92, motion: 'still', panX: 0, panZ: 0, zoom: 1 };
 export const DEFAULT_EXTENT: TerrainExtent = 'endless';
 
 export interface Settings {
@@ -116,11 +118,15 @@ function clampCamera(input: Partial<CameraSettings> | undefined, base: CameraSet
     motion,
     panX: src.panX === undefined ? base.panX : stepped(src.panX, -PAN_LIMIT, PAN_LIMIT, base.panX, 0.001),
     panZ: src.panZ === undefined ? base.panZ : stepped(src.panZ, -PAN_LIMIT, PAN_LIMIT, base.panZ, 0.001),
+    zoom: src.zoom === undefined ? base.zoom : stepped(src.zoom, ZOOM_MIN, ZOOM_MAX, base.zoom, 0.001),
   };
 }
 
 /** The widest pan any view could need; the renderer clamps it to the terrain it draws. */
 const PAN_LIMIT = 6;
+/** The 2D zoom range: from the whole view to eight times closer. */
+export const ZOOM_MIN = 1;
+export const ZOOM_MAX = 8;
 
 function applyView(into: Settings, input: SettingsInput | undefined): void {
   if (!input) return;
@@ -233,11 +239,13 @@ export function fromAttributes(get: (name: string) => string | null): SettingsIn
   const motion = get('camera-motion');
   const panX = get('pan-x');
   const panZ = get('pan-z');
+  const zoom = get('zoom');
   const has = (v: string | null) => v !== null && v !== '';
-  if (has(azimuth) || has(cameraElevation) || has(radius) || motion || has(panX) || has(panZ)) {
+  if (has(azimuth) || has(cameraElevation) || has(radius) || motion || has(panX) || has(panZ) || has(zoom)) {
     input.camera = {
       ...(has(panX) ? { panX: Number(panX) } : {}),
       ...(has(panZ) ? { panZ: Number(panZ) } : {}),
+      ...(has(zoom) ? { zoom: Number(zoom) } : {}),
       ...(azimuth !== null && azimuth !== '' ? { azimuth: Number(azimuth) } : {}),
       ...(cameraElevation !== null && cameraElevation !== '' ? { elevation: Number(cameraElevation) } : {}),
       ...(radius !== null && radius !== '' ? { radius: Number(radius) } : {}),
@@ -270,6 +278,7 @@ export function toAttributes(s: Settings): Record<string, string> {
   if (s.camera.motion !== d.camera.motion) out['camera-motion'] = s.camera.motion;
   if (s.camera.panX !== d.camera.panX) out['pan-x'] = String(s.camera.panX);
   if (s.camera.panZ !== d.camera.panZ) out['pan-z'] = String(s.camera.panZ);
+  if (s.camera.zoom !== d.camera.zoom) out.zoom = String(s.camera.zoom);
   return out;
 }
 
@@ -296,6 +305,7 @@ export function toQuery(s: Settings): string {
   if (s.camera.motion !== d.camera.motion) q.set('cm', s.camera.motion);
   if (s.camera.panX !== d.camera.panX) q.set('px', String(s.camera.panX));
   if (s.camera.panZ !== d.camera.panZ) q.set('pz', String(s.camera.panZ));
+  if (s.camera.zoom !== d.camera.zoom) q.set('zm', String(s.camera.zoom));
   return q.toString();
 }
 
@@ -303,7 +313,7 @@ export function fromQuery(query: string): SettingsInput {
   const q = new URLSearchParams(query);
   const byShort = new Map((PARAMS as readonly ParamDef[]).map((p) => [p.short, p.attr]));
   const viewShort: Record<string, string> = {
-    elevation: 'ev', extent: 'ex', detail: 'dl', quality: 'ql', azimuth: 'az', 'camera-elevation': 'ce', radius: 'rd', 'camera-motion': 'cm', 'pan-x': 'px', 'pan-z': 'pz',
+    elevation: 'ev', extent: 'ex', detail: 'dl', quality: 'ql', azimuth: 'az', 'camera-elevation': 'ce', radius: 'rd', 'camera-motion': 'cm', 'pan-x': 'px', 'pan-z': 'pz', zoom: 'zm',
   };
   return fromAttributes((name) => {
     if (name === 'style-name') return q.get('s');

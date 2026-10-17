@@ -77,7 +77,7 @@ vec4 wallPaint(){
 void main(){
   int s=int(uStyle+.5);
   if(vSide>0.5){ OUT_COLOR=wallPaint(); return; }
-  vec4 color=contourPaint(s, vP);
+  vec4 color=contourPaint(s, vP, vP);
   vec3 n=cross(dFdx(vWorld), dFdy(vWorld));
   float lenN=length(n);
   float ndl=lenN>1e-5 ? abs(dot(n/lenN, LIGHT_DIR)) : 1.;

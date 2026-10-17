@@ -322,6 +322,9 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
     set('uCol', col);
     set('uHasHeight', heightField ? 1 : 0);
     set('uHeightAspect', heightField?.aspect || 1);
+    // The 3D ground is the field scaled by 0.9 with z pointing south, so 2D shares the 3D pan.
+    const cam = settings.camera;
+    set('uView', [cam.panX / 0.9, -cam.panZ / 0.9, cam.zoom]);
     applySettings();
     bindHeightSampler();
     gl.drawArrays(gl.TRIANGLES, 0, 3);

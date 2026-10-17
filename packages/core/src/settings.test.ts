@@ -52,7 +52,7 @@ describe('view settings', () => {
     expect(s.mode).toBe('2d');
     expect(s.extent).toBe('endless');
     expect(s.elevation).toBe(0.62);
-    expect(s.camera).toEqual({ azimuth: 349.7, elevation: 33.6, radius: 1.92, motion: 'still', panX: 0, panZ: 0 });
+    expect(s.camera).toEqual({ azimuth: 349.7, elevation: 33.6, radius: 1.92, motion: 'still', panX: 0, panZ: 0, zoom: 1 });
     expect(meshResolution(0)).toBe(32);
     expect(meshResolution(s.detail)).toBe(96);
     expect(meshResolution(1)).toBe(160);
@@ -134,4 +134,13 @@ describe('serialisation', () => {
     expect(attrs).toMatchObject({ 'style-name': 'seed-pod', peaks: '3', speed: '0' });
     expect(resolveSettings(fromAttributes((n) => attrs[n] ?? null))).toEqual(s);
   });
+
+  it('reads, clamps and writes the 2D zoom', () => {
+    expect(resolveSettings({ camera: { zoom: 2.5 } }).camera.zoom).toBe(2.5);
+    expect(resolveSettings({ camera: { zoom: 40 } }).camera.zoom).toBe(8);
+    expect(resolveSettings({ camera: { zoom: 0.2 } }).camera.zoom).toBe(1);
+    expect(toQuery(resolveSettings({ camera: { zoom: 2 } }))).toContain('zm=2');
+    expect(resolveSettings(fromQuery('zm=3')).camera.zoom).toBe(3);
+  });
 });
+
