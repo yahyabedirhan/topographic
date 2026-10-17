@@ -1,10 +1,10 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type MutableRefObject, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import {
-  GROUPS, STYLES, THEME_DEFAULTS, clampParam, mergeSettings, panBy, paramsIn, resolveMode, resolveSettings, rgbaToCss,
+  GROUPS, RADIUS_MAX, RADIUS_MIN, STYLES, THEME_DEFAULTS, clampParam, mergeSettings, panBy, paramsIn, resolveMode, resolveSettings, rgbaToCss,
   type GroupName, type Heightfield, type ParamDef, type Settings, type SettingsInput, type TopographicBackground as Instance,
 } from 'topographic';
 import { TopographicBackground } from 'topographic-react';
-import { anchorFromDrag } from './anchor';
+import { isWheelNotch, notchZoom, pan2d, twoFingerKind, wheelZoom, zoom2d } from './gestures';
 import { bindPageUrlFlush, flushPageUrl, schedulePageUrl } from './page-history';
 import { registerTools } from './webmcp';
 import { configOf, readUrl } from './url';
@@ -127,7 +127,7 @@ export function usePlayground(): Playground {
     cancelAnimationFrame(frame.current);
     const from = latest.current;
     const rolled = mergeSettings(rollSettings(), {
-      mode: from.mode, elevation: from.elevation, extent: from.extent, detail: from.detail, quality: from.quality, camera: from.camera,
+      mode: from.mode, elevation: from.elevation, extent: from.extent, detail: from.detail, quality: from.quality, camera: from.camera, view2d: from.view2d,
     });
     const goal = keep ? keepShape(rolled, from) : rolled;
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -162,6 +162,7 @@ function terrainKey(s: Settings): string {
   delete config.detail;
   delete config.quality;
   delete config.camera;
+  delete config.view2d;
   return JSON.stringify(config);
 }
 
@@ -171,22 +172,24 @@ const wrapDegrees = (n: number) => Number((((n % 360) + 360) % 360).toFixed(1));
 const round3 = (n: number) => Number(n.toFixed(3));
 const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-/**
- * A wheel event from a trackpad's two-finger scroll, not a mouse wheel. Chrome and Safari report a
- * trackpad's legacy wheelDelta as -3 × deltaY, while a mouse notch is a multiple of 120.
- */
-function fromTrackpad(e: WheelEvent): boolean {
-  if (e.deltaMode !== 0) return false;
-  if (e.deltaX !== 0) return true;
-  const legacy = (e as WheelEvent & { wheelDeltaY?: number }).wheelDeltaY;
-  return typeof legacy === 'number' && legacy !== 0 && legacy === -3 * e.deltaY && legacy % 120 !== 0;
+/** Two fingers on the view: where they started and the view then. */
+interface TwoFingers {
+  dist: number;
+  angle: number;
+  x: number;
+  y: number;
+  at: number;
+  kind: 'tilt' | 'pinch' | null;
+  camera: Settings['camera'];
+  view2d: Settings['view2d'];
 }
 
 /**
- * The 3D view's pointer controls. A drag orbits. A two-finger scroll pans across the ground, and so
- * do a right drag, a Shift+drag and a two-finger touch drag. ⌘/Ctrl + scroll or a pinch zooms (a
- * pinch is a wheel with ctrlKey); Shift or Alt + scroll and a plain mouse wheel zoom too. A
- * double-click glides the pan back to the centre.
+ * The view's pointer controls, in the convention of Google Maps and Google Earth. A drag, or one
+ * finger, moves the terrain. A scroll, a pinch or ⌘/Ctrl + scroll zooms. In 3D, ⌘, Ctrl or Shift +
+ * drag and a right drag rotate and tilt; on touch, two fingers twist to rotate and move up or down
+ * together to tilt. A double tap zooms in and a two finger tap zooms out. A double click glides
+ * the pan back to the centre. 2D pans and zooms the flat map the same way.
  */
 function useOrbit(pg: Playground) {
   const live = useRef(pg);
@@ -194,61 +197,132 @@ function useOrbit(pg: Playground) {
   const node = useRef<HTMLDivElement | null>(null);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const drag = useRef<{ id: number; x: number; y: number; azimuth: number; elevation: number } | null>(null);
-  const pan = useRef<{ id: number; x: number; y: number; panX: number; panZ: number } | null>(null);
-  const pinch = useRef<{ dist: number; radius: number; x: number; y: number; panX: number; panZ: number } | null>(null);
+  const pan = useRef<{ id: number; x: number; y: number; panX: number; panZ: number; view2d: Settings['view2d']; at: number; touch: boolean; moved: boolean } | null>(null);
+  const two = useRef<TwoFingers | null>(null);
+  const lastTap = useRef<{ at: number; x: number; y: number } | null>(null);
+  const lastPointer = useRef('mouse');
   const glide = useRef(0);
-  const wheelPan = useRef(0);
-  const layoutDrag = useRef<{ id: number; x: number; anchor: number } | null>(null);
+  const queued = useRef<Settings | null>(null);
+  const flushId = useRef(0);
 
-  /** The pan after dragging (dx, dy) pixels from `from`, kept over the terrain. */
-  const panned = (from: { panX: number; panZ: number }, dx: number, dy: number) => {
+  // A flushed change waits here until React renders it, so a gesture's next frame builds on it.
+  const flushed = useRef<Settings | null>(null);
+  const seen = useRef(pg.settings);
+  if (pg.settings !== seen.current) { seen.current = pg.settings; flushed.current = null; }
+
+  const height = () => node.current?.clientHeight || innerHeight;
+  /** The settings with any change React has not rendered yet. */
+  const now = () => queued.current ?? flushed.current ?? live.current.settings;
+  // The canvas updates on this event. React, the URL and the sliders catch up once per frame.
+  const push = (patch: SettingsInput) => {
     const current = live.current;
-    const t = current.instance.current;
-    const pose = t?.pose ?? current.settings.camera;
-    const [x, z] = panBy({ ...pose, ...from }, dx, dy, node.current?.clientHeight ?? innerHeight);
+    queued.current = mergeSettings(now(), patch);
+    current.instance.current?.update(patch);
+    if (!flushId.current) flushId.current = requestAnimationFrame(() => {
+      flushId.current = 0;
+      const next = queued.current;
+      queued.current = null;
+      if (next) { flushed.current = next; current.replace(next); }
+    });
+  };
+
+  /** How far the 2D view centre may go: half the view, so some of the terrain stays on screen. */
+  const half2d = (): [number, number] => {
+    const el = node.current;
+    return [(el?.clientWidth || innerWidth) / height() / 2, 0.5];
+  };
+  /** The 3D pan after dragging (dx, dy) pixels from `from`, kept over the terrain. */
+  const panned = (from: { panX: number; panZ: number }, dx: number, dy: number) => {
+    const t = live.current.instance.current;
+    const pose = t?.pose ?? now().camera;
+    const [x, z] = panBy({ ...pose, ...from }, dx, dy, height());
     const [panX, panZ] = t ? t.clampPan(x, z) : [x, z];
     return { panX: round3(panX), panZ: round3(panZ) };
   };
+
+  /** Zooms by `factor` (above 1 is closer): 2D around the screen point (x, y), 3D toward the centre. */
+  const zoomBy = (factor: number, x?: number, y?: number) => {
+    const s = now();
+    if (s.mode === '2d') {
+      const r = node.current?.getBoundingClientRect();
+      const ox = r && x !== undefined ? x - r.left - r.width / 2 : 0;
+      const oy = r && y !== undefined ? y - r.top - r.height / 2 : 0;
+      push({ view2d: zoom2d(s.view2d, s.view2d.zoom * factor, ox, oy, height(), half2d()) });
+      return;
+    }
+    const radius = Math.min(RADIUS_MAX, Math.max(RADIUS_MIN, s.camera.radius / factor));
+    push({ camera: { radius: Number(radius.toFixed(2)), motion: 'still' } });
+  };
+
   const stopGlide = () => { cancelAnimationFrame(glide.current); glide.current = 0; };
+  const wheelGoal = useRef<{ log: number; x: number; y: number } | null>(null);
+  const wheelFrame = useRef(0);
+  const stopWheel = () => { cancelAnimationFrame(wheelFrame.current); wheelFrame.current = 0; wheelGoal.current = null; };
+  /** Eases toward the zoom a mouse wheel's notches asked for. Quick notches add up. */
+  const easeWheel = (factor: number, x: number, y: number) => {
+    if (reducedMotion()) { zoomBy(factor, x, y); return; }
+    wheelGoal.current = { log: (wheelGoal.current?.log ?? 0) + Math.log(factor), x, y };
+    if (wheelFrame.current) return;
+    const step = () => {
+      const goal = wheelGoal.current;
+      if (!goal || Math.abs(goal.log) < 1e-4) { stopWheel(); return; }
+      const part = Math.abs(goal.log) < 0.01 ? goal.log : goal.log * 0.3;
+      zoomBy(Math.exp(part), goal.x, goal.y);
+      goal.log -= part;
+      wheelFrame.current = requestAnimationFrame(step);
+    };
+    wheelFrame.current = requestAnimationFrame(step);
+  };
+  /** A short eased zoom, for taps. */
+  const glideZoom = (factor: number, x?: number, y?: number) => {
+    stopGlide();
+    if (reducedMotion()) { zoomBy(factor, x, y); return; }
+    const t0 = performance.now();
+    let done = 0;
+    const step = (at: number) => {
+      const t = Math.min(1, (at - t0) / 240);
+      const e = 1 - (1 - t) ** 3;
+      zoomBy(factor ** (e - done), x, y);
+      done = e;
+      glide.current = t < 1 ? requestAnimationFrame(step) : 0;
+    };
+    glide.current = requestAnimationFrame(step);
+  };
 
   useEffect(() => {
     const el = node.current;
     if (!el) return;
     const onWheel = (e: WheelEvent) => {
-      const current = live.current;
-      if (current.settings.mode !== '3d') return;
+      const mode = live.current.settings.mode;
+      if (mode !== '2d' && mode !== '3d') return;
       e.preventDefault();
-      // A pinch on a trackpad arrives as a wheel with ctrlKey, and Shift, Command or Alt turn any
-      // scroll into a zoom. macOS turns a vertical scroll with Shift held into deltaX, so the larger
-      // axis is the amount.
-      const now = performance.now();
-      const zoom = e.ctrlKey || e.shiftKey || e.metaKey || e.altKey;
-      if (!zoom && (now - wheelPan.current < 180 || fromTrackpad(e))) {
-        wheelPan.current = now;
-        stopGlide();
-        const cam = current.settings.camera;
-        current.change({ camera: panned({ panX: cam.panX, panZ: cam.panZ }, -e.deltaX, -e.deltaY) });
-        return;
-      }
-      wheelPan.current = 0;
-      const amount = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-      const radius = Math.min(6.5, Math.max(1.15, current.settings.camera.radius * Math.exp(amount * (e.ctrlKey ? 0.01 : 0.0011))));
-      current.change({ camera: { radius: Number(radius.toFixed(2)), motion: 'still' } });
-    };
-    // A right drag pans, so the context menu stays shut over the 3D view.
-    const onMenu = (e: MouseEvent) => { if (live.current.settings.mode === '3d') e.preventDefault(); };
-    const onDouble = () => {
-      const current = live.current;
-      if (current.settings.mode !== '3d') return;
-      const { panX, panZ } = current.settings.camera;
-      if (!panX && !panZ) return;
       stopGlide();
-      if (reducedMotion()) { current.change({ camera: { panX: 0, panZ: 0 } }); return; }
+      // A mouse notch is one big step, eased; a trackpad's scroll and pinch follow the fingers.
+      if (isWheelNotch(e as WheelEvent & { wheelDeltaY?: number })) { easeWheel(notchZoom(e), e.clientX, e.clientY); return; }
+      stopWheel();
+      // macOS turns a vertical scroll with Shift held into deltaX.
+      const delta = e.deltaY || e.deltaX;
+      zoomBy(wheelZoom(delta, e.deltaMode, e.ctrlKey), e.clientX, e.clientY);
+    };
+    // A right drag rotates, so the context menu stays shut over the 3D view.
+    const onMenu = (e: MouseEvent) => { if (live.current.settings.mode === '3d') e.preventDefault(); };
+    // A double tap zooms in instead; touch browsers can send a double click after it.
+    const onDouble = () => {
+      if (lastPointer.current === 'touch') return;
+      const s = now();
+      const flat = s.mode === '2d';
+      const [a, b] = flat ? [s.view2d.x, s.view2d.y] : [s.camera.panX, s.camera.panZ];
+      if (!a && !b) return;
+      const at = (k: number): SettingsInput => (flat
+        ? { view2d: { x: round3(a * k), y: round3(b * k) } }
+        : { camera: { panX: round3(a * k), panZ: round3(b * k) } });
+      stopGlide();
+      if (reducedMotion()) { push(at(0)); return; }
       const t0 = performance.now();
       const step = (now: number) => {
         const t = Math.min(1, (now - t0) / 420);
         const k = (1 - t) ** 3;
-        live.current.change({ camera: { panX: round3(panX * k), panZ: round3(panZ * k) } });
+        push(at(k));
         glide.current = t < 1 ? requestAnimationFrame(step) : 0;
       };
       glide.current = requestAnimationFrame(step);
@@ -258,80 +332,82 @@ function useOrbit(pg: Playground) {
     el.addEventListener('dblclick', onDouble);
     return () => {
       stopGlide();
+      stopWheel();
       el.removeEventListener('wheel', onWheel);
       el.removeEventListener('contextmenu', onMenu);
       el.removeEventListener('dblclick', onDouble);
     };
   }, []);
+
+  const startTwo = () => {
+    const [a, b] = [...pointers.current.values()];
+    two.current = {
+      dist: Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)), angle: Math.atan2(b.y - a.y, b.x - a.x),
+      x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, at: performance.now(), kind: null, camera: now().camera, view2d: now().view2d,
+    };
+    drag.current = null;
+    pan.current = null;
+  };
+
   const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
-    const current = live.current;
-    if (current.settings.mode === '2d') {
-      if (e.button !== 0) return;
-      e.currentTarget.setPointerCapture(e.pointerId);
-      noteStagePointer(true);
-      layoutDrag.current = { id: e.pointerId, x: e.clientX, anchor: current.settings.layout.anchor };
-      return;
-    }
-    if (current.settings.mode !== '3d') return;
+    const mode = live.current.settings.mode;
+    if (mode !== '2d' && mode !== '3d') return;
+    lastPointer.current = e.pointerType;
     stopGlide();
+    stopWheel();
     e.currentTarget.setPointerCapture(e.pointerId);
     noteStagePointer(true);
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    const cam = current.settings.camera;
-    if (pointers.current.size >= 2) {
-      const [a, b] = [...pointers.current.values()];
-      pinch.current = {
-        dist: Math.hypot(a.x - b.x, a.y - b.y), radius: cam.radius,
-        x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, panX: cam.panX, panZ: cam.panZ,
-      };
-      drag.current = null;
-      pan.current = null;
-      return;
-    }
-    if (e.button === 2 || e.button === 1 || (e.button === 0 && e.shiftKey)) {
-      pan.current = { id: e.pointerId, x: e.clientX, y: e.clientY, panX: cam.panX, panZ: cam.panZ };
+    if (pointers.current.size >= 2) { startTwo(); return; }
+    const { camera: cam, view2d } = now();
+    if (mode === '3d' && (e.button === 2 || e.button === 1 || e.metaKey || e.ctrlKey || e.shiftKey)) {
+      drag.current = { id: e.pointerId, x: e.clientX, y: e.clientY, azimuth: cam.azimuth, elevation: cam.elevation };
       e.currentTarget.style.cursor = 'move';
       return;
     }
-    drag.current = { id: e.pointerId, x: e.clientX, y: e.clientY, azimuth: cam.azimuth, elevation: cam.elevation };
+    if (e.button !== 0) return;
+    pan.current = {
+      id: e.pointerId, x: e.clientX, y: e.clientY, panX: cam.panX, panZ: cam.panZ, view2d,
+      at: performance.now(), touch: e.pointerType === 'touch', moved: false,
+    };
   };
-  const queued = useRef<Settings | null>(null);
-  const flushId = useRef(0);
-  // The canvas updates on this event. React, the URL and the sliders catch up once per frame.
-  const push = (patch: SettingsInput) => {
-    const current = live.current;
-    const base = queued.current ?? current.settings;
-    queued.current = mergeSettings(base, patch);
-    current.instance.current?.update(patch);
-    if (!flushId.current) flushId.current = requestAnimationFrame(() => {
-      flushId.current = 0;
-      const next = queued.current;
-      queued.current = null;
-      if (next) current.replace(next);
-    });
-  };
+
   const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
-    const current = live.current;
-    const lay = layoutDrag.current;
-    if (lay && lay.id === e.pointerId && current.settings.mode === '2d') {
-      push({ layout: { anchor: anchorFromDrag(lay.anchor, e.clientX - lay.x, e.currentTarget.clientWidth || innerWidth) } });
-      return;
-    }
-    if (current.settings.mode !== '3d' || !pointers.current.has(e.pointerId)) return;
+    if (!pointers.current.has(e.pointerId)) return;
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    const two = pinch.current;
-    if (pointers.current.size >= 2 && two) {
-      // Two fingers zoom by their spread and pan by their midpoint, together.
+    const fingers = two.current;
+    if (pointers.current.size >= 2 && fingers) {
       const [a, b] = [...pointers.current.values()];
       const dist = Math.max(1, Math.hypot(a.x - b.x, a.y - b.y));
-      const radius = Math.min(6.5, Math.max(1.15, two.radius * (two.dist / dist)));
-      const moved = panned(two, (a.x + b.x) / 2 - two.x, (a.y + b.y) / 2 - two.y);
-      push({ camera: { radius: Number(radius.toFixed(2)), ...moved } });
+      const midDx = (a.x + b.x) / 2 - fingers.x;
+      const midDy = (a.y + b.y) / 2 - fingers.y;
+      const is3d = now().mode === '3d';
+      fingers.kind ??= is3d ? twoFingerKind(midDx, midDy, dist / fingers.dist) : twoFingerKind(midDx, 0, dist / fingers.dist) && 'pinch';
+      const cam = fingers.camera;
+      if (fingers.kind === 'tilt') {
+        // Fingers up lay the view down toward the horizon, as in Google Maps.
+        const elevation = Math.min(80, Math.max(2, cam.elevation + midDy * 0.25));
+        push({ camera: { elevation: Number(elevation.toFixed(1)), motion: 'still' } });
+      } else if (fingers.kind === 'pinch') {
+        const spread = dist / fingers.dist;
+        if (is3d) {
+          const turn = (Math.atan2(b.y - a.y, b.x - a.x) - fingers.angle) * 180 / Math.PI;
+          const radius = Math.min(RADIUS_MAX, Math.max(RADIUS_MIN, cam.radius / spread));
+          push({ camera: { radius: Number(radius.toFixed(2)), azimuth: wrapDegrees(cam.azimuth + turn), motion: 'still', ...panned(cam, midDx, midDy) } });
+        } else {
+          const r = node.current?.getBoundingClientRect();
+          const v = fingers.view2d;
+          const zoomed = zoom2d(v, v.zoom * spread, fingers.x - (r?.left ?? 0) - (r?.width ?? 0) / 2, fingers.y - (r?.top ?? 0) - (r?.height ?? 0) / 2, height(), half2d());
+          push({ view2d: pan2d(zoomed, midDx, midDy, height(), half2d()) });
+        }
+      }
       return;
     }
     const held = pan.current;
     if (held && held.id === e.pointerId) {
-      push({ camera: panned(held, e.clientX - held.x, e.clientY - held.y) });
+      if (Math.hypot(e.clientX - held.x, e.clientY - held.y) > 6) held.moved = true;
+      const dx = e.clientX - held.x, dy = e.clientY - held.y;
+      push(now().mode === '2d' ? { view2d: pan2d(held.view2d, dx, dy, height(), half2d()) } : { camera: panned(held, dx, dy) });
       return;
     }
     const orbit = drag.current;
@@ -340,17 +416,28 @@ function useOrbit(pg: Playground) {
     const elevation = Math.min(80, Math.max(2, orbit.elevation - (e.clientY - orbit.y) * 0.2));
     push({ camera: { azimuth, elevation: Number(elevation.toFixed(1)), motion: 'still' } });
   };
+
   const onPointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (flushId.current) { cancelAnimationFrame(flushId.current); flushId.current = 0; }
     const pendingSettings = queued.current;
     queued.current = null;
-    if (pointers.current.has(e.pointerId) || layoutDrag.current?.id === e.pointerId) noteStagePointer(false);
+    if (pointers.current.has(e.pointerId)) noteStagePointer(false);
     if (pendingSettings) live.current.replace(pendingSettings);
-    if (layoutDrag.current?.id === e.pointerId) layoutDrag.current = null;
+    const fingers = two.current;
+    // Two fingers that tap and lift without moving zoom out.
+    if (fingers && !fingers.kind && performance.now() - fingers.at < 300) glideZoom(1 / 1.6);
+    const held = pan.current;
+    if (held?.id === e.pointerId && held.touch && !held.moved && performance.now() - held.at < 300) {
+      const tap = lastTap.current;
+      if (tap && performance.now() - tap.at < 320 && Math.hypot(e.clientX - tap.x, e.clientY - tap.y) < 30) {
+        lastTap.current = null;
+        glideZoom(1.6, e.clientX, e.clientY);
+      } else lastTap.current = { at: performance.now(), x: e.clientX, y: e.clientY };
+    }
     pointers.current.delete(e.pointerId);
-    if (drag.current?.id === e.pointerId) drag.current = null;
-    if (pan.current?.id === e.pointerId) { pan.current = null; e.currentTarget.style.cursor = ''; }
-    if (pointers.current.size < 2) pinch.current = null;
+    if (drag.current?.id === e.pointerId) { drag.current = null; e.currentTarget.style.cursor = ''; }
+    if (held?.id === e.pointerId) pan.current = null;
+    if (pointers.current.size < 2) two.current = null;
   };
   return { node, onPointerDown, onPointerMove, onPointerUp, onPointerCancel: onPointerUp };
 }

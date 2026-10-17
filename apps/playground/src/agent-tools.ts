@@ -33,7 +33,7 @@ export const SETTINGS_SCHEMA = {
       properties: {
         azimuth: { type: 'number', description: 'Degrees around the terrain. Any finite number.' },
         elevation: { type: 'number', minimum: 2, maximum: 80, description: 'Degrees above the horizon. Never below the terrain.' },
-        radius: { type: 'number', minimum: 1.15, maximum: 6.5, description: 'Distance from the terrain centre.' },
+        radius: { type: 'number', minimum: 0.4, maximum: 6.5, description: 'Distance from the terrain centre.' },
         motion: { type: 'string', enum: ['still', 'orbit', 'push', 'flyover', 'drone'], description: 'How the camera moves. still holds the pose.' },
         panX: { type: 'number', minimum: -6, maximum: 6, description: 'Moves the point the camera looks at east across the ground. 0 is the terrain centre; kept over the terrain.' },
         panZ: { type: 'number', minimum: -6, maximum: 6, description: 'Moves the point the camera looks at south across the ground. 0 is the terrain centre; kept over the terrain.' },

@@ -120,6 +120,7 @@ export function createTerrainPass(): TerrainPass {
     if (!at) return;
     if (name === 'uParams') gl.uniform1fv(at, value as Float32Array);
     else if (value.length === 2) gl.uniform2f(at, value[0], value[1]);
+    else if (value.length === 3) gl.uniform3f(at, value[0], value[1], value[2]);
     else gl.uniform4f(at, value[0], value[1], value[2], value[3]);
   }
 

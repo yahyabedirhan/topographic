@@ -61,7 +61,8 @@ vec2 regionUv(){
 #ifdef REGION_FROM_MESH
   return vUV;
 #else
-  vec2 suv=gl_FragCoord.xy/uRes;
+  // The pixel's place in the zoomed and panned 2D view, as a fraction of the screen.
+  vec2 suv=((gl_FragCoord.xy-.5*uRes)/uRes.y/uView.z+uView.xy)*uRes.y/uRes+.5;
   float viewA=uRes.x/max(uRes.y,1.);
   float ra=max(uHeightAspect,.05);
   vec2 c=suv-.5;
@@ -79,7 +80,7 @@ float regionSample(vec2 uv){
   // R is the high byte and G the low byte; the sum is linear, so filtering stays correct.
   return dot(hl, vec2(65280., 255.)/65535.);
 }
-vec4 contourPaint(int s, vec2 p){
+vec4 contourPaint(int s, vec2 p, vec2 screen){
   float t=uTime*.08*uParams[3]; vec3 c=uInk.rgb; float n=uParams[0]; float px=uParams[1]; float a=1.;
   bool petal=s==STYLE_DRIFTING_LOBES||s==STYLE_GRANITE||s==STYLE_FIVE_PETALS||s==STYLE_SEED_POD;
   if(s==STYLE_DRIFTING_LOBES) a=.95;
@@ -105,7 +106,7 @@ vec4 contourPaint(int s, vec2 p){
   float beads=shaped
     ? smoothstep(.75,1.,sin(ang*40.+t*8.*float(s+1)))*l*uParams[4]
     : smoothstep(.75,1.,sin((p.x+p.y)*60.+t*8.))*l*uParams[4];
-  float m=shaped ? colMask(p)*smoothstep(2.2,.1,r)*a : colMask(p);
+  float m=shaped ? colMask(screen)*smoothstep(2.2,.1,r)*a : colMask(screen);
   float lineAmp=(l*.75+beads*.7)*uParams[2]*m;
   vec4 ink=paint(c,lineAmp);
   return mix(vec4(uPaper.rgb,uPaper.a), ink, cover);
@@ -116,9 +117,11 @@ const FIELD = /* glsl */ `
 ${CONTOUR_FIELD}
 ${CONTOUR_PAINT}
 void main(){
-  vec2 p=(gl_FragCoord.xy-.5*uRes)/uRes.y;
+  vec2 screen=(gl_FragCoord.xy-.5*uRes)/uRes.y;
+  // The fade stays on the page; the terrain moves under it.
+  vec2 p=screen/uView.z+uView.xy;
   int s=int(uStyle+.5);
-  OUT_COLOR = contourPaint(s,p);
+  OUT_COLOR = contourPaint(s,p,screen);
 }
 `;
 

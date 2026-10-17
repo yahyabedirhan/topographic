@@ -26,6 +26,8 @@ export function configOf(s: Settings): SettingsInput & { style: string } {
     .filter((k) => s.camera[k] !== d.camera[k])
     .map((k) => [k, s.camera[k]]));
   if (Object.keys(camera).length) out.camera = camera;
+  const view2d = Object.fromEntries((['x', 'y', 'zoom'] as const).filter((k) => s.view2d[k] !== d.view2d[k]).map((k) => [k, s.view2d[k]]));
+  if (Object.keys(view2d).length) out.view2d = view2d;
   return out as SettingsInput & { style: string };
 }
 

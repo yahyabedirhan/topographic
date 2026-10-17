@@ -134,4 +134,16 @@ describe('serialisation', () => {
     expect(attrs).toMatchObject({ 'style-name': 'seed-pod', peaks: '3', speed: '0' });
     expect(resolveSettings(fromAttributes((n) => attrs[n] ?? null))).toEqual(s);
   });
+
+  it('reads, clamps and writes the 2D view apart from the camera', () => {
+    expect(resolveSettings().view2d).toEqual({ x: 0, y: 0, zoom: 1 });
+    expect(resolveSettings({ view2d: { x: 0.25, zoom: 2.5 } }).view2d).toEqual({ x: 0.25, y: 0, zoom: 2.5 });
+    expect(resolveSettings({ view2d: { zoom: 40 } }).view2d.zoom).toBe(8);
+    expect(resolveSettings({ view2d: { zoom: 0.2 } }).view2d.zoom).toBe(1);
+    expect(resolveSettings({ view2d: { zoom: 2 } }).camera).toEqual(resolveSettings().camera);
+    expect(toQuery(resolveSettings({ view2d: { x: 0.1, y: -0.2, zoom: 2 } }))).toContain('vx=0.1&vy=-0.2&vz=2');
+    expect(resolveSettings(fromQuery('vx=0.3&vz=3')).view2d).toEqual({ x: 0.3, y: 0, zoom: 3 });
+    expect(toAttributes(resolveSettings({ view2d: { zoom: 2 } }))).toMatchObject({ 'view-zoom': '2' });
+  });
 });
+

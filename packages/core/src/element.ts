@@ -4,7 +4,7 @@ import { fromAttributes, resolveSettings, type SettingsInput } from './settings.
 
 export const ELEMENT_ATTRIBUTES: readonly string[] = [
   'style-name', 'seed', 'theme', 'ink', 'paper', 'mode', 'elevation', 'extent', 'detail', 'quality',
-  'azimuth', 'camera-elevation', 'radius', 'camera-motion', 'pan-x', 'pan-z', ...PARAMS.map((p) => p.attr),
+  'azimuth', 'camera-elevation', 'radius', 'camera-motion', 'pan-x', 'pan-z', 'view-x', 'view-y', 'view-zoom', ...PARAMS.map((p) => p.attr),
 ];
 
 const Base = (typeof HTMLElement !== 'undefined' ? HTMLElement : class {}) as typeof HTMLElement;
