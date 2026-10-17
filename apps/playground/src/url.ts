@@ -1,6 +1,10 @@
 import { GROUPS, paramsIn, resolveSettings, type Settings, type SettingsInput } from 'topographic';
-import { readSettings, withQuery, writeSettings } from './share-url';
+import { PLAYGROUND_QUALITY, readSettings, withQuery, writeSettings } from './share-url';
 
+/**
+ * The settings that differ from the style's defaults. The playground's own detail and budget are left out too,
+ * so an embed at those keeps the library's defaults and follows each visitor's device.
+ */
 export function configOf(s: Settings): SettingsInput & { style: string } {
   const d = resolveSettings({ style: s.style });
   const out: Record<string, unknown> = { style: s.style };
@@ -16,8 +20,8 @@ export function configOf(s: Settings): SettingsInput & { style: string } {
   if (s.mode !== d.mode) out.mode = s.mode;
   if (s.elevation !== d.elevation) out.elevation = s.elevation;
   if (s.extent !== d.extent) out.extent = s.extent;
-  if (s.detail !== d.detail) out.detail = s.detail;
-  if (s.quality !== d.quality) out.quality = s.quality;
+  if (s.detail !== d.detail && s.detail !== PLAYGROUND_QUALITY.detail) out.detail = s.detail;
+  if (s.quality !== d.quality && s.quality !== PLAYGROUND_QUALITY.quality) out.quality = s.quality;
   const camera = Object.fromEntries((['azimuth', 'elevation', 'radius', 'motion', 'panX', 'panZ'] as const)
     .filter((k) => s.camera[k] !== d.camera[k])
     .map((k) => [k, s.camera[k]]));

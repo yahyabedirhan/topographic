@@ -50,6 +50,8 @@ Every event also carries: site and app name, app version, a coarse screen class 
 | `export_video_completed` | The same video options, preparation time and file size | To keep video export fast |
 | `export_video_failed` | The same video options, preparation time and a short error label | To fix failing videos |
 | `performance_sample` | Once per visit, about 20 seconds in: median and low frame rate, refresh rate, graphics tier, viewport, pixel ratio, GPU name, device memory, browser, OS family, long frames, lost WebGL contexts, time to first frame and view | To keep the animation smooth on every device |
+| `low_performance_prompt_shown` | The frame rate, the view, and the detail and budget levels | To see how often the default graphics are too heavy |
+| `low_performance_prompt_clicked` | Nothing more | To see if the prompt helps |
 | `analytics_opted_out` | The previous level (all or pageviews only) | Sent once when you opt out, to count opt outs |
 
 ## Error reports

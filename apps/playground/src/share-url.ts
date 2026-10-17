@@ -1,4 +1,4 @@
-import { DEFAULT_STYLE, PARAMS, fromQuery, mergeSettings, resolveSettings, type ParamDef, type Settings } from 'topographic';
+import { DEFAULT_STYLE, PARAMS, fromQuery, mergeSettings, resolveSettings, type ParamDef, type Settings, type SettingsInput } from 'topographic';
 import { LOOKS, type Look } from './looks';
 
 const VIEW = ['m', 'ink', 'paper', 'mode', 'ex', 'ev', 'dl', 'ql', 'az', 'ce', 'rd', 'cm', 'px', 'pz'] as const;
@@ -9,6 +9,13 @@ export const SETTINGS_KEYS: readonly string[] = ['look', 's', 'seed', ...(PARAMS
 export const lookSlug = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
 export const findLook = (slug: string | null): Look | undefined => slug ? LOOKS.find((l) => lookSlug(l.name) === slug) : undefined;
+
+/** The playground draws at the finest detail and the high budget unless the settings name their own. */
+export const PLAYGROUND_QUALITY = { detail: 1, quality: 'high' } as const satisfies SettingsInput;
+
+/** The settings for `input` at the playground's quality. A link or a saved terrain that names a detail or budget keeps it. */
+export const playgroundSettings = (input: SettingsInput = {}): Settings =>
+  mergeSettings(resolveSettings(input), { detail: input.detail ?? PLAYGROUND_QUALITY.detail, quality: input.quality ?? PLAYGROUND_QUALITY.quality });
 
 const HEX = /^#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
 const colourOut = (c: string) => HEX.test(c) ? c.slice(1) : c;
@@ -45,10 +52,10 @@ const same = (a: Settings, b: Settings) => !diff(a, b).length && a.theme.ink ===
 /** The settings as the fewest query params: a diff against the style defaults or against a look of the same style. */
 export function settingsParams(s: Settings): [string, string][] {
   if (same(decode(new URLSearchParams(HOME_QUERY)), s)) return [];
-  const plain = diff(s, { ...resolveSettings({ style: s.style }), style: DEFAULT_STYLE });
+  const plain = diff(s, { ...playgroundSettings({ style: s.style }), style: DEFAULT_STYLE });
   let best = plain;
   for (const look of LOOKS) {
-    const base = resolveSettings(look.settings);
+    const base = playgroundSettings(look.settings);
     if (base.style !== s.style) continue;
     const entries: [string, string][] = [['look', lookSlug(look.name)], ...diff(s, base)];
     if (entries.length < best.length && same(decode(new URLSearchParams(entries)), s)) best = entries;
@@ -64,7 +71,7 @@ export function readSettings(search: string): Settings {
 
 function decode(q: URLSearchParams): Settings {
   const look = findLook(q.get('look'));
-  const base = resolveSettings(look ? look.settings : { style: q.get('s') ?? undefined });
+  const base = playgroundSettings(look ? look.settings : { style: q.get('s') ?? undefined });
   for (const key of ['ink', 'paper']) {
     const v = q.get(key);
     if (v) q.set(key, colourIn(v));

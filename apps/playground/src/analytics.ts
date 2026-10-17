@@ -16,6 +16,7 @@ export type ImageVariant = 'screen' | 'phone' | '1080p';
 export type VideoMotion = 'orbit' | 'push' | 'flyover' | 'drone';
 export type VideoContainer = 'mp4' | 'webm';
 export type ColourSlot = 'paper' | 'ink';
+export type QualityLevel = 'auto' | 'low' | 'medium' | 'high';
 
 interface VideoProps {
   motion: VideoMotion;
@@ -53,6 +54,8 @@ export interface AnalyticsEvents {
   export_video_completed: VideoProps & { prepare_ms: number; size_bytes: number };
   export_video_failed: VideoProps & { prepare_ms: number; error: string };
   performance_sample: PerformanceSample;
+  low_performance_prompt_shown: { fps: number; view_mode: ViewMode; detail: 'low' | 'medium' | 'high'; budget: QualityLevel };
+  low_performance_prompt_clicked: Record<string, never>;
   analytics_opted_out: { from: Exclude<Consent, 'none'> };
 }
 
@@ -92,7 +95,8 @@ export const EVENT_NAMES = [
   'ui_click', 'view_mode_changed', 'panel_opened', 'panel_closed', 'export_tab_changed', 'dock_item_clicked',
   'saved_terrain_deleted', 'place_applied', 'region_loaded', 'setting_changed', 'quality_changed', 'theme_toggled',
   'shuffle_clicked', 'colour_changed', 'link_copied', 'code_copied', 'export_image_downloaded', 'export_image_failed',
-  'export_video_started', 'export_video_completed', 'export_video_failed', 'performance_sample', 'analytics_opted_out',
+  'export_video_started', 'export_video_completed', 'export_video_failed', 'performance_sample', 'low_performance_prompt_shown',
+  'low_performance_prompt_clicked', 'analytics_opted_out',
 ] as const satisfies readonly (keyof AnalyticsEvents)[];
 
 /** A short, fixed error label: the message's first line, without the library prefix, capped. */

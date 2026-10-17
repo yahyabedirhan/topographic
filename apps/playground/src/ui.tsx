@@ -2,7 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useSta
 import { Popover } from '@base-ui-components/react/popover';
 import { Toggle } from '@base-ui-components/react/toggle';
 import { Tooltip } from '@base-ui-components/react/tooltip';
-import { Box, ChevronRight, Dices, Earth, Frame, Map, Moon, Mountain, SlidersHorizontal, Spline, Sun, Wind, X } from 'lucide-react';
+import { Box, ChevronRight, Dices, Earth, Frame, Map, Moon, Mountain, SlidersHorizontal, Spline, Sun, TriangleAlert, Wind, X } from 'lucide-react';
 import { MapButton } from './region/controls';
 import { MAP_LOOKS } from './region/map-looks';
 import { Minimap } from './region/Minimap';
@@ -16,6 +16,7 @@ import {
   type CameraMotion, type GroupName, type ParamDef, type TerrainExtent,
 } from 'topographic';
 import { LOOK_CAMERAS, LOOKS } from './looks';
+import { PLAYGROUND_QUALITY } from './share-url';
 import { OffNote, Preview, Section, SegRow, SliderRow, Tabs, Tip, type TabItem } from './parts';
 import { contourArt, flowArt, layoutArt, rigArt, terrainArt, type GlyphName, type TrackKind } from './track-art';
 import {
@@ -24,7 +25,7 @@ import {
 } from './shared';
 import { TerrainLoading } from './loading';
 import { track, trackDebounced, type PanelName } from './analytics';
-import { noteFps } from './perf';
+import { createLowFpsWatch, noteFps } from './perf';
 
 // MapLibre is large, so the place panel loads the first time Map opens.
 const PlacePanel = lazy(() => import('./region/Picker').then((m) => ({ default: m.PlacePanel })));
@@ -515,7 +516,7 @@ function ViewTune({ pg }: { pg: Playground }) {
           onChange={(n) => { tuned('camera', 'radius'); cam({ radius: n }); }}
         />
       </Section>
-      <Section title="Quality" resetIf={!off && (s.detail !== DEFAULT_DETAIL || s.quality !== 'auto')} onReset={() => pg.change({ detail: DEFAULT_DETAIL, quality: 'auto' })}>
+      <Section title="Quality" resetIf={!off && (s.detail !== PLAYGROUND_QUALITY.detail || s.quality !== PLAYGROUND_QUALITY.quality)} onReset={() => pg.change(PLAYGROUND_QUALITY)}>
         <SegRow
           label="Detail"
           icon="detail"
@@ -614,6 +615,67 @@ function GlRecovery({ pg }: { pg: Playground }) {
   return <div className="pt-recover" role="status">Bringing the terrain back</div>;
 }
 
+const PROMPT_KEY = 'topographic-low-performance-prompt';
+
+/** True once the prompt has shown in this browser session. */
+function promptSeen(): boolean {
+  try { return sessionStorage.getItem(PROMPT_KEY) === 'seen'; } catch { return false; }
+}
+
+function notePromptSeen(): void {
+  try { sessionStorage.setItem(PROMPT_KEY, 'seen'); } catch { /* the prompt then shows again after a reload */ }
+}
+
+/**
+ * Shows under the cluster when the frame rate stays below 30 fps at a quality above medium. A click
+ * sets Detail and Budget to medium. It shows at most once per browser session.
+ */
+function LowPerformancePrompt({ pg, loading }: { pg: Playground; loading: boolean }) {
+  const [state, setState] = useState<'watch' | 'shown' | 'done'>(() => (promptSeen() ? 'done' : 'watch'));
+  const { detail, quality, mode, motion } = pg.settings;
+  const heavy = detail > DEFAULT_DETAIL || quality === 'high';
+  const live = useRef(pg);
+  live.current = pg;
+  const still = mode === '2d' && motion.speed === 0;
+  useEffect(() => {
+    if (state !== 'watch' || !heavy) return;
+    // Starts again on a change of quality or view, so the new setting gets its own warmup.
+    const watch = createLowFpsWatch();
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+    const id = window.setInterval(() => {
+      const t = live.current.instance.current;
+      const drawing = t?.status === 'webgl2' || t?.status === 'webgl1';
+      const paused = loading || still || !drawing || document.visibilityState === 'hidden' || reduced.matches;
+      const fps = t?.stats.fps ?? 0;
+      if (!watch.sample(performance.now(), fps, paused)) return;
+      const s = live.current.settings;
+      notePromptSeen();
+      setState('shown');
+      track('low_performance_prompt_shown', { fps, view_mode: s.mode, detail: detailLevel(s.detail), budget: s.quality });
+    }, 500);
+    return () => window.clearInterval(id);
+  }, [state, heavy, loading, still, detail, quality, mode]);
+  // Lowered by hand from Tune: the prompt has nothing left to do.
+  useEffect(() => { if (state === 'shown' && !heavy) setState('done'); }, [state, heavy]);
+  if (state !== 'shown') return null;
+  return (
+    <div className="pt-lowperf pt-cluster pt-glass">
+      <button
+        type="button"
+        className="pt-ibtn pt-lowperf-btn"
+        onClick={() => {
+          track('low_performance_prompt_clicked');
+          pg.change({ detail: DEFAULT_DETAIL, quality: 'medium' });
+          setState('done');
+        }}
+      >
+        <TriangleAlert size={16} strokeWidth={1.75} aria-hidden="true" />
+        <span>Low performance: reduce quality</span>
+      </button>
+    </div>
+  );
+}
+
 export function Shell({ pg, terrains, place, tune, exporting, clusterRef, onOpenMap, children }: {
   pg: Playground;
   terrains: Terrains;
@@ -633,6 +695,7 @@ export function Shell({ pg, terrains, place, tune, exporting, clusterRef, onOpen
       <div className="pt-top">
         <Cluster pg={pg} place={place} tune={tune} exporting={exporting} clusterRef={clusterRef} />
       </div>
+      <LowPerformancePrompt pg={pg} loading={terrains.region.status === 'loading'} />
       {children}
       <Dock pg={pg} terrains={terrains} onOpenMap={onOpenMap} />
     </>

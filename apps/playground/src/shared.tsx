@@ -127,7 +127,7 @@ export function usePlayground(): Playground {
     cancelAnimationFrame(frame.current);
     const from = latest.current;
     const rolled = mergeSettings(rollSettings(), {
-      mode: from.mode, elevation: from.elevation, extent: from.extent, detail: from.detail, camera: from.camera,
+      mode: from.mode, elevation: from.elevation, extent: from.extent, detail: from.detail, quality: from.quality, camera: from.camera,
     });
     const goal = keep ? keepShape(rolled, from) : rolled;
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -149,7 +149,7 @@ export function usePlayground(): Playground {
     replace: (next) => { cancelAnimationFrame(frame.current); setSettings(next); },
     // A look keeps the 3D view settings but always starts from its default camera pose; the motion stays.
     applyLook: (i) => setSettings((s) => mergeSettings(resolveSettings(LOOKS[i].settings), {
-      mode: s.mode, elevation: s.elevation, extent: s.extent, detail: s.detail, camera: { motion: s.camera.motion },
+      mode: s.mode, elevation: s.elevation, extent: s.extent, detail: s.detail, quality: s.quality, camera: { motion: s.camera.motion },
     })),
   };
 }
@@ -160,6 +160,7 @@ function terrainKey(s: Settings): string {
   delete config.elevation;
   delete config.extent;
   delete config.detail;
+  delete config.quality;
   delete config.camera;
   return JSON.stringify(config);
 }

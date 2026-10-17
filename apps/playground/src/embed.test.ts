@@ -14,6 +14,13 @@ describe('embed code', () => {
     expect(JSON.parse(embedCode(s, 'json'))).toEqual({ style: 'dunes', mode: '3d' });
   });
 
+  it('leaves out the playground\'s own detail and budget, and states any other', () => {
+    const high = mergeSettings(resolveSettings({ style: 'dunes' }), { detail: 1, quality: 'high' });
+    expect(JSON.parse(embedCode(high, 'json'))).toEqual({ style: 'dunes' });
+    const medium = mergeSettings(high, { detail: 0.5, quality: 'medium' });
+    expect(JSON.parse(embedCode(medium, 'json'))).toEqual({ style: 'dunes', quality: 'medium' });
+  });
+
   it('states a block and a camera that differ from the defaults, with quoted strings', () => {
     const s = mergeSettings(resolveSettings({ style: 'dunes' }), { mode: '3d', extent: 'block', camera: { azimuth: 90, panX: 0.2 } });
     expect(embedCode(s, 'react')).toContain('extent="block"');
