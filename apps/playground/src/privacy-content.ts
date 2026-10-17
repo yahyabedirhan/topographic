@@ -30,6 +30,8 @@ export const EVENT_INFO: Record<AnalyticsEvent, EventInfo> = {
   export_video_completed: { props: 'The same video options, preparation time and file size', why: 'to keep video export fast' },
   export_video_failed: { props: 'The same video options, preparation time and a short error label', why: 'to fix failing videos' },
   performance_sample: { props: 'Once per visit, about 20 seconds in: median and low frame rate, refresh rate, graphics tier, viewport, pixel ratio, GPU name, device memory, browser, OS family, long frames, lost WebGL contexts, time to first frame and view', why: 'to keep the animation smooth on every device' },
+  low_performance_prompt_shown: { props: 'The frame rate, the view, and the detail and budget levels', why: 'to see how often the default graphics are too heavy' },
+  low_performance_prompt_clicked: { props: 'Nothing more', why: 'to see if the prompt helps' },
   analytics_opted_out: { props: 'The previous level (all or pageviews only)', why: 'sent once when you opt out, to count opt outs' },
 };
 

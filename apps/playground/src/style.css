@@ -87,6 +87,9 @@ button.pt-compass:active{transform:scale(.94)}
 .pt-mode-tag{position:absolute;top:-1px;right:-5px;padding:2px 3px;border-radius:999px;font:600 9px/1 var(--sans);font-variant-numeric:tabular-nums;letter-spacing:.02em;
   color:var(--paper);background:var(--fg);box-shadow:0 0 0 1.5px color-mix(in srgb,var(--paper) 85%,transparent);pointer-events:none}
 /* Map carries a dot while a place is applied. */
+/* Low performance prompt: a glass pill just under the cluster. It is not a top band, so the 3D view does not move when it shows. */
+.pt-lowperf{position:fixed;z-index:6;top:72px;right:16px}
+.pt-ibtn.pt-lowperf-btn{width:auto;display:flex;align-items:center;gap:8px;padding:0 14px 0 12px;border-radius:999px;font:500 13px/1 var(--sans);white-space:nowrap;cursor:pointer}
 .pt-ibtn.has-dot{position:relative}
 .pt-ibtn.has-dot::after{content:'';position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--fg);box-shadow:0 0 0 2px color-mix(in srgb,var(--paper) 80%,transparent)}
 .pt-layer{z-index:90}
@@ -380,6 +383,8 @@ button.pt-card[aria-pressed="true"]{background:var(--seg-on);box-shadow:var(--se
 @media (max-width:720px){
   .pt-wordmark{top:18px;left:14px;font-size:15px}
   .pt-top{top:12px;right:8px;gap:6px}
+  .pt-lowperf{top:60px;right:8px}
+  .pt-ibtn.pt-lowperf-btn{height:34px}
   .pt-cluster{padding:4px}
   .pt-ibtn{width:34px;height:34px}
   .pt-dock-wrap{left:4px;right:4px;bottom:12px}

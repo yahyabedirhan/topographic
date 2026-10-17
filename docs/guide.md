@@ -328,6 +328,7 @@ The playground (`apps/playground`) is the project's live demo page.
   - Choices are icon buttons. The selected one shows its name.
   - Line width shows in pixels (0.5 to 4 px).
   - The 3D tab holds the scene (extent and elevation), the camera (motion, azimuth, angle and distance), the detail level and the graphics budget (Auto, Low, Med or High).
+  - The playground starts at High detail and High budget, unless the link or saved terrain names its own. If the frame rate stays below 30 fps, a **Low performance: reduce quality** button shows under the top right buttons. It sets Detail and Budget to medium. It shows once per browser session.
   - In 3D, the frame rate shows just above the dock, at its left edge, with the graphics tier that is actually drawing.
   - When a map place is applied, the Terrain sliders and Motion's Warp are dimmed, because the place sets the shape. A note with **Clear map** is above them.
 - **Export** gives you a link, a PNG, a 4 second 3D video as MP4 or WebM, and the code as React, HTML or JSON.
@@ -380,6 +381,7 @@ Each client loads in its own chunk when the page is idle after the first paint.
   - Looks and settings: `dock_item_clicked`, `saved_terrain_deleted`, `place_applied`, `region_loaded`, `setting_changed`, `quality_changed`, `theme_toggled`, `shuffle_clicked`, `colour_changed`.
   - Sharing and export: `link_copied`, `code_copied`, `export_image_downloaded`, `export_image_failed`, `export_video_started`, `export_video_completed`, `export_video_failed`.
   - `performance_sample`, once about 20 seconds into a visible visit: median and 10th-percentile fps, refresh rate, quality tier, viewport, device pixel ratio, GPU renderer, device memory, browser, OS, long frames, context losses and time to first frame.
+  - `low_performance_prompt_shown` (fps, view, detail and budget levels) and `low_performance_prompt_clicked`, from the low performance prompt.
   - `analytics_opted_out`, once, from the Opt out button.
 
   Every event carries fixed super properties: `site`, `app`, `app_version`, `viewport_class`, `is_mobile`, `platform`, `os` and `initial_view_mode`. Properties never hold free text, colours or the query string.

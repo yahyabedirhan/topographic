@@ -63,3 +63,22 @@ export function schedulePerformanceSample(delay = 20_000): void {
     track('performance_sample', sample);
   }, delay);
 }
+
+/**
+ * Watches the frame rate for the low performance prompt. `sample` returns true once the rate has
+ * stayed below `threshold` for `holdMs`, after `warmupMs` of steady drawing. A paused sample (a hidden
+ * tab, a place loading, no animation) starts the warmup again.
+ */
+export function createLowFpsWatch({ threshold = 30, warmupMs = 5000, holdMs = 5000 } = {}) {
+  let steadySince: number | null = null;
+  let lowSince: number | null = null;
+  return {
+    sample(now: number, fps: number, paused: boolean): boolean {
+      if (paused || fps <= 0) { steadySince = null; lowSince = null; return false; }
+      steadySince ??= now;
+      if (now - steadySince < warmupMs || fps >= threshold) { lowSince = null; return false; }
+      lowSince ??= now;
+      return now - lowSince >= holdMs;
+    },
+  };
+}
