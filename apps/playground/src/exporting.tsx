@@ -13,7 +13,7 @@ import { shareUrl } from './url';
 import { type Playground } from './shared';
 import { Glyph, Tabs, Tip, useWidth } from './parts';
 import { GLYPHS, pathArt, timelineArt, type GlyphName } from './track-art';
-import { track } from './analytics';
+import { errorLabel, track } from './analytics';
 
 type FormatId = 'link' | 'png' | 'video' | 'react' | 'html' | 'json';
 
@@ -62,11 +62,11 @@ function CopyAction({ text, label = 'Copy', quiet = false, onCopy }: { text: str
 }
 
 /** An icon-only copy button, for a line that has its own copy next to a bigger one. */
-function CopyIcon({ text, label }: { text: string; label: string }) {
+function CopyIcon({ text, label, onCopy }: { text: string; label: string; onCopy?: () => void }) {
   const [copied, copy] = useCopied();
   return (
     <Tooltip.Root>
-      <Tooltip.Trigger delay={280} className={`pt-icocopy${copied ? ' is-done' : ''}`} aria-label={copied ? 'Copied' : label} onClick={() => copy(text)}>
+      <Tooltip.Trigger delay={280} className={`pt-icocopy${copied ? ' is-done' : ''}`} aria-label={copied ? 'Copied' : label} onClick={() => { onCopy?.(); copy(text); }}>
         {copied ? <span className="pt-pop-in" key="done"><Check size={14} strokeWidth={2.25} /></span> : <Copy size={14} strokeWidth={1.75} />}
       </Tooltip.Trigger>
       <Tip side="top">{copied ? 'Copied' : label}</Tip>
@@ -120,7 +120,7 @@ function LinkBlock({ pg }: { pg: Playground }) {
       ) : null}
       <div className="pt-linkrow">
         <code title={url}>{url.replace(/^https?:\/\//, '')}</code>
-        <CopyAction text={url} label="Copy link" onCopy={() => track('link_copied')} />
+        <CopyAction text={url} label="Copy link" onCopy={() => track('link_copied', { params_count: entries.length })} />
       </div>
     </div>
   );
@@ -236,8 +236,18 @@ function PngBlock({ pg, size, setSize, crops, setCrops }: {
     const t = pg.instance.current;
     if (!t) return;
     setBusy(true);
-    try { await downloadPng(t, sizeOf(size) as PngSize, size === 'screen' ? null : cropRegion(aspect, sizeOf(size).width, sizeOf(size).height, crops[size])); }
-    finally { setBusy(false); }
+    const t0 = performance.now();
+    const width = size === 'screen' ? Math.round(viewW * 2) : sizeOf(size).width;
+    const height = size === 'screen' ? Math.round(viewH * 2) : sizeOf(size).height;
+    try {
+      await downloadPng(t, sizeOf(size) as PngSize, size === 'screen' ? null : cropRegion(aspect, sizeOf(size).width, sizeOf(size).height, crops[size]));
+      track('export_image_downloaded', {
+        variant: size, format: 'png', width, height, style: String(pg.settings.style), theme: pg.mode, mode: pg.settings.mode,
+        duration_ms: Math.round(performance.now() - t0),
+      });
+    } catch (error) {
+      track('export_image_failed', { variant: size, error: errorLabel(error), duration_ms: Math.round(performance.now() - t0) });
+    } finally { setBusy(false); }
   };
   const text = CROP_TEXT[size];
   return (
@@ -337,8 +347,14 @@ function VideoBlock({ pg }: { pg: Playground }) {
     if (!live) return;
     setBusy(format);
     setNote('');
+    const props = { motion: path as 'orbit' | 'push' | 'flyover' | 'drone', container: format, duration_s: CLIP.seconds, fps: CLIP.fps, width: CLIP.width, height: CLIP.height };
+    const t0 = performance.now();
+    track('export_video_started', props);
     try {
       const blob = await live.record({ format, motion: path, seconds: CLIP.seconds, fps: CLIP.fps, width: CLIP.width, height: CLIP.height });
+      track('export_video_completed', {
+        ...props, container: blob.type.includes('webm') ? 'webm' : 'mp4', prepare_ms: Math.round(performance.now() - t0), size_bytes: blob.size,
+      });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -346,6 +362,7 @@ function VideoBlock({ pg }: { pg: Playground }) {
       a.click();
       window.setTimeout(() => URL.revokeObjectURL(url), 5000);
     } catch (error) {
+      track('export_video_failed', { ...props, prepare_ms: Math.round(performance.now() - t0), error: errorLabel(error) });
       setNote(error instanceof Error ? error.message.replace('[topographic] ', '') : 'Export failed');
     } finally {
       setBusy('');
@@ -467,13 +484,13 @@ function CodeBlock({ pg, format }: { pg: Playground; format: 'react' | 'html' | 
     <div className="pt-export-block">
       <div className="pt-export-head">
         <p className="pt-hint">{hint}</p>
-        <CopyAction text={text} />
+        <CopyAction text={text} onCopy={() => track('code_copied', { lang: format })} />
       </div>
       {install && (
         <div className="pt-install">
           <span className="pt-install-mark" aria-hidden="true">$</span>
           <code>{install}</code>
-          <CopyIcon text={install} label="Copy install command" />
+          <CopyIcon text={install} label="Copy install command" onCopy={() => track('code_copied', { lang: 'install' })} />
         </div>
       )}
       <CodeView code={usage} />
@@ -490,12 +507,13 @@ export function ExportMenu({ pg, open, onOpenChange, clusterRef }: {
   const [format, setFormat] = useState<FormatId>('link');
   const [size, setSize] = useState<CropId>('screen');
   const [crops, setCrops] = useState<Crops>(CENTRED);
+  const tabSince = useRef(0);
+  useEffect(() => { if (open) tabSince.current = performance.now(); }, [open]);
   // The crop belongs to this look at the view: it starts centred each time the menu opens.
   const change = useCallback((next: boolean) => {
-    if (next) track('export_clicked', { format });
-    else setCrops(CENTRED);
+    if (!next) setCrops(CENTRED);
     onOpenChange(next);
-  }, [onOpenChange, format]);
+  }, [onOpenChange]);
   return (
     <Popover.Root open={open} onOpenChange={change}>
       <Tooltip.Root>
@@ -507,7 +525,7 @@ export function ExportMenu({ pg, open, onOpenChange, clusterRef }: {
       <Popover.Portal>
         <Popover.Positioner anchor={clusterRef} side="bottom" align="end" sideOffset={10} collisionPadding={{ top: 12, right: 8, bottom: 16, left: 8 }} positionMethod="fixed" className="pt-layer">
           <Popover.Popup className="pt-pop pt-glass pt-export" aria-label="Export" initialFocus={false}>
-            <Tabs items={FORMATS} value={format} onChange={(f) => { track('export_clicked', { format: f }); setFormat(f); }} label="Export format" />
+            <Tabs items={FORMATS} value={format} onChange={(f) => { if (f !== format) track('export_tab_changed', { from: format, to: f, from_ms: Math.round(performance.now() - tabSince.current) }); tabSince.current = performance.now(); setFormat(f); }} label="Export format" />
             {format === 'link' && <LinkBlock pg={pg} />}
             {format === 'png' && <PngBlock pg={pg} size={size} setSize={setSize} crops={crops} setCrops={setCrops} />}
             {format === 'video' && <VideoBlock pg={pg} />}

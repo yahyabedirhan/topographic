@@ -10,3 +10,6 @@ interface ImportMetaEnv {
   /** Sentry DSN. Unset means no error reporting and no Sentry code in the build. */
   readonly VITE_SENTRY_DSN?: string;
 }
+
+/** The `topographic` package version, set at build time. */
+declare const __APP_VERSION__: string;

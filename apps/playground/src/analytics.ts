@@ -6,13 +6,51 @@
  * Events carry only the small, fixed properties typed below: never free text, colours or the URL state.
  */
 
-export type ExportFormat = 'link' | 'png' | 'video' | 'react' | 'html' | 'json';
+import { superProperties } from './device';
 
-/** Every event the playground sends, with its properties. Pageview and pageleave come from PostHog itself. */
+export type ExportFormat = 'link' | 'png' | 'video' | 'react' | 'html' | 'json';
+export type PanelName = 'map' | 'tune' | 'export';
+export type ViewMode = '2d' | '3d';
+export type ImageVariant = 'screen' | 'phone' | '1080p';
+export type VideoMotion = 'orbit' | 'push' | 'flyover' | 'drone';
+export type VideoContainer = 'mp4' | 'webm';
+export type ColourSlot = 'paper' | 'ink';
+
+interface VideoProps {
+  motion: VideoMotion;
+  container: VideoContainer;
+  duration_s: number;
+  fps: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * Every custom event the playground sends, with its properties. Names are snake_case object_action.
+ * Pageview and pageleave are PostHog's own `$pageview` and `$pageleave`.
+ */
 export interface AnalyticsEvents {
-  dice_clicked: { target: 'shuffle' | 'paper' | 'ink' };
-  export_clicked: { format: ExportFormat };
-  link_copied: Record<string, never>;
+  ui_click: { section: 'header'; target: 'github' | 'site'; href: string; outbound: boolean };
+  view_mode_changed: { from: ViewMode; to: ViewMode };
+  panel_opened: { panel: PanelName; tab?: string };
+  panel_closed: { panel: PanelName; open_ms: number; tab?: string };
+  export_tab_changed: { from: ExportFormat; to: ExportFormat; from_ms: number };
+  dock_item_clicked: { kind: 'look' | 'map_look' | 'saved'; preset: string; index: number };
+  saved_terrain_deleted: { index: number };
+  place_applied: { place: string };
+  region_loaded: { ms: number; ok: boolean; place: string; tiles: number | null };
+  setting_changed: { group: string; key: string };
+  quality_changed: { setting: 'detail' | 'budget'; value: string };
+  theme_toggled: { to: 'light' | 'dark' };
+  shuffle_clicked: { target: 'all' | ColourSlot };
+  colour_changed: { slot: ColourSlot; source: 'picker' | 'swatch' | 'hex' };
+  link_copied: { params_count: number };
+  code_copied: { lang: 'react' | 'html' | 'json' | 'install' };
+  export_image_downloaded: { variant: ImageVariant; format: 'png'; width: number; height: number; style: string; theme: string; mode: ViewMode; duration_ms: number };
+  export_image_failed: { variant: ImageVariant; error: string; duration_ms: number };
+  export_video_started: VideoProps;
+  export_video_completed: VideoProps & { prepare_ms: number; size_bytes: number };
+  export_video_failed: VideoProps & { prepare_ms: number; error: string };
   performance_sample: PerformanceSample;
 }
 
@@ -27,10 +65,55 @@ export interface PerformanceSample {
   gpu: string | null;
   device_memory: number | null;
   browser: string;
+  platform: 'mobile' | 'desktop';
+  os: string;
+  long_frames: number | null;
+  context_losses: number;
+  first_frame_ms: number | null;
+  view_mode: ViewMode;
+}
+
+/** Properties registered once on every event after init. */
+export interface SuperProperties {
+  site: 'topographic';
+  app: 'topographic';
+  app_version: string;
+  viewport_class: 'phone' | 'tablet' | 'desktop';
+  is_mobile: boolean;
+  platform: 'mobile' | 'desktop';
+  os: string;
+  initial_view_mode: ViewMode;
+}
+
+/** Event names, for tests and for checks that the map stays the single source. */
+export const EVENT_NAMES = [
+  'ui_click', 'view_mode_changed', 'panel_opened', 'panel_closed', 'export_tab_changed', 'dock_item_clicked',
+  'saved_terrain_deleted', 'place_applied', 'region_loaded', 'setting_changed', 'quality_changed', 'theme_toggled',
+  'shuffle_clicked', 'colour_changed', 'link_copied', 'code_copied', 'export_image_downloaded', 'export_image_failed',
+  'export_video_started', 'export_video_completed', 'export_video_failed', 'performance_sample',
+] as const satisfies readonly (keyof AnalyticsEvents)[];
+
+/** A short, fixed error label: the message's first line, without the library prefix, capped. */
+export function errorLabel(error: unknown): string {
+  const text = error instanceof Error ? error.message : typeof error === 'string' ? error : 'unknown';
+  return text.replace('[topographic] ', '').split('\n')[0].slice(0, 80) || 'unknown';
+}
+
+/**
+ * Collapses a burst of calls with the same key into one call `ms` after the last, with the last args.
+ * Used for colour pickers and sliders, so a drag sends one event on commit.
+ */
+export function createDebouncer(ms: number, schedule = (fn: () => void, t: number) => setTimeout(fn, t) as unknown as number, cancel = (id: number) => clearTimeout(id)) {
+  const timers: Record<string, number> = {};
+  return (key: string, fn: () => void): void => {
+    if (timers[key] !== undefined) cancel(timers[key]);
+    timers[key] = schedule(() => { delete timers[key]; fn(); }, ms);
+  };
 }
 
 export type AnalyticsEvent = keyof AnalyticsEvents;
 type Capture = (event: string, props: Record<string, unknown>) => void;
+export const debounced = createDebouncer(1200);
 type Loader = (key: string, host: string) => Promise<Capture | null>;
 
 export const DEFAULT_HOST = 'https://eu.i.posthog.com';
@@ -74,13 +157,19 @@ const HOST = import.meta.env.VITE_POSTHOG_HOST || DEFAULT_HOST;
 const tracker = createTracker(KEY, HOST, async (key, host) => {
   if (doNotTrack()) return null;
   const { startPostHog } = await import('./posthog');
-  return startPostHog(key, host);
+  return startPostHog(key, host, superProperties());
 });
 
 /** Sends one event. Does nothing in a build without a key. */
 export function track<E extends AnalyticsEvent>(event: E, ...props: AnalyticsEvents[E] extends Record<string, never> ? [] : [AnalyticsEvents[E]]): void {
   if (!KEY) return;
   tracker.track(event, (props[0] ?? {}) as AnalyticsEvents[E]);
+}
+
+/** Sends one event once input on `key` has been quiet for a moment, with the latest props. */
+export function trackDebounced<E extends AnalyticsEvent>(key: string, event: E, props: AnalyticsEvents[E]): void {
+  if (!KEY) return;
+  debounced(key, () => tracker.track(event, props));
 }
 
 /** Loads PostHog once the page is idle after the first paint. */

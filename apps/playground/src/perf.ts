@@ -1,10 +1,11 @@
 import { track, type PerformanceSample } from './analytics';
-import { browserName, gpuName, qualityTier } from './device';
+import { browserName, frameHealth, gpuName, isMobile, noteFirstFrame, osFamily, qualityTier } from './device';
 
 const fpsSamples: number[] = [];
 
 /** Called by the readout each time it reads the renderer stats. Keeps a bounded list. */
 export function noteFps(fps: number): void {
+  if (fps > 0) noteFirstFrame();
   if (fps > 0 && fpsSamples.length < 200) fpsSamples.push(fps);
 }
 
@@ -54,6 +55,10 @@ export function schedulePerformanceSample(delay = 20_000): void {
       gpu: gpuName(),
       device_memory: (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? null,
       browser: browserName(),
+      platform: isMobile() ? 'mobile' : 'desktop',
+      os: osFamily(),
+      ...frameHealth(),
+      view_mode: document.querySelector('.pt-mode[aria-pressed="true"]') ? '3d' : '2d',
     };
     track('performance_sample', sample);
   }, delay);

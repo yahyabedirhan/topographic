@@ -3,9 +3,12 @@ import { ExportMenu } from './exporting';
 import { usePlayground } from './shared';
 import { useTerrains } from './terrains';
 import { GlassFrame, TuneStrip } from './ui';
+import { noteInitialMode } from './device';
+import { useState } from 'react';
 
 export function App() {
   const pg = usePlayground();
+  useState(() => noteInitialMode(pg.settings.mode === '3d' ? '3d' : '2d'));
   const terrains = useTerrains(pg);
   return (
     <Tooltip.Provider delay={200}>
