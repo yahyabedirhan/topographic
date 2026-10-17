@@ -4,14 +4,42 @@ import { consent, type Consent } from './consent';
 import { EVENT_INFO, SUPER_PROPS } from './privacy-content';
 
 const LABEL: Record<Consent, string> = {
-  all: 'Analytics and error reports are on in this browser.',
-  pageviews: 'Only pageviews are sent from this browser.',
-  none: 'Nothing is sent from this browser.',
+  all: 'All events',
+  pageviews: 'Pageviews only',
+  none: 'Nothing is sent from this browser',
 };
+
+const ENABLED = Boolean(import.meta.env.VITE_POSTHOG_KEY || import.meta.env.VITE_SENTRY_DSN);
+
+/** Settings style card: the current choice on the left, the actions on the right. */
+function ChoiceCard() {
+  const [state, setState] = useState<Consent>(consent());
+  const lower = (to: 'pageviews' | 'none') => { optOut(to); setState(to); };
+  const on = () => { optIn(); setState('all'); };
+  return (
+    <div className="pt-choice">
+      <h3 id="pv-card">Analytics</h3>
+      <div className="pt-choice-row">
+        <p className="pt-choice-status" role="status" aria-live="polite">
+          <span className="pt-choice-dot" data-state={ENABLED ? state : 'none'} aria-hidden="true" />
+          {ENABLED ? LABEL[state] : 'This build sends no analytics or error reports.'}
+        </p>
+        {ENABLED && (
+          <div className="pt-choice-actions" role="group" aria-labelledby="pv-card">
+            {state === 'all' && <button type="button" onClick={() => lower('pageviews')} aria-label="Send pageviews only">Pageviews only</button>}
+            {state === 'pageviews' && <button type="button" onClick={on} aria-label="Turn analytics on">Turn on</button>}
+            {state !== 'none' && <button type="button" onClick={() => lower('none')} aria-label="Turn analytics off">Turn off</button>}
+            {state === 'none' && <button type="button" onClick={on} aria-label="Opt back in to analytics">Opt back in</button>}
+          </div>
+        )}
+      </div>
+      {ENABLED && <p className="pt-choice-note">Saved in this browser only. Lowering it stops events now. Turning it on applies on the next page load.</p>}
+    </div>
+  );
+}
 
 /** The privacy page at /privacy: what is collected, why, and an opt out control. */
 export function Privacy({ home }: { home: string }) {
-  const [state, setState] = useState<Consent>(consent());
   return (
     <main className="pt-privacy">
       <p><a href={home}>topographic</a></p>
@@ -20,17 +48,14 @@ export function Privacy({ home }: { home: string }) {
 
       <section aria-labelledby="pv-choice">
         <h2 id="pv-choice">Your choice</h2>
-        <p role="status">{import.meta.env.VITE_POSTHOG_KEY || import.meta.env.VITE_SENTRY_DSN ? LABEL[state] : 'This build sends no analytics or error reports.'}</p>
-        {state === 'none'
-          ? <p><button type="button" onClick={() => { optIn(); setState('all'); }}>Opt back in</button> Takes effect on the next page load.</p>
-          : <p><button type="button" onClick={() => { optOut(); setState('none'); }}>Opt out</button></p>}
+        <ChoiceCard />
         <p>You can also add one of these to any playground address:</p>
         <ul>
           <li><code>?optout</code> keeps pageviews only: no other events and no error reports.</li>
           <li><code>?optout=all</code> sends nothing. The analytics and error scripts are not loaded.</li>
           <li><code>?optin</code> undoes either.</li>
         </ul>
-        <p>The Opt out button sends one last <code>analytics_opted_out</code> event, then nothing. Your choice is saved in this browser&apos;s local storage, so each browser and device keeps its own. Clearing site data resets it. Browsers with Do Not Track on send no analytics.</p>
+        <p>Leaving all events sends one last <code>analytics_opted_out</code> event, then nothing. Your choice is saved in this browser&apos;s local storage, so each browser and device keeps its own. Clearing site data resets it. Browsers with Do Not Track on send no analytics.</p>
       </section>
 
       <section aria-labelledby="pv-auto">
