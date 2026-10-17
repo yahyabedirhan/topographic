@@ -2,7 +2,7 @@
   "name": "topographic-react",
   "version": "0.3.0",
   "description": "React component and hook for topographic backgrounds.",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/yahyabedirhan/topographic.git",
@@ -36,7 +36,8 @@
   "files": [
     "dist",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "NOTICE"
   ],
   "dependencies": {
     "topographic": "^0.3.0"

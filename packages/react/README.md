@@ -35,4 +35,4 @@ To put the background on your own element, use `useTopographicBackground(setting
 - [Project README](https://github.com/yahyabedirhan/topographic#readme)
 - [Guide](https://github.com/yahyabedirhan/topographic/blob/main/docs/guide.md)
 
-MIT licence.
+Licensed under the Apache License 2.0. See LICENSE and NOTICE. If you use or adapt this code, please credit Yahya Bedirhan Pak with a link to [yahyapak.dev](https://yahyapak.dev).

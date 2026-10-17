@@ -118,6 +118,6 @@ Ranges are 0–1 except counts. In the element and React the style is `style-nam
 - **Fallback, not exceptions,** when WebGL is missing or lost.
 - **`snapshot` renders off-screen**, so exports never disturb the live view.
 - **Always spell out "topographic"** in names (element, files, API).
-- **License: MIT.**
+- **License: Apache 2.0,** with a NOTICE file asking for credit.
 
 Architecture inspired by Paper Shaders (github.com/paper-design/shaders at 43cd68db79fa0b1759f72ffc941b3238e2a3954c, Apache-2.0): a vanilla mount class with thin wrappers, presets typed against params, and definitions that drive the controls. No code has been copied. If any is, include their NOTICE and attribution.
