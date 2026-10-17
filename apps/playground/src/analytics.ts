@@ -8,16 +8,25 @@
 
 export type ExportFormat = 'link' | 'png' | 'video' | 'react' | 'html' | 'json';
 
-/** Every event the playground sends, with its properties. */
+/** Every event the playground sends, with its properties. Pageview and pageleave come from PostHog itself. */
 export interface AnalyticsEvents {
   dice_clicked: { target: 'shuffle' | 'paper' | 'ink' };
   export_clicked: { format: ExportFormat };
-  style_changed: { style: string };
-  theme_toggled: { mode: 'light' | 'dark' };
   link_copied: Record<string, never>;
-  place_opened: { place: string };
-  view_mode_changed: { mode: '2d' | '3d' };
-  quality_changed: { quality: string };
+  performance_sample: PerformanceSample;
+}
+
+/** One frame-rate summary per visit, sent about 20 s in. */
+export interface PerformanceSample {
+  fps_median: number | null;
+  fps_p10: number | null;
+  refresh_hz: number | null;
+  quality_tier: string | null;
+  viewport: string;
+  dpr: number;
+  gpu: string | null;
+  device_memory: number | null;
+  browser: string;
 }
 
 export type AnalyticsEvent = keyof AnalyticsEvents;
@@ -46,8 +55,8 @@ export function createTracker(key: string | undefined, host: string, load: Loade
     track<E extends AnalyticsEvent>(event: E, props: AnalyticsEvents[E]): void {
       if (!key) return;
       try {
-        if (capture) capture(event, props);
-        else if (queue && queue.length < 50) queue.push([event, props]);
+        if (capture) capture(event, props as Record<string, unknown>);
+        else if (queue && queue.length < 50) queue.push([event, props as Record<string, unknown>]);
       } catch { /* analytics never breaks the page */ }
     },
   };
