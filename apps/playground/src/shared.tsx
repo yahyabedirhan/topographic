@@ -393,7 +393,7 @@ function useOrbit(pg: Playground) {
         if (is3d) {
           const turn = (Math.atan2(b.y - a.y, b.x - a.x) - fingers.angle) * 180 / Math.PI;
           const radius = Math.min(RADIUS_MAX, Math.max(RADIUS_MIN, cam.radius / spread));
-          push({ camera: { radius: Number(radius.toFixed(2)), azimuth: wrapDegrees(cam.azimuth - turn), motion: 'still', ...panned(cam, midDx, midDy) } });
+          push({ camera: { radius: Number(radius.toFixed(2)), azimuth: wrapDegrees(cam.azimuth + turn), motion: 'still', ...panned(cam, midDx, midDy) } });
         } else {
           const r = node.current?.getBoundingClientRect();
           const v = fingers.view2d;
