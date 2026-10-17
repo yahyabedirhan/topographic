@@ -378,7 +378,14 @@ Each client loads in its own chunk when the page is idle after the first paint.
 - **PostHog** runs without cookies or local storage (`persistence: 'memory'`), with no session recording and no autocapture, and it respects Do Not Track. It sends pageview and pageleave (time on page, referrer and UTM parameters), plus `dice_clicked`, `export_clicked` with the format, `link_copied`, and one `performance_sample` about 20 seconds into a visible visit: median and 10th-percentile fps, refresh rate, quality tier, viewport, device pixel ratio, GPU renderer, device memory and browser family.
 - **Sentry** reports errors only, with no tracing or replay and no user data, cookies, headers or query string. It reports error-boundary crashes and lost WebGL contexts, tagged with the quality tier and GPU. A small buffer keeps errors from before it loads, and one page sends at most 10 reports.
 
-On Cloudflare Pages, add these as build environment variables (Settings, then Variables and Secrets, for the production build). Vite reads them while building, so set them before the deploy that should use them.
+The playground is a Cloudflare Worker with static assets. With Workers Builds, add these as build variables (the Worker's Settings, then Build, then Variables and secrets). Vite reads them while building, so set them before the deploy that should use them.
+
+### Hosting
+
+`wrangler.jsonc` at the repo root describes the Worker `topographic`. It has no script: it serves `apps/playground/dist` as static assets, with `_headers` from `apps/playground/public` for caching. Unknown paths fall back to `index.html`, since the playground keeps its state in the query string.
+
+- `npm run deploy` builds the playground and runs `wrangler deploy`.
+- Workers Builds, connected to this repo, uses the build command `npm run build`, the deploy command `npx wrangler deploy` and `NODE_VERSION=20`.
 
 ## WebMCP tools
 
