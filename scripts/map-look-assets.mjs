@@ -41,15 +41,20 @@ try {
     const place = p.locator('.pt-pop-wide');
     await place.locator('.pt-map-host canvas').waitFor({ timeout: 30000 });
     await place.locator('.pt-map-badge').click();
-    await p.getByRole('menuitem', { name: new RegExp(`^${look.name}`) }).click();
+    // A click while the menu is still opening is lost, and the map stays on Istanbul.
+    const item = p.getByRole('menuitem', { name: new RegExp(`^${look.name}`) });
+    await item.waitFor();
+    await p.waitForTimeout(800);
+    await item.click();
+    await place.locator('.pt-map-badge', { hasText: look.name }).waitFor({ timeout: 10000 });
     // Let the map settle on the place and its tiles load before Apply copies it.
     await p.waitForTimeout(4000);
     await place.locator('button.pt-apply').click();
-    const item = await p.waitForFunction(() => {
+    const saved = await p.waitForFunction(() => {
       const it = JSON.parse(localStorage.getItem('topographic.saved.v1') ?? '[]')[0];
       return it?.thumb && it?.minimap ? it : null;
     }, null, { timeout: 120000 }).then((h) => h.jsonValue());
-    for (const [kind, url] of [['thumb', item.thumb], ['minimap', item.minimap]]) {
+    for (const [kind, url] of [['thumb', saved.thumb], ['minimap', saved.minimap]]) {
       if (!url.startsWith('data:image/webp')) throw new Error(`${look.id} ${kind} is not WebP`);
       const file = new URL(`${look.id}-${kind}.webp`, out);
       await writeFile(file, bytes(url));

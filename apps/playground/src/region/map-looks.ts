@@ -30,7 +30,7 @@ export interface MapLook {
 
 /**
  * Istanbul, decoded with readSettings from the query
- * `?s=gentle-summit&seed=67&lc=36&lw=0&lo=0.9&ix=4&fd=0.15&m=dark&mode=3d&ex=block&ev=0.12&az=353.3&ce=45.1&rd=1.15&px=0.043&pz=-0.075&place=istanbul`.
+ * `?s=gentle-summit&seed=67&lc=36&lw=0&lo=0.9&ix=4&fd=0.15&m=dark&paper=0b0b0d&mode=3d&ex=block&ev=0.12&az=341.6&ce=45.3&rd=1.15&px=-0.005&pz=-0.013&place=istanbul`.
  */
 export const ISTANBUL_SETTINGS = {
   style: 'gentle-summit',
@@ -39,16 +39,16 @@ export const ISTANBUL_SETTINGS = {
   terrain: { peaks: 1, spread: 0.5, roughness: 0, sharpness: 0.5, terracing: 0, variant: 0.5 },
   motion: { speed: 1, warp: 0.47, sparkle: 0.6 },
   layout: { anchor: 0, fade: 0.15 },
-  theme: { mode: 'dark' },
+  theme: { mode: 'dark', paper: '#0b0b0d' },
   mode: '3d',
   elevation: 0.12,
   extent: 'block',
-  camera: { azimuth: 353.3, elevation: 45.1, radius: 1.15, motion: 'still', panX: 0.043, panZ: -0.075 },
+  camera: { azimuth: 341.6, elevation: 45.3, radius: 1.15, motion: 'still', panX: -0.005, panZ: -0.013 },
 } as const satisfies SettingsInput;
 
 /**
- * Geirangerfjord, Mount Fuji and Yosemite share the rose pod look with their own ink, elevation and camera
- * angle, decoded from `?look=rose-pod&lc=36&lw=0&lo=0.9&ix=4&ink=…&mode=3d&ex=block&ev=…&az=341.8&ce=…&rd=1.32&px=0.033&pz=-0.049&place=…`.
+ * Geirangerfjord, Mount Fuji and Yosemite share the rose pod look on #0b0b0d paper, with their own ink, elevation and camera
+ * angle, decoded from `?look=rose-pod&lc=36&lw=0&lo=0.9&ix=4&ink=…&paper=0b0b0d&mode=3d&ex=block&ev=…&az=341.8&ce=…&rd=1.32&px=0.033&pz=-0.049&place=…`.
  */
 function rosePod(ink: string, elevation: number, cameraElevation: number): SettingsInput {
   return {
@@ -58,7 +58,7 @@ function rosePod(ink: string, elevation: number, cameraElevation: number): Setti
     terrain: { peaks: 1, spread: 0.5, roughness: 0, sharpness: 0.5, terracing: 0, variant: 0.5 },
     motion: { speed: 0.55, warp: 0.47, sparkle: 0.6 },
     layout: { anchor: 0, fade: 0.15 },
-    theme: { mode: 'dark', paper: '#1a1214', ink },
+    theme: { mode: 'dark', paper: '#0b0b0d', ink },
     mode: '3d',
     elevation,
     extent: 'block',
