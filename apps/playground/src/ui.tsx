@@ -499,7 +499,7 @@ function ViewTune({ pg }: { pg: Playground }) {
         <SegRow label="Motion" icon="camMotion" options={PATHS} value={s.camera.motion} disabled={off} onChange={(id) => { tuned('camera', 'motion'); cam({ motion: id }); }} />
         <SliderRow
           label="Azimuth" icon="azimuth" art="azimuth"
-          hint="Orbit around the terrain. Drag the view to move this too. A two-finger scroll pans; a double-click recentres."
+          hint="Orbit around the terrain. ⌘ + drag the view to move this too, or twist two fingers. A drag moves the terrain; a double-click recentres."
           value={azimuth} min={0} max={360} step={1} shown={`${azimuth.toFixed(0)}°`} disabled={off}
           onChange={(n) => { tuned('camera', 'azimuth'); cam({ azimuth: n }); }}
         />
@@ -511,7 +511,7 @@ function ViewTune({ pg }: { pg: Playground }) {
         />
         <SliderRow
           label="Distance" icon="distance" art="distance"
-          hint="How far the camera sits. ⌘/Ctrl + scroll or pinch the view to zoom (Shift + scroll also zooms)."
+          hint="How far the camera sits. Scroll or pinch the view to zoom."
           value={s.camera.radius} min={1.15} max={6.5} step={0.01} shown={s.camera.radius.toFixed(2)} disabled={off}
           onChange={(n) => { tuned('camera', 'radius'); cam({ radius: n }); }}
         />

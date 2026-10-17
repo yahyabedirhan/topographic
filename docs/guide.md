@@ -173,6 +173,7 @@ A value outside its range is moved to the nearest limit. Whole-number settings a
 | `camera.radius` | `radius` | 1.15–6.5 | 1.92 | The camera's distance from the centre of the terrain. |
 | `camera.motion` | `camera-motion` | `still`, `orbit`, `push`, `flyover`, `drone` | `still` | Makes the camera move. `motion.speed` still animates the terrain shape. |
 | `camera.panX`, `camera.panZ` | `pan-x`, `pan-z` | −6–6 | 0 | The point the camera looks at, moved from the centre of the terrain. X is east and Z is south, in terrain units. The camera and every motion path turn around this point. The point stays over the terrain, so part of the terrain is always in view. |
+| `camera.zoom` | `zoom` | 1–8 | 1 | How far the 2D map is zoomed in around the pan. 1 shows the whole view. 3D ignores it. 2D also uses the pan, so both views show the same place in the middle. |
 
 ```js
 createTopographicBackground(el, {
@@ -313,13 +314,15 @@ Nothing uses the DOM or WebGL until the code runs in the browser.
 The playground (`apps/playground`) is the project's live demo page.
 
 - The page background is the preview. The dock at the bottom holds your saved map terrains, then the built-in looks as thumbnails. On a phone the previews are a little narrower, so four of them fit. The row fades at an end that still has terrains, and a chevron scrolls to the next one. Theme, **Shuffle**, paper and ink sit in a 2×2 grid on the right. Each item in the dock is a complete terrain. One click changes the shape and the colours together.
-- In 2D, drag moves the summit. Anchor 0 keeps it to the side. Anchor 1 puts it in the centre. The value stays in the URL as `an`.
-- In 3D, you can use these gestures:
-  - Drag: turn the camera around the terrain.
-  - Two-finger scroll: pan. The terrain follows your fingers and can't leave the screen. A right-drag, Shift+drag or two-finger touch drag also pans.
-  - ⌘/Ctrl + scroll, or pinch: zoom. Shift + scroll also zooms, and so does a normal mouse wheel.
+- The view follows the gestures of Google Maps and Google Earth:
+  - Drag, or one finger: move the terrain. It follows the pointer and can't leave the screen.
+  - Scroll, pinch, or ⌘/Ctrl + scroll: zoom. In 2D the zoom keeps the point under the pointer in place, up to eight times closer.
+  - In 3D, ⌘, Ctrl or Shift + drag, or a right-drag: turn and tilt the camera.
+  - On touch, in 3D: twist two fingers to turn, or move two fingers up or down together to tilt.
+  - Double tap: zoom in. Two finger tap: zoom out.
   - Double-click: move the pan smoothly back to the centre.
 
+  2D and 3D share the pan, so switching keeps the same place in the middle. The 2D zoom is the camera's `zoom`, `zm` in the URL. The Anchor setting still places the summit in 2D: 0 keeps it to the side, 1 puts it in the centre.
   The terrain is centred in the space between the top buttons and the dock, not behind the dock. The pan and the zoom are part of the camera. A saved map terrain keeps them. A click on a look, or the camera reset in Tune, moves the camera back to the centre.
 - The buttons at the top right are **Map**, 2D/3D, **Tune** and **Export**. Each one opens its panel below the buttons. Only one panel is open at a time. The 2D/3D button has a small badge that shows the current mode.
 - **Tune** opens the settings, one tab at a time: Lines, Terrain, Motion, Layout and 3D.
@@ -354,7 +357,7 @@ The playground (`apps/playground`) is the project's live demo page.
   - It stores only the values that are different from the style's defaults or from a named look: `?s=dunes&lc=24`, `?look=night-lobes&mode=3d`.
   - Colours have no `#` (`ink=9fb0cc`).
   - 3D uses the library defaults unless the URL changes them: endless, azimuth 349.7, angle 33.6 and distance 1.92.
-  - A pan away from the centre adds `px` and `pz`.
+  - A pan away from the centre adds `px` and `pz`, and a 2D zoom adds `zm`.
   - Quality writes `ql` when it is `low`, `medium` or `high`. `auto` is the default, so it is left out.
   - The address bar updates a few times a second at most, and again when a drag or pinch ends. A gesture does not write the URL on every frame.
   - `?place=istanbul` or `?region=west,south,east,north` opens a real place.
