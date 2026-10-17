@@ -30,7 +30,7 @@ export interface MapLook {
 
 /**
  * Istanbul, decoded with readSettings from the query
- * `?s=gentle-summit&seed=67&lc=36&lw=0&lo=0.9&ix=4&fd=0.15&m=dark&paper=0b0b0d&mode=3d&ex=block&ev=0.12&az=353.3&ce=45.1&rd=1.15&px=0.043&pz=-0.075&place=istanbul`.
+ * `?s=gentle-summit&seed=67&lc=36&lw=0&lo=0.9&ix=4&fd=0.15&m=dark&paper=0b0b0d&mode=3d&ex=block&ev=0.12&az=341.6&ce=45.3&rd=1.15&px=-0.005&pz=-0.013&place=istanbul`.
  */
 export const ISTANBUL_SETTINGS = {
   style: 'gentle-summit',
@@ -43,7 +43,7 @@ export const ISTANBUL_SETTINGS = {
   mode: '3d',
   elevation: 0.12,
   extent: 'block',
-  camera: { azimuth: 353.3, elevation: 45.1, radius: 1.15, motion: 'still', panX: 0.043, panZ: -0.075 },
+  camera: { azimuth: 341.6, elevation: 45.3, radius: 1.15, motion: 'still', panX: -0.005, panZ: -0.013 },
 } as const satisfies SettingsInput;
 
 /**
