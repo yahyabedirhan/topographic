@@ -16,13 +16,15 @@
     "test": "vitest run",
     "typecheck": "tsc -p packages/core && tsc -p packages/react",
     "smoke": "node scripts/smoke.mjs && node scripts/playground-check.mjs",
-    "dev": "npm run build:packages && npm run dev -w apps/playground"
+    "dev": "npm run build:packages && npm run dev -w apps/playground",
+    "deploy": "npm run build && wrangler deploy"
   },
   "devDependencies": {
     "esbuild": "^0.24.0",
     "happy-dom": "^21.0.3",
     "playwright-core": "^1.64.0",
     "typescript": "^5.6.3",
-    "vitest": "^2.1.0"
+    "vitest": "^2.1.0",
+    "wrangler": "^4.151.1"
   }
 }

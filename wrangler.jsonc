@@ -1,0 +1,16 @@
+// Cloudflare Worker that serves the built playground as static assets.
+// No Worker script: every request is answered from apps/playground/dist,
+// and apps/playground/public/_headers (copied into dist) sets the headers.
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "topographic",
+  "compatibility_date": "2026-10-17",
+  // Cloudflare creates the DNS record and certificate for this hostname.
+  "routes": [{ "pattern": "topographic.yahyapak.dev", "custom_domain": true }],
+  "assets": {
+    "directory": "./apps/playground/dist",
+    // The playground keeps its state in the query string, so unknown paths
+    // fall back to index.html instead of a 404.
+    "not_found_handling": "single-page-application"
+  }
+}
