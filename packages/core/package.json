@@ -2,7 +2,7 @@
   "name": "topographic",
   "version": "0.3.0",
   "description": "A JavaScript package for creating animated topographic backgrounds.",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/yahyabedirhan/topographic.git",
@@ -42,7 +42,8 @@
   "files": [
     "dist",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "NOTICE"
   ],
   "publishConfig": {
     "access": "public"

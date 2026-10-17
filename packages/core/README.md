@@ -40,4 +40,4 @@ For React, use [`topographic-react`](https://www.npmjs.com/package/topographic-r
 - [Project README](https://github.com/yahyabedirhan/topographic#readme)
 - [Guide](https://github.com/yahyabedirhan/topographic/blob/main/docs/guide.md): every API, every setting, theming, export, fallbacks, server rendering
 
-MIT licence.
+Licensed under the Apache License 2.0. See LICENSE and NOTICE. If you use or adapt this code, please credit Yahya Bedirhan Pak with a link to [yahyapak.dev](https://yahyapak.dev).

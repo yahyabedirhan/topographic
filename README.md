@@ -145,4 +145,8 @@ The code structure was inspired by [Paper Shaders](https://github.com/paper-desi
 - [`topographic`](https://www.npmjs.com/package/topographic) and [`topographic-react`](https://www.npmjs.com/package/topographic-react) on npm
 - [Guide](docs/guide.md)
 
-MIT licence. See [LICENSE](LICENSE).
+## License
+
+The code is licensed under the [Apache License 2.0](LICENSE). See [LICENSE](LICENSE) and [NOTICE](NOTICE). If you use or adapt it, please credit Yahya Bedirhan Pak with a link to [yahyapak.dev](https://yahyapak.dev).
+
+The project name, the logo in `assets/images/logo/` and the screenshots in `assets/screenshots/` are not covered by this license and are all rights reserved.
