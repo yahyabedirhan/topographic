@@ -7,4 +7,6 @@ interface ImportMetaEnv {
   readonly VITE_POSTHOG_KEY?: string;
   /** PostHog ingest host. Defaults to https://eu.i.posthog.com. */
   readonly VITE_POSTHOG_HOST?: string;
+  /** Sentry DSN. Unset means no error reporting and no Sentry code in the build. */
+  readonly VITE_SENTRY_DSN?: string;
 }

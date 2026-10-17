@@ -2,6 +2,8 @@
 import { createRoot } from 'react-dom/client';
 import { startAnalytics } from './analytics';
 import { App } from './App';
+import { startErrorReporting } from './errors';
+import { schedulePerformanceSample } from './perf';
 import { TerrainBoundary } from './boundary';
 import './style.css';
 
@@ -16,5 +18,7 @@ createRoot(document.getElementById('root')!).render(
   </TerrainBoundary>,
 );
 
-// Without VITE_POSTHOG_KEY this is a no-op and PostHog is not built in.
+// Without VITE_SENTRY_DSN or VITE_POSTHOG_KEY these are no-ops and the clients are not built in.
+startErrorReporting();
 startAnalytics();
+if (import.meta.env.VITE_POSTHOG_KEY) schedulePerformanceSample();

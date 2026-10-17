@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { reportError } from './errors';
 
 interface State {
   failed: boolean;
@@ -17,7 +18,9 @@ export class TerrainBoundary extends Component<{ children: ReactNode }, State> {
     return { failed: true };
   }
 
-  componentDidCatch(_error: Error, _info: ErrorInfo): void {}
+  componentDidCatch(error: Error, _info: ErrorInfo): void {
+    reportError(error, { source: 'boundary' });
+  }
 
   private retry = (): void => {
     if (this.state.tried) return;
