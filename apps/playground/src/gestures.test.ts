@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { pan2d, twoFingerKind, wheelZoom, zoom2d } from './gestures';
+import { isWheelNotch, notchZoom, pan2d, twoFingerKind, wheelZoom, zoom2d } from './gestures';
 
 describe('2D gestures', () => {
   const half = [2, 2] as const;
@@ -39,4 +39,20 @@ describe('2D gestures', () => {
     expect(wheelZoom(10, 0, false)).toBeLessThan(1);
     expect(wheelZoom(-10, 0, true)).toBeGreaterThan(wheelZoom(-10, 0, false));
   });
+
+  it('tells a mouse notch from a trackpad scroll and a pinch', () => {
+    expect(isWheelNotch({ deltaMode: 0, deltaX: 0, deltaY: 100, ctrlKey: false, wheelDeltaY: -120 })).toBe(true);
+    expect(isWheelNotch({ deltaMode: 1, deltaX: 0, deltaY: 3, ctrlKey: false })).toBe(true);
+    expect(isWheelNotch({ deltaMode: 0, deltaX: 0, deltaY: 4, ctrlKey: false, wheelDeltaY: -12 })).toBe(false);
+    expect(isWheelNotch({ deltaMode: 0, deltaX: 2, deltaY: 40, ctrlKey: false, wheelDeltaY: -120 })).toBe(false);
+    expect(isWheelNotch({ deltaMode: 0, deltaX: 0, deltaY: 100, ctrlKey: true, wheelDeltaY: -120 })).toBe(false);
+    expect(isWheelNotch({ deltaMode: 0, deltaX: 0, deltaY: 40, ctrlKey: false })).toBe(false);
+  });
+
+  it('zooms 1.5 times per notch, up to three notches at once', () => {
+    expect(notchZoom({ deltaMode: 0, deltaX: 0, deltaY: -100, ctrlKey: false })).toBe(1.5);
+    expect(notchZoom({ deltaMode: 0, deltaX: 0, deltaY: 100, ctrlKey: false })).toBeCloseTo(1 / 1.5);
+    expect(notchZoom({ deltaMode: 1, deltaX: 0, deltaY: -30, ctrlKey: false })).toBeCloseTo(1.5 ** 3);
+  });
 });
+

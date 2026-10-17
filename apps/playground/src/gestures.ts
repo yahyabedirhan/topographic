@@ -43,3 +43,27 @@ export function wheelZoom(deltaY: number, deltaMode: number, pinch: boolean): nu
   const px = deltaMode === 1 ? 16 : deltaMode === 2 ? 400 : 1;
   return Math.exp(-deltaY * px * (pinch ? 0.01 : 0.002));
 }
+
+/** The parts of a wheel event that tell a mouse from a trackpad. */
+export interface WheelLike { deltaMode: number; deltaX: number; deltaY: number; ctrlKey: boolean; wheelDeltaY?: number }
+
+/**
+ * A mouse wheel's notch, as opposed to a trackpad's smooth scroll or pinch. Firefox counts a notch in
+ * lines. Chrome and Safari report a notch's legacy wheelDelta in multiples of 120, and a trackpad's as
+ * -3 × deltaY. Unknown events count as smooth.
+ */
+export function isWheelNotch(e: WheelLike): boolean {
+  if (e.ctrlKey) return false;
+  if (e.deltaMode !== 0) return true;
+  if (e.deltaX !== 0) return false;
+  const legacy = e.wheelDeltaY;
+  return typeof legacy === 'number' && legacy !== 0 && legacy % 120 === 0 && legacy !== -3 * e.deltaY;
+}
+
+/** One notch zooms by 1.5, a fast spin by up to three notches at once. Above 1 zooms in. */
+export function notchZoom(e: WheelLike): number {
+  const delta = e.deltaY || e.deltaX;
+  const notches = Math.min(3, Math.max(1, Math.abs(delta) / (e.deltaMode === 0 ? 100 : 3)));
+  return 1.5 ** (delta < 0 ? notches : -notches);
+}
+

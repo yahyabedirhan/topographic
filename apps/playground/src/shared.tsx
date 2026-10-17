@@ -4,7 +4,7 @@ import {
   type GroupName, type Heightfield, type ParamDef, type Settings, type SettingsInput, type TopographicBackground as Instance,
 } from 'topographic';
 import { TopographicBackground } from 'topographic-react';
-import { pan2d, twoFingerKind, wheelZoom, zoom2d } from './gestures';
+import { isWheelNotch, notchZoom, pan2d, twoFingerKind, wheelZoom, zoom2d } from './gestures';
 import { bindPageUrlFlush, flushPageUrl, schedulePageUrl } from './page-history';
 import { registerTools } from './webmcp';
 import { configOf, readUrl } from './url';
@@ -205,9 +205,14 @@ function useOrbit(pg: Playground) {
   const queued = useRef<Settings | null>(null);
   const flushId = useRef(0);
 
+  // A flushed change waits here until React renders it, so a gesture's next frame builds on it.
+  const flushed = useRef<Settings | null>(null);
+  const seen = useRef(pg.settings);
+  if (pg.settings !== seen.current) { seen.current = pg.settings; flushed.current = null; }
+
   const height = () => node.current?.clientHeight || innerHeight;
-  /** The settings with any change not yet flushed to React. */
-  const now = () => queued.current ?? live.current.settings;
+  /** The settings with any change React has not rendered yet. */
+  const now = () => queued.current ?? flushed.current ?? live.current.settings;
   // The canvas updates on this event. React, the URL and the sliders catch up once per frame.
   const push = (patch: SettingsInput) => {
     const current = live.current;
@@ -217,7 +222,7 @@ function useOrbit(pg: Playground) {
       flushId.current = 0;
       const next = queued.current;
       queued.current = null;
-      if (next) current.replace(next);
+      if (next) { flushed.current = next; current.replace(next); }
     });
   };
 
@@ -250,6 +255,24 @@ function useOrbit(pg: Playground) {
   };
 
   const stopGlide = () => { cancelAnimationFrame(glide.current); glide.current = 0; };
+  const wheelGoal = useRef<{ log: number; x: number; y: number } | null>(null);
+  const wheelFrame = useRef(0);
+  const stopWheel = () => { cancelAnimationFrame(wheelFrame.current); wheelFrame.current = 0; wheelGoal.current = null; };
+  /** Eases toward the zoom a mouse wheel's notches asked for. Quick notches add up. */
+  const easeWheel = (factor: number, x: number, y: number) => {
+    if (reducedMotion()) { zoomBy(factor, x, y); return; }
+    wheelGoal.current = { log: (wheelGoal.current?.log ?? 0) + Math.log(factor), x, y };
+    if (wheelFrame.current) return;
+    const step = () => {
+      const goal = wheelGoal.current;
+      if (!goal || Math.abs(goal.log) < 1e-4) { stopWheel(); return; }
+      const part = Math.abs(goal.log) < 0.01 ? goal.log : goal.log * 0.3;
+      zoomBy(Math.exp(part), goal.x, goal.y);
+      goal.log -= part;
+      wheelFrame.current = requestAnimationFrame(step);
+    };
+    wheelFrame.current = requestAnimationFrame(step);
+  };
   /** A short eased zoom, for taps. */
   const glideZoom = (factor: number, x?: number, y?: number) => {
     stopGlide();
@@ -274,6 +297,9 @@ function useOrbit(pg: Playground) {
       if (mode !== '2d' && mode !== '3d') return;
       e.preventDefault();
       stopGlide();
+      // A mouse notch is one big step, eased; a trackpad's scroll and pinch follow the fingers.
+      if (isWheelNotch(e as WheelEvent & { wheelDeltaY?: number })) { easeWheel(notchZoom(e), e.clientX, e.clientY); return; }
+      stopWheel();
       // macOS turns a vertical scroll with Shift held into deltaX.
       const delta = e.deltaY || e.deltaX;
       zoomBy(wheelZoom(delta, e.deltaMode, e.ctrlKey), e.clientX, e.clientY);
@@ -306,6 +332,7 @@ function useOrbit(pg: Playground) {
     el.addEventListener('dblclick', onDouble);
     return () => {
       stopGlide();
+      stopWheel();
       el.removeEventListener('wheel', onWheel);
       el.removeEventListener('contextmenu', onMenu);
       el.removeEventListener('dblclick', onDouble);
@@ -327,6 +354,7 @@ function useOrbit(pg: Playground) {
     if (mode !== '2d' && mode !== '3d') return;
     lastPointer.current = e.pointerType;
     stopGlide();
+    stopWheel();
     e.currentTarget.setPointerCapture(e.pointerId);
     noteStagePointer(true);
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
