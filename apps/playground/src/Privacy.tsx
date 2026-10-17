@@ -4,37 +4,29 @@ import { consent, type Consent } from './consent';
 import { EVENT_INFO, SUPER_PROPS } from './privacy-content';
 
 const LABEL: Record<Consent, string> = {
-  all: 'All events',
-  pageviews: 'Pageviews only',
-  none: 'Nothing is sent from this browser',
+  all: 'Analytics are on in this browser.',
+  pageviews: 'Only page views are sent from this browser.',
+  none: 'Nothing is sent from this browser.',
 };
 
 const ENABLED = Boolean(import.meta.env.VITE_POSTHOG_KEY || import.meta.env.VITE_SENTRY_DSN);
+const PRIVACY_MD = 'https://github.com/yahyabedirhan/topographic/blob/main/PRIVACY.md';
 
-/** Settings style card: the current choice on the left, the actions on the right. */
-function ChoiceCard() {
+/** Compact opt out row: the current state on the left, one toggle on the right. */
+function OptOut() {
   const [state, setState] = useState<Consent>(consent());
-  const lower = (to: 'pageviews' | 'none') => { optOut(to); setState(to); };
-  const on = () => { optIn(); setState('all'); };
   return (
-    <div className="pt-choice">
-      <h3 id="pv-card">Analytics</h3>
-      <div className="pt-choice-row">
-        <p className="pt-choice-status" role="status" aria-live="polite">
-          <span className="pt-choice-dot" data-state={ENABLED ? state : 'none'} aria-hidden="true" />
-          {ENABLED ? LABEL[state] : 'This build sends no analytics or error reports.'}
-        </p>
-        {ENABLED && (
-          <div className="pt-choice-actions" role="group" aria-labelledby="pv-card">
-            {state === 'all' && <button type="button" onClick={() => lower('pageviews')} aria-label="Send pageviews only">Pageviews only</button>}
-            {state === 'pageviews' && <button type="button" onClick={on} aria-label="Turn analytics on">Turn on</button>}
-            {state !== 'none' && <button type="button" onClick={() => lower('none')} aria-label="Turn analytics off">Turn off</button>}
-            {state === 'none' && <button type="button" onClick={on} aria-label="Opt back in to analytics">Opt back in</button>}
-          </div>
-        )}
+    <>
+      <div className="pt-optout">
+        <p role="status" aria-live="polite">{ENABLED ? LABEL[state] : 'This build sends no analytics or error reports.'}</p>
+        {ENABLED && (state === 'all'
+          ? <button type="button" className="pt-pill" aria-label="Opt out of analytics" onClick={() => { optOut(); setState('none'); }}>Opt out</button>
+          : <button type="button" className="pt-pill" aria-label="Opt in to analytics" onClick={() => { optIn(); setState('all'); }}>Opt in</button>)}
       </div>
-      {ENABLED && <p className="pt-choice-note">Saved in this browser only. Lowering it stops events now. Turning it on applies on the next page load.</p>}
-    </div>
+      <p className="pt-muted">The choice is saved in this browser, so each browser and device opts out separately. Opting out sends one last <code>analytics_opted_out</code> event, then nothing. Opting in applies on the next page load.</p>
+      <p className="pt-small">You can also add <code>?optout</code> (page views only), <code>?optout=all</code> (nothing at all) or <code>?optin</code> to any address.</p>
+      <p className="pt-small"><a href={PRIVACY_MD}>PRIVACY.md</a></p>
+    </>
   );
 }
 
@@ -48,14 +40,7 @@ export function Privacy({ home }: { home: string }) {
 
       <section aria-labelledby="pv-choice">
         <h2 id="pv-choice">Your choice</h2>
-        <ChoiceCard />
-        <p>You can also add one of these to any playground address:</p>
-        <ul>
-          <li><code>?optout</code> keeps pageviews only: no other events and no error reports.</li>
-          <li><code>?optout=all</code> sends nothing. The analytics and error scripts are not loaded.</li>
-          <li><code>?optin</code> undoes either.</li>
-        </ul>
-        <p>Leaving all events from this page sends one last <code>analytics_opted_out</code> event. Your choice is saved in this browser&apos;s local storage, so each browser and device keeps its own. Clearing site data resets it. Browsers with Do Not Track on send no analytics.</p>
+        <OptOut />
       </section>
 
       <section aria-labelledby="pv-auto">
