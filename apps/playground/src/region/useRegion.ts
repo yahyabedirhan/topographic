@@ -1,3 +1,4 @@
+import { track } from '../analytics';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { DEFAULT_ELEVATION, resolveSettings, type Heightfield, type Settings } from 'topographic';
 import { flushPageUrl, schedulePageUrl } from '../page-history';
@@ -103,6 +104,8 @@ export function useRegion(pg: Playground): RegionController {
     const id = ++request.current;
     setStatus('loading');
     setError(null);
+    const t0 = performance.now();
+    const place = placeId ?? 'custom';
     const onMessage = (event: MessageEvent<BuildOk | BuildErr>) => {
       if (event.data.id !== id) return;
       if (!event.data.ok) {
@@ -110,6 +113,7 @@ export function useRegion(pg: Playground): RegionController {
         setField(null);
         setInfo(null);
         setStatus('error');
+        track('region_loaded', { ms: Math.round(performance.now() - t0), ok: false, place, tiles: null });
         setError(event.data.error);
         setGeneration((n) => n + 1);
         return;
@@ -127,6 +131,7 @@ export function useRegion(pg: Playground): RegionController {
         span: spanOf(bbox),
       });
       setStatus('ready');
+      track('region_loaded', { ms: Math.round(performance.now() - t0), ok: true, place, tiles: event.data.tiles });
       setGeneration((n) => n + 1);
     };
     worker.addEventListener('message', onMessage);

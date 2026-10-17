@@ -396,3 +396,15 @@ button.pt-card[aria-pressed="true"]{background:var(--seg-on);box-shadow:var(--se
   button.pt-compass{top:3px;right:3px;width:24px;height:24px}
   .pt-compass-needle{transform-origin:center}
 }
+
+.pt-wordmark .pt-wordmark-privacy{font-size:11px;opacity:.7}
+.pt-privacy{max-width:680px;margin:0 auto;padding:48px 22px 96px}
+.pt-privacy h1{font:600 30px/1.2 Literata,Georgia,serif;letter-spacing:-.01em;margin:28px 0 14px}
+.pt-privacy section{margin-top:36px}
+.pt-privacy p,.pt-privacy ul,.pt-privacy dl{margin-bottom:12px}
+.pt-privacy ul{padding-left:20px}
+.pt-privacy li{margin-bottom:4px}
+.pt-privacy dl>div{padding:10px 0;border-top:.5px solid var(--line)}
+.pt-privacy dd{color:var(--mut);font-size:14px}
+.pt-privacy li code,.pt-privacy dt code{padding:1px 5px;border-radius:6px;background:var(--card)}
+.pt-privacy dd::first-letter{text-transform:uppercase}

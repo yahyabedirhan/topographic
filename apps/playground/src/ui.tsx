@@ -23,7 +23,7 @@ import {
   type Playground,
 } from './shared';
 import { TerrainLoading } from './loading';
-import { track } from './analytics';
+import { track, trackDebounced, type PanelName } from './analytics';
 import { noteFps } from './perf';
 
 // MapLibre is large, so the place panel loads the first time Map opens.
@@ -64,7 +64,7 @@ function ThemeToggle({ pg }: { pg: Playground }) {
             className="pt-tool pt-theme"
             aria-label={label}
             pressed={dark}
-            onPressedChange={() => pg.change({ theme: { mode: dark ? 'light' : 'dark', ink: undefined, paper: undefined } })}
+            onPressedChange={() => { track('theme_toggled', { to: dark ? 'light' : 'dark' }); pg.change({ theme: { mode: dark ? 'light' : 'dark', ink: undefined, paper: undefined } }); }}
           />
         )}
       >
@@ -88,7 +88,7 @@ function ModeToggle({ pg }: { pg: Playground }) {
             className="pt-ibtn pt-mode"
             aria-label={label}
             pressed={on}
-            onPressedChange={(pressed) => pg.change({ mode: pressed ? '3d' : '2d' })}
+            onPressedChange={(pressed) => { track('view_mode_changed', { from: on ? '3d' : '2d', to: pressed ? '3d' : '2d' }); pg.change({ mode: pressed ? '3d' : '2d' }); }}
           />
         )}
       >
@@ -170,14 +170,14 @@ export function ColorField({ pg, which }: { pg: Playground; which: 'ink' | 'pape
           <Popover.Popup className="pt-pop pt-glass pt-pop-color">
             <div className="pt-color-head">
               <Popover.Title className="pt-pop-title">{name}</Popover.Title>
-              <button type="button" className="pt-dice" aria-label={`Random ${name.toLowerCase()} colour`} onClick={() => { track('dice_clicked', { target: which }); pg.change({ theme: { [which]: rollColour(which) } }); }}>
+              <button type="button" className="pt-dice" aria-label={`Random ${name.toLowerCase()} colour`} onClick={() => { track('shuffle_clicked', { target: which }); pg.change({ theme: { [which]: rollColour(which) } }); }}>
                 <Dices size={15} strokeWidth={1.75} />
               </button>
             </div>
             <ColorPicker
               value={value}
               swatches={which === 'ink' ? INK_SWATCHES : PAPER_SWATCHES}
-              onChange={(c) => pg.change({ theme: { [which]: c } })}
+              onChange={(c, source) => { trackDebounced(`colour:${which}`, 'colour_changed', { slot: which, source }); pg.change({ theme: { [which]: c } }); }}
             />
           </Popover.Popup>
         </Popover.Positioner>
@@ -292,16 +292,16 @@ export function Dock({ pg, terrains, onOpenMap }: { pg: Playground; terrains: Te
       <nav className="pt-dock pt-glass" aria-label="Examples" data-looks={LOOKS.length} data-ready={ready} data-saved={saved.items.length} style={{ ['--thumb' as string]: `${thumb}px` }}>
         <div className="pt-thumb-row">
         <div className={`pt-thumbs${scroll.overflow && scroll.left < scroll.max - 4 ? ' is-more' : ''}${scroll.left > 4 ? ' is-back' : ''}`} ref={scroller} style={{ width }}>
-          {MAP_LOOKS.map((look) => (
-            <SavedThumb key={look.id} item={look} current={look === activeMapLook} onOpen={() => terrains.openMapLook(look)} />
+          {MAP_LOOKS.map((look, li) => (
+            <SavedThumb key={look.id} item={look} current={look === activeMapLook} onOpen={() => { track('dock_item_clicked', { kind: 'map_look', preset: look.id, index: li }); terrains.openMapLook(look); }} />
           ))}
-          {saved.items.map((item) => (
+          {saved.items.map((item, si) => (
             <SavedThumb
               key={item.id}
               item={item}
               current={item === activeSaved}
-              onOpen={() => terrains.openSaved(item)}
-              onDelete={() => saved.remove(item.id)}
+              onOpen={() => { track('dock_item_clicked', { kind: 'saved', preset: 'saved', index: si }); terrains.openSaved(item); }}
+              onDelete={() => { track('saved_terrain_deleted', { index: si }); saved.remove(item.id); }}
             />
           ))}
           {maps ? <span className="pt-dock-divider" aria-hidden="true" /> : null}
@@ -312,7 +312,7 @@ export function Dock({ pg, terrains, onOpenMap }: { pg: Playground; terrains: Te
               className="pt-thumb"
               aria-current={i === lookIndex ? 'true' : undefined}
               aria-label={p.name}
-              onClick={() => terrains.openLook(i)}
+              onClick={() => { track('dock_item_clicked', { kind: 'look', preset: p.name, index: i }); terrains.openLook(i); }}
             >
               <span className={`pt-thumb-media${thumbs[i] ? '' : ' is-loading'}`}>
                 {thumbs[i] ? <img src={thumbs[i]} alt="" /> : null}
@@ -330,7 +330,7 @@ export function Dock({ pg, terrains, onOpenMap }: { pg: Playground; terrains: Te
         {/* Theme, shuffle, then the two colours, in a 2×2 grid. */}
         <div className="pt-dock-tools" ref={tools}>
           <ThemeToggle pg={pg} />
-          <IconButton label="Shuffle" side="top" className="pt-tool" onClick={() => { track('dice_clicked', { target: 'shuffle' }); terrains.shuffle(); }}><Dices size={16} strokeWidth={1.75} /></IconButton>
+          <IconButton label="Shuffle" side="top" className="pt-tool" onClick={() => { track('shuffle_clicked', { target: 'all' }); terrains.shuffle(); }}><Dices size={16} strokeWidth={1.75} /></IconButton>
           <span className="pt-tool-slot"><ColorField pg={pg} which="paper" /></span>
           <span className="pt-tool-slot"><ColorField pg={pg} which="ink" /></span>
         </div>
@@ -454,6 +454,11 @@ function GroupPreview({ pg, group, dim }: { pg: Playground; group: GroupName; di
   return <Preview height={104} caption={caption} label={`Page layout: ${caption}`} art={(w) => layoutArt(s.layout, w, 104)} />;
 }
 
+/** One `setting_changed` per control once it has been still for a moment, never one per drag step. */
+function tuned(group: string, key: string): void {
+  trackDebounced(`setting:${group}.${key}`, 'setting_changed', { group, key });
+}
+
 function ViewTune({ pg }: { pg: Playground }) {
   const s = pg.settings;
   const azimuth = ((s.camera.azimuth % 360) + 360) % 360;
@@ -481,33 +486,33 @@ function ViewTune({ pg }: { pg: Playground }) {
         <span className="pt-preview-label" style={{ left: 124 }}>Side</span>
       </Preview>
       <Section title="Scene" resetIf={!off && sceneChanged} onReset={() => pg.change({ extent: DEFAULT_EXTENT, elevation: DEFAULT_ELEVATION })}>
-        <SegRow label="Extent" icon="extent" options={EXTENTS} value={s.extent} disabled={off} onChange={(id) => pg.change({ extent: id })} />
+        <SegRow label="Extent" icon="extent" options={EXTENTS} value={s.extent} disabled={off} onChange={(id) => { tuned('view', 'extent'); pg.change({ extent: id }); }} />
         <SliderRow
           label="Elevation" icon="elevation" art="elevation"
           hint="0 is flat like the map. Higher values make the terrain taller, with a rounded crest."
           value={s.elevation} min={0} max={1} step={0.01} shown={s.elevation.toFixed(2)} disabled={off}
-          onChange={(n) => pg.change({ elevation: n })}
+          onChange={(n) => { tuned('view', 'elevation'); pg.change({ elevation: n }); }}
         />
       </Section>
       <Section title="Camera" resetIf={!off && cameraChanged} onReset={() => cam({ ...DEFAULT_CAMERA, ...home })}>
-        <SegRow label="Motion" icon="camMotion" options={PATHS} value={s.camera.motion} disabled={off} onChange={(id) => cam({ motion: id })} />
+        <SegRow label="Motion" icon="camMotion" options={PATHS} value={s.camera.motion} disabled={off} onChange={(id) => { tuned('camera', 'motion'); cam({ motion: id }); }} />
         <SliderRow
           label="Azimuth" icon="azimuth" art="azimuth"
           hint="Orbit around the terrain. Drag the view to move this too. A two-finger scroll pans; a double-click recentres."
           value={azimuth} min={0} max={360} step={1} shown={`${azimuth.toFixed(0)}°`} disabled={off}
-          onChange={(n) => cam({ azimuth: n })}
+          onChange={(n) => { tuned('camera', 'azimuth'); cam({ azimuth: n }); }}
         />
         <SliderRow
           label="Angle" icon="angle" art="angle"
           hint="Degrees above the horizon. The camera never goes below the terrain."
           value={s.camera.elevation} min={2} max={80} step={1} shown={`${s.camera.elevation.toFixed(0)}°`} disabled={off}
-          onChange={(n) => cam({ elevation: n })}
+          onChange={(n) => { tuned('camera', 'elevation'); cam({ elevation: n }); }}
         />
         <SliderRow
           label="Distance" icon="distance" art="distance"
           hint="How far the camera sits. ⌘/Ctrl + scroll or pinch the view to zoom (Shift + scroll also zooms)."
           value={s.camera.radius} min={1.15} max={6.5} step={0.01} shown={s.camera.radius.toFixed(2)} disabled={off}
-          onChange={(n) => cam({ radius: n })}
+          onChange={(n) => { tuned('camera', 'radius'); cam({ radius: n }); }}
         />
       </Section>
       <Section title="Quality" resetIf={!off && (s.detail !== DEFAULT_DETAIL || s.quality !== 'auto')} onReset={() => pg.change({ detail: DEFAULT_DETAIL, quality: 'auto' })}>
@@ -518,7 +523,7 @@ function ViewTune({ pg }: { pg: Playground }) {
           options={DETAILS}
           value={detailLevel(s.detail)}
           disabled={off}
-          onChange={(id) => pg.change({ detail: DETAILS.find((d) => d.id === id)!.value })}
+          onChange={(id) => { track('quality_changed', { setting: 'detail', value: String(id) }); pg.change({ detail: DETAILS.find((d) => d.id === id)!.value }); }}
         />
         <SegRow
           label="Budget"
@@ -527,7 +532,7 @@ function ViewTune({ pg }: { pg: Playground }) {
           options={BUDGETS}
           value={s.quality}
           disabled={off}
-          onChange={(id) => pg.change({ quality: id })}
+          onChange={(id) => { track('quality_changed', { setting: 'budget', value: String(id) }); pg.change({ quality: id }); }}
         />
       </Section>
     </>
@@ -568,7 +573,7 @@ function ParamTune({ pg, group, region }: { pg: Playground; group: GroupName; re
                   value={value} min={p.min} max={p.max} step={p.step} shown={readParam(p, value)}
                   valueText={p.group === 'lines' && p.key === 'width' ? linePx(value) : p.key === 'indexEvery' ? boldEvery(value) : undefined}
                   disabled={off(p)}
-                  onChange={(n) => pg.change({ [p.group]: { [p.key]: n } })}
+                  onChange={(n) => { tuned(p.group, p.key); pg.change({ [p.group]: { [p.key]: n } }); }}
                 />
               );
             })}
@@ -644,6 +649,20 @@ export function useDismiss(close: () => void) {
 
 type PopName = 'place' | 'tune' | 'export';
 
+const PANEL: Record<PopName, PanelName> = { place: 'map', tune: 'tune', export: 'export' };
+
+/** Sends `panel_opened` when a cluster popover opens and `panel_closed` with how long it stayed open. */
+function usePanelTiming(open: PopName | null) {
+  const since = useRef(0);
+  useEffect(() => {
+    if (!open) return;
+    since.current = performance.now();
+    track('panel_opened', { panel: PANEL[open] });
+    const closed = () => track('panel_closed', { panel: PANEL[open], open_ms: Math.round(performance.now() - since.current) });
+    return closed;
+  }, [open]);
+}
+
 /** Every cluster popover opens here: under the cluster, right-aligned, 10px below. */
 export function ClusterPositioner({ clusterRef, children }: { clusterRef: RefObject<HTMLDivElement | null>; children: ReactNode }) {
   return (
@@ -668,6 +687,7 @@ export function GlassFrame({ pg, terrains, tune, exporting }: {
   const { region } = terrains;
   const close = useCallback(() => setOpen(null), []);
   useDismiss(close);
+  usePanelTiming(open);
   const appearance = resolveMode(pg.settings.theme.mode, document.documentElement.dataset.theme !== 'light');
   return (
     <Shell

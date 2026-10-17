@@ -12,6 +12,7 @@ import { withQuery, writeSettings } from './share-url';
 import { LOOKS } from './looks';
 import { keepShape } from './shape';
 import { smooth } from './region/pipeline';
+import { track } from './analytics';
 
 export interface Playground {
   settings: Settings;
@@ -577,7 +578,9 @@ export function currentColour(pg: Playground, which: 'ink' | 'paper'): string {
   return v ?? cssToHex(rgbaToCss(THEME_DEFAULTS[pg.mode][which]));
 }
 
-export function ColorPicker({ value, onChange, swatches }: { value: string; onChange: (hex: string) => void; swatches: string[] }) {
+export type ColourSource = 'picker' | 'swatch' | 'hex';
+
+export function ColorPicker({ value, onChange, swatches }: { value: string; onChange: (hex: string, source: ColourSource) => void; swatches: string[] }) {
   const isHex = /^#[0-9a-f]{3,8}$/i.test(value);
   const [hsv, setHsv] = useState<[number, number, number]>(() => (isHex ? hexToHsv(value) : [220, 0.2, 0.8]));
   const [text, setText] = useState(value);
@@ -585,7 +588,7 @@ export function ColorPicker({ value, onChange, swatches }: { value: string; onCh
     setText(value);
     if (isHex && value.toLowerCase() !== hsvToHex(...hsv)) setHsv(hexToHsv(value));
   }, [value]);
-  const set = (next: [number, number, number]) => { setHsv(next); onChange(hsvToHex(...next)); };
+  const set = (next: [number, number, number]) => { setHsv(next); onChange(hsvToHex(...next), 'picker'); };
   const drag = (el: HTMLElement, e: ReactPointerEvent, fn: (x: number, y: number) => void) => {
     el.setPointerCapture(e.pointerId);
     const move = (ev: PointerEvent | ReactPointerEvent) => {
@@ -609,20 +612,24 @@ export function ColorPicker({ value, onChange, swatches }: { value: string; onCh
       <div className="pt-swatches">
         {swatches.map((c) => (
           <button key={c} type="button" aria-label={c} className={`pt-swatch ${c === value ? 'is-on' : ''} ${c === 'transparent' ? 'clear' : ''}`}
-            style={{ background: c === 'transparent' ? undefined : c }} onClick={() => onChange(c)} />
+            style={{ background: c === 'transparent' ? undefined : c }} onClick={() => onChange(c, 'swatch')} />
         ))}
       </div>
       <input className="pt-hex" value={text} spellCheck={false} aria-label="Hex colour"
-        onChange={(e) => { setText(e.target.value); if (/^#[0-9a-f]{6}$/i.test(e.target.value)) onChange(e.target.value); }} />
+        onChange={(e) => { setText(e.target.value); if (/^#[0-9a-f]{6}$/i.test(e.target.value)) onChange(e.target.value, 'hex'); }} />
     </div>
   );
 }
 
+const GITHUB = 'https://github.com/yahyabedirhan/topographic';
+const SITE = 'https://yahyapak.dev/projects/topographic';
+
 export function Wordmark({ children }: { children?: ReactNode }) {
   return (
     <div className="pt-wordmark">
-      <a href="https://github.com/yahyabedirhan/topographic" target="_blank" rel="noreferrer" aria-label="topographic on GitHub">topographic</a>
-      <a href="https://yahyapak.dev/projects/topographic" target="_blank" rel="noreferrer" className="pt-wordmark-site">yahyapak.dev</a>
+      <a href={GITHUB} target="_blank" rel="noreferrer" aria-label="topographic on GitHub" onClick={() => track('ui_click', { section: 'header', target: 'github', href: GITHUB, outbound: true })}>topographic</a>
+      <a href={SITE} target="_blank" rel="noreferrer" className="pt-wordmark-site" onClick={() => track('ui_click', { section: 'header', target: 'site', href: SITE, outbound: true })}>yahyapak.dev</a>
+      <a href={`${import.meta.env.BASE_URL}privacy`} className="pt-wordmark-site pt-wordmark-privacy">Privacy</a>
       {children}
     </div>
   );

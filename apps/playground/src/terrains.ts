@@ -6,6 +6,7 @@ import { sameBox, terrainDefaults } from './region/places';
 import { useRegion, type RegionController } from './region/useRegion';
 import { useSaved, type SavedStore, type SavedTerrain } from './saved';
 import { placeThumb, type Playground } from './shared';
+import { track } from './analytics';
 
 /**
  * Every dock item is a whole terrain: a shape plus its colours and lines. Built-in looks are
@@ -97,6 +98,7 @@ export function useTerrains(pg: Playground): Terrains {
     activeMapLook,
     lookIndex: region.bbox ? -1 : pg.lookIndex,
     apply(bbox, placeId, minimap) {
+      track('place_applied', { place: placeId ?? 'custom' });
       const now = live.current;
       const settings = mergeSettings(now.settings, terrainDefaults(placeId));
       setMapLookId(null);

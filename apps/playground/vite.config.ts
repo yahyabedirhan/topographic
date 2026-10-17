@@ -1,6 +1,9 @@
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
+import { readFileSync } from 'node:fs';
 import { docsPlugin } from './docs';
+
+const version = JSON.parse(readFileSync(new URL('../../packages/core/package.json', import.meta.url), 'utf8')).version as string;
 
 /** Prints `./__debug` batches during `vite` and `vite preview`. A static host has no such path. */
 function debugEndpoint(): Plugin {
@@ -23,4 +26,4 @@ function debugEndpoint(): Plugin {
   };
 }
 
-export default defineConfig({ plugins: [react(), docsPlugin(), debugEndpoint()], base: process.env.BASE_PATH || '/' });
+export default defineConfig({ plugins: [react(), docsPlugin(), debugEndpoint()], base: process.env.BASE_PATH || '/', define: { __APP_VERSION__: JSON.stringify(version) } });
