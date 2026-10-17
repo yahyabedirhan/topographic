@@ -7,6 +7,7 @@
  */
 
 import { superProperties } from './device';
+import { consent, setConsent, type Consent } from './consent';
 
 export type ExportFormat = 'link' | 'png' | 'video' | 'react' | 'html' | 'json';
 export type PanelName = 'map' | 'tune' | 'export';
@@ -52,6 +53,7 @@ export interface AnalyticsEvents {
   export_video_completed: VideoProps & { prepare_ms: number; size_bytes: number };
   export_video_failed: VideoProps & { prepare_ms: number; error: string };
   performance_sample: PerformanceSample;
+  analytics_opted_out: { from: Exclude<Consent, 'none'> };
 }
 
 /** One frame-rate summary per visit, sent about 20 s in. */
@@ -90,7 +92,7 @@ export const EVENT_NAMES = [
   'ui_click', 'view_mode_changed', 'panel_opened', 'panel_closed', 'export_tab_changed', 'dock_item_clicked',
   'saved_terrain_deleted', 'place_applied', 'region_loaded', 'setting_changed', 'quality_changed', 'theme_toggled',
   'shuffle_clicked', 'colour_changed', 'link_copied', 'code_copied', 'export_image_downloaded', 'export_image_failed',
-  'export_video_started', 'export_video_completed', 'export_video_failed', 'performance_sample',
+  'export_video_started', 'export_video_completed', 'export_video_failed', 'performance_sample', 'analytics_opted_out',
 ] as const satisfies readonly (keyof AnalyticsEvents)[];
 
 /** A short, fixed error label: the message's first line, without the library prefix, capped. */
@@ -123,6 +125,7 @@ export function createTracker(key: string | undefined, host: string, load: Loade
   let capture: Capture | null = null;
   let queue: [string, Record<string, unknown>][] | null = key ? [] : null;
   let started = false;
+  let stopped = false;
   return {
     enabled: Boolean(key),
     start(): void {
@@ -136,12 +139,14 @@ export function createTracker(key: string | undefined, host: string, load: Loade
       }).catch(() => { queue = null; });
     },
     track<E extends AnalyticsEvent>(event: E, props: AnalyticsEvents[E]): void {
-      if (!key) return;
+      if (!key || stopped) return;
       try {
         if (capture) capture(event, props as Record<string, unknown>);
         else if (queue && queue.length < 50) queue.push([event, props as Record<string, unknown>]);
       } catch { /* analytics never breaks the page */ }
     },
+    /** Sends nothing more from this page. Events already queued still go out once the client loads. */
+    stop(): void { stopped = true; },
   };
 }
 
@@ -154,7 +159,8 @@ function doNotTrack(): boolean {
 const KEY = import.meta.env.VITE_POSTHOG_KEY || undefined;
 const HOST = import.meta.env.VITE_POSTHOG_HOST || DEFAULT_HOST;
 
-const tracker = createTracker(KEY, HOST, async (key, host) => {
+// With `?optout=all` saved, the client is never loaded.
+const tracker = createTracker(consent() === 'none' ? undefined : KEY, HOST, async (key, host) => {
   if (doNotTrack()) return null;
   const { startPostHog } = await import('./posthog');
   return startPostHog(key, host, superProperties());
@@ -162,19 +168,39 @@ const tracker = createTracker(KEY, HOST, async (key, host) => {
 
 /** Sends one event. Does nothing in a build without a key. */
 export function track<E extends AnalyticsEvent>(event: E, ...props: AnalyticsEvents[E] extends Record<string, never> ? [] : [AnalyticsEvents[E]]): void {
-  if (!KEY) return;
+  if (!KEY || consent() !== 'all') return;
   tracker.track(event, (props[0] ?? {}) as AnalyticsEvents[E]);
 }
 
+/** True when this build can send analytics and the visitor has not opted out of everything. */
+export function analyticsActive(): boolean {
+  return Boolean(KEY) && consent() !== 'none';
+}
+
+/** Sends one final `analytics_opted_out` event, then saves the opt out and sends nothing more. */
+export function optOut(): void {
+  const from = consent();
+  if (from === 'none') return;
+  if (KEY) {
+    tracker.track('analytics_opted_out', { from });
+    tracker.start();
+    tracker.stop();
+  }
+  setConsent('none');
+}
+
+/** Clears the saved choice. Analytics start again on the next page load. */
+export function optIn(): void { setConsent('all'); }
+
 /** Sends one event once input on `key` has been quiet for a moment, with the latest props. */
 export function trackDebounced<E extends AnalyticsEvent>(key: string, event: E, props: AnalyticsEvents[E]): void {
-  if (!KEY) return;
-  debounced(key, () => tracker.track(event, props));
+  if (!KEY || consent() !== 'all') return;
+  debounced(key, () => { if (consent() === 'all') tracker.track(event, props); });
 }
 
 /** Loads PostHog once the page is idle after the first paint. */
 export function startAnalytics(): void {
-  if (!KEY) return;
+  if (!KEY || consent() === 'none') return;
   const go = () => tracker.start();
   const idle = (window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
   const later = () => (idle ? idle(go, { timeout: 4000 }) : window.setTimeout(go, 1500));

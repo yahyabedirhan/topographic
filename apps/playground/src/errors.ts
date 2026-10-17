@@ -6,6 +6,7 @@
  * them over. At most `MAX_EVENTS` reports leave one page, so a failing device cannot flood the quota.
  */
 import { gpuName, qualityTier } from './device';
+import { consent } from './consent';
 
 export const MAX_EVENTS = 10;
 
@@ -37,7 +38,8 @@ export function createErrorQueue(enabled: boolean, max = MAX_EVENTS) {
   };
 }
 
-const DSN = import.meta.env.VITE_SENTRY_DSN || undefined;
+// Any opt out (`?optout` or `?optout=all`) also turns error reports off.
+const DSN = (consent() === 'all' && import.meta.env.VITE_SENTRY_DSN) || undefined;
 const queue = createErrorQueue(Boolean(DSN));
 
 function tags(): Record<string, string> {

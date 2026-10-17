@@ -1,6 +1,7 @@
 /// <reference types="vite/client" />
 import { createRoot } from 'react-dom/client';
 import { startAnalytics } from './analytics';
+import { consent } from './consent';
 import { App } from './App';
 import { startErrorReporting } from './errors';
 import { schedulePerformanceSample } from './perf';
@@ -22,7 +23,7 @@ createRoot(document.getElementById('root')!).render(
 // Without VITE_SENTRY_DSN or VITE_POSTHOG_KEY these are no-ops and the clients are not built in.
 startErrorReporting();
 startAnalytics();
-if (import.meta.env.VITE_POSTHOG_KEY) {
+if (import.meta.env.VITE_POSTHOG_KEY && consent() === 'all') {
   watchFrameHealth();
   schedulePerformanceSample();
 }
