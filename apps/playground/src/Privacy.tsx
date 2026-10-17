@@ -4,14 +4,34 @@ import { consent, type Consent } from './consent';
 import { EVENT_INFO, SUPER_PROPS } from './privacy-content';
 
 const LABEL: Record<Consent, string> = {
-  all: 'Analytics and error reports are on in this browser.',
-  pageviews: 'Only pageviews are sent from this browser.',
+  all: 'Analytics are on in this browser.',
+  pageviews: 'Only page views are sent from this browser.',
   none: 'Nothing is sent from this browser.',
 };
 
+const ENABLED = Boolean(import.meta.env.VITE_POSTHOG_KEY || import.meta.env.VITE_SENTRY_DSN);
+const PRIVACY_MD = 'https://github.com/yahyabedirhan/topographic/blob/main/PRIVACY.md';
+
+/** Compact opt out row: the current state on the left, one toggle on the right. */
+function OptOut() {
+  const [state, setState] = useState<Consent>(consent());
+  return (
+    <>
+      <div className="pt-optout">
+        <p role="status" aria-live="polite">{ENABLED ? LABEL[state] : 'This build sends no analytics or error reports.'}</p>
+        {ENABLED && (state === 'all'
+          ? <button type="button" className="pt-pill" aria-label="Opt out of analytics" onClick={() => { optOut(); setState('none'); }}>Opt out</button>
+          : <button type="button" className="pt-pill" aria-label="Opt in to analytics" onClick={() => { optIn(); setState('all'); }}>Opt in</button>)}
+      </div>
+      <p className="pt-muted">The choice is saved in this browser, so each browser and device opts out separately. Opting out sends one last <code>analytics_opted_out</code> event, then nothing. Opting in applies on the next page load.</p>
+      <p className="pt-small">You can also add <code>?optout</code> (page views only), <code>?optout=all</code> (nothing at all) or <code>?optin</code> to any address.</p>
+      <p className="pt-small"><a href={PRIVACY_MD}>PRIVACY.md</a></p>
+    </>
+  );
+}
+
 /** The privacy page at /privacy: what is collected, why, and an opt out control. */
 export function Privacy({ home }: { home: string }) {
-  const [state, setState] = useState<Consent>(consent());
   return (
     <main className="pt-privacy">
       <p><a href={home}>topographic</a></p>
@@ -20,17 +40,7 @@ export function Privacy({ home }: { home: string }) {
 
       <section aria-labelledby="pv-choice">
         <h2 id="pv-choice">Your choice</h2>
-        <p role="status">{import.meta.env.VITE_POSTHOG_KEY || import.meta.env.VITE_SENTRY_DSN ? LABEL[state] : 'This build sends no analytics or error reports.'}</p>
-        {state === 'none'
-          ? <p><button type="button" onClick={() => { optIn(); setState('all'); }}>Opt back in</button> Takes effect on the next page load.</p>
-          : <p><button type="button" onClick={() => { optOut(); setState('none'); }}>Opt out</button></p>}
-        <p>You can also add one of these to any playground address:</p>
-        <ul>
-          <li><code>?optout</code> keeps pageviews only: no other events and no error reports.</li>
-          <li><code>?optout=all</code> sends nothing. The analytics and error scripts are not loaded.</li>
-          <li><code>?optin</code> undoes either.</li>
-        </ul>
-        <p>The Opt out button sends one last <code>analytics_opted_out</code> event, then nothing. Your choice is saved in this browser&apos;s local storage, so each browser and device keeps its own. Clearing site data resets it. Browsers with Do Not Track on send no analytics.</p>
+        <OptOut />
       </section>
 
       <section aria-labelledby="pv-auto">

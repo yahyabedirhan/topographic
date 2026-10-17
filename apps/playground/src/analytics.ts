@@ -177,16 +177,16 @@ export function analyticsActive(): boolean {
   return Boolean(KEY) && consent() !== 'none';
 }
 
-/** Sends one final `analytics_opted_out` event, then saves the opt out and sends nothing more. */
-export function optOut(): void {
+/** Lowers the choice to `to`. From all, sends one final `analytics_opted_out` event first. Custom events stop at once. */
+export function optOut(to: 'pageviews' | 'none' = 'none'): void {
   const from = consent();
-  if (from === 'none') return;
-  if (KEY) {
+  if (from === 'none' || from === to) return;
+  if (KEY && from === 'all') {
     tracker.track('analytics_opted_out', { from });
     tracker.start();
-    tracker.stop();
-  }
-  setConsent('none');
+    if (to === 'none') tracker.stop();
+  } else if (KEY && to === 'none') tracker.stop();
+  setConsent(to);
 }
 
 /** Clears the saved choice. Analytics start again on the next page load. */
