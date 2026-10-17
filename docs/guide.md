@@ -385,7 +385,8 @@ The playground is a Cloudflare Worker with static assets. With Workers Builds, a
 `wrangler.jsonc` at the repo root describes the Worker `topographic`. It has no script: it serves `apps/playground/dist` as static assets, with `_headers` from `apps/playground/public` for caching. Unknown paths fall back to `index.html`, since the playground keeps its state in the query string.
 
 - `npm run deploy` builds the playground and runs `wrangler deploy`.
-- Workers Builds, connected to this repo, uses the build command `npm run build`, the deploy command `npx wrangler deploy` and `NODE_VERSION=20`.
+- Workers Builds, connected to this repo, uses the build command `npm run build`, the deploy command `npx wrangler deploy` and `NODE_VERSION=22`, since wrangler needs Node 22 or later.
+- The old GitHub Pages address only redirects here. `.github/workflows/pages.yml` publishes a redirect page that keeps the path and the query string.
 
 ## WebMCP tools
 
