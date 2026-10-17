@@ -16,11 +16,13 @@ if (import.meta.env.VITE_TOPOGRAPHIC_DEBUG === '1') {
 
 const base = import.meta.env.BASE_URL;
 const root = createRoot(document.getElementById('root')!);
-if (/\/privacy\/?$/.test(location.pathname)) {
+const legacyPrivacy = /\/privacy\/?$/.test(location.pathname);
+if (legacyPrivacy) history.replaceState(null, '', `${base}about#analytics`);
+if (legacyPrivacy || /\/about\/?$/.test(location.pathname)) {
   // A separate chunk, so the playground bundle does not grow.
-  void import('./Privacy').then(({ Privacy }) => {
-    document.title = 'Privacy: topographic';
-    root.render(<Privacy home={base} />);
+  void import('./About').then(({ About }) => {
+    document.title = 'About: topographic';
+    root.render(<About home={base} />);
   });
 } else {
   root.render(

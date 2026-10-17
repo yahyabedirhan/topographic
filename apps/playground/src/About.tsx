@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { EVENT_NAMES, optIn, optOut } from './analytics';
 import { consent, type Consent } from './consent';
 import { EVENT_INFO, SUPER_PROPS } from './privacy-content';
@@ -30,26 +30,33 @@ function OptOut() {
   );
 }
 
-/** The privacy page at /privacy: what is collected, why, and an opt out control. */
-export function Privacy({ home }: { home: string }) {
+/** The About page at /about: the project, its maintainer, and the analytics section. */
+export function About({ home }: { home: string }) {
+  // The page renders after a lazy import, so jump to a #section once it exists.
+  useEffect(() => {
+    const id = location.hash.slice(1);
+    if (id) document.getElementById(id)?.scrollIntoView();
+  }, []);
   return (
     <main className="pt-privacy">
       <p><a href={home}>topographic</a></p>
-      <h1>Privacy</h1>
+      <h1>About</h1>
+      <section id="analytics" aria-labelledby="pv-analytics">
+      <h2 id="pv-analytics">Analytics</h2>
       <p>The playground counts visits and how its tools are used, so they can be improved. It uses no cookies and no stored ids, has no accounts, and does not record sessions. The topographic npm packages collect nothing.</p>
 
       <section aria-labelledby="pv-choice">
-        <h2 id="pv-choice">Your choice</h2>
+        <h3 id="pv-choice">Your choice</h3>
         <OptOut />
       </section>
 
       <section aria-labelledby="pv-auto">
-        <h2 id="pv-auto">Pageviews</h2>
+        <h3 id="pv-auto">Pageviews</h3>
         <p>PostHog records a pageview and a page leave with the page path, referrer, UTM campaign parameters and time on page. From the request it derives country, browser, device type and OS. The IP address is discarded and not stored. Unique visitors are counted per day from a salted hash that the server rotates daily, so a visit cannot be linked to another day. The playground settings in the address bar are not sent.</p>
       </section>
 
       <section aria-labelledby="pv-events">
-        <h2 id="pv-events">Events</h2>
+        <h3 id="pv-events">Events</h3>
         <p>{SUPER_PROPS}</p>
         <dl>
           {EVENT_NAMES.map((name) => (
@@ -62,12 +69,12 @@ export function Privacy({ home }: { home: string }) {
       </section>
 
       <section aria-labelledby="pv-errors">
-        <h2 id="pv-errors">Error reports</h2>
+        <h3 id="pv-errors">Error reports</h3>
         <p>Sentry receives crash reports: the error message and stack trace, browser and OS, the page path without the query string, the graphics tier and GPU name. Lost WebGL contexts are reported the same way. There is no user data, cookies, headers, tracing or replay, and one page sends at most 10 reports.</p>
       </section>
 
       <section aria-labelledby="pv-never">
-        <h2 id="pv-never">Never collected</h2>
+        <h3 id="pv-never">Never collected</h3>
         <ul>
           <li>Cookies, local storage ids or fingerprints. Local storage only holds your opt out choice.</li>
           <li>Your IP address, name, email or any account.</li>
@@ -76,6 +83,7 @@ export function Privacy({ home }: { home: string }) {
           <li>Session recordings, heatmaps or automatic click capture.</li>
         </ul>
         <p>Analytics are processed by PostHog in the EU, and error reports by Sentry.</p>
+      </section>
       </section>
     </main>
   );
