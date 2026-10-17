@@ -52,8 +52,8 @@ function OptOut() {
           : <button type="button" className="pt-pill" aria-label="Opt in to analytics" onClick={() => { optIn(); setState('all'); }}>Opt in</button>)}
       </div>
       <p className="pt-muted">The choice is saved in this browser, so each browser and device opts out separately. Opting out sends one last <code>analytics_opted_out</code> event, then nothing. Opting in applies on the next page load.</p>
-      <p className="pt-small">You can also add <code>?optout</code> (page views only), <code>?optout=all</code> (nothing at all) or <code>?optin</code> to any address.</p>
-      <p className="pt-small"><a href={PRIVACY_MD}>PRIVACY.md</a></p>
+      <p>You can also add <code>?optout</code> (page views only), <code>?optout=all</code> (nothing at all) or <code>?optin</code> to any address.</p>
+      <p><a href={PRIVACY_MD}>PRIVACY.md</a></p>
     </>
   );
 }
