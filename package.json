@@ -7,6 +7,9 @@
     "packages/react",
     "apps/playground"
   ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "build": "node scripts/build.mjs && npm run build -w apps/playground",
     "build:packages": "node scripts/build.mjs",
