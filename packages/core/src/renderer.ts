@@ -228,6 +228,7 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
     if (typeof value === 'number') gl.uniform1f(loc, value);
     else if (name === 'uParams') gl.uniform1fv(loc, value as Float32Array);
     else if (value.length === 2) gl.uniform2f(loc, value[0], value[1]);
+    else if (value.length === 3) gl.uniform3f(loc, value[0], value[1], value[2]);
     else gl.uniform4f(loc, value[0], value[1], value[2], value[3]);
   }
 
