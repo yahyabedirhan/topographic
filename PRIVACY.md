@@ -2,7 +2,7 @@
 
 This covers the playground at https://topographic.yahyapak.dev. The `topographic` and `topographic-react` npm packages collect nothing and contain no analytics or error reporting.
 
-The playground counts visits and how its tools are used, so they can be improved. It uses no cookies and no stored ids, has no accounts, and does not record sessions. The same list is on the [privacy page](https://topographic.yahyapak.dev/privacy).
+The playground counts visits and how its tools are used, so they can be improved. It uses no cookies and no stored ids, has no accounts, and does not record sessions. The same list is on the [About page](https://topographic.yahyapak.dev/about#analytics).
 
 ## Opting out
 
@@ -14,7 +14,7 @@ Add one of these to any playground address:
 | `?optout=all` | Nothing is sent. The analytics and error scripts are not loaded. |
 | `?optin` | Undoes either. |
 
-The privacy page also has an Opt out button. It sends one last `analytics_opted_out` event, then nothing.
+The Analytics section of the About page also has an Opt out button. It sends one last `analytics_opted_out` event, then nothing.
 
 The choice is saved in the browser's local storage under `topographic:analytics`, so each browser and device keeps its own and must opt out separately. Clearing site data resets it. Browsers with Do Not Track on send no analytics.
 

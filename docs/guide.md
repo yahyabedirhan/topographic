@@ -385,7 +385,7 @@ Each client loads in its own chunk when the page is idle after the first paint.
   Every event carries fixed super properties: `site`, `app`, `app_version`, `viewport_class`, `is_mobile`, `platform`, `os` and `initial_view_mode`. Properties never hold free text, colours or the query string.
 - **Sentry** reports errors only, with no tracing or replay and no user data, cookies, headers or query string. It reports error-boundary crashes and lost WebGL contexts, tagged with the quality tier and GPU. A small buffer keeps errors from before it loads, and one page sends at most 10 reports.
 
-Visitors can opt out with `?optout` (pageviews only, no error reports), `?optout=all` (nothing; neither client loads) or `?optin`, or with the button on `/privacy`. The choice is kept in local storage under `topographic:analytics`, per browser. [PRIVACY.md](../PRIVACY.md) and the `/privacy` page list every event; `privacy-content.ts` is typed against the event map, and a test checks that PRIVACY.md names every event.
+Visitors can opt out with `?optout` (pageviews only, no error reports), `?optout=all` (nothing; neither client loads) or `?optin`, or with the button on `/about#analytics`. The choice is kept in local storage under `topographic:analytics`, per browser. [PRIVACY.md](../PRIVACY.md) and the Analytics section of `/about` list every event; `privacy-content.ts` is typed against the event map, and a test checks that PRIVACY.md names every event.
 
 The playground is a Cloudflare Worker with static assets. With Workers Builds, add these as build variables (the Worker's Settings, then Build, then Variables and secrets). Vite reads them while building, so set them before the deploy that should use them.
 
