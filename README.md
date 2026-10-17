@@ -145,6 +145,10 @@ The code structure was inspired by [Paper Shaders](https://github.com/paper-desi
 - [`topographic`](https://www.npmjs.com/package/topographic) and [`topographic-react`](https://www.npmjs.com/package/topographic-react) on npm
 - [Guide](docs/guide.md)
 
+## Privacy
+
+The npm packages collect nothing. The playground site sends cookieless analytics and error reports; [PRIVACY.md](PRIVACY.md) lists every event and how to opt out.
+
 ## License
 
 The code is licensed under the [Apache License 2.0](LICENSE). See [LICENSE](LICENSE) and [NOTICE](NOTICE). If you use or adapt it, please credit Yahya Bedirhan Pak with a link to [yahyapak.dev](https://yahyapak.dev).

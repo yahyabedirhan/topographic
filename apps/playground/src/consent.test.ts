@@ -54,3 +54,16 @@ describe('consent', () => {
     expect(load).not.toHaveBeenCalled();
   });
 });
+
+describe('privacy docs', () => {
+  it('PRIVACY.md and the privacy page list every event', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { EVENT_NAMES } = await import('./analytics');
+    const { EVENT_INFO } = await import('./privacy-content');
+    const md = readFileSync(`${process.cwd()}/PRIVACY.md`, 'utf8');
+    for (const name of EVENT_NAMES) {
+      expect(md).toContain(`\`${name}\``);
+      expect(EVENT_INFO[name].props.length).toBeGreaterThan(0);
+    }
+  });
+});
