@@ -1,6 +1,6 @@
 # topographic guide
 
-This guide explains how to use topographic. Each section covers one topic. To try the settings live, open the [playground](https://yahyabedirhan.github.io/topographic/). To see how the parts of the code fit together, read [design.md](low-level-design.md).
+This guide explains how to use topographic. Each section covers one topic. To try the settings live, open the [playground](https://topographic.yahyapak.dev/). To see how the parts of the code fit together, read [design.md](low-level-design.md).
 
 - [Install](#install)
 - [Three ways to use it](#three-ways-to-use-it)
