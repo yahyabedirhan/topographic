@@ -1,14 +1,14 @@
 {
   "name": "topographic",
-  "version": "0.3.0",
-  "description": "A JavaScript package for creating animated topographic backgrounds.",
+  "version": "0.4.0",
+  "description": "Animated topographic contour backgrounds for the web, in 2D or as a 3D terrain. Seven styles, real elevation data through setHeightfield(), automatic quality tiers, PNG and video export, no dependencies.",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/yahyabedirhan/topographic.git",
     "directory": "packages/core"
   },
-  "homepage": "https://topographic.yahyapak.dev/",
+  "homepage": "https://topographic.yahyapak.dev",
   "bugs": {
     "url": "https://github.com/yahyabedirhan/topographic/issues"
   },
@@ -16,10 +16,19 @@
     "topography",
     "topographic",
     "contour",
+    "contour-lines",
     "background",
+    "animated-background",
     "webgl",
     "shader",
-    "animated-background",
+    "3d",
+    "terrain",
+    "heightmap",
+    "elevation",
+    "dem",
+    "map",
+    "quality-tiers",
+    "webmcp",
     "web-component"
   ],
   "type": "module",
