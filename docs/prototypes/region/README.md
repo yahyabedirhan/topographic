@@ -1,10 +1,10 @@
 # Region picker
 
-Pick a place on a map and draw it with the existing contour field. The use is fun, such as a city you know, rather than a survey. It is part of the [playground](https://yahyabedirhan.github.io/topographic/), behind the **Map** button. MapLibre loads only when Map opens.
+Pick a place on a map and draw it with the existing contour field. The use is fun, such as a city you know, rather than a survey. It is part of the [playground](https://topographic.yahyapak.dev/), behind the **Map** button. MapLibre loads only when Map opens.
 
 ## Run it
 
-Open the [playground](https://yahyabedirhan.github.io/topographic/), or run it locally:
+Open the [playground](https://topographic.yahyapak.dev/), or run it locally:
 
 ```sh
 npm ci

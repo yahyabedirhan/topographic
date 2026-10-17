@@ -2,7 +2,7 @@
 
 [![npm](https://img.shields.io/npm/v/topographic)](https://www.npmjs.com/package/topographic)
 
-Try it live in the [playground](https://yahyabedirhan.github.io/topographic/).
+Try it live in the [playground](https://topographic.yahyapak.dev/).
 
 Animated contour-line backgrounds for the web, in 2D and 3D. Seven terrain styles, readable settings, real elevation through `setHeightfield()`, and no dependencies.
 
