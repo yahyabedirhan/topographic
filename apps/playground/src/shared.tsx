@@ -629,6 +629,7 @@ export function Wordmark({ children }: { children?: ReactNode }) {
     <div className="pt-wordmark">
       <a href={GITHUB} target="_blank" rel="noreferrer" aria-label="topographic on GitHub" onClick={() => track('ui_click', { section: 'header', target: 'github', href: GITHUB, outbound: true })}>topographic</a>
       <a href={SITE} target="_blank" rel="noreferrer" className="pt-wordmark-site" onClick={() => track('ui_click', { section: 'header', target: 'site', href: SITE, outbound: true })}>yahyapak.dev</a>
+      <a href={`${import.meta.env.BASE_URL}privacy`} className="pt-wordmark-site pt-wordmark-privacy">Privacy</a>
       {children}
     </div>
   );

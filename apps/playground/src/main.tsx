@@ -14,11 +14,21 @@ if (import.meta.env.VITE_TOPOGRAPHIC_DEBUG === '1') {
   void import('./debug').then((mod) => mod.installDebug());
 }
 
-createRoot(document.getElementById('root')!).render(
-  <TerrainBoundary>
-    <App />
-  </TerrainBoundary>,
-);
+const base = import.meta.env.BASE_URL;
+const root = createRoot(document.getElementById('root')!);
+if (/\/privacy\/?$/.test(location.pathname)) {
+  // A separate chunk, so the playground bundle does not grow.
+  void import('./Privacy').then(({ Privacy }) => {
+    document.title = 'Privacy: topographic';
+    root.render(<Privacy home={base} />);
+  });
+} else {
+  root.render(
+    <TerrainBoundary>
+      <App />
+    </TerrainBoundary>,
+  );
+}
 
 // Without VITE_SENTRY_DSN or VITE_POSTHOG_KEY these are no-ops and the clients are not built in.
 startErrorReporting();
