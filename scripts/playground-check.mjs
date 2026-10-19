@@ -72,7 +72,7 @@ try {
     const first = nav.locator('.pt-thumb').first();
     check(await first.getAttribute('aria-label') === 'Istanbul map' && await nav.locator('.pt-saved[data-builtin]').count() === 4
       && await nav.getByRole('button', { name: /^Delete / }).count() === 0 && await nav.getAttribute('data-saved') === '0', 'a fresh profile shows the built-in Istanbul first in the dock, with no delete');
-    const OWNER = { place: 'istanbul', s: 'gentle-summit', seed: '67', lc: '36', ix: '4', m: 'dark', mode: '3d', ex: 'block', ev: '0.12', az: '353.3', ce: '45.1', rd: '1.15', px: '0.043', pz: '-0.075' };
+    const OWNER = { place: 'istanbul', s: 'gentle-summit', seed: '67', lc: '36', ix: '4', m: 'dark', mode: '3d', ex: 'block', ev: '0.12', az: '341.6', ce: '45.3', rd: '1.15', px: '-0.005', pz: '-0.013' };
     const matches = () => Object.entries(OWNER).every(([k, v]) => q(b).get(k) === v);
     await first.click(); await settle(b, 600);
     await b.waitForFunction(() => document.documentElement.dataset.region === 'ready', null, { timeout: 60000 }).catch(() => {});
@@ -386,11 +386,12 @@ try {
   await p.locator('.pt-pop-color .pt-swatch').nth(3).click(); await p.keyboard.press('Escape'); await settle(p, 900);
   const ink = (await cfg(p)).theme?.ink;
   const stage = await p.locator('.pt-stage').boundingBox();
-  await p.mouse.move(stage.x + stage.width / 2, stage.y + stage.height / 2); await p.mouse.down();
-  await p.mouse.move(stage.x + stage.width / 2 + 160, stage.y + stage.height / 2 - 40, { steps: 6 }); await p.mouse.up(); await settle(p, 900);
+  // A right drag turns and tilts the 3D camera; a plain drag pans.
+  await p.mouse.move(stage.x + stage.width / 2, stage.y + stage.height / 2); await p.mouse.down({ button: 'right' });
+  await p.mouse.move(stage.x + stage.width / 2 + 160, stage.y + stage.height / 2 - 40, { steps: 6 }); await p.mouse.up({ button: 'right' }); await settle(p, 900);
   const draggedAz = q(p).get('az');
   const draggedCe = q(p).get('ce');
-  check(draggedAz !== '341.8', `dragging moves the camera (az=${draggedAz})`);
+  check(draggedAz !== '341.8', `a right-drag turns the camera (az=${draggedAz})`);
   await dockNav.getByRole('button', { name: 'Fine granite' }).click(); await settle(p, 600);
   check(q(p).get('az') === lookAz, `a built-in look still resets to its own camera (az ${q(p).get('az')}, want ${lookAz})`);
   await dockNav.getByRole('button', { name: 'Matterhorn & Zermatt map' }).click(); await settle(p, 600);
@@ -540,32 +541,58 @@ try {
   {
     await call('set_settings', { mode: '3d', camera: { azimuth: 0, elevation: 34, radius: 1.92, motion: 'still', panX: 0, panZ: 0 } }); await settle(agent, 400);
     const cam = async () => ({ panX: 0, panZ: 0, radius: 1.92, ...(await call('get_settings')).config.camera });
+    // A mouse wheel notch eases over about 25 frames, and SwiftShader can take over 100 ms a frame, so a
+    // fixed wait can read the zoom halfway. Wait until the camera holds still across several frames.
+    const frames = (n) => agent.evaluate((n) => new Promise((done) => { const tick = () => (--n > 0 ? requestAnimationFrame(tick) : done()); requestAnimationFrame(tick); }), n);
+    const still = async () => {
+      await frames(2);
+      let last = JSON.stringify(await cam());
+      for (let i = 0; i < 40; i++) {
+        await frames(6);
+        const next = JSON.stringify(await cam());
+        if (next === last) return JSON.parse(next);
+        last = next;
+      }
+      return JSON.parse(last);
+    };
     const drag = async (dx, dy, opts) => {
       await agent.mouse.move(640, 400); await agent.mouse.down(opts); await agent.mouse.move(640 + dx, 400 + dy, { steps: 6 }); await agent.mouse.up(opts); await settle(agent, 200);
     };
-    await drag(120, 0, { button: 'right' });
-    const right = await cam();
-    check(right.panX < -0.05 && Math.abs(right.panZ) < 0.01 && Number(q(agent).get('px')) === right.panX, `a right-drag pans across the ground and writes px (${right.panX}, ${right.panZ})`);
-    await agent.keyboard.down('Shift'); await drag(0, 80); await agent.keyboard.up('Shift');
-    const shifted = await cam();
-    check(shifted.panZ < -0.05 && shifted.azimuth === 0, `a Shift+drag pans and leaves the orbit alone (panZ ${shifted.panZ})`);
-    for (let i = 0; i < 4; i++) await drag(-600, 0, { button: 'right' });
+    // A plain drag moves the terrain; a right drag and Shift, ⌘ or Ctrl + drag turn and tilt (docs/guide.md).
+    await drag(120, 0);
+    const moved = await cam();
+    check(moved.panX < -0.05 && Math.abs(moved.panZ) < 0.01 && moved.azimuth === 0 && Number(q(agent).get('px')) === moved.panX,
+      `a drag pans across the ground and writes px (${moved.panX}, ${moved.panZ})`);
+    await drag(0, 80);
+    const down = await cam();
+    check(down.panZ < -0.05 && down.panX === moved.panX && down.azimuth === 0, `a vertical drag pans toward the camera (panZ ${down.panZ})`);
+    await drag(60, 40, { button: 'right' });
+    const turned = await cam();
+    check(turned.azimuth !== 0 && turned.elevation !== 34 && turned.panX === down.panX && turned.panZ === down.panZ,
+      `a right-drag turns and tilts and leaves the pan alone (az ${turned.azimuth}, ce ${turned.elevation})`);
+    for (const key of ['Shift', 'Meta']) {
+      await call('set_settings', { camera: { azimuth: 0, elevation: 34 } }); await settle(agent, 300);
+      await agent.keyboard.down(key); await drag(60, 0); await agent.keyboard.up(key);
+      const keyed = await cam();
+      check(keyed.azimuth !== 0 && keyed.panX === down.panX && keyed.panZ === down.panZ, `${key === 'Meta' ? '⌘' : key} + drag turns and leaves the pan alone (az ${keyed.azimuth})`);
+    }
+    await call('set_settings', { camera: { azimuth: 0, elevation: 34 } }); await settle(agent, 300);
+    for (let i = 0; i < 4; i++) await drag(600, 0);
     const far = await cam();
-    check(far.panX > 0.5 && far.panX < 2, `the pan stops at the terrain's edge (panX ${far.panX})`);
+    check(far.panX < -0.5 && far.panX > -2, `the pan stops at the terrain's edge (panX ${far.panX})`);
     await agent.mouse.move(640, 400); await agent.mouse.dblclick(640, 400); await settle(agent, 900);
     const home = await cam();
     check(home.panX === 0 && home.panZ === 0 && !q(agent).has('px') && !q(agent).has('pz'), 'a double-click glides the pan back to the centre');
     await agent.mouse.move(640, 400);
-    await agent.mouse.wheel(30, 0); await settle(agent, 300);
-    const scrolled = await cam();
-    check(scrolled.panX !== 0 && scrolled.radius === 1.92, `a two-finger (horizontal) scroll pans (panX ${scrolled.panX})`);
-    await settle(agent, 300);
-    await agent.keyboard.down('Shift'); await agent.mouse.wheel(0, 120); await agent.keyboard.up('Shift'); await settle(agent, 300);
-    const zoomed = await cam();
-    check(zoomed.radius > 1.92 && zoomed.panX === scrolled.panX, `Shift + scroll zooms (radius ${zoomed.radius})`);
-    await agent.keyboard.down('Meta'); await agent.mouse.wheel(0, -240); await agent.keyboard.up('Meta'); await settle(agent, 300);
-    const closer = await cam();
-    check(closer.radius < zoomed.radius && closer.panX === scrolled.panX, `⌘ + scroll zooms (radius ${closer.radius})`);
+    await agent.mouse.wheel(0, 120);
+    const out = await still();
+    check(out.radius > 1.92 && out.panX === 0 && out.panZ === 0, `a scroll zooms and leaves the pan alone (radius ${out.radius})`);
+    await agent.keyboard.down('Shift'); await agent.mouse.wheel(0, 120); await agent.keyboard.up('Shift');
+    const zoomed = await still();
+    check(zoomed.radius > out.radius && zoomed.panX === 0, `Shift + scroll zooms (radius ${zoomed.radius})`);
+    await agent.keyboard.down('Meta'); await agent.mouse.wheel(0, -240); await agent.keyboard.up('Meta');
+    const closer = await still();
+    check(closer.radius < zoomed.radius && closer.panX === 0, `⌘ + scroll zooms (radius ${closer.radius})`);
     await call('set_settings', { camera: { panX: 0, panZ: 0, radius: 1.92 } }); await settle(agent);
   }
   // ---- end of 3D pan and zoom gestures ----
