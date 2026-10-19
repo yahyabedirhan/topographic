@@ -89,7 +89,6 @@ export const MAP_LOOKS: readonly MapLook[] = [
   mapLook('istanbul', 'istanbul', ISTANBUL_SETTINGS, istanbulThumb, istanbulMinimap),
   // Each ink is a quiet tint of the land: dry stone, glacier ice, fjord water, red rock, granite and pine,
   // glacial lakes, volcanic ash, high snow and savanna.
-  mapLook('cyprus', 'cyprus', rosePod('#d6cdb0', 0.1, 35), cyprusThumb, cyprusMinimap),
   mapLook('matterhorn', 'matterhorn', rosePod('#c4d7e8', 0.16, 35), matterhornThumb, matterhornMinimap),
   mapLook('geirangerfjord', 'geirangerfjord', rosePod('#a8c7f0', 0.16, 35), geirangerfjordThumb, geirangerfjordMinimap),
   mapLook('grand-canyon', 'grand-canyon', rosePod('#dcb9a0', 0.08, 40, 10), grandCanyonThumb, grandCanyonMinimap),
@@ -98,6 +97,7 @@ export const MAP_LOOKS: readonly MapLook[] = [
   mapLook('fuji', 'fuji', rosePod('#9fbecc', 0.24, 30), fujiThumb, fujiMinimap),
   mapLook('everest', 'everest', rosePod('#d5e2ee', 0.1, 40), everestThumb, everestMinimap),
   mapLook('kilimanjaro', 'kilimanjaro', rosePod('#d4c39e', 0.24, 30), kilimanjaroThumb, kilimanjaroMinimap),
+  mapLook('cyprus', 'cyprus', rosePod('#d6cdb0', 0.1, 35), cyprusThumb, cyprusMinimap),
 ];
 
 export function findMapLook(id: string | null): MapLook | undefined {
