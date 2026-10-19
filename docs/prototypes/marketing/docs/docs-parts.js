@@ -62,6 +62,7 @@ export function extras(section) {
   if (section.tools) out.push(toolsTable());
   if (section.limits) out.push(limitsList());
   if (section.questions) out.push(questionsList());
+  if (section.contact) out.push(contactLinks());
   return out.join('');
 }
 
@@ -98,3 +99,13 @@ export function bodyWithMarkers(section, numbers) {
 let field;
 /** The heightfield a live setting names: 'volcano' for the made-up one. */
 export const fieldFor = (name) => (name === 'volcano' ? (field ??= volcano(128)) : null);
+
+/** The maintainer's links, the same four as the playground's About page (apps/playground/src/About.tsx). */
+const CONTACT = [
+  { label: 'X', href: 'https://x.com/yahyabedirhan', path: 'M17.8 3h3.1l-6.8 7.7L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.2-8.3L1.8 3h6.4l4.4 5.8L17.8 3Zm-1.1 16.2h1.7L7.3 4.7H5.5l11.2 14.5Z' },
+  { label: 'GitHub', href: 'https://github.com/yahyabedirhan', path: 'M12 2a10 10 0 0 0-3.2 19.5c.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.3-3.4-1.3-.4-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.6 2.4 1.1 3 .9.1-.7.4-1.1.6-1.4-2.2-.3-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.8 1a9.6 9.6 0 0 1 5 0c1.9-1.3 2.8-1 2.8-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.9-2.4 4.7-4.6 5 .4.3.7.9.7 1.9V21c0 .3.2.6.7.5A10 10 0 0 0 12 2Z' },
+  { label: 'LinkedIn', href: 'https://linkedin.com/in/yahyabedirhanpak', path: 'M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9.5h4V21H3V9.5Zm6.5 0h3.8v1.6h.1c.5-1 1.8-2 3.8-2 4 0 4.8 2.6 4.8 6V21h-4v-5.2c0-1.2 0-2.8-1.7-2.8s-2 1.3-2 2.7V21h-4V9.5Z' },
+];
+export const contactLinks = () => `<nav class="contact" aria-label="Yahya Bedirhan Pak elsewhere">${CONTACT.map((c) =>
+  `<a href="${c.href}" target="_blank" rel="noopener noreferrer" aria-label="${c.label}" title="${c.label}"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="${c.path}"/></svg></a>`).join('')}
+  <a href="mailto:y.bedirhanpak@gmail.com" aria-label="Email" title="Email"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m4 7 8 6 8-6"/></svg></a></nav>`;

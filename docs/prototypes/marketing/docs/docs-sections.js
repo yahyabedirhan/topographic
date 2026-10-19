@@ -14,7 +14,7 @@ export const GROUPS = [
   { name: 'Output', ids: ['export', 'heightfields', 'heightmaps'] },
   { name: 'API', ids: ['instance', 'react', 'element', 'page'] },
   { name: 'Care', ids: ['performance', 'accessibility', 'agents'] },
-  { name: 'Last', ids: ['limits', 'questions'] },
+  { name: 'Last', ids: ['limits', 'questions', 'feedback'] },
 ];
 
 export const SECTIONS = [
@@ -229,6 +229,14 @@ export const SECTIONS = [
     notes: [],
     questions: true,
     live: { style: 'drifting-lobes', theme: { mode: 'dark' } },
+  },
+  {
+    id: 'feedback', title: 'Share feedback', nav: 'Share feedback',
+    lede: 'Hi, I\'m Yahya.',
+    body: '<p>If you have any comments, feedback or anything to report, you can contact me here.</p>',
+    notes: [],
+    contact: true,
+    live: { style: 'gentle-summit', theme: { mode: 'dark' } },
   },
 ];
 

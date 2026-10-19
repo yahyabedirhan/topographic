@@ -444,3 +444,15 @@ On the Install section's still image of Istanbul:
 On the Cyprus thumbnail in the places gallery:
 
 > Also update the color for Cyprus as well, not only the camera angle but this one should also be updated here.
+
+On a place to reach the maintainer, with a screenshot of the About page's "Hi, I'm Yahya. You can also find me here:" and its four links:
+
+> Also somewhere around this documentation, maybe on the left sidebar or as an ending section after the questions, we can add something like "Share feedback."
+>
+> "Do you have any requests, feedback, or a report? You can contact me here."
+>
+> This is kind of like an area where I show my personal information, my personal contact information, similar to this one, similar to the About page: just this area with my links.
+> We can have this text: "If you have any comments, feedback, or anything to report, you can contact me here."
+>
+> This will be a friendly area, from my language, from my voice and tone, to talk to other people.
+> If you have anything to share you can find me in these places.
