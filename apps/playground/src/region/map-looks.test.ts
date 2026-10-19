@@ -20,9 +20,9 @@ describe('built-in map terrains', () => {
   });
 
   it.each([
-    ['geirangerfjord', '?look=rose-pod&lc=36&lw=0&lo=0.9&ix=4&ink=a8c7f0&paper=0b0b0d&mode=3d&ex=block&ev=0.16&az=341.8&ce=35&rd=1.32&px=0.003&pz=0.05&place=geirangerfjord'],
-    ['fuji', '?look=rose-pod&lc=36&lw=0&lo=0.9&ix=4&ink=9fbecc&paper=0b0b0d&mode=3d&ex=block&ev=0.24&az=341.8&ce=30&rd=1.32&px=0.003&pz=0.05&place=fuji'],
-    ['yosemite', '?look=rose-pod&lc=36&lw=0&lo=0.9&ix=4&ink=a8eff0&paper=0b0b0d&mode=3d&ex=block&ev=0.16&az=341.8&ce=35&rd=1.32&px=0.003&pz=0.05&place=yosemite'],
+    ['geirangerfjord', '?look=rose-pod&lc=36&lw=0&lo=0.9&ix=4&ink=a8c7f0&paper=0b0b0d&mode=3d&ex=block&ev=0.16&az=341.8&ce=35&rd=1.32&cm=push&cs=0.2&px=0.003&pz=0.05&place=geirangerfjord'],
+    ['fuji', '?look=rose-pod&lc=36&lw=0&lo=0.9&ix=4&ink=9fbecc&paper=0b0b0d&mode=3d&ex=block&ev=0.24&az=341.8&ce=30&rd=1.32&cm=push&cs=0.2&px=0.003&pz=0.05&place=fuji'],
+    ['yosemite', '?look=rose-pod&lc=36&lw=0&lo=0.9&ix=4&ink=a8eff0&paper=0b0b0d&mode=3d&ex=block&ev=0.16&az=341.8&ce=35&rd=1.32&cm=push&cs=0.2&px=0.003&pz=0.05&place=yosemite'],
   ])('decodes %s to exactly the settings of its reference query', (id, url) => {
     expect(playgroundSettings(findMapLook(id)!.settings)).toEqual(readSettings(url));
   });

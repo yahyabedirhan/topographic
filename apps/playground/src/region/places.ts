@@ -27,14 +27,14 @@ export interface Place {
 /**
  * What Apply sets on top of the current settings when it makes a terrain from the map. Colours,
  * theme, motion and the rest stay. Clear puts back the lines, camera, extent and elevation from
- * before the first place. Camera motion is left alone.
+ * before the first place, camera motion included.
  */
 export const MAP_TERRAIN_DEFAULTS = {
   mode: '3d',
   extent: 'block',
   elevation: 0.12,
   lines: { count: 36, width: 0, opacity: 0.9, indexEvery: 4 },
-  camera: { azimuth: 341.8, elevation: 39.3, radius: 1.32 },
+  camera: { azimuth: 341.8, elevation: 39.3, radius: 1.32, motion: 'push', speed: 0.2 },
 } as const satisfies SettingsInput;
 
 /** The place menu's groups, in menu order: the catalog's continents. */
