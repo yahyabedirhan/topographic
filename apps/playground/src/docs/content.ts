@@ -115,7 +115,7 @@ export const SECTIONS: DocSection[] = [
     id: 'looks', title: 'Looks', nav: 'Looks',
     lede: 'A look is a finished design with a name, such as survey-map or sea-dunes.',
     body: `<p>A look is a finished design with a name. Pass it, and change any setting on top of it. What you pass wins over the look.</p>\n<p>Today the same idea ships as <code>PRESETS</code>, ten named settings objects such as Survey map, Terraces and Rocky, and the ${ext(PLAYGROUND, 'playground')}'s dock holds 24 looks more.<sup class="fn"></sup></p>`,
-    notes: ['The final list of look names is still open. These names come from the presets and the playground dock.'],
+    notes: [`The final list of look names is still open. These names come from the presets and the ${ext(PLAYGROUND, 'playground')} dock.`],
     code: 'looks',
   },
   {

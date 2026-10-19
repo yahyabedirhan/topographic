@@ -11,6 +11,7 @@ import { asProps, codeFor, highlight } from './code';
 import { CODE, DARK, INSTALL_WAYS, LIGHT, LLMS_HEAD, LOOK_GALLERY, NPM, PLAYGROUND, SHAPE_IDS, byId } from './content';
 import { fullSettings, lazyLive, merge, stills, vivid, volcano, type LiveView, type StillItem } from './live';
 import { PLACE_ORDER, loadPlace, placeOf } from './places';
+import { tidy as tidyText } from './text';
 
 /** Asks the page to place its margin notes again, after a figure changed its height. */
 export const relayout = () => window.dispatchEvent(new Event('docs-relayout'));
@@ -149,7 +150,7 @@ export function InstallFigure() {
       <figure className="fig" id="fig-install">
         <div className={`stage tall${loadClass(state)}`} ref={stage} />
         <Tools lone><ModeButton three={three} onChange={(on) => { setThree(on); view.current?.update({ mode: on ? '3d' : '2d' }); }} /></Tools>
-        <Caption>After install, <code>{'<Topography location="istanbul" />'}</code> draws Istanbul.</Caption>
+        <Caption>After install, <code>{'<Topography location="istanbul" />'}</code> draws{'\u00a0'}Istanbul.</Caption>
       </figure>
       <div className="inst">
         <div>
@@ -517,7 +518,7 @@ function Result({ items, size, over, cap, short = false }: { items: () => StillI
   return (
     <figure className="res" ref={box}>
       <div className={`ph${short ? ' short' : ''}`} style={bg(url)}>{over ? <div className="over">{over}</div> : null}</div>
-      <figcaption>{cap}</figcaption>
+      <figcaption>{typeof cap === 'string' ? tidyText(cap) : cap}</figcaption>
     </figure>
   );
 }
@@ -590,8 +591,8 @@ export function LayoutFigure() {
   const mock = <div className="mock"><b>Your heading</b><i /></div>;
   return (
     <div className="pair" ref={box}>
-      <figure><div className="ph" style={bg(a)}>{mock}</div><figcaption>With <code>anchor: 1, fade: 0</code> the lines cross the text.</figcaption></figure>
-      <figure><div className="ph" style={bg(b)}>{mock}</div><figcaption>With <code>anchor: 0, fade: 0.9</code> the text stays clear.</figcaption></figure>
+      <figure><div className="ph" style={bg(a)}>{mock}</div><figcaption><code>anchor: 1, fade: 0</code> crosses the text.</figcaption></figure>
+      <figure><div className="ph" style={bg(b)}>{mock}</div><figcaption><code>anchor: 0, fade: 0.9</code> keeps it clear.</figcaption></figure>
     </div>
   );
 }
