@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
-import { EVENT_NAMES, optIn, optOut } from './analytics';
+import { optIn, optOut } from './analytics';
 import { consent, type Consent } from './consent';
-import { EVENT_INFO, SUPER_PROPS } from './privacy-content';
 import { latestUpdates } from './changelog';
 import changelog from '../../../CHANGELOG.md?raw';
 import hero from './assets/hero.webp';
@@ -12,7 +11,6 @@ const LABEL: Record<Consent, string> = {
   none: 'Nothing is sent from this browser.',
 };
 
-const ENABLED = Boolean(import.meta.env.VITE_POSTHOG_KEY || import.meta.env.VITE_SENTRY_DSN);
 const REPO = 'https://github.com/yahyabedirhan/topographic';
 const CHANGELOG_URL = `${REPO}/blob/main/CHANGELOG.md`;
 const UPDATES = latestUpdates(changelog);
@@ -47,14 +45,13 @@ function OptOut() {
   return (
     <>
       <div className="pt-optout">
-        <p role="status" aria-live="polite">{ENABLED ? LABEL[state] : 'This build sends no analytics or error reports.'}</p>
-        {ENABLED && (state === 'all'
+        <p role="status" aria-live="polite">{LABEL[state]}</p>
+        {state === 'all'
           ? <button type="button" className="pt-pill" aria-label="Opt out of analytics" onClick={() => { optOut(); setState('none'); }}>Opt out</button>
-          : <button type="button" className="pt-pill" aria-label="Opt in to analytics" onClick={() => { optIn(); setState('all'); }}>Opt in</button>)}
+          : <button type="button" className="pt-pill" aria-label="Opt in to analytics" onClick={() => { optIn(); setState('all'); }}>Opt in</button>}
       </div>
-      <p className="pt-muted">The choice is saved in this browser, so each browser and device opts out separately. Opting out sends one last <code>analytics_opted_out</code> event, then nothing. Opting in applies on the next page load.</p>
-      <p>You can also add <code>?analytics_optout</code> to any address to send page views only, <code>?analytics_optout=all</code> to send nothing, or <code>?analytics_optin</code> to undo either.</p>
-      <p><a href={PRIVACY_MD}>PRIVACY.md</a></p>
+      <p className="pt-muted">Your choice is saved in this browser, so each browser and device opts out separately.</p>
+      <p>Full detail in <a href={PRIVACY_MD}>PRIVACY.md</a>.</p>
     </>
   );
 }
@@ -96,52 +93,36 @@ export function About({ home }: { home: string }) {
 
       <section id="analytics" aria-labelledby="pv-analytics">
       <h2 id="pv-analytics">Analytics</h2>
-      <p>The playground counts visits and how its tools are used, so they can be improved. It uses no cookies, has no accounts, and does not record sessions. It keeps one random visitor id in your browser's local storage. It counts AI agents apart from people. The topographic npm packages collect nothing.</p>
+      <p>The playground keeps anonymous stats with no cookies. They show which tools people and AI agents use, so the playground can get better. Opting out keeps your visits out of these stats. The topographic npm packages collect nothing.</p>
 
-      <section aria-labelledby="pv-choice">
-        <h3 id="pv-choice">Your choice</h3>
-        <OptOut />
-      </section>
-
-      <section aria-labelledby="pv-auto">
-        <h3 id="pv-auto">Pageviews</h3>
-        <p>Each page view records the page, the site you came from, and the time on the page. Your browser also shares its type, screen size, language and timezone. Your IP address is never stored, and your country and city are not recorded. A random id saved in your browser lets return visits count once; opting out deletes it.</p>
-      </section>
-
-      <section aria-labelledby="pv-agents">
-        <h3 id="pv-agents">People and agents</h3>
-        <p>AI agents are counted apart from people, with their own id for one browser tab. An agent can say which agent it is and why it is here, from short lists; this is optional. When an agent uses a playground tool, the page notes which tool and whether it worked.</p>
-      </section>
-
-      <section aria-labelledby="pv-events">
-        <h3 id="pv-events">Events</h3>
-        <p>{SUPER_PROPS}</p>
-        <dl>
-          {EVENT_NAMES.map((name) => (
-            <div key={name}>
-              <dt><code>{name}</code></dt>
-              <dd>{EVENT_INFO[name].props}. Why: {EVENT_INFO[name].why}.</dd>
-            </div>
-          ))}
-        </dl>
-      </section>
-
-      <section aria-labelledby="pv-errors">
-        <h3 id="pv-errors">Error reports</h3>
-        <p>Sentry receives crash reports: the error message and stack trace, browser and OS, the page path without the query string, the graphics tier and GPU name. Lost WebGL contexts are reported the same way. There is no user data, cookies, headers, tracing or replay, and one page sends at most 10 reports.</p>
+      <section aria-labelledby="pv-collected">
+        <h3 id="pv-collected">What is collected</h3>
+        <ul>
+          <li>Pages visited, and the site you came from.</li>
+          <li>Which tools, looks and exports are used, never their values.</li>
+          <li>Frame rate and load times, to keep the playground smooth.</li>
+          <li>Device type and timezone, to fit how people browse.</li>
+          <li>Whether a visit comes from a person or an AI agent.</li>
+          <li>Crash reports, to fix bugs.</li>
+        </ul>
       </section>
 
       <section aria-labelledby="pv-never">
-        <h3 id="pv-never">Never collected</h3>
+        <h3 id="pv-never">What is never collected</h3>
+        <p>The playground never sets cookies, never stores IP addresses, and never collects names, emails, what you type or the images and videos you export.</p>
+      </section>
+
+      <section aria-labelledby="pv-where">
+        <h3 id="pv-where">Where it goes</h3>
         <ul>
-          <li>The playground never sets cookies and never fingerprints your browser.</li>
-          <li>It never stores your IP address, and never collects your name, email or any account.</li>
-          <li>It never collects text you type, colours, hex values, the coordinates of your own areas, or the settings in a link.</li>
-          <li>It never collects the images or videos you export.</li>
-          <li>It never records sessions, heatmaps or clicks on its own.</li>
-          <li>It never collects what an agent types into the playground's tools or receives from them.</li>
+          <li>PostHog: analytics, stored in the EU.</li>
+          <li>Sentry: error reports, stored in the EU.</li>
         </ul>
-        <p>Analytics are processed by PostHog in the EU, and error reports by Sentry.</p>
+      </section>
+
+      <section aria-labelledby="pv-choice">
+        <h3 id="pv-choice">Opt out</h3>
+        <OptOut />
       </section>
       </section>
     </main>
