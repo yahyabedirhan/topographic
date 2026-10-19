@@ -1,0 +1,273 @@
+/* The docs page at /docs: the anatomy layout in dark. A nav with the playground's wordmark, one narrow column,
+   and a margin for notes. Everything is scoped to .dx, so the playground's own styles stay as they are; the
+   playground's Tune rows, icon buttons, glass and swatches come from style.css unchanged.
+   Literata is only for the wordmark and section titles; everything else is Inter. */
+.dx{
+  --bg:#0b0b0d;--code:#0f0f12;--card:#131316;
+  --fg:#ecebe8;--text:#c9c8c3;--mut:#8b8a86;--faint:#5f5e5a;
+  --line:rgba(255,255,255,.075);--line-2:rgba(255,255,255,.12);
+  --ok:#9dcec0;
+  --sans:Inter,-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+  --serif:Literata,Georgia,serif;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --k:#7f7e7a;--s:#a9c7e4;--n:#e0b089;--t:#c9b6ea;--a:#9dcec0;--c:#5f5e5a;
+  --col:560px;--nav:250px;--mar:224px;--g1:72px;
+  min-height:100vh;background:var(--bg);color:var(--text);font:400 15px/1.62 var(--sans);
+  font-feature-settings:'cv11','ss01';-webkit-text-size-adjust:100%;color-scheme:dark;
+}
+html:has(.dx){background:#0b0b0d;scroll-padding-top:40px}
+/* Undo the playground's button and heading defaults for the page's own plain buttons; .pt-* classes still win. */
+:where(.dx) button{font:inherit;color:inherit;background:none;border:0;border-radius:0;padding:0;box-shadow:none;cursor:pointer}
+:where(.dx) button:hover{background:none}
+.dx a{color:var(--fg);text-decoration:underline;text-decoration-color:rgba(255,255,255,.22);text-underline-offset:3px;text-decoration-thickness:1px}
+.dx a:hover{color:var(--fg);text-decoration-color:var(--fg)}
+.dx b,.dx strong{color:var(--fg);font-weight:500}
+.dx code{font:400 .86em/1.4 var(--mono);color:var(--fg);background:rgba(255,255,255,.06);padding:1px 5px;border-radius:5px;white-space:nowrap}
+.dx pre code{background:none;padding:0;border-radius:0;white-space:pre;color:var(--text)}
+.dx :focus-visible{outline:1.5px solid var(--fg);outline-offset:3px;border-radius:4px}
+.dx img{display:block;max-width:100%;height:auto}
+.dx ::selection{background:rgba(169,199,228,.28)}
+.dx .nw{white-space:nowrap}
+/* no lone last words: body text wraps prettily, headings and ledes balance */
+.dx main p,.dx main li,.dx main dd,.dx main td,.dx .sn,.dx .inst-hint{text-wrap:pretty}
+.dx h1,.dx h2,.dx .lede,.dx .sub{text-wrap:balance}
+
+/* layout */
+.dx .page{display:grid;grid-template-columns:var(--nav) var(--col) var(--mar);column-gap:var(--g1);justify-content:center;padding:0 24px}
+.dx .page>main{grid-column:2;min-width:0;padding:52px 0 160px}
+
+/* nav */
+.dx .nav{grid-column:1;grid-row:1;position:sticky;top:0;height:100vh;padding:48px 0 24px;font:400 13.5px/1 var(--sans);display:flex;flex-direction:column}
+/* the section list scrolls inside the sidebar on short screens; Share feedback stays pinned at the bottom */
+.dx .nav .secs{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;margin-top:34px;position:relative;padding-left:44px;margin-left:-44px}
+.dx .nav .secs::-webkit-scrollbar{display:none}
+.dx .nav .secs ul{list-style:none;display:grid;gap:0;margin:0;padding:0}
+.dx .nav .secs a{display:block;padding:5px 0;color:var(--mut);text-decoration:none;transition:color .2s}
+.dx .nav .secs a:hover,.dx .nav .secs a.on{color:var(--fg)}
+.dx .nav .grp{height:9px}
+.dx .nav .grp:first-child{display:none}
+.dx .nav-feedback{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);text-decoration:none;font:500 13.5px/1 var(--sans);color:var(--fg)}
+.dx .ring{position:absolute;left:0;top:0;width:34px;height:24px;pointer-events:none;transition:transform .5s cubic-bezier(.2,.8,.2,1),opacity .3s;color:var(--fg)}
+.dx .ring svg{width:34px;height:24px;overflow:visible}
+.dx .ring path{fill:none;stroke:currentColor;stroke-width:1}
+.dx .ring path:nth-child(1){opacity:.28}.dx .ring path:nth-child(2){opacity:.5}.dx .ring path:nth-child(3){opacity:.85}
+.dx .ring.moving svg{animation:dx-ring .5s ease}
+@keyframes dx-ring{40%{transform:rotate(-14deg) scale(1.12)}}
+/* the brand: the playground's wordmark (style.css .pt-wordmark), its quiet links in two rows, and the version once */
+.dx .brand{display:grid;gap:12px;justify-items:start}
+.dx .wordmark{font:600 17px/1 var(--serif);letter-spacing:-.01em;color:var(--fg);text-decoration:none;transition:opacity .15s}
+.dx .wordmark:hover{opacity:.82}
+.dx .blinks-rows{display:grid;gap:7px}
+.dx .blinks{list-style:none;display:flex;flex-wrap:nowrap;white-space:nowrap;margin:0;padding:0;line-height:1}
+.dx .blinks li+li::before{content:'·';margin:0 6px;color:var(--faint);font:400 12px/1 var(--sans)}
+.dx .blinks a{font:400 12px/1 var(--sans);color:var(--mut);text-decoration:none;transition:color .15s}
+.dx .blinks a:hover,.dx .blinks a:focus-visible{color:var(--fg)}
+.dx .ver{font:400 11px/1 var(--mono);color:var(--faint)}
+
+/* opening */
+.dx .head{display:none}
+.dx .title{margin:0;white-space:nowrap;font:600 31px/1.14 var(--sans);letter-spacing:-.022em;color:var(--fg)}
+.dx .sub{margin:12px 0 0;font:400 18px/1.45 var(--sans);letter-spacing:-.01em;color:var(--text)}
+.dx main p{margin:0 0 14px;color:var(--text)}
+.dx .intro{margin-top:28px}
+.dx #fig-hero{margin-top:22px}
+.dx #fig-hero .stage,.dx #fig-install .stage{height:400px}
+
+/* sections */
+.dx .sec{position:relative;padding-top:64px}
+.dx .sec-h{display:flex;align-items:center;gap:14px;margin:0 0 18px;font:600 18px/1.1 var(--serif);letter-spacing:-.01em;color:var(--fg)}
+.dx .sec-h::after{content:'';order:2;flex:1;height:1px;background:var(--line-2)}
+.dx .sec-h .n{order:3;font:400 12px/1 var(--sans);font-variant-numeric:tabular-nums;color:var(--mut)}
+.dx .sec-h a{color:inherit;text-decoration:none}
+.dx .lede{font:500 15.5px/1.45 var(--sans);letter-spacing:-.005em;color:var(--fg);margin:0 0 12px}
+.dx .sec>.code,.dx .sec .tbl-wrap,.dx .sec>.fig,.dx .sec .grid3,.dx .sec .plist,.dx .sec .limits,.dx .sec .faq,.dx .sec .livecode,.dx .sec .pair,.dx .sec .res,.dx .sec .tune,.dx .sec .contact{margin-top:22px}
+.dx .sec .tune+.livecode,.dx .sec .fig+.livecode{margin-top:14px}
+.dx .sec .code+.code{margin-top:10px}
+.dx .sec .tbl-wrap+.tbl-wrap{margin-top:28px}
+.dx .sec .res{margin-top:12px}
+.dx .sec>.fig+.res,.dx .sec .body+.res{margin-top:22px}
+.dx sup.fn{font:500 10px/0 var(--sans);vertical-align:super;margin-left:1px}
+.dx sup.fn a{color:var(--mut);text-decoration:none}
+.dx .defaults{margin:12px 0 0!important;font-size:13px;color:var(--mut)!important}
+
+/* margin */
+.dx .mar{position:absolute;left:calc(100% + var(--g1));top:0;width:var(--mar);height:100%}
+.dx .sn{position:absolute;left:0;width:100%;margin:0;font:400 12.5px/1.5 var(--sans);color:var(--mut);padding-left:18px}
+.dx .sn.box{padding-left:0}
+.dx .sn .k{position:absolute;left:0;top:1px;font-size:10.5px;color:var(--faint)}
+.dx .sn code{font-size:11px}
+.dx .sn.flash{color:var(--fg);transition:color .6s}
+/* inline code never breaks across lines */
+.dx main :not(pre)>code{white-space:nowrap}
+
+/* figures */
+.dx .fig{position:relative;margin:0}
+.dx .fig .stage{position:relative;height:380px;border-radius:14px;overflow:hidden;background:#0b0b0d;box-shadow:inset 0 0 0 1px var(--line)}
+.dx .fig .stage.tall{height:420px}
+.dx .fig .stage.short{height:300px}
+.dx .fig .stage canvas{display:block}
+/* captions: one plain line under each visual, as on yahyapak.dev/projects/topographic */
+.dx .fig .cap,.dx .pair figcaption,.dx .grid3 figcaption,.dx .res figcaption{display:block;margin-top:10px;font:400 12.5px/1.5 var(--sans);color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dx .fig .cap code,.dx .pair figcaption code,.dx .grid3 figcaption code,.dx .res figcaption code{font-size:11.5px}
+.dx .loading::after,.dx .failed::after{position:absolute;left:14px;bottom:12px;font:500 11px/1 var(--sans);color:var(--mut);letter-spacing:.02em}
+.dx .loading::after{content:'Loading heights'}
+.dx .failed::after{content:'The heights did not load'}
+.dx .ctl{position:absolute;left:calc(100% + var(--g1));top:0;width:var(--mar);display:grid;gap:12px;font-size:12.5px;color:var(--mut)}
+.dx .ctl.static{position:static;width:auto}
+.dx .ctl .hint{color:var(--mut);font-size:12.5px;line-height:1.45}
+.dx .ctl .read{font:400 11.5px/1.6 var(--mono);color:var(--fg);white-space:pre-wrap;padding-top:2px}
+.dx .btn{font:500 12.5px/1 var(--sans);color:var(--bg);background:var(--fg);padding:9px 12px;border-radius:999px;justify-self:start}
+.dx .btn:hover{background:var(--fg)}
+.dx .btn:disabled{opacity:.5}
+.dx .shot-out{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.dx .shot-out img{border-radius:6px;box-shadow:inset 0 0 0 1px var(--line)}
+.dx .checker{background:conic-gradient(#1a1a1f 25%,#121216 0 50%,#1a1a1f 0 75%,#121216 0) 0 0/22px 22px!important}
+
+/* the playground's Tune rows (style.css .pt-sec, .pt-row), in a panel under each figure, two rows across */
+.dx .tune{margin-top:14px;padding:4px 16px 10px;border-radius:18px;background:color-mix(in srgb,var(--fg) 3%,transparent);box-shadow:inset 0 0 0 .5px var(--line-2)}
+.dx .tune .pt-sec+.pt-sec{margin-top:6px;padding-top:8px}
+.dx .tune .pt-sec-body{display:grid;grid-template-columns:1fr 1fr;column-gap:24px}
+.dx .tune .pt-row{grid-template-columns:16px 76px minmax(0,1fr) 40px}
+.dx .tune .wide{grid-column:1/-1}
+.dx .shapes{display:flex;flex-wrap:wrap;gap:4px;grid-column:3/-1;padding:4px 0}
+.dx .shapes button{font:400 11.5px/1 var(--sans);color:var(--mut);padding:6px 8px;border-radius:7px;background:color-mix(in srgb,var(--fg) 6%,transparent)}
+.dx .shapes button:hover{color:var(--fg);background:color-mix(in srgb,var(--fg) 6%,transparent)}
+.dx .shapes button[aria-pressed=true]{color:var(--fg);background:var(--seg-on);box-shadow:var(--seg-shadow)}
+
+/* the playground's glass and icon buttons over a figure (style.css .pt-glass, .pt-cluster, .pt-ibtn, .pt-swatch) */
+.dx .stage-tools{position:absolute;top:12px;right:12px;z-index:2}
+.dx .stage-tools.lone .pt-ibtn{width:34px;height:34px;background:color-mix(in srgb,var(--paper) 55%,transparent);box-shadow:inset 0 0 0 .5px var(--line-2);backdrop-filter:blur(14px) saturate(1.4);-webkit-backdrop-filter:blur(14px) saturate(1.4)}
+.dx .stage-tools.lone .pt-ibtn:hover{background:color-mix(in srgb,var(--paper) 40%,color-mix(in srgb,var(--fg) 14%,transparent))}
+.dx .swatch-tools{padding:8px 10px}
+
+/* code: no file name or title bar, just the code and a quiet copy button in the top-right corner */
+.dx .code{position:relative;margin:0;border-radius:12px;background:var(--code);box-shadow:inset 0 0 0 1px var(--line);overflow:hidden}
+.dx .code-head{display:flex;align-items:center;gap:4px;min-height:38px;padding:0 6px 0 8px;border-bottom:1px solid var(--line)}
+.dx .code-tabs{display:flex;gap:2px;margin-right:auto}
+.dx .code-tab{font:500 12px/1 var(--sans);color:var(--mut);padding:7px 10px;border-radius:7px}
+.dx .code-tab[aria-selected=true]{color:var(--fg);background:rgba(255,255,255,.07)}
+.dx .code-tab:hover{color:var(--fg)}
+.dx .code-tab[aria-selected=true]:hover{background:rgba(255,255,255,.07)}
+.dx .copy{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:7px;color:var(--mut);opacity:.55;transition:opacity .15s}
+.dx .copy:hover{color:var(--fg);background:rgba(255,255,255,.06)}
+.dx .copy svg{width:14px;height:14px}
+.dx .copy.done{color:var(--ok);opacity:1}
+.dx .code:hover .copy,.dx .copy:focus-visible{opacity:1}
+.dx .code:not(.tabs)>.copy{position:absolute;top:6px;right:6px;z-index:1}
+.dx .code pre{margin:0;padding:14px 44px 16px 16px;overflow-x:auto;font:400 12.5px/1.72 var(--mono);color:var(--text);tab-size:2;scrollbar-width:thin}
+.dx .code.tabs pre{padding-right:16px}
+.dx .code.one{display:flex;align-items:center}
+.dx .code.one pre{flex:1;padding:12px 44px 12px 16px}
+.dx .code.one>.copy{top:50%;transform:translateY(-50%)}
+.dx .code.mini pre{padding:10px 40px 12px 14px;font-size:11.5px;line-height:1.65}
+.dx .livecode .code{transition:box-shadow .5s}
+.dx .livecode.flash .code{animation:dx-codeflash .7s ease}
+@keyframes dx-codeflash{0%{box-shadow:inset 0 0 0 1px rgba(169,199,228,.45)}100%{box-shadow:inset 0 0 0 1px var(--line)}}
+.dx .tk-k{color:var(--k)}.dx .tk-s{color:var(--s)}.dx .tk-n{color:var(--n)}.dx .tk-t{color:var(--t)}.dx .tk-a{color:var(--a)}.dx .tk-c{color:var(--c);font-style:italic}.dx .tk-p{color:var(--faint)}
+
+/* tables */
+.dx .tbl{width:100%;border-collapse:collapse;font-size:13.5px;line-height:1.5}
+.dx .tbl th{font:500 11.5px/1.3 var(--sans);color:var(--mut);text-align:left;padding:0 12px 8px 0;border-bottom:1px solid var(--line-2);white-space:nowrap}
+.dx .tbl th a{color:inherit}
+.dx .tbl td{padding:10px 12px 10px 0;border-bottom:1px solid var(--line);vertical-align:top;color:var(--text)}
+.dx .tbl td:first-child{color:var(--fg)}
+.dx .tbl td code{font-size:12px}
+.dx .tbl .num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.dx .tbl-wrap{overflow-x:auto;margin:0 -2px;padding:0 2px}
+
+/* results: every code block shows what it draws, right under it */
+.dx .res{position:relative;margin:12px 0 0}
+.dx .res .ph{position:relative;aspect-ratio:16/8;border-radius:14px;overflow:hidden;background:#0b0b0d center/cover;box-shadow:inset 0 0 0 .5px var(--line-2)}
+.dx .res .ph.short{aspect-ratio:16/6}
+.dx .res .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.dx .res .two .ph{aspect-ratio:16/10}
+.dx .res .over{position:absolute;inset:0;display:grid;place-content:center;text-align:center;font:600 22px/1.2 var(--sans);letter-spacing:-.02em;color:#ecebe8;text-shadow:0 1px 18px rgba(0,0,0,.6)}
+.dx .res pre.out{margin:0;padding:14px 16px;border-radius:12px;background:var(--code);box-shadow:inset 0 0 0 1px var(--line);font:400 12px/1.7 var(--mono);color:var(--text);white-space:pre-wrap}
+
+/* install: two parts, no tabs, as in the playground's install popover */
+.dx .inst{display:grid;gap:18px;margin-top:22px}
+.dx .inst-t{display:flex;align-items:center;gap:7px;margin-bottom:8px;font:600 10.5px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.dx .inst-t a{color:inherit;text-decoration:none}
+.dx .inst-t a:hover{color:var(--fg)}
+.dx .inst .code+.code{margin-top:8px}
+
+/* the place list doubles as the picker for the live figure */
+.dx .plist{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 10px}
+.dx .plist button,.dx .plist .any{display:block;text-align:left;margin:0;min-width:0}
+.dx .plist img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:8px;box-shadow:inset 0 0 0 1px var(--line);opacity:.78;transition:opacity .2s,box-shadow .2s}
+.dx .plist button:hover img{opacity:1}
+.dx .plist button[aria-pressed=true] img{opacity:1;box-shadow:0 0 0 1.5px var(--fg)}
+.dx .plist b{display:block;margin-top:7px;font:500 12.5px/1.3 var(--sans);color:var(--fg)}
+.dx .plist code{display:block;margin-top:3px;font-size:10.5px;background:none;padding:0;color:var(--mut)}
+.dx .plist .any .box{display:grid;place-items:center;aspect-ratio:16/10;border-radius:8px;box-shadow:inset 0 0 0 1px var(--line-2);background:repeating-linear-gradient(135deg,transparent 0 6px,rgba(255,255,255,.025) 6px 7px);color:var(--mut)}
+
+/* pairs and grids of pictures */
+.dx .pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.dx .pair figure,.dx .grid3 figure{margin:0;position:relative;min-width:0}
+.dx .pair .ph{position:relative;aspect-ratio:16/10;border-radius:10px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--line);background:#0b0b0d center/cover}
+.dx .pair .mock{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:6px;text-align:center}
+.dx .pair .mock b{font:600 17px/1.2 var(--sans);color:#ecebe8}
+.dx .pair .mock i{display:block;width:120px;height:5px;border-radius:3px;background:rgba(236,235,232,.35)}
+.dx .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 12px}
+.dx .grid3 img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:8px;box-shadow:inset 0 0 0 1px var(--line)}
+
+/* share feedback, the name in the wordmark's face, and the About page's link row */
+.dx .wm-inline{font-family:var(--serif);font-weight:600;letter-spacing:-.01em}
+.dx .contact{display:flex;gap:26px;align-items:center}
+.dx .contact a{color:var(--mut);display:grid;place-items:center;transition:color .15s}
+.dx .contact a:hover{color:var(--fg)}
+
+/* limits and questions */
+.dx .limits{border-top:1px solid var(--line);margin-bottom:0}
+.dx .limits>div{display:grid;grid-template-columns:180px 1fr;gap:20px;padding:13px 0;border-bottom:1px solid var(--line)}
+.dx .limits dt{font:500 14px/1.45 var(--sans);color:var(--fg)}
+.dx .limits dd{margin:0;font-size:14px;line-height:1.55}
+.dx .faq{border-top:1px solid var(--line)}
+.dx .faq details{border-bottom:1px solid var(--line)}
+.dx .faq summary{cursor:pointer;list-style:none;padding:13px 24px 13px 0;font:500 14.5px/1.4 var(--sans);color:var(--fg);position:relative}
+.dx .faq summary::after{content:'+';position:absolute;right:2px;top:12px;color:var(--mut);font-weight:400}
+.dx .faq details[open] summary::after{content:'–'}
+.dx .faq summary::-webkit-details-marker{display:none}
+.dx .faq p{padding:0 0 14px;font-size:14px}
+.dx .coda{margin-top:72px!important;font:500 15.5px/1.5 var(--sans);color:var(--fg)!important;text-wrap:pretty}
+
+/* footer: three quiet columns under a hairline */
+.dx .foot{margin-top:56px;padding-top:28px;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.dx .foot h3{margin:0 0 10px;font:600 11px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.dx .foot ul{list-style:none;display:grid;gap:7px;margin:0;padding:0}
+.dx .foot li{font:400 12.5px/1.45 var(--sans);color:var(--mut);white-space:nowrap}
+.dx .foot a{color:var(--mut);text-decoration:none}
+.dx .foot a:hover{color:var(--fg)}
+
+/* narrow screens: the nav becomes a bar with a section menu, and the margin flows under the text */
+.dx .mbar{display:none}
+@media (max-width:1180px){.dx{--mar:200px;--g1:48px;--nav:160px;--col:520px}}
+@media (max-width:1040px){
+  .dx .page{grid-template-columns:minmax(0,640px);padding:0 16px}
+  .dx .page>main{grid-column:1;padding-top:76px}
+  .dx .nav{display:none}
+  .dx .mar{position:static;height:auto;width:auto;display:grid;gap:10px;margin-top:18px;padding-top:14px;border-top:1px dashed var(--line-2)}
+  .dx .mar:empty{display:none}
+  .dx .sn{position:static!important;width:auto}
+  .dx .ctl{position:static;width:auto;margin-top:14px}
+  .dx .head{display:block;margin-bottom:20px}
+  .dx .title{white-space:normal}
+  .dx .mbar{display:flex;position:fixed;z-index:10;left:0;right:0;top:0;height:52px;align-items:center;gap:12px;padding:0 16px;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+  .dx .mbar .wordmark{font-size:16px}
+  .dx .mbar select{margin-left:auto;max-width:56%;font:500 13px/1 var(--sans);color:var(--fg);background:var(--card);border:0;border-radius:8px;padding:8px 10px;box-shadow:inset 0 0 0 1px var(--line-2)}
+}
+@media (max-width:560px){
+  .dx .title{font-size:26px}.dx .sub{font-size:17px}
+  .dx .fig .stage,.dx #fig-hero .stage,.dx #fig-install .stage{height:260px}
+  .dx .fig .stage.tall{height:300px}.dx .fig .stage.short{height:220px}
+  .dx .grid3{grid-template-columns:1fr 1fr}
+  .dx .plist{grid-template-columns:repeat(2,1fr)}
+  .dx .pair{grid-template-columns:1fr}
+  .dx .tune{padding:2px 12px 8px}
+  .dx .tune .pt-sec-body{grid-template-columns:1fr}
+  .dx .tune .pt-row{grid-template-columns:16px 60px minmax(0,1fr) 40px;column-gap:8px}
+  .dx .limits>div{grid-template-columns:1fr;gap:4px}
+  .dx .foot{grid-template-columns:1fr;gap:20px}
+  .dx .fig .cap,.dx .pair figcaption,.dx .res figcaption{white-space:normal}
+}
+@media (prefers-reduced-motion:reduce){.dx *{transition-duration:0s!important;animation:none!important}}

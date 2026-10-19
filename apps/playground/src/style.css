@@ -414,6 +414,8 @@ button.pt-card[aria-pressed="true"]{background:var(--seg-on);box-shadow:var(--se
 }
 
 .pt-wordmark .pt-wordmark-privacy{font-size:11px;opacity:.7}
+/* About and Docs share one quiet row under yahyapak.dev. */
+.pt-wordmark-pages{display:flex;gap:10px;align-items:baseline}
 .pt-privacy{max-width:640px;margin:0 auto;padding:48px 22px 96px;line-height:1.55}
 .pt-privacy>p:first-child a{color:var(--mut);text-decoration:none;font-size:13px}.pt-privacy>p:first-child a:hover{color:var(--fg)}
 .pt-privacy h1{font:600 34px/1.15 Literata,Georgia,serif;letter-spacing:-.015em;margin:40px 0 6px}

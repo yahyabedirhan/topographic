@@ -5,8 +5,10 @@ import { extname, join } from 'node:path';
 
 const dist = new URL('../apps/playground/dist/', import.meta.url).pathname;
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.txt': 'text/plain', '.md': 'text/markdown', '.json': 'application/json' };
+// Like the host: /docs is served from docs.html.
 const server = createServer(async (req, res) => {
-  const path = req.url.split('?')[0].replace(/\/$/, '/index.html');
+  let path = req.url.split('?')[0].replace(/\/$/, '/index.html');
+  if (!extname(path)) path += '.html';
   try { const body = await readFile(join(dist, path)); res.writeHead(200, { 'content-type': types[extname(path)] ?? 'application/octet-stream' }).end(body); }
   catch { res.writeHead(404).end(); }
 }).listen(0);
@@ -632,6 +634,125 @@ try {
   await plain.locator('.pt-export').waitFor();
   check(await installPop.count() === 0, 'Install\'s Export opens the Export panel');
   await plain.close();
+
+  // ---- the docs page at /docs ----
+  {
+    const home = await browser.newPage(); watch(home);
+    await home.goto(base); await home.waitForSelector('.pt-wordmark');
+    const pages = await home.locator('.pt-wordmark-pages a').allInnerTexts();
+    check(pages.join() === 'About,Docs' && await home.locator('.pt-wordmark-pages a', { hasText: 'Docs' }).getAttribute('href') === '/docs', `the wordmark row links About and Docs (${pages.join(' · ')})`);
+    await home.close();
+
+    const head = await (await fetch(base + 'docs')).text();
+    check(/<title>Docs: Topographic terrain, rendered live with WebGL<\/title>/.test(head) && head.includes('og-docs.png') && head.includes('<link rel="canonical" href="https://topographic.yahyapak.dev/docs"'),
+      'docs.html carries the docs title, canonical address and share image');
+    check(/^# Parameters/.test(await (await fetch(base + 'docs/params.md')).text()), 'the plain-text docs under /docs still load');
+
+    // Text checks over the whole page: no tiny last lines, no inline code broken across lines, no reference without a link.
+    const textChecks = () => {
+      const main = document.querySelector('.dx main');
+      const visible = (el) => el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden';
+      const wrapped = [...main.querySelectorAll('code')].filter((c) => !c.closest('pre') && visible(c) && c.getClientRects().length > 1).map((c) => c.textContent);
+      const orphans = [];
+      for (const el of main.querySelectorAll('p, dd, dt, td, figcaption, summary, .lede, h1')) {
+        if (el.closest('pre, .code, .foot, .plist, details:not([open]) > p') || !visible(el) || !el.textContent.trim()) continue;
+        const units = [];
+        const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+        for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+          let i = 0;
+          for (const word of n.data.split(/( |\n)/)) {
+            if (word.trim()) {
+              const r = document.createRange(); r.setStart(n, i); r.setEnd(n, i + word.length);
+              const box = r.getClientRects()[0];
+              if (box) units.push({ word, mid: (box.top + box.bottom) / 2 });
+            }
+            i += word.length;
+          }
+        }
+        const lines = [];
+        for (const u of units) { const line = lines.find((l) => Math.abs(l.mid - u.mid) < 8); if (line) line.words.push(u.word); else lines.push({ mid: u.mid, words: [u.word] }); }
+        lines.sort((a, b) => a.mid - b.mid);
+        const last = lines.at(-1)?.words.join(' ').replace(/ /g, ' ').trim() ?? '';
+        if (lines.length > 1 && last.length < 12) orphans.push(`${el.textContent.trim().slice(0, 40)}… ends "${last}"`);
+      }
+      const cut = [...main.querySelectorAll('figcaption')].filter((f) => visible(f) && f.scrollWidth > f.clientWidth + 1).map((f) => f.textContent.trim());
+      const REF = /\b[\w-]+\.(md|txt)\b|https?:\/\/|\bWebMCP\b|Mapzen|AWS Open Data|OpenStreetMap|OpenFreeMap|OpenMapTiles|\bffmpeg\b|WebCodecs|Next\.js|headless Chrome|\bplayground\b/;
+      const unlinked = [];
+      for (const block of main.querySelectorAll('p, dd, dt, td, th, summary, figcaption, .lede, li')) {
+        if (block.closest('pre, .code, .foot') || !visible(block)) continue;
+        const walker = document.createTreeWalker(block, NodeFilter.SHOW_TEXT);
+        for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+          if (n.parentElement.closest('a, pre')) continue;
+          const m = n.data.match(REF);
+          // The playground needs one link per block; any other reference needs its own.
+          if (m && !(m[0] === 'playground' && block.querySelector(`a[href^="https://topographic.yahyapak.dev"], a[href="/"]`))) unlinked.push(`${m[0]} in "${block.textContent.trim().slice(0, 50)}"`);
+        }
+      }
+      return { wrapped, orphans, cut, unlinked, hscroll: document.documentElement.scrollWidth > innerWidth };
+    };
+
+    for (const [width, height, name] of [[1440, 900, 'desktop'], [390, 844, 'phone']]) {
+      const ctxDocs = await browser.newContext({ viewport: { width, height }, colorScheme: 'dark' });
+      await ctxDocs.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: base.slice(0, -1) });
+      const d = await ctxDocs.newPage(); watch(d);
+      await d.goto(base + 'docs');
+      await d.waitForSelector('.dx main h1');
+      await d.waitForSelector('#fig-hero .stage canvas', { timeout: 60000 }).catch(() => {});
+      check(await d.title() === 'Docs: Topographic terrain, rendered live with WebGL' && await d.locator('#fig-hero .stage canvas').count() === 1,
+        `${name}: /docs opens the docs page with a live Everest`);
+      if (name === 'desktop') {
+        if (shots) await d.screenshot({ path: `${shots}/docs-desktop-top.png` });
+
+        // The mode button rewrites the hero's React code.
+        await d.locator('#fig-hero .pt-mode').click();
+        // The code is redrawn on animation frames, which SwiftShader can make slow.
+        const to2d = await d.waitForFunction(() => /mode="2d"/.test(document.querySelector('#fig-hero .ctl code').textContent), null, { timeout: 10000 }).then(() => true, () => false);
+        check(to2d && await d.locator('#fig-hero .pt-mode').getAttribute('aria-label') === 'Switch to 3D', 'the hero mode button switches the figure and its code to 2D');
+        await d.locator('#fig-hero .pt-mode').click();
+
+        // A Tune input changes the figure and rewrites the code under it.
+        const lines = d.locator('#lines');
+        await lines.scrollIntoViewIfNeeded(); await settle(d, 1500);
+        const stage = lines.locator('.fig .stage');
+        const before = await stage.screenshot();
+        const codeBefore = await lines.locator('.livecode pre').innerText();
+        const thumb = lines.getByRole('slider', { name: 'Line count' });
+        await thumb.focus(); for (let i = 0; i < 12; i++) await d.keyboard.press('ArrowLeft');
+        await settle(d, 600);
+        const codeAfter = await lines.locator('.livecode pre').innerText();
+        check(/count: 34/.test(codeAfter) && codeAfter !== codeBefore && !(await stage.screenshot()).equals(before), `a Tune input changes the figure and its code (${codeAfter.match(/count: \d+/)?.[0]})`);
+        await lines.getByRole('tab', { name: 'React' }).click();
+        check(/<Topography/.test(await lines.locator('.livecode pre').innerText()) && /<Topography/.test(await d.locator('#theme .livecode pre').innerText()), 'the language tab follows across the page');
+        await lines.locator('.livecode .copy').click();
+        check((await d.evaluate(() => navigator.clipboard.readText())).includes('count: 34'), 'the code copies as shown');
+
+        // The place gallery picks the live place and the code names it.
+        const places = d.locator('#locations');
+        await places.scrollIntoViewIfNeeded();
+        await places.locator('[data-place="istanbul"]').click(); await settle(d, 500);
+        check(/location="istanbul"/.test(await places.locator('.livecode pre').innerText()) && /^Istanbul/.test(await places.locator('.fig .cap').innerText()), 'a place in the gallery sets the figure and its code');
+      }
+
+      // Scroll the whole page: live views come and go, and the WebGL contexts stay few.
+      let most = 0;
+      const total = await d.evaluate(() => document.documentElement.scrollHeight);
+      for (let y = 0; y < total; y += height * 0.8) {
+        await d.evaluate((top) => scrollTo({ top, behavior: 'instant' }), y); await settle(d, 350);
+        most = Math.max(most, await d.evaluate(() => document.querySelectorAll('canvas').length));
+      }
+      check(most > 0 && most <= 6, `${name}: at most ${most} WebGL views at once while scrolling`);
+      await d.evaluate(() => scrollTo({ top: 0, behavior: 'instant' })); await settle(d, 800);
+      const t = await d.evaluate(textChecks);
+      check(t.orphans.length === 0, `${name}: no tiny last lines${t.orphans.length ? ': ' + t.orphans.join(' | ') : ''}`);
+      check(t.wrapped.length === 0, `${name}: no inline code broken across lines${t.wrapped.length ? ': ' + t.wrapped.join(' | ') : ''}`);
+      check(t.unlinked.length === 0, `${name}: every reference is a link${t.unlinked.length ? ': ' + t.unlinked.join(' | ') : ''}`);
+      if (name === 'desktop') check(t.cut.length === 0, `desktop: every caption fits on one line${t.cut.length ? ': ' + t.cut.join(' | ') : ''}`);
+      check(!t.hscroll, `${name}: no sideways scroll`);
+      if (shots) await d.screenshot({ path: `${shots}/docs-${name}-top.png` });
+      await ctxDocs.close();
+    }
+  }
+  // ---- end of the docs page ----
 
   check(errors.length === 0, `no page errors${errors.length ? ': ' + errors.join(' | ') : ''}`);
 } finally { await browser.close(); server.close(); }
