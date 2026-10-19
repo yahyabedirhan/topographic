@@ -198,3 +198,18 @@ Motion, for the READMEs and npm pages:
 > While writing my feedback stick to it as verbatim as possible.
 > Do not rewrite my sentences so all agents see the actual feedback that I gave.
 > You can additionally add more structural form to it and also you can maybe fix any grammar issues or any voice transcription errors.
+
+### D7: games
+
+> Without testing things I don't want to make any decisions about gaming.
+> I want you to treat it as a follow-up item and you can claim that we support games if there is no issue with that.
+> We can just do it in a next release.
+>
+> You don't have to say things like "games will be soon."
+> Just treat it like a marketing person.
+> Marketing people market things that are not ready yet so we will implement them afterwards by prototyping properly and implementing properly.
+> For now you don't have to worry about the implementing/building side of things.
+> We are just marketing things and you can create issues to support whatever we need.
+> Okay.
+
+Issues filed for the next release: #78 heightmap export, #79 glTF mesh export, #80 2D and longer video, #81 locations in the library (D4), #82 the `look` setting (D5).

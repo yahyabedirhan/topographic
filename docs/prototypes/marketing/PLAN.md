@@ -3,7 +3,7 @@
 The plan for the changes that are costly to undo.
 Agents wrote it while the maintainer was away.
 The rename (part 1) is built as a draft pull request.
-Part 2 is decided (ten built-in locations plus live fetch) and is built next. Parts 3 and 4 wait for D5 and D7.
+Parts 2 and 3 are decided (#81, #82). Part 4 is marketed now and built in the next release (#78, #79, #80).
 
 ## Part 1: public names
 

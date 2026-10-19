@@ -1,13 +1,14 @@
 // PROTOTYPE review hub content: everything waiting for the maintainer's review, in one place.
 // The index page renders it above the board list. Update it whenever a review item lands.
 
-export const ROUND = 'Round 1 · 2026-10-19';
+export const ROUND = 'Round 2 · 2026-10-19';
 
 export const START = [
-  'New: agent-first install variants E, F and G on the playground-install board, and the topographic skill in #77.',
-  'Start with the boards. Each variant has an id such as <code>positioning/B</code>. Give feedback by id, and mix freely.',
-  'Then read the decisions: each one has the default agents used while you were away.',
-  'Pull requests are drafts or open, none merged. The Notion pages are the reusable framework and this launch\'s checklist.',
+  'Start with <b>The line</b>: five candidates for the one line, each shown as the GitHub About text, an npm search result and a social card. Pick one by id, such as <code>copy/L3</code>. Every other board uses L1 until you pick.',
+  'Then the boards you picked in round 1, rebuilt from your feedback: real places lead (Everest, the Grand Canyon, Yosemite Valley, drawn live from real elevation), then generated shapes, then 2D and 3D. Primary views move; secondary views are stills.',
+  'New variants to judge: <code>playground-install/A1</code>–<code>A3</code> (Install alone in the top-right corner, an Export-style popover with a live preview, "With an agent" and "By hand"), and <code>npm-page/D</code>–<code>F</code> (code beside its result, pair after pair, for both packages).',
+  'Updated in place: <code>readme-header/A</code> (install below the image), <code>github-repo/A</code> and <code>A2</code> (real-place social previews), <code>site-page/A</code> (link icons), and all three <code>social-card</code> layouts (code with the result its parameters give).',
+  'Variants you did not pick are archived, and so is the positioning board. "Show archived" brings them back. Code names follow your decisions: <code>shape</code> and <code>&lt;topographic-view&gt;</code>.',
 ];
 
 /** Places to review outside the boards. Each: { title, kind, href, note }. */
@@ -23,6 +24,7 @@ export const PLACES = [
 
 /** Pull requests opened for this launch. Filled in as they open. */
 export const PULLS = [
+  { title: 'Issues #78–#82', href: 'https://github.com/yahyabedirhan/topographic/issues?q=is%3Aissue+78..82', note: 'Next-release work behind the launch copy: heightmap export, glTF mesh, 2D and longer video, locations in the library, the look setting.', state: 'Open issues' },
   { title: 'topographic #77', href: 'https://github.com/yahyabedirhan/topographic/pull/77', note: 'Renames the public API: createTopography, Topography, useTopography, &lt;topographic-view&gt;, shape. Old ?s= links and saved terrains keep working. Tests, typecheck, build and smoke pass.', state: 'Draft, names and clean break decided' },
   { title: 'topographic skill (in #77)', href: 'https://github.com/yahyabedirhan/topographic/tree/effort/topography-api/skills/topographic', note: 'A short entry point for agents: an install check, one example and a map of guide sections. references/install.md loads only for the first install. Install with npx skills add yahyabedirhan/topographic.', state: 'Draft, on the #77 branch' },
   { title: 'personal-website #26', href: 'https://github.com/yahyabedirhan/personal-website/pull/26', note: 'Points the 8 old github.io playground links on the topographic page at topographic.yahyapak.dev. No copy changes.', state: 'Open, ready to merge' },
@@ -30,7 +32,5 @@ export const PULLS = [
 
 /** Decisions waiting for the maintainer, with the default agents used. */
 export const DECISIONS = [
-  { id: 'D5', q: 'Named looks as a library setting', def: 'Yes: one look setting, merging core presets and playground looks', options: 'Yes · Playground only' },
   { id: 'D6', q: 'Launch videos and the new framing', def: 'Replace the end-card line and install line in all six, after 0.6.0', options: 'End cards only · Re-cut copy-heavy ones · Leave', after: true },
-  { id: 'D7', q: 'The games claim has no product behind it', def: 'Add getHeightfield() and 16-bit PNG heightmap export, and longer 2D and 3D video, before claiming games', options: 'Heightmap export · Heightmap and mesh · Claim web and video only' },
 ];
