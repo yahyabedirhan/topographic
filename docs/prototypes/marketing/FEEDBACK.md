@@ -688,3 +688,7 @@ On the social card (`og.png`, Everest), after PR #88 opened:
 > In that social card, above the code snippet, let's show the npm install command so people can understand better how that code snippet works.
 
 Sent to PR #88: the card shows `npm install topographic` above the `createTopography` snippet.
+
+After the change (commit `7e8650b` on PR #88):
+
+> Social card nice.
