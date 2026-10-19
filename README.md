@@ -93,7 +93,7 @@ topography.update({ mode: '3d', elevation: 0.7, extent: 'block', camera: { motio
 
 ### Real places
 
-In the [playground](https://topographic.yahyapak.dev/), open **Map**, choose an area up to 300 km wide, and click **Apply**. The playground downloads the height data for that area and shows it in 3D. A shared link to a place waits for those heights, and shows contour rings instead of the default terrain. In your own code, you can pass any grid of heights to `setHeightfield({ samples, size, aspect })`. Each height is a number from 0 (lowest) to 1 (highest).
+In the [playground](https://topographic.yahyapak.dev/), open **Map**, choose an area up to 300 km wide, and click **Apply**. The playground downloads the height data for that area and shows it in 3D. A shared link to a place waits for those heights, and shows contour rings instead of the default terrain. In your own code, `location: 'everest'` draws one of the same ten places, and `fetchLocation()` from `topographic/locations` makes a grid for any area. You can also pass your own grid of heights, `{ samples, size, aspect }`, with each height from 0 (lowest) to 1 (highest).
 
 ![The Map popover over Istanbul: a dark map with a white frame around the city, the place menu above, and Clear and Applied below](assets/screenshots/map-popover-dark.webp)
 

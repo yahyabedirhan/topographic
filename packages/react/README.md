@@ -7,7 +7,7 @@ Try it live in the [playground](https://topographic.yahyapak.dev/).
 React bindings for [`topographic`](https://www.npmjs.com/package/topographic), the JavaScript library for topographic backgrounds. It works with React 18 and 19 and is safe for server rendering.
 
 - Animated contour lines in 2D, or the same map as a 3D terrain
-- Real elevation data through `setHeightfield()`
+- Ten built-in real places with the `location` prop, and any area through `fetchLocation()`
 - Seven shapes and readable settings as props
 - Automatic quality tiers for phones and fast screens
 - PNG and video export
@@ -37,13 +37,13 @@ For the 3D terrain, add `mode="3d"`, and optionally `elevation`, `extent`, `deta
 <Topography shape="long-ridge" mode="3d" extent="block" camera={{ motion: 'orbit' }} style={{ height: '100vh' }} />
 ```
 
-`onReady` gives you the instance, for `snapshot()`, `record()` and `setHeightfield()`. To show a real place, pass a square grid of heights from 0 to 1:
+To show a real place, use the `location` prop with one of the ten built-in places, or a grid from `fetchLocation()` in `topographic/locations`:
 
 ```tsx
-<Topography mode="3d" onReady={(t) => t.setHeightfield({ samples, size: 256, aspect: 1.2 })} style={{ height: '100vh' }} />
+<Topography location="everest" mode="3d" style={{ height: '100vh' }} />
 ```
 
-The [playground](https://topographic.yahyapak.dev/) has ten real places ready, or any area up to 300 km wide.
+`onReady` gives you the instance, for `snapshot()` and `record()`.
 
 To put the background on your own element, use `useTopography(settings)`, which returns a ref.
 

@@ -14,6 +14,10 @@ It is a clean break: the old names are gone, with no deprecated aliases.
 - The query key `s=` stays, and now names the shape. Links made before 0.6.0 keep working.
 - Playground: the WebMCP tool `list_styles` is now `list_shapes`, and `randomize` takes `shape: true`. `set_settings` takes `shape`, and still takes the old `style` key for this release. Terrains saved with a `style` key load with that value as `shape`.
 - Playground: the Tune › Terrain section with peaks, spread, sharpness and variant is now titled Form.
+- New entry point `topographic/locations` with the ten playground places as built-in height grids: `istanbul`, `cyprus`, `matterhorn`, `geirangerfjord`, `grand-canyon`, `yosemite`, `torres-del-paine`, `fuji`, `everest` and `kilimanjaro`. Each place loads on its own, so a page downloads only the places it uses. `LOCATIONS` lists them, and `loadLocation(id)` returns a grid.
+- New `fetchLocation({ west, south, east, north })` makes a height grid for any area up to 300 km wide, with the playground's own elevation pipeline, which moved into the library.
+- New `location` setting, element attribute and React prop. It takes a place id or a height grid. A place also sets its camera, elevation and `extent: 'block'`, under the values you set. `setHeightfield()` still works.
+- Playground: the ten places load their built-in grids instead of the elevation tiles. `get_region` returns `builtIn` and `loadMs` in place of `fetchMs` and `shapeMs`.
 - Install lines in the READMEs no longer pin a version. Sizing and layering examples moved to the guide.
 
 | Old name | New name |
