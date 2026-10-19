@@ -1,4 +1,4 @@
-import { GROUPS, PARAMS, SHAPES } from 'topographic';
+import { GROUPS, LOOKS, PARAMS, SHAPES } from 'topographic';
 import { AGENT_NAMES, PURPOSES } from './actor';
 
 const groupSchema = (g: string) => ({
@@ -13,6 +13,7 @@ export const SETTINGS_SCHEMA = {
   type: 'object',
   additionalProperties: false,
   properties: {
+    look: { type: 'string', enum: LOOKS.map((l) => l.id), description: 'A named design from list_shapes. It sets the shape, seed, lines, terrain, motion, layout, colours and camera pose, and keeps the view. The other keys in the same call override its values.' },
     shape: { type: 'string', enum: SHAPES.map((s) => s.id), description: 'The land shape of the procedural terrain.' },
     style: { type: 'string', enum: SHAPES.map((s) => s.id), description: 'Old name of shape, accepted until the next release. Use shape.' },
     seed: { type: 'integer', minimum: 0, maximum: 999999, description: 'Same seed, same terrain. 0 is the original look.' },
@@ -63,7 +64,7 @@ export const TOOL_DEFS: ToolDef[] = [
       purpose: { type: 'string', enum: PURPOSES, description: PURPOSE_HELP },
     } } },
   { name: 'list_shapes', title: 'List shapes', readOnly: true,
-    description: 'Lists the shapes and the presets, with ids, names and descriptions.',
+    description: 'Lists the shapes, with ids, names and descriptions, and the looks, with ids, names and settings. Pass a look id to set_settings as look.',
     inputSchema: { type: 'object', properties: {} } },
   { name: 'get_settings', title: 'Get settings', readOnly: true,
     description: 'Returns the current settings: the full resolved object, the minimal config JSON (only non-default values), and the graphics tier actually drawing (quality, fps, frameMs, mesh).',

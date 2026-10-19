@@ -1,5 +1,5 @@
 import type { Plugin } from 'vite';
-import { PARAMS, PRESETS, SHAPES, defaultSettings } from 'topographic';
+import { LOOKS, PARAMS, SHAPES, defaultSettings } from 'topographic';
 import { INSTALL, TAGLINE } from './src/content';
 import { TOOL_DEFS } from './src/agent-tools';
 import { AGENT_NAMES, PURPOSES } from './src/actor';
@@ -42,7 +42,7 @@ function paramsMd(): string {
   const rows = PARAMS.map((p) =>
     `| \`${p.group}.${p.key}\` | \`${p.attr}\` | ${p.min} to ${p.max}${'integer' in p ? ' (integer)' : ''} | ${p.default} | ${p.description} |`);
   const shapes = SHAPES.map((s) => `| \`${s.id}\` | ${s.name} | ${s.description} |`);
-  const presets = PRESETS.map((p) => `- **${p.name}**: \`${JSON.stringify(p.settings)}\``);
+  const looks = LOOKS.map((l) => `- \`${l.id}\` (${l.name}): \`${JSON.stringify(l.settings)}\``);
   return `# Parameters
 
 Every setting, generated from \`packages/core/src/params.ts\`. Out-of-range values are clamped; integers are rounded.
@@ -53,6 +53,7 @@ ${rows.join('\n')}
 
 Other settings:
 
+- \`look\` (attribute \`look\`, React prop \`look\`): one of the looks below, by id. It sets the shape, seed, groups, colours and camera pose. The other settings next to it override its values. An unknown look is ignored with one console warning. In \`update()\`, a look replaces the design and keeps the view: \`mode\`, \`elevation\`, \`extent\`, \`detail\`, \`quality\`, \`view2d\`, and the camera motion and pan.
 - \`shape\` (attribute \`shape\`, React prop \`shape\`): one of the shapes below. Unknown shapes fall back to \`${defaultSettings().shape}\` with one console warning.
 - \`seed\` (attribute \`seed\`): integer 0 to 999999. The same seed gives the same terrain; 0 is the original look.
 - \`theme.mode\` (attribute \`theme\`): \`auto\` (follows the OS), \`light\` or \`dark\`.
@@ -74,9 +75,11 @@ Other settings:
 |---|---|---|
 ${shapes.join('\n')}
 
-## Presets
+## Looks
 
-${presets.join('\n')}
+A look is a named, finished design. The order is the order of the playground's dock. \`survey-map\` and \`rocky\` set no colours, so they follow the page's theme.
+
+${looks.join('\n')}
 `;
 }
 
@@ -126,7 +129,7 @@ function apiMd(): string {
 
 Mounts a canvas inside \`element\` (it fills the element) and returns an instance.
 
-- \`settings\`: partial settings, see [params.md](params.md). Fields: \`{ shape, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera }\`. \`mode\` is \`'2d' | '3d'\` and defaults to \`'2d'\`. \`quality\` is \`'auto' | 'low' | 'medium' | 'high'\` and defaults to \`'auto'\`. \`auto\` starts a phone at low and a desktop at high, then steps down if presented frames miss 60 Hz, or 120 Hz once a frame under 12 ms has been seen. It does not step back up.
+- \`settings\`: partial settings, see [params.md](params.md). Fields: \`{ look, shape, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera }\`. \`mode\` is \`'2d' | '3d'\` and defaults to \`'2d'\`. \`quality\` is \`'auto' | 'low' | 'medium' | 'high'\` and defaults to \`'auto'\`. \`auto\` starts a phone at low and a desktop at high, then steps down if presented frames miss 60 Hz, or 120 Hz once a frame under 12 ms has been seen. It does not step back up.
 - \`options\`: \`{ maxPixelRatio = 2, maxPixels = 4147200, forceWebGL1 = false, benchmark = false }\`. \`benchmark\` keeps a 3D view drawing while it is visible so \`stats\` can be read.
 
 Instance:
@@ -152,24 +155,24 @@ Behaviour:
 
 ## <topographic-view>
 
-\`import 'topographic/element'\` registers the element. Attributes: \`shape\`, \`seed\`, \`theme\`, \`ink\`, \`paper\`, \`mode\`, \`elevation\`, \`extent\`, \`detail\`, \`quality\`, \`azimuth\`, \`camera-elevation\`, \`radius\`, \`camera-motion\`, \`pan-x\`, \`pan-z\`, plus one per numeric setting (see [params.md](params.md)). Attribute changes apply live, and a removed attribute returns to its default. \`element.topographic\` is the instance, and \`element.snapshot(opts)\` is a shortcut.
+\`import 'topographic/element'\` registers the element. Attributes: \`look\`, \`shape\`, \`seed\`, \`theme\`, \`ink\`, \`paper\`, \`mode\`, \`elevation\`, \`extent\`, \`detail\`, \`quality\`, \`azimuth\`, \`camera-elevation\`, \`radius\`, \`camera-motion\`, \`pan-x\`, \`pan-z\`, plus one per numeric setting (see [params.md](params.md)). Attribute changes apply live, and a removed attribute returns to its default. \`element.topographic\` is the instance, and \`element.snapshot(opts)\` is a shortcut.
 
 ## React: <Topography> and useTopography
 
-\`<Topography shape lines terrain motion layout theme seed mode elevation extent detail quality camera options onReady {...divProps}>\` renders a div with the background, and children on top. It is SSR-safe: the server renders an empty div.
+\`<Topography look shape lines terrain motion layout theme seed mode elevation extent detail quality camera options onReady {...divProps}>\` renders a div with the background, and children on top. It is SSR-safe: the server renders an empty div.
 
 \`useTopography(settings, options)\` returns a ref to put on any element. \`ref.topographic\` is the instance while mounted.
 
 ## Helpers
 
-\`resolveSettings\`, \`mergeSettings\`, \`toUniforms\`, \`fromAttributes\`, \`toAttributes\`, \`toQuery\`, \`fromQuery\`, \`parseColor\`, \`resolveTheme\`, plus the data exports \`PARAMS\`, \`SHAPES\` and \`PRESETS\`.
+\`resolveSettings\`, \`mergeSettings\`, \`toUniforms\`, \`fromAttributes\`, \`toAttributes\`, \`toQuery\`, \`fromQuery\`, \`parseColor\`, \`resolveTheme\`, plus the data exports \`PARAMS\`, \`SHAPES\` and \`LOOKS\`, and \`findLook(id)\`.
 `;
 }
 
 const PAGES = () => [
   { title: 'Install', path: 'docs/install.md', body: installMd },
   { title: 'API', path: 'docs/api.md', body: apiMd },
-  { title: 'Parameters, shapes and presets', path: 'docs/params.md', body: paramsMd },
+  { title: 'Parameters, shapes and looks', path: 'docs/params.md', body: paramsMd },
   ...DOC_EXTRAS,
 ];
 
@@ -182,7 +185,7 @@ Live playground: ${SITE_URL}
 
 ## URL state
 
-The playground keeps its state in short query params. It writes only the values that differ from a base: the shape's defaults, or a named look from the dock such as \`look=night-lobes\`.
+The playground keeps its state in short query params. It writes only the values that differ from a base: the shape's defaults, or a library look by id such as \`look=night-lobes\` (the ids in [params.md](docs/params.md) > Looks). Other params override the look's values.
 
 Examples:
 
@@ -192,6 +195,7 @@ Examples:
 
 ### Keys
 
+- \`look\`: a look id. Links made before 0.6.0 use the same ids.
 - \`s\`: shape.
 - \`seed\`: seed
 ${PARAMS.map((p) => `- \`${p.short}\`: ${p.label.toLowerCase()}`).join('\n')}

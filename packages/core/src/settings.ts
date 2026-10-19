@@ -1,3 +1,4 @@
+import { findLook, type Look } from './looks.js';
 import { GROUPS, PARAMS, clampParam, paramsIn, type GroupName, type GroupValues, type ParamDef } from './params.js';
 import { QUALITIES, type QualityName } from './quality.js';
 import { DEFAULT_SHAPE, findShape, type DeepPartialSettings, type ShapeId } from './shapes.js';
@@ -74,7 +75,11 @@ export interface Settings {
   view2d: View2dSettings;
 }
 
-export type SettingsInput = Omit<DeepPartialSettings, 'shape'> & { shape?: string };
+export type SettingsInput = Omit<DeepPartialSettings, 'shape'> & {
+  shape?: string;
+  /** A built-in look by id, such as 'survey-map'. The other settings next to it override its values. */
+  look?: string;
+};
 
 const warned = new Set<string>();
 export function resetWarnings(): void { warned.clear(); }
@@ -207,20 +212,45 @@ function applyGroups(into: Settings, input: SettingsInput | undefined): void {
   if (input.theme) into.theme = { ...into.theme, ...input.theme };
 }
 
-/** Defaults, then the shape's own defaults, then the input. Every number is clamped. */
+function resolveLook(id: string | undefined): Look | undefined {
+  if (id === undefined) return undefined;
+  const look = findLook(id);
+  if (!look) warnOnce(`unknown look "${id}", ignoring it`);
+  return look;
+}
+
+/**
+ * Defaults, then the shape's own defaults, then the look, then the input. Every number is clamped.
+ * The shape is the input's shape, else the look's shape.
+ */
 export function resolveSettings(input: SettingsInput = {}): Settings {
   const out = defaultSettings();
-  out.shape = resolveShape(input.shape);
+  const look = resolveLook(input.look)?.settings;
+  out.shape = resolveShape(input.shape ?? look?.shape);
   applyGroups(out, findShape(out.shape)?.defaults as SettingsInput | undefined);
+  applyGroups(out, look);
+  applyView(out, look);
   applyGroups(out, input);
   applyView(out, input);
   return out;
 }
 
-/** Merges a partial update into resolved settings. Changing the shape does not reset other values. */
+/**
+ * Merges a partial update into resolved settings. Changing the shape does not reset other values.
+ * A look replaces the design (shape, seed, lines, terrain, motion, layout, colours and camera pose)
+ * and keeps the view: mode, elevation, extent, detail, quality, the 2D view, camera motion and pan.
+ * The other values in the patch then apply on top.
+ */
 export function mergeSettings(current: Settings, patch: SettingsInput): Settings {
-  const out: Settings = structuredClone(current);
-  if (patch.shape !== undefined) out.shape = resolveShape(patch.shape);
+  let out: Settings = structuredClone(current);
+  if (patch.look !== undefined && resolveLook(patch.look)) {
+    const base = resolveSettings({ look: patch.look, shape: patch.shape });
+    out = {
+      ...base,
+      mode: out.mode, elevation: out.elevation, extent: out.extent, detail: out.detail, quality: out.quality, view2d: out.view2d,
+      camera: { ...out.camera, azimuth: base.camera.azimuth, elevation: base.camera.elevation, radius: base.camera.radius },
+    };
+  } else if (patch.shape !== undefined) out.shape = resolveShape(patch.shape);
   applyGroups(out, patch);
   applyView(out, patch);
   return out;
@@ -245,6 +275,7 @@ export function toUniforms(s: Settings, into?: Float32Array): ParamUniforms {
 /** Reads settings from string attributes (as on <topographic-view>). Unknown attributes are ignored. */
 export function fromAttributes(get: (name: string) => string | null): SettingsInput {
   const input: Record<string, unknown> = {};
+  const look = get('look'); if (look) input.look = look;
   const shape = get('shape'); if (shape) input.shape = shape;
   const seed = get('seed'); if (seed !== null) input.seed = Number(seed);
   for (const def of PARAMS as readonly ParamDef[]) {
@@ -354,6 +385,7 @@ export function fromQuery(query: string): SettingsInput {
   };
   return fromAttributes((name) => {
     if (name === 'shape') return q.get('s');
+    if (name === 'look') return q.get('look');
     if (name === 'theme') return q.get('m');
     if (name === 'mode') return q.get('mode');
     if (name === 'seed' || name === 'ink' || name === 'paper') return q.get(name);

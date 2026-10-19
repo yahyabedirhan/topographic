@@ -4,7 +4,7 @@ export { snapshotFrame, type SnapshotRegion, type SnapshotFrame } from './snapsh
 export { sampleGrid, type Heightfield } from './heightfield.js';
 export { PARAMS, GROUPS, paramsIn, clampParam, type ParamDef, type GroupName, type GroupValues } from './params.js';
 export { SHAPES, DEFAULT_SHAPE, findShape, type Shape, type ShapeId } from './shapes.js';
-export { PRESETS, type Preset } from './presets.js';
+export { LOOKS, findLook, type Look, type LookId } from './looks.js';
 export {
   defaultSettings, resolveSettings, mergeSettings, toUniforms, fromAttributes, toAttributes, toQuery, fromQuery,
   meshResolution, terrainSegments, CAMERA_MOTIONS, DEFAULT_CAMERA, DEFAULT_EXTENT, DEFAULT_DETAIL, DEFAULT_ELEVATION, DEFAULT_VIEW2D, RADIUS_MIN, RADIUS_MAX, ZOOM_MIN, ZOOM_MAX,
