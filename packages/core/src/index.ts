@@ -1,10 +1,10 @@
-export { createTopographicBackground, type TopographicBackground, type RendererOptions, type SnapshotOptions, type RecordOptions, type RendererStats, type RendererStatus } from './renderer.js';
+export { createTopography, type Topography, type RendererOptions, type SnapshotOptions, type RecordOptions, type RendererStats, type RendererStatus } from './renderer.js';
 export { cameraPose, cameraTarget, clampPan, panBy, terrainHalfSize, viewShift, type Pose, type ViewInsets } from './camera.js';
 export { snapshotFrame, type SnapshotRegion, type SnapshotFrame } from './snapshot.js';
 export { sampleGrid, type Heightfield } from './heightfield.js';
 export { PARAMS, GROUPS, paramsIn, clampParam, type ParamDef, type GroupName, type GroupValues } from './params.js';
-export { STYLES, DEFAULT_STYLE, findStyle, type Style, type StyleId } from './styles.js';
-export { PRESETS, type Preset } from './presets.js';
+export { SHAPES, DEFAULT_SHAPE, findShape, type Shape, type ShapeId } from './shapes.js';
+export { LOOKS, findLook, type Look, type LookId } from './looks.js';
 export {
   defaultSettings, resolveSettings, mergeSettings, toUniforms, fromAttributes, toAttributes, toQuery, fromQuery,
   meshResolution, terrainSegments, CAMERA_MOTIONS, DEFAULT_CAMERA, DEFAULT_EXTENT, DEFAULT_DETAIL, DEFAULT_ELEVATION, DEFAULT_VIEW2D, RADIUS_MIN, RADIUS_MAX, ZOOM_MIN, ZOOM_MAX,

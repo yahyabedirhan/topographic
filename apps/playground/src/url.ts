@@ -2,12 +2,12 @@ import { GROUPS, paramsIn, resolveSettings, type Settings, type SettingsInput } 
 import { PLAYGROUND_QUALITY, readSettings, withQuery, writeSettings } from './share-url';
 
 /**
- * The settings that differ from the style's defaults. The playground's own detail and budget are left out too,
+ * The settings that differ from the shape's defaults. The playground's own detail and budget are left out too,
  * so an embed at those keeps the library's defaults and follows each visitor's device.
  */
-export function configOf(s: Settings): SettingsInput & { style: string } {
-  const d = resolveSettings({ style: s.style });
-  const out: Record<string, unknown> = { style: s.style };
+export function configOf(s: Settings): SettingsInput & { shape: string } {
+  const d = resolveSettings({ shape: s.shape });
+  const out: Record<string, unknown> = { shape: s.shape };
   if (s.seed) out.seed = s.seed;
   for (const g of GROUPS) {
     const changed = Object.fromEntries(paramsIn(g)
@@ -28,7 +28,7 @@ export function configOf(s: Settings): SettingsInput & { style: string } {
   if (Object.keys(camera).length) out.camera = camera;
   const view2d = Object.fromEntries((['x', 'y', 'zoom'] as const).filter((k) => s.view2d[k] !== d.view2d[k]).map((k) => [k, s.view2d[k]]));
   if (Object.keys(view2d).length) out.view2d = view2d;
-  return out as SettingsInput & { style: string };
+  return out as SettingsInput & { shape: string };
 }
 
 export const readUrl = (search = window.location.search): Settings => readSettings(search);

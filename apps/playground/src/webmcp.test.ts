@@ -1,6 +1,6 @@
 /** @vitest-environment happy-dom */
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { resolveSettings, type Settings, type TopographicBackground } from 'topographic';
+import { resolveSettings, type Settings, type Topography } from 'topographic';
 import { pageBridge, registerTools } from './webmcp';
 
 type Tool = { name: string; execute(input?: Record<string, unknown>): Promise<unknown> };
@@ -16,10 +16,10 @@ afterEach(() => { delete (document as unknown as { modelContext?: unknown }).mod
 describe('WebMCP settings tools', () => {
   it('get_settings reads a set_settings change at once, before React renders it', async () => {
     const tools = stubModelContext();
-    const state = { current: resolveSettings({ style: 'granite', mode: '3d' }) };
+    const state = { current: resolveSettings({ shape: 'granite', mode: '3d' }) };
     const rendered: Settings[] = [];
     const update = vi.fn();
-    const stop = registerTools(pageBridge(state, (s) => rendered.push(s), () => ({ update } as unknown as TopographicBackground)));
+    const stop = registerTools(pageBridge(state, (s) => rendered.push(s), () => ({ update } as unknown as Topography)));
 
     await tools.set_settings.execute({ camera: { azimuth: 120 } });
     await tools.set_settings.execute({ camera: { azimuth: 200, radius: 2.5 } });
@@ -33,7 +33,7 @@ describe('WebMCP settings tools', () => {
 
   it('randomize also lands before it returns', async () => {
     const tools = stubModelContext();
-    const state = { current: resolveSettings({ style: 'granite' }) };
+    const state = { current: resolveSettings({ shape: 'granite' }) };
     const stop = registerTools(pageBridge(state, () => {}, () => null));
     const out = await tools.randomize.execute({}) as { config: { seed: number } };
     const got = await tools.get_settings.execute({}) as { settings: Settings };

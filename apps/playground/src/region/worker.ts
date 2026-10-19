@@ -1,8 +1,11 @@
-import { LIMITS, limitMessage, limitProblem, resample, shapeField, stitch, terrariumMeters, terrariumUrl, tileRange, type BBox, type ReliefMode, type SmoothLevel } from './pipeline';
+import { fetchLocation, findLocation, loadLocation, type BBox, type LocationField, type ReliefMode, type SmoothLevel } from 'topographic/locations';
+import { sameBox } from './places';
 
 export interface BuildRequest {
   id: number;
   bbox: BBox;
+  /** A named place. When the box is still that place's own, its built-in grid loads instead of the tiles. */
+  placeId: string | null;
   relief: ReliefMode;
   smooth: SmoothLevel;
 }
@@ -17,9 +20,11 @@ export interface BuildOk {
   maxM: number;
   reliefM: number;
   zoom: number;
+  /** Elevation tiles downloaded: 0 for a built-in grid. */
   tiles: number;
-  fetchMs: number;
-  shapeMs: number;
+  /** Whether the grid came with the library rather than from the tiles. */
+  builtIn: boolean;
+  loadMs: number;
 }
 
 export interface BuildErr {
@@ -28,57 +33,31 @@ export interface BuildErr {
   error: string;
 }
 
-async function decodeTile(z: number, x: number, y: number): Promise<Float32Array> {
-  const res = await fetch(terrariumUrl(z, x, y));
-  if (!res.ok) throw new Error(`Elevation tile ${z}/${x}/${y} returned ${res.status}.`);
-  const blob = await res.blob();
-  const bmp = await createImageBitmap(blob);
-  // close() zeroes width and height, so the size has to be copied first.
-  const width = bmp.width;
-  const height = bmp.height;
-  const canvas = new OffscreenCanvas(width, height);
-  const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  if (!ctx) throw new Error('This browser cannot read elevation tiles.');
-  ctx.drawImage(bmp, 0, 0);
-  const img = ctx.getImageData(0, 0, width, height);
-  bmp.close();
-  const out = new Float32Array(width * height);
-  const data = img.data;
-  for (let i = 0, p = 0; i < out.length; i++, p += 4) out[i] = terrariumMeters(data[p], data[p + 1], data[p + 2]);
-  return out;
+/** The library's built-in grids use dramatic relief and medium smoothing, like every place here. */
+function builtIn(req: BuildRequest): boolean {
+  const location = req.placeId ? findLocation(req.placeId) : undefined;
+  return Boolean(location && sameBox(location.bbox, req.bbox) && req.relief === 'dramatic' && req.smooth === 'medium');
 }
 
 async function build(req: BuildRequest): Promise<BuildOk> {
-  const problem = limitProblem(req.bbox);
-  if (problem) throw new Error(limitMessage(problem));
-  const range = tileRange(req.bbox);
   const t0 = performance.now();
-  const decoded = new Map<string, Float32Array>();
-  const jobs: Promise<void>[] = [];
-  for (let y = range.y0; y <= range.y1; y++) {
-    for (let x = range.x0; x <= range.x1; x++) {
-      jobs.push(decodeTile(range.z, x, y).then((px) => { decoded.set(`${x}/${y}`, px); }));
-    }
-  }
-  await Promise.all(jobs);
-  const fetchMs = performance.now() - t0;
-  const t1 = performance.now();
-  const mosaic = stitch(range, (x, y) => decoded.get(`${x}/${y}`) ?? new Float32Array(256 * 256));
-  const meters = resample(mosaic, req.bbox, LIMITS.grid);
-  const field = shapeField(meters, LIMITS.grid, req.bbox, req.relief, req.smooth);
+  const local = builtIn(req);
+  const field: LocationField & { tiles?: number } = local
+    ? await loadLocation(req.placeId!)
+    : await fetchLocation(req.bbox, { relief: req.relief, smooth: req.smooth });
   return {
     id: req.id,
     ok: true,
     samples: field.samples,
     size: field.size,
     aspect: field.aspect,
-    minM: field.minM,
-    maxM: field.maxM,
-    reliefM: field.reliefM,
-    zoom: range.z,
-    tiles: range.count,
-    fetchMs,
-    shapeMs: performance.now() - t1,
+    minM: field.minMeters,
+    maxM: field.maxMeters,
+    reliefM: field.maxMeters - field.minMeters,
+    zoom: field.zoom,
+    tiles: field.tiles ?? 0,
+    builtIn: local,
+    loadMs: performance.now() - t0,
   };
 }
 
@@ -92,7 +71,8 @@ scope.onmessage = (event: MessageEvent<BuildRequest>) => {
   build(req).then(
     (result) => scope.postMessage(result, [result.samples.buffer]),
     (error: unknown) => {
-      const message = error instanceof Error ? error.message : 'The elevation could not be read.';
+      // The library prefixes its errors for the console; the page shows the sentence alone.
+      const message = error instanceof Error ? error.message.replace(/^\[topographic\] /, '') : 'The elevation could not be read.';
       const body: BuildErr = { id: req.id, ok: false, error: message };
       scope.postMessage(body);
     },

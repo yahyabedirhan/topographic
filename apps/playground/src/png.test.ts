@@ -25,14 +25,14 @@ describe('cropRegion', () => {
 
 describe('export file names', () => {
   it('names the file after a named place', () => {
-    expect(pngFileName({ style: 'seed-pod', seed: 71 }, 'Mount Fuji')).toBe('topographic-mount-fuji.png');
-    expect(pngFileName({ style: 'seed-pod', seed: 71 }, 'Matterhorn & Zermatt')).toBe('topographic-matterhorn-and-zermatt.png');
+    expect(pngFileName({ shape: 'seed-pod', seed: 71 }, 'Mount Fuji')).toBe('topographic-mount-fuji.png');
+    expect(pngFileName({ shape: 'seed-pod', seed: 71 }, 'Matterhorn & Zermatt')).toBe('topographic-matterhorn-and-zermatt.png');
     expect(videoFileName('orbit', 'mp4', 'Everest & the Khumbu')).toBe('topographic-everest-and-the-khumbu-orbit.mp4');
   });
 
-  it('keeps the style and seed, or the motion, without a place', () => {
-    expect(pngFileName({ style: 'seed-pod', seed: 71 }, null)).toBe('topographic-seed-pod-71.png');
-    expect(pngFileName({ style: 'dunes', seed: 0 }, '')).toBe('topographic-dunes-0.png');
+  it('keeps the shape and seed, or the motion, without a place', () => {
+    expect(pngFileName({ shape: 'seed-pod', seed: 71 }, null)).toBe('topographic-seed-pod-71.png');
+    expect(pngFileName({ shape: 'dunes', seed: 0 }, '')).toBe('topographic-dunes-0.png');
     expect(videoFileName('drone', 'webm')).toBe('topographic-drone.webm');
   });
 });

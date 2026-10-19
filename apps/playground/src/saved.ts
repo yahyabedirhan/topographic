@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
-import { resolveSettings, type Settings } from 'topographic';
-import type { BBox } from './region/pipeline';
+import { resolveSettings, type Settings, type SettingsInput } from 'topographic';
+import type { BBox } from 'topographic/locations';
 import { findPlace, sameBox } from './region/places';
 
 /**
@@ -34,6 +34,12 @@ function storage(): Storage | null {
   try { return globalThis.localStorage ?? null; } catch { return null; }
 }
 
+/** Terrains saved before 0.6.0 name their shape `style`. */
+function savedSettings(s: SettingsInput & { style?: string }): Settings {
+  const { style, ...rest } = s;
+  return resolveSettings(rest.shape === undefined && style !== undefined ? { ...rest, shape: style } : rest);
+}
+
 function isBox(v: unknown): v is BBox {
   const b = v as BBox;
   return Boolean(b) && [b.west, b.south, b.east, b.north].every((n) => typeof n === 'number' && Number.isFinite(n));
@@ -54,7 +60,7 @@ export function readSaved(store: Storage | null = storage()): SavedTerrain[] {
         name: it.name,
         bbox: it.bbox,
         placeId: typeof it.placeId === 'string' ? it.placeId : null,
-        settings: resolveSettings(it.settings),
+        settings: savedSettings(it.settings),
         thumb: typeof it.thumb === 'string' && it.thumb.length <= THUMB_MAX ? it.thumb : null,
         minimap: typeof it.minimap === 'string' && it.minimap.length <= MINIMAP_MAX ? it.minimap : null,
         savedAt: typeof it.savedAt === 'number' ? it.savedAt : 0,

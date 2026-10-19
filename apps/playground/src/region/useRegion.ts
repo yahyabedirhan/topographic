@@ -4,7 +4,7 @@ import { DEFAULT_ELEVATION, resolveSettings, type Heightfield, type Settings } f
 import { flushPageUrl, schedulePageUrl } from '../page-history';
 import { withQuery, writeSettings } from '../share-url';
 import { stagePointerBusy, type Playground } from '../shared';
-import { limitMessage, limitProblem, spanOf, type BBox, type ReliefMode, type SmoothLevel, type Span } from './pipeline';
+import { areaProblem as limitProblem, areaProblemMessage as limitMessage, areaSpan as spanOf, type AreaSpan as Span, type BBox, type ReliefMode, type SmoothLevel } from 'topographic/locations';
 import { beforePlace, findPlace, restoredKeys, terrainDefaults, type BeforePlace } from './places';
 import { registerRegionTools } from './register';
 import { readRegion, writeRegion, type RegionQuery } from './url';
@@ -16,8 +16,9 @@ export interface RegionInfo {
   reliefM: number;
   zoom: number;
   tiles: number;
-  fetchMs: number;
-  shapeMs: number;
+  /** Whether the grid came with the library rather than from the elevation tiles. */
+  builtIn: boolean;
+  loadMs: number;
   span: Span;
 }
 
@@ -39,16 +40,16 @@ export interface RegionController {
 }
 
 /** Every place uses the same height treatment; the 3D Elevation slider is the only height control. */
-const RELIEF: ReliefMode = 'dramatic';
-const SMOOTH: SmoothLevel = 'medium';
+export const RELIEF: ReliefMode = 'dramatic';
+export const SMOOTH: SmoothLevel = 'medium';
 
 function queryOf(bbox: BBox | null, placeId: string | null): RegionQuery {
   return { bbox, place: placeId };
 }
 
-/** Without a remembered state (a place opened from a link), Clear returns to the library defaults for the style. */
-function generatedView(style: string): BeforePlace {
-  const d = resolveSettings({ style });
+/** Without a remembered state (a place opened from a link), Clear returns to the library defaults for the shape. */
+function generatedView(shape: string): BeforePlace {
+  const d = resolveSettings({ shape });
   return { lines: d.lines, camera: d.camera, extent: d.extent, elevation: d.elevation ?? DEFAULT_ELEVATION };
 }
 
@@ -126,8 +127,8 @@ export function useRegion(pg: Playground): RegionController {
         reliefM: event.data.reliefM,
         zoom: event.data.zoom,
         tiles: event.data.tiles,
-        fetchMs: event.data.fetchMs,
-        shapeMs: event.data.shapeMs,
+        builtIn: event.data.builtIn,
+        loadMs: event.data.loadMs,
         span: spanOf(bbox),
       });
       setStatus('ready');
@@ -135,7 +136,7 @@ export function useRegion(pg: Playground): RegionController {
       setGeneration((n) => n + 1);
     };
     worker.addEventListener('message', onMessage);
-    const body = { id, bbox, relief: RELIEF, smooth: SMOOTH };
+    const body = { id, bbox, placeId, relief: RELIEF, smooth: SMOOTH };
     worker.postMessage(body);
     return () => worker.removeEventListener('message', onMessage);
   }, [bbox, workerReady]);
@@ -193,7 +194,7 @@ export function useRegion(pg: Playground): RegionController {
     setStatus('idle');
     setGeneration((n) => n + 1);
     const back = before.current;
-    if (had) pgRef.current.change(back ? beforePlace(back.settings, [...back.keys]) : generatedView(settingsRef.current.style));
+    if (had) pgRef.current.change(back ? beforePlace(back.settings, [...back.keys]) : generatedView(settingsRef.current.shape));
     before.current = null;
   }, []);
   const agent: RegionController = {

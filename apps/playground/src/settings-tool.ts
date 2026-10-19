@@ -1,11 +1,12 @@
-import { mergeSettings, type Settings, type SettingsInput } from 'topographic';
+import { LOOKS, mergeSettings, type Settings, type SettingsInput } from 'topographic';
 
-const TOP_KEYS = ['style', 'seed', 'theme', 'lines', 'terrain', 'motion', 'layout', 'mode', 'elevation', 'extent', 'detail', 'quality', 'camera', 'view2d'];
+const TOP_KEYS = ['look', 'shape', 'seed', 'theme', 'lines', 'terrain', 'motion', 'layout', 'mode', 'elevation', 'extent', 'detail', 'quality', 'camera', 'view2d'];
 
 /** Notes on values that were moved into range, kept, cleared or ignored, for the agent that sent `input`. */
 function adjustments(input: Record<string, unknown>, out: Settings): string[] {
   const notes: string[] = [];
-  if (typeof input.style === 'string' && input.style !== out.style) notes.push(`unknown style "${input.style}", kept "${out.style}"`);
+  if (typeof input.look === 'string' && !LOOKS.some((l) => l.id === input.look)) notes.push(`ignored unknown look "${input.look}"`);
+  if (typeof input.shape === 'string' && input.shape !== out.shape) notes.push(`unknown shape "${input.shape}", kept "${out.shape}"`);
   if (typeof input.mode === 'string' && input.mode !== out.mode) notes.push(`mode: ${JSON.stringify(input.mode)} adjusted to ${out.mode}`);
   if (typeof input.extent === 'string' && input.extent !== out.extent) notes.push(`extent: ${JSON.stringify(input.extent)} adjusted to ${out.extent}`);
   if (typeof input.elevation === 'number' && input.elevation !== out.elevation) notes.push(`elevation: ${input.elevation} adjusted to ${out.elevation}`);

@@ -5,8 +5,10 @@ import { extname, join } from 'node:path';
 
 const dist = new URL('../apps/playground/dist/', import.meta.url).pathname;
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.txt': 'text/plain', '.md': 'text/markdown', '.json': 'application/json' };
+// Like the host: /docs is served from docs.html.
 const server = createServer(async (req, res) => {
-  const path = req.url.split('?')[0].replace(/\/$/, '/index.html');
+  let path = req.url.split('?')[0].replace(/\/$/, '/index.html');
+  if (!extname(path)) path += '.html';
   try { const body = await readFile(join(dist, path)); res.writeHead(200, { 'content-type': types[extname(path)] ?? 'application/octet-stream' }).end(body); }
   catch { res.writeHead(404).end(); }
 }).listen(0);
@@ -92,7 +94,7 @@ try {
   // URL state: short params load, and the page writes its state back as short params.
   await open(p, '?s=granite&lc=40');
   let c = await cfg(p);
-  check(c.style === 'granite' && c.lines?.count === 40 && q(p).get('s') === 'granite' && q(p).get('lc') === '40', `short query loads (?${q(p)})`);
+  check(c.shape === 'granite' && c.lines?.count === 40 && q(p).get('s') === 'granite' && q(p).get('lc') === '40', `short query loads (?${q(p)})`);
   await p.getByRole('button', { name: 'Tune', exact: true }).click();
   const tabs = await p.locator('.pt-tabs button.pt-tab').allInnerTexts();
   check(tabs.join() === 'Lines,Terrain,Motion,Layout,3D', `Tune tabs are labelled (${tabs.join()})`);
@@ -124,12 +126,12 @@ try {
   const look = dock.getByRole('button', { name: 'Fine granite' });
   await look.click(); await settle(p);
   c = await cfg(p);
-  check(q(p).get('look') === 'fine-granite' && c.style === 'granite' && c.seed === 191 && c.lines?.count === 54, `dock look applies and syncs (?${q(p)})`);
+  check(q(p).get('look') === 'fine-granite' && c.shape === 'granite' && c.seed === 191 && c.lines?.count === 54, `dock look applies and syncs (?${q(p)})`);
   check(await look.getAttribute('aria-current') === 'true', 'dock marks the applied look');
   check(await p.evaluate(() => document.documentElement.dataset.theme) === 'dark', 'dark look sets data-theme dark');
   await dock.getByRole('button', { name: 'Quiet hill' }).click(); await settle(p);
   c = await cfg(p);
-  check(q(p).get('look') === 'quiet-hill' && c.style === 'gentle-summit' && c.seed === 197, `a second look switches style and seed (?${q(p)})`);
+  check(q(p).get('look') === 'quiet-hill' && c.shape === 'gentle-summit' && c.seed === 197, `a second look switches shape and seed (?${q(p)})`);
   check(await p.evaluate(() => document.documentElement.dataset.theme) === 'light', 'light look sets data-theme light');
 
   const search = q(p).toString();
@@ -184,7 +186,7 @@ try {
   await cropShot.focus(); await p.keyboard.press('End'); await settle(p);
   check(JSON.parse(await cropShot.getAttribute('data-crop')).x + crop0.width > 0.999 && await cropShot.getAttribute('aria-valuetext') === 'right edge', 'the crop frame moves with the keyboard');
   await menu.getByRole('button', { name: 'React', exact: true }).click();
-  check((await menu.locator('pre.pt-code').innerText()).includes('styleName="gentle-summit"') && await menu.locator('.pt-vpill').count() > 0 && await menu.locator('.pt-ln').count() > 5,
+  check((await menu.locator('pre.pt-code').innerText()).includes('shape="gentle-summit"') && await menu.locator('.pt-vpill').count() > 0 && await menu.locator('.pt-ln').count() > 5,
     'React code shown with line numbers and tinted values');
   check(Math.abs((await menu.boundingBox()).width - width) < 1, 'Export keeps one width across tabs');
   const install = menu.locator('.pt-install code');
@@ -193,10 +195,10 @@ try {
   check((await clip(p)) === 'npm install topographic topographic-react' && await menu.getByRole('button', { name: 'Copied', exact: true }).count() === 1, 'the install line has its own copy');
   await menu.getByRole('button', { name: 'Copy', exact: true }).click();
   const jsx = await clip(p);
-  check(jsx.includes('npm install') && jsx.includes('<TopographicBackground') && jsx.includes('styleName="gentle-summit"'), 'React code copied with install line');
+  check(jsx.includes('npm install') && jsx.includes('<Topography') && jsx.includes('shape="gentle-summit"'), 'React code copied with install line');
   await menu.getByRole('button', { name: 'HTML', exact: true }).click();
   await menu.getByRole('button', { name: 'Copy', exact: true }).click();
-  check((await clip(p)).includes('style-name="gentle-summit"'), 'HTML embed copied');
+  check((await clip(p)).includes('shape="gentle-summit"'), 'HTML embed copied');
   await menu.getByRole('button', { name: 'JSON', exact: true }).click();
   await menu.getByRole('button', { name: 'Copy', exact: true }).click();
   const json = JSON.parse(await clip(p));
@@ -330,14 +332,14 @@ try {
   const tune = p.locator('.pt-pop:not(.pt-pop-wide):not(.pt-export)');
   await tune.getByRole('button', { name: 'Terrain', exact: true }).click(); await settle(p);
   const peaks = tune.getByRole('slider', { name: 'Peaks' });
-  check(await peaks.isDisabled() && await tune.getByRole('slider', { name: 'Terracing' }).isDisabled() && /Shape comes from the map/.test(await tune.innerText())
+  check(await peaks.isDisabled() && await tune.getByRole('slider', { name: 'Terracing' }).isDisabled() && /Terrain comes from the map/.test(await tune.innerText())
     && await tune.locator('.pt-sec-reset').count() === 0, 'with a place, Terrain sliders are disabled under a note');
   await tune.getByRole('button', { name: 'Motion', exact: true }).click(); await settle(p);
   check(await tune.getByRole('slider', { name: 'Warp' }).isDisabled() && await tune.getByRole('slider', { name: 'Speed' }).isEnabled() && await tune.getByRole('slider', { name: 'Sparkle' }).isEnabled(),
     'with a place, Warp is disabled and Speed and Sparkle still work');
   await tune.getByRole('button', { name: 'Terrain', exact: true }).click(); await settle(p);
   await tune.getByRole('button', { name: 'Clear map' }).click(); await settle(p, 400);
-  check(await peaks.isEnabled() && !/Shape comes from the map/.test(await tune.innerText()) && await pinDot() === 0 && q(p).get('region') === null, 'Clear map enables the Terrain sliders again');
+  check(await peaks.isEnabled() && !/Terrain comes from the map/.test(await tune.innerText()) && await pinDot() === 0 && q(p).get('region') === null, 'Clear map enables the Terrain sliders again');
   const restored = viewOf(p);
   check(VIEW_KEYS.filter((k) => k !== 'mode').every((k) => restored[k] === viewBefore[k]) && JSON.stringify({ ...(await cfg(p)), mode: undefined }) === JSON.stringify({ ...settingsBefore, mode: undefined }),
     `Clear restores the lines, camera, extent and elevation (?${q(p)})`);
@@ -378,7 +380,7 @@ try {
   await dockNav.getByRole('button', { name: 'Fine granite' }).click(); await settle(p, 600);
   c = await cfg(p);
   const lookAz = q(p).get('az');
-  check(q(p).get('place') === null && c.style === 'granite' && c.seed === 191 && await pinDot() === 0, 'a built-in look clears the place and brings its shape');
+  check(q(p).get('place') === null && c.shape === 'granite' && c.seed === 191 && await pinDot() === 0, 'a built-in look clears the place and brings its shape');
   await dockNav.getByRole('button', { name: 'Matterhorn & Zermatt map' }).click(); await settle(p, 600);
   check(q(p).get('place') === 'matterhorn' && JSON.stringify(await cfg(p)) === JSON.stringify(matterhorn), 'the saved item returns with its own colours');
   // Edits to the active saved item are kept, the camera included.
@@ -447,8 +449,9 @@ try {
   check(JSON.stringify(await cfg(back)) === JSON.stringify(quiet), 'copied link restores the settings');
   await open(back, '?look=fine-granite');
   c = await cfg(back);
-  check(c.style === 'granite' && c.seed === 191 && c.lines?.count === 54, '?look= loads a dock look');
+  check(c.shape === 'granite' && c.seed === 191 && c.lines?.count === 54, '?look= loads a dock look');
   await open(back, '?s=dunes&mode=3d');
+  check((await cfg(back)).shape === 'dunes', 'a ?s= link from before 0.6.0 loads its shape');
   check((await cfg(back)).mode === '3d' && await back.locator('.pt-stage.is-3d').count() === 1, '?mode=3d opens 3D');
   await back.close();
 
@@ -469,7 +472,7 @@ try {
   await agent.addInitScript(stub);
   await agent.goto(base);
   await agent.waitForSelector('.pt-stage canvas');
-  const want = 'clear_region,get_embed_code,get_install_instructions,get_region,get_settings,identify_agent,list_styles,randomize,record_video,set_region,set_settings,take_screenshot';
+  const want = 'clear_region,get_embed_code,get_install_instructions,get_region,get_settings,identify_agent,list_shapes,randomize,record_video,set_region,set_settings,take_screenshot';
   await agent.waitForFunction((n) => Object.keys(window.__tools).length >= n, 12, { timeout: 10000 }).catch(() => {});
   const names = await agent.evaluate(() => Object.keys(window.__tools).sort().join());
   check(names === want, `WebMCP registers 12 tools${names === want ? '' : ': ' + names}`);
@@ -483,15 +486,22 @@ try {
   }
   const desc = await agent.evaluate(() => window.__tools.identify_agent.description);
   check(/Optional/.test(desc) && /nothing about the person/.test(desc), 'identify_agent says it is optional and records nothing about the person');
-  check((await call('list_styles')).styles.length === 7, 'list_styles');
-  const set = await call('set_settings', { style: 'dunes', lines: { count: 999 }, bogus: 1 });
-  check(set.config.style === 'dunes' && set.config.lines.count === 60 && set.adjustments.length === 2, `set_settings validates: ${JSON.stringify(set.adjustments)}`);
+  const listed = await call('list_shapes');
+  check(listed.shapes.length === 7 && listed.looks.some((l) => l.id === 'survey-map'), `list_shapes (${listed.looks.length} looks)`);
+  const looked = await call('set_settings', { look: 'rose-pod', lines: { count: 40 } });
+  check(looked.config.shape === 'seed-pod' && looked.config.seed === 71 && looked.config.lines.count === 40 && looked.adjustments.length === 0,
+    `set_settings applies a look with an override: ${JSON.stringify(looked.adjustments)}`);
+  const set = await call('set_settings', { shape: 'dunes', lines: { count: 999 }, bogus: 1 });
+  check(set.config.shape === 'dunes' && set.config.lines.count === 60 && set.adjustments.length === 2, `set_settings validates: ${JSON.stringify(set.adjustments)}`);
+  const old = await call('set_settings', { style: 'granite' });
+  check(old.config.shape === 'granite' && /shape/.test(old.adjustments[0] ?? ''), `set_settings takes the old style key: ${JSON.stringify(old.adjustments)}`);
+  await call('set_settings', { shape: 'dunes' });
   await settle(agent);
-  const styleKey = q(agent).get('s') ?? q(agent).get('look') ?? '';
-  check(/dune/.test(styleKey) && q(agent).get('lc') === '60', `set_settings updates the page and URL (?${q(agent)})`);
+  const shapeKey = q(agent).get('s') ?? q(agent).get('look') ?? '';
+  check(/dune/.test(shapeKey) && q(agent).get('lc') === '60', `set_settings updates the page and URL (?${q(agent)})`);
   check((await call('get_settings')).config.lines.count === 60, 'get_settings');
   const before = (await call('get_settings')).config.seed;
-  const rnd = await call('randomize', { style: true });
+  const rnd = await call('randomize', { shape: true });
   check(rnd.config.seed > 0 && rnd.config.seed !== before, 'randomize');
   const shot = await call('take_screenshot', { width: 400 });
   check(shot.dataUrl.startsWith('data:image/png;base64,') && shot.width === 400, `take_screenshot ${shot.width}x${shot.height}`);
@@ -502,7 +512,7 @@ try {
   const video = await call('record_video', { seconds: 0.5, width: 160, height: 160, motion: 'orbit' }).catch((e) => ({ error: String(e) }));
   check(/^data:video\/(mp4|webm)/.test(video.dataUrl ?? '') && video.byteLength > 0,
     `record_video ${video.mimeType ?? video.error} ${video.byteLength ?? 0} bytes in ${((Date.now() - t0) / 1000).toFixed(1)}s`);
-  check((await call('get_embed_code', { format: 'react' })).code.includes('<TopographicBackground'), 'get_embed_code');
+  check((await call('get_embed_code', { format: 'react' })).code.includes('<Topography'), 'get_embed_code');
   check((await call('get_install_instructions', { target: 'react' })).instructions.includes('npm install'), 'get_install_instructions');
   const region = await call('set_region', { place: 'istanbul' });
   check(region.accepted === true && region.place === 'istanbul' && region.bbox.west === 28.45, `set_region accepts istanbul (${region.query})`);
@@ -607,8 +617,140 @@ try {
 
   const plain = await browser.newPage(); watch(plain);
   await plain.goto(base); await plain.waitForSelector('.pt-stage canvas'); await settle(plain);
-  check(await plain.evaluate(() => !('modelContext' in document) && !('modelContext' in navigator)) && await plain.locator('.pt-cluster button').count() === 4, 'no WebMCP: page works, nothing registered');
+  check(await plain.evaluate(() => !('modelContext' in document) && !('modelContext' in navigator)) && await plain.locator('.pt-cluster button').count() === 5, 'no WebMCP: page works, nothing registered');
+
+  // Install: its own circle at the far right, the two parts, one bright Copy, and a shortcut to Export.
+  await plain.getByRole('button', { name: 'Install', exact: true }).click();
+  const installPop = plain.locator('.pt-install-pop');
+  await installPop.waitFor();
+  const installText = await installPop.innerText();
+  check(installText.includes('npx skills add yahyabedirhan/topographic') && installText.includes('npm install topographic topographic-react')
+    && installText.includes('createTopography(el, {') && await installPop.locator('.pt-action.pt-copy').count() === 1,
+    'Install shows the skill, the npm lines and the code, with one bright Copy');
+  if (shots) await installPop.screenshot({ path: join(shots, 'install.png') });
+  await installPop.getByRole('button', { name: 'Export', exact: true }).click();
+  await plain.locator('.pt-export').waitFor();
+  check(await installPop.count() === 0, 'Install\'s Export opens the Export panel');
   await plain.close();
+
+  // ---- the docs page at /docs ----
+  {
+    const home = await browser.newPage(); watch(home);
+    await home.goto(base); await home.waitForSelector('.pt-wordmark');
+    const pages = await home.locator('.pt-wordmark-pages a').allInnerTexts();
+    check(pages.join() === 'About,Docs' && await home.locator('.pt-wordmark-pages a', { hasText: 'Docs' }).getAttribute('href') === '/docs', `the wordmark row links About and Docs (${pages.join(' · ')})`);
+    await home.close();
+
+    const head = await (await fetch(base + 'docs')).text();
+    check(/<title>Docs: Topographic terrain, rendered live with WebGL<\/title>/.test(head) && head.includes('og-docs.png') && head.includes('<link rel="canonical" href="https://topographic.yahyapak.dev/docs"'),
+      'docs.html carries the docs title, canonical address and share image');
+    check(/^# Parameters/.test(await (await fetch(base + 'docs/params.md')).text()), 'the plain-text docs under /docs still load');
+
+    // Text checks over the whole page: no tiny last lines, no inline code broken across lines, no reference without a link.
+    const textChecks = () => {
+      const main = document.querySelector('.dx main');
+      const visible = (el) => el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden';
+      const wrapped = [...main.querySelectorAll('code')].filter((c) => !c.closest('pre') && visible(c) && c.getClientRects().length > 1).map((c) => c.textContent);
+      const orphans = [];
+      for (const el of main.querySelectorAll('p, dd, dt, td, figcaption, summary, .lede, h1')) {
+        if (el.closest('pre, .code, .foot, .plist, details:not([open]) > p') || !visible(el) || !el.textContent.trim()) continue;
+        const units = [];
+        const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+        for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+          let i = 0;
+          for (const word of n.data.split(/( |\n)/)) {
+            if (word.trim()) {
+              const r = document.createRange(); r.setStart(n, i); r.setEnd(n, i + word.length);
+              const box = r.getClientRects()[0];
+              if (box) units.push({ word, mid: (box.top + box.bottom) / 2 });
+            }
+            i += word.length;
+          }
+        }
+        const lines = [];
+        for (const u of units) { const line = lines.find((l) => Math.abs(l.mid - u.mid) < 8); if (line) line.words.push(u.word); else lines.push({ mid: u.mid, words: [u.word] }); }
+        lines.sort((a, b) => a.mid - b.mid);
+        const last = lines.at(-1)?.words.join(' ').replace(/ /g, ' ').trim() ?? '';
+        if (lines.length > 1 && last.length < 12) orphans.push(`${el.textContent.trim().slice(0, 40)}… ends "${last}"`);
+      }
+      const cut = [...main.querySelectorAll('figcaption')].filter((f) => visible(f) && f.scrollWidth > f.clientWidth + 1).map((f) => f.textContent.trim());
+      const REF = /\b[\w-]+\.(md|txt)\b|https?:\/\/|\bWebMCP\b|Mapzen|AWS Open Data|OpenStreetMap|OpenFreeMap|OpenMapTiles|\bffmpeg\b|WebCodecs|Next\.js|headless Chrome|\bplayground\b/;
+      const unlinked = [];
+      for (const block of main.querySelectorAll('p, dd, dt, td, th, summary, figcaption, .lede, li')) {
+        if (block.closest('pre, .code, .foot') || !visible(block)) continue;
+        const walker = document.createTreeWalker(block, NodeFilter.SHOW_TEXT);
+        for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+          if (n.parentElement.closest('a, pre')) continue;
+          const m = n.data.match(REF);
+          // The playground needs one link per block; any other reference needs its own.
+          if (m && !(m[0] === 'playground' && block.querySelector(`a[href^="https://topographic.yahyapak.dev"], a[href="/"]`))) unlinked.push(`${m[0]} in "${block.textContent.trim().slice(0, 50)}"`);
+        }
+      }
+      return { wrapped, orphans, cut, unlinked, hscroll: document.documentElement.scrollWidth > innerWidth };
+    };
+
+    for (const [width, height, name] of [[1440, 900, 'desktop'], [390, 844, 'phone']]) {
+      const ctxDocs = await browser.newContext({ viewport: { width, height }, colorScheme: 'dark' });
+      await ctxDocs.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: base.slice(0, -1) });
+      const d = await ctxDocs.newPage(); watch(d);
+      await d.goto(base + 'docs');
+      await d.waitForSelector('.dx main h1');
+      await d.waitForSelector('#fig-hero .stage canvas', { timeout: 60000 }).catch(() => {});
+      check(await d.title() === 'Docs: Topographic terrain, rendered live with WebGL' && await d.locator('#fig-hero .stage canvas').count() === 1,
+        `${name}: /docs opens the docs page with a live Everest`);
+      if (name === 'desktop') {
+        if (shots) await d.screenshot({ path: `${shots}/docs-desktop-top.png` });
+
+        // The mode button rewrites the hero's React code.
+        await d.locator('#fig-hero .pt-mode').click();
+        // The code is redrawn on animation frames, which SwiftShader can make slow.
+        const to2d = await d.waitForFunction(() => /mode="2d"/.test(document.querySelector('#fig-hero .ctl code').textContent), null, { timeout: 10000 }).then(() => true, () => false);
+        check(to2d && await d.locator('#fig-hero .pt-mode').getAttribute('aria-label') === 'Switch to 3D', 'the hero mode button switches the figure and its code to 2D');
+        await d.locator('#fig-hero .pt-mode').click();
+
+        // A Tune input changes the figure and rewrites the code under it.
+        const lines = d.locator('#lines');
+        await lines.scrollIntoViewIfNeeded(); await settle(d, 1500);
+        const stage = lines.locator('.fig .stage');
+        const before = await stage.screenshot();
+        const codeBefore = await lines.locator('.livecode pre').innerText();
+        const thumb = lines.getByRole('slider', { name: 'Line count' });
+        await thumb.focus(); for (let i = 0; i < 12; i++) await d.keyboard.press('ArrowLeft');
+        await settle(d, 600);
+        const codeAfter = await lines.locator('.livecode pre').innerText();
+        check(/count: 34/.test(codeAfter) && codeAfter !== codeBefore && !(await stage.screenshot()).equals(before), `a Tune input changes the figure and its code (${codeAfter.match(/count: \d+/)?.[0]})`);
+        await lines.getByRole('tab', { name: 'React' }).click();
+        check(/<Topography/.test(await lines.locator('.livecode pre').innerText()) && /<Topography/.test(await d.locator('#theme .livecode pre').innerText()), 'the language tab follows across the page');
+        await lines.locator('.livecode .copy').click();
+        check((await d.evaluate(() => navigator.clipboard.readText())).includes('count: 34'), 'the code copies as shown');
+
+        // The place gallery picks the live place and the code names it.
+        const places = d.locator('#locations');
+        await places.scrollIntoViewIfNeeded();
+        await places.locator('[data-place="istanbul"]').click(); await settle(d, 500);
+        check(/location="istanbul"/.test(await places.locator('.livecode pre').innerText()) && /^Istanbul/.test(await places.locator('.fig .cap').innerText()), 'a place in the gallery sets the figure and its code');
+      }
+
+      // Scroll the whole page: live views come and go, and the WebGL contexts stay few.
+      let most = 0;
+      const total = await d.evaluate(() => document.documentElement.scrollHeight);
+      for (let y = 0; y < total; y += height * 0.8) {
+        await d.evaluate((top) => scrollTo({ top, behavior: 'instant' }), y); await settle(d, 350);
+        most = Math.max(most, await d.evaluate(() => document.querySelectorAll('canvas').length));
+      }
+      check(most > 0 && most <= 6, `${name}: at most ${most} WebGL views at once while scrolling`);
+      await d.evaluate(() => scrollTo({ top: 0, behavior: 'instant' })); await settle(d, 800);
+      const t = await d.evaluate(textChecks);
+      check(t.orphans.length === 0, `${name}: no tiny last lines${t.orphans.length ? ': ' + t.orphans.join(' | ') : ''}`);
+      check(t.wrapped.length === 0, `${name}: no inline code broken across lines${t.wrapped.length ? ': ' + t.wrapped.join(' | ') : ''}`);
+      check(t.unlinked.length === 0, `${name}: every reference is a link${t.unlinked.length ? ': ' + t.unlinked.join(' | ') : ''}`);
+      if (name === 'desktop') check(t.cut.length === 0, `desktop: every caption fits on one line${t.cut.length ? ': ' + t.cut.join(' | ') : ''}`);
+      check(!t.hscroll, `${name}: no sideways scroll`);
+      if (shots) await d.screenshot({ path: `${shots}/docs-${name}-top.png` });
+      await ctxDocs.close();
+    }
+  }
+  // ---- end of the docs page ----
 
   check(errors.length === 0, `no page errors${errors.length ? ': ' + errors.join(' | ') : ''}`);
 } finally { await browser.close(); server.close(); }

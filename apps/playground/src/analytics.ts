@@ -14,7 +14,7 @@ import { AGENT_NAMES, PURPOSES, durationBucket, loadAgent, readAgentParams, reso
 import { randomUuid } from './visitor';
 
 export type ExportFormat = 'link' | 'png' | 'video' | 'react' | 'html' | 'json';
-export type PanelName = 'map' | 'tune' | 'export';
+export type PanelName = 'map' | 'tune' | 'export' | 'install';
 export type ViewMode = '2d' | '3d';
 export type ImageVariant = 'screen' | 'phone' | '1080p';
 export type VideoMotion = 'orbit' | 'push' | 'flyover' | 'drone';
@@ -52,6 +52,8 @@ export interface AnalyticsEvents {
   colour_changed: { slot: ColourSlot; source: 'picker' | 'swatch' | 'hex' };
   link_copied: { params_count: number };
   code_copied: { lang: 'react' | 'html' | 'json' | 'install' };
+  /** A copy in the Install popover: the skill, an npm line, or this view's code or link. */
+  install_copied: { target: 'skill' | 'npm' | 'npm_react' | 'code' | 'link' };
   export_image_downloaded: { variant: ImageVariant; format: 'png'; width: number; height: number; style: string; theme: string; mode: ViewMode; duration_ms: number };
   export_image_failed: { variant: ImageVariant; error: string; duration_ms: number };
   export_video_started: VideoProps;
@@ -100,7 +102,7 @@ export interface SuperProperties extends Partial<ActorProps> {
 export const EVENT_NAMES = [
   'ui_click', 'view_mode_changed', 'panel_opened', 'panel_closed', 'export_tab_changed', 'dock_item_clicked',
   'saved_terrain_deleted', 'place_applied', 'region_loaded', 'setting_changed', 'quality_changed', 'theme_toggled',
-  'shuffle_clicked', 'colour_changed', 'link_copied', 'code_copied', 'export_image_downloaded', 'export_image_failed',
+  'shuffle_clicked', 'colour_changed', 'link_copied', 'code_copied', 'install_copied', 'export_image_downloaded', 'export_image_failed',
   'export_video_started', 'export_video_completed', 'export_video_failed', 'performance_sample', 'low_performance_prompt_shown',
   'low_performance_prompt_clicked', 'analytics_opted_out', 'agent_tool_called',
 ] as const satisfies readonly (keyof AnalyticsEvents)[];

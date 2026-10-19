@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { limitProblem, spanOf } from './pipeline';
+import { LOCATIONS, areaProblem as limitProblem, areaSpan as spanOf } from 'topographic/locations';
 import { MAP_TERRAIN_DEFAULTS, PLACE_GROUPS, PLACES, restoredKeys, sameBox, terrainDefaults } from './places';
 
 const LANDSCAPES = PLACES.filter((place) => place.id !== 'istanbul' && place.id !== 'cyprus');
@@ -80,5 +80,19 @@ describe('example places', () => {
   it('lets Clear restore only the map view after any place', () => {
     expect(restoredKeys('istanbul').sort()).toEqual(['camera', 'elevation', 'extent', 'lines']);
     for (const place of OWN_VIEW) expect(restoredKeys(place.id).sort()).toEqual(['camera', 'elevation', 'extent', 'lines', 'mode']);
+  });
+});
+
+describe('places from the library', () => {
+  it('uses each library location\'s id, name, box, camera and elevation', () => {
+    expect(PLACES.map((p) => p.id)).toEqual(LOCATIONS.map((l) => l.id));
+    for (const place of PLACES) {
+      const location = LOCATIONS.find((l) => l.id === place.id)!;
+      expect(place.name).toBe(location.name);
+      expect(place.bbox).toBe(location.bbox);
+      if (place.id === 'istanbul') continue;
+      expect(place.defaults?.camera).toEqual({ ...MAP_TERRAIN_DEFAULTS.camera, azimuth: location.defaults.camera.azimuth, elevation: location.defaults.camera.elevation });
+      expect(place.defaults?.elevation).toBe(location.defaults.elevation);
+    }
   });
 });

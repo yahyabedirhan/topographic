@@ -7,7 +7,7 @@ import fujiThumb from '../assets/map-looks/fuji-thumb.webp';
 import fujiMinimap from '../assets/map-looks/fuji-minimap.webp';
 import yosemiteThumb from '../assets/map-looks/yosemite-thumb.webp';
 import yosemiteMinimap from '../assets/map-looks/yosemite-minimap.webp';
-import type { BBox } from './pipeline';
+import type { BBox } from 'topographic/locations';
 import { findPlace } from './places';
 
 /**
@@ -33,7 +33,7 @@ export interface MapLook {
  * `?s=gentle-summit&seed=67&lc=36&lw=0&lo=0.9&ix=4&fd=0.15&m=dark&paper=0b0b0d&mode=3d&ex=block&ev=0.12&az=341.6&ce=45.3&rd=1.15&px=-0.005&pz=-0.013&place=istanbul`.
  */
 export const ISTANBUL_SETTINGS = {
-  style: 'gentle-summit',
+  shape: 'gentle-summit',
   seed: 67,
   lines: { count: 36, width: 0, opacity: 0.9, indexEvery: 4 },
   terrain: { peaks: 1, spread: 0.5, roughness: 0, sharpness: 0.5, terracing: 0, variant: 0.5 },
@@ -52,7 +52,7 @@ export const ISTANBUL_SETTINGS = {
  */
 function rosePod(ink: string, elevation: number, cameraElevation: number): SettingsInput {
   return {
-    style: 'seed-pod',
+    shape: 'seed-pod',
     seed: 71,
     lines: { count: 36, width: 0, opacity: 0.9, indexEvery: 4 },
     terrain: { peaks: 1, spread: 0.5, roughness: 0, sharpness: 0.5, terracing: 0, variant: 0.5 },

@@ -1,6 +1,9 @@
 export const PACKAGE = 'topographic';
 export const REACT_PACKAGE = 'topographic-react';
 
+/** Installs the topographic agent skill, for coding agents that read skills. */
+export const SKILL_INSTALL = 'npx skills add yahyabedirhan/topographic';
+
 export const INSTALL = {
   npm: `npm install ${PACKAGE}`,
   react: `npm install ${PACKAGE} ${REACT_PACKAGE}`,
@@ -8,28 +11,28 @@ export const INSTALL = {
   import '${PACKAGE}/element';
 </script>
 
-<topographic-bg style-name="dunes" line-count="30"></topographic-bg>`,
-  reactUsage: `import { TopographicBackground } from '${REACT_PACKAGE}';
+<topographic-view shape="dunes" line-count="30"></topographic-view>`,
+  reactUsage: `import { Topography } from '${REACT_PACKAGE}';
 
 export function Hero() {
   return (
-    <TopographicBackground styleName="granite" terrain={{ roughness: 0.3 }} style={{ height: '100vh' }}>
+    <Topography shape="granite" terrain={{ roughness: 0.3 }} style={{ height: '100vh' }}>
       <h1>Hello</h1>
-    </TopographicBackground>
+    </Topography>
   );
 }`,
-  vanilla: `import { createTopographicBackground } from '${PACKAGE}';
+  vanilla: `import { createTopography } from '${PACKAGE}';
 
-const topographic = createTopographicBackground(document.querySelector('#hero'), {
-  style: 'gentle-summit',
+const topography = createTopography(document.querySelector('#hero'), {
+  shape: 'gentle-summit',
   lines: { count: 36, indexEvery: 5 },
   theme: { mode: 'dark' },
 });
 
-topographic.update({ terrain: { peaks: 3 } });   // live, clamped
+topography.update({ terrain: { peaks: 3 } });   // live, clamped
 const png = await topographic.snapshot({ width: 1920, height: 1080 });
-topographic.destroy();`,
-  css: `topographic-bg {
+topography.destroy();`,
+  css: `topographic-view {
   --topographic-ink: #9fb3c8;      /* line colour */
   --topographic-paper: transparent; /* let the page show through */
 }`,

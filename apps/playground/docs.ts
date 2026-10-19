@@ -1,10 +1,12 @@
 import type { Plugin } from 'vite';
-import { PARAMS, PRESETS, RADIUS_MAX, RADIUS_MIN, STYLES, defaultSettings } from 'topographic';
+import { LOOKS, PARAMS, RADIUS_MAX, RADIUS_MIN, SHAPES, defaultSettings } from 'topographic';
+import { AREA_LIMITS, LOCATIONS } from 'topographic/locations';
 import { INSTALL, TAGLINE } from './src/content';
 import { TOOL_DEFS } from './src/agent-tools';
 import { AGENT_NAMES, PURPOSES } from './src/actor';
 import { PLACES } from './src/region/places';
 import { REGION_TOOL_DEFS } from './src/region/tools';
+import { DOCS_META } from './src/docs-page/copy';
 import { HOME_QUERY } from './src/share-url';
 
 export const SITE_URL = 'https://topographic.yahyapak.dev/';
@@ -21,7 +23,7 @@ const STUB = `await page.addInitScript(() => {
 });
 await page.goto('${SITE_URL}?analytics_agent=claude&analytics_purpose=exploring');
 await page.waitForFunction(() => window.__tools?.get_settings);
-const out = await page.evaluate(() => window.__tools.set_settings.execute({ style: 'dunes', mode: '3d' }));`;
+const out = await page.evaluate(() => window.__tools.set_settings.execute({ shape: 'dunes', mode: '3d' }));`;
 
 /** The guidance for agents, at the top of llms.txt and in docs/webmcp.md. */
 function agentsMd(level: string): string {
@@ -79,8 +81,8 @@ const DOC_EXTRAS = [{ title: 'WebMCP tools', path: 'docs/webmcp.md', body: webmc
 function paramsMd(): string {
   const rows = PARAMS.map((p) =>
     `| \`${p.group}.${p.key}\` | \`${p.attr}\` | ${p.min} to ${p.max}${'integer' in p ? ' (integer)' : ''} | ${p.default} | ${p.description} |`);
-  const styles = STYLES.map((s) => `| \`${s.id}\` | ${s.name} | ${s.description} |`);
-  const presets = PRESETS.map((p) => `- **${p.name}**: \`${JSON.stringify(p.settings)}\``);
+  const shapes = SHAPES.map((s) => `| \`${s.id}\` | ${s.name} | ${s.description} |`);
+  const looks = LOOKS.map((l) => `- \`${l.id}\` (${l.name}): \`${JSON.stringify(l.settings)}\``);
   return `# Parameters
 
 Every setting, generated from \`packages/core/src/params.ts\`. Out-of-range values are clamped; integers are rounded.
@@ -91,7 +93,9 @@ ${rows.join('\n')}
 
 Other settings:
 
-- \`style\` (attribute \`style-name\`, React prop \`styleName\`): one of the styles below. Unknown styles fall back to \`${defaultSettings().style}\` with one console warning.
+- \`look\` (attribute \`look\`, React prop \`look\`): one of the looks below, by id. It sets the shape, seed, groups, colours and camera pose. The other settings next to it override its values. An unknown look is ignored with one console warning. In \`update()\`, a look replaces the design and keeps the view: \`mode\`, \`elevation\`, \`extent\`, \`detail\`, \`quality\`, \`view2d\`, and the camera motion and pan.
+- \`shape\` (attribute \`shape\`, React prop \`shape\`): one of the shapes below. Unknown shapes fall back to \`${defaultSettings().shape}\` with one console warning.
+- \`location\` (attribute \`location\`, React prop \`location\`): a real place instead of the generated terrain. A built-in id (${LOCATIONS.map((l) => `\`${l.id}\``).join(', ')}), or a height grid \`{ samples, size, aspect }\` such as one from \`fetchLocation()\`. A built-in id also sets \`camera.azimuth\`, \`camera.elevation\`, \`camera.radius\`, \`elevation\`, \`extent: 'block'\`, \`lines\` (\`{ count: 36, width: 0, opacity: 0.9, indexEvery: 4 }\`) and \`layout.fade: 0.15\`, under the values you set. It does not set \`mode\`. Default \`null\`, the generated terrain. Unknown ids fall back to \`null\` with one console warning. See [api.md](api.md).
 - \`seed\` (attribute \`seed\`): integer 0 to 999999. The same seed gives the same terrain; 0 is the original look.
 - \`theme.mode\` (attribute \`theme\`): \`auto\` (follows the OS), \`light\` or \`dark\`.
 - \`theme.ink\` / \`theme.paper\` (attributes \`ink\`, \`paper\`): any CSS colour; paper may be \`transparent\`. Without them, the CSS variables \`--topographic-ink\` and \`--topographic-paper\` are used, then the mode defaults.
@@ -106,15 +110,17 @@ Other settings:
 - \`camera.motion\` (attribute \`camera-motion\`): \`still\` (default), \`orbit\`, \`push\`, \`flyover\` or \`drone\`. The terrain's own \`motion.speed\` still morphs the field, so the two motions are independent.
 - \`camera.panX\` / \`camera.panZ\` (attributes \`pan-x\`, \`pan-z\`): where the camera looks, moved from the terrain centre across the ground (east and south), -6 to 6, default 0. The camera and every motion path turn around that point. The renderer keeps it over the terrain.
 
-## Styles
+## Shapes
 
 | Id | Name | Description |
 |---|---|---|
-${styles.join('\n')}
+${shapes.join('\n')}
 
-## Presets
+## Looks
 
-${presets.join('\n')}
+A look is a named, finished design. The order is the order of the playground's dock. \`survey-map\` and \`rocky\` set no colours, so they follow the page's theme.
+
+${looks.join('\n')}
 `;
 }
 
@@ -160,11 +166,11 @@ ${INSTALL.css}
 function apiMd(): string {
   return `# API
 
-## createTopographicBackground(element, settings?, options?)
+## createTopography(element, settings?, options?)
 
 Mounts a canvas inside \`element\` (it fills the element) and returns an instance.
 
-- \`settings\`: partial settings, see [params.md](params.md). Shape: \`{ style, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera }\`. \`mode\` is \`'2d' | '3d'\` and defaults to \`'2d'\`. \`quality\` is \`'auto' | 'low' | 'medium' | 'high'\` and defaults to \`'auto'\`. \`auto\` starts a phone at low and a desktop at high, then steps down if presented frames miss 60 Hz, or 120 Hz once a frame under 12 ms has been seen. It does not step back up.
+- \`settings\`: partial settings, see [params.md](params.md). Fields: \`{ look, shape, location, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera }\`. \`mode\` is \`'2d' | '3d'\` and defaults to \`'2d'\`. \`quality\` is \`'auto' | 'low' | 'medium' | 'high'\` and defaults to \`'auto'\`. \`auto\` starts a phone at low and a desktop at high, then steps down if presented frames miss 60 Hz, or 120 Hz once a frame under 12 ms has been seen. It does not step back up.
 - \`options\`: \`{ maxPixelRatio = 2, maxPixels = 4147200, forceWebGL1 = false, benchmark = false }\`. \`benchmark\` keeps a 3D view drawing while it is visible so \`stats\` can be read.
 
 Instance:
@@ -172,6 +178,7 @@ Instance:
 - \`update(partialSettings)\`: merges, clamps and applies live. Only changed uniforms reach the GPU.
 - \`snapshot({ frame?, width?, height?, region?, motion?, patch?, field? }) => Promise<Blob>\`: renders one PNG off-screen. \`frame\` is the animation time in ms. Give one side to keep the aspect ratio. \`region\` (\`{ x, y, width, height }\`, fractions from the top-left) keeps only that slice of the view, drawn at full detail. \`motion\` draws the 3D view along that camera path at its pose for \`frame\`, like that moment of \`record\`. \`patch\` and \`field\` draw this image from temporary settings and a temporary height grid, then put the live view back, so the page does not flash and a second WebGL context is not required. The live canvas is not resized. Rejects without WebGL. In 3D it includes the current camera.
 - \`record({ seconds?, fps?, width?, height?, frame?, format?, motion? }) => Promise<Blob>\`: renders a 3D clip with a moving camera. \`format\` is \`'mp4'\` (default) or \`'webm'\`. \`motion\` is \`orbit\`, \`push\`, \`flyover\`, \`drone\` or \`still\`. The live canvas is not resized. Rejects without WebGL or when the browser cannot encode that format.
+- \`setHeightfield({ samples, size, aspect } | null)\`: draws your own height grid until the \`location\` setting changes. \`null\` brings back the generated terrain.
 - \`setInsets({ top, right, bottom, left } | null)\`: the space page UI covers on each side of the view, in CSS px. The 3D picture slides (a lens shift, not a camera move) so the terrain centres in the part left free. 2D, \`snapshot\` and \`record\` ignore it and centre in their own frame. \`insets\` reads it back.
 - \`clampPan(panX, panZ) => [x, z]\`: the pan kept over the terrain as it is drawn now.
 - \`pose\`: \`{ azimuth, elevation, radius, panX, panZ }\`, where the 3D camera is now along its path.
@@ -188,26 +195,36 @@ Behaviour:
 - Animation pauses when the element is off-screen or the tab is hidden.
 - Pixel budget: \`quality\` caps the device pixel ratio, the pixel count and the mesh. \`maxPixelRatio\` and \`maxPixels\` are the ceiling above that.
 
-## <topographic-bg>
+## <topographic-view>
 
-\`import 'topographic/element'\` registers the element. Attributes: \`style-name\`, \`seed\`, \`theme\`, \`ink\`, \`paper\`, \`mode\`, \`elevation\`, \`extent\`, \`detail\`, \`quality\`, \`azimuth\`, \`camera-elevation\`, \`radius\`, \`camera-motion\`, \`pan-x\`, \`pan-z\`, plus one per numeric setting (see [params.md](params.md)). Attribute changes apply live, and a removed attribute returns to its default. \`element.topographic\` is the instance, and \`element.snapshot(opts)\` is a shortcut.
+\`import 'topographic/element'\` registers the element. Attributes: \`look\`, \`shape\`, \`location\`, \`seed\`, \`theme\`, \`ink\`, \`paper\`, \`mode\`, \`elevation\`, \`extent\`, \`detail\`, \`quality\`, \`azimuth\`, \`camera-elevation\`, \`radius\`, \`camera-motion\`, \`pan-x\`, \`pan-z\`, plus one per numeric setting (see [params.md](params.md)). Attribute changes apply live, and a removed attribute returns to its default. \`element.topographic\` is the instance, and \`element.snapshot(opts)\` is a shortcut.
 
-## React: <TopographicBackground> and useTopographicBackground
+## React: <Topography> and useTopography
 
-\`<TopographicBackground styleName lines terrain motion layout theme seed mode elevation extent detail quality camera options onReady {...divProps}>\` renders a div with the background, and children on top. It is SSR-safe: the server renders an empty div.
+\`<Topography look shape location lines terrain motion layout theme seed mode elevation extent detail quality camera options onReady {...divProps}>\` renders a div with the background, and children on top. It is SSR-safe: the server renders an empty div.
 
-\`useTopographicBackground(settings, options)\` returns a ref to put on any element. \`ref.topographic\` is the instance while mounted.
+\`useTopography(settings, options)\` returns a ref to put on any element. \`ref.topographic\` is the instance while mounted.
+
+## topographic/locations
+
+\`import { LOCATIONS, loadLocation, fetchLocation } from 'topographic/locations'\`.
+
+- \`LOCATIONS\`: the built-in places, each \`{ id, name, bbox, aspect, defaults }\`. \`defaults\` is \`{ camera: { azimuth, elevation, radius }, elevation, extent, lines, layout }\`.
+${LOCATIONS.map((l) => `  - \`${l.id}\`: ${l.name}, west ${l.bbox.west}, south ${l.bbox.south}, east ${l.bbox.east}, north ${l.bbox.north}`).join('\n')}
+- \`loadLocation(id) => Promise<{ samples, size, aspect, minMeters, maxMeters, zoom }>\`: a built-in place's 256 × 256 grid. Each place is its own dynamic import of 35 to 150 KB (25 to 115 KB compressed), so a page downloads only the places it uses. The \`location\` setting calls it for you.
+- \`fetchLocation({ west, south, east, north }, { relief?, smooth?, tiles?, signal? }) => Promise<{ samples, size, aspect, minMeters, maxMeters, zoom, tiles }>\`: downloads Terrarium elevation tiles (AWS Open Data) for any area and makes the same 256 × 256 grid as the playground. The shorter side must be at least ${AREA_LIMITS.minSideM / 1000} km, the longer side at most ${AREA_LIMITS.maxSideM / 1000} km, and the sides within ${AREA_LIMITS.maxAspect}:1. \`relief\` is \`dramatic\` (default) or \`measured\`; \`smooth\` is \`light\`, \`medium\` (default) or \`strong\`; \`tiles\` is a Terrarium URL template with \`{z}\`, \`{x}\` and \`{y}\`. Pass the result as \`location\`.
+- \`areaProblem(bbox)\` returns \`'order' | 'small' | 'large' | 'aspect' | null\`, and \`areaSpan(bbox)\` the size in metres.
 
 ## Helpers
 
-\`resolveSettings\`, \`mergeSettings\`, \`toUniforms\`, \`fromAttributes\`, \`toAttributes\`, \`toQuery\`, \`fromQuery\`, \`parseColor\`, \`resolveTheme\`, plus the data exports \`PARAMS\`, \`STYLES\` and \`PRESETS\`.
+\`resolveSettings\`, \`mergeSettings\`, \`toUniforms\`, \`fromAttributes\`, \`toAttributes\`, \`toQuery\`, \`fromQuery\`, \`parseColor\`, \`resolveTheme\`, plus the data exports \`PARAMS\`, \`SHAPES\` and \`LOOKS\`, and \`findLook(id)\`.
 `;
 }
 
 const PAGES = () => [
   { title: 'Install', path: 'docs/install.md', body: installMd },
   { title: 'API', path: 'docs/api.md', body: apiMd },
-  { title: 'Parameters, styles and presets', path: 'docs/params.md', body: paramsMd },
+  { title: 'Parameters, shapes and looks', path: 'docs/params.md', body: paramsMd },
   ...DOC_EXTRAS,
 ];
 
@@ -222,14 +239,14 @@ ${agentsMd('##')}
 
 ## First view and default mode
 
-- The library (\`topographic\`, \`<topographic-bg>\`, \`topographic-react\`) draws in 2D unless you set \`mode: '3d'\`.
+- The library (\`topographic\`, \`<topographic-view>\`, \`topographic-react\`) draws in 2D unless you set \`mode: '3d'\`.
 - The playground opens a bare URL, with no settings keys, on the dock look \`look=${HOME_LOOK}\` in 3D (\`?${HOME_QUERY}\`).
 - A playground URL with any settings key, such as \`?s=dunes\` or \`?look=night-lobes\`, is 2D unless it has \`mode=3d\`.
 - The page rewrites the address bar to the shortest query for the same view. It drops keys that have the default value, so \`?s=dunes&mode=2d\` becomes \`?s=dunes\`, and the view stays 2D.
 
 ## URL state
 
-The playground keeps its state in short query params. It writes only the values that differ from a base: the style's defaults, or a named look from the dock such as \`look=night-lobes\`.
+The playground keeps its state in short query params. It writes only the values that differ from a base: the shape's defaults, or a library look by id such as \`look=night-lobes\` (the ids in [params.md](docs/params.md) > Looks). Other params override the look's values.
 
 Examples:
 
@@ -239,7 +256,8 @@ Examples:
 
 ### Keys
 
-- \`s\`: style
+- \`look\`: a look id. Links made before 0.6.0 use the same ids.
+- \`s\`: shape.
 - \`seed\`: seed
 ${PARAMS.map((p) => `- \`${p.short}\`: ${p.label.toLowerCase()}`).join('\n')}
 - \`m\`: theme, light, dark or auto
@@ -273,11 +291,11 @@ While the heights load, the page sets \`data-loading=terrain\` and hides the def
 - **Dock:** terrain previews, with a chevron that scrolls to the next one.
 - **Theme and colours:** theme, shuffle and the two colours sit in a 2×2 grid.
 - **Link tab:** shows a labelled still of the terrain the link opens.
-- **Share image:** \`og-a.png\`, a dark granite still, with \`twitter:card\` set to \`summary_large_image\`.
+- **Share image:** \`og.png\`, Everest in 3D beside the headline and the code that draws it, with \`twitter:card\` set to \`summary_large_image\`. The docs page uses \`og-docs.png\`.
 
 ## Packages
 
-- [topographic](https://www.npmjs.com/package/topographic): core and the \`<topographic-bg>\` web component
+- [topographic](https://www.npmjs.com/package/topographic): core and the \`<topographic-view>\` web component
 - [topographic-react](https://www.npmjs.com/package/topographic-react): React component and hook
 
 ## Docs
@@ -314,22 +332,64 @@ export function buildDocs(): Record<string, string> {
   return files;
 }
 
+const attr = (text: string) => text.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+
+/**
+ * The playground's index.html with the head of /docs: its title, description, canonical address and share image,
+ * and the font weights the docs page uses. The host serves /docs from the docs.html this makes.
+ */
+export function docsHead(html: string): string {
+  const m = DOCS_META;
+  const meta = (key: 'name' | 'property', name: string, content: string) => (h: string) =>
+    h.replace(new RegExp(`(<meta ${key}="${name}" content=")[^"]*(")`), `$1${attr(content)}$2`);
+  const steps = [
+    (h: string) => h.replace(/<title>[^<]*<\/title>/, `<title>${attr(m.title)}</title>`),
+    meta('name', 'description', m.description),
+    meta('property', 'og:title', m.title),
+    meta('property', 'og:description', m.description),
+    meta('property', 'og:url', m.url),
+    meta('property', 'og:image', m.image),
+    meta('property', 'og:image:alt', m.imageAlt),
+    meta('name', 'twitter:title', m.title),
+    meta('name', 'twitter:description', m.description),
+    meta('name', 'twitter:image', m.image),
+    meta('name', 'twitter:image:alt', m.imageAlt),
+    (h: string) => h.replace(/(<link rel="canonical" href=")[^"]*(")/, `$1${m.url}$2`),
+    (h: string) => h.replace('family=Inter:wght@400;500&', 'family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&'),
+  ];
+  return steps.reduce((h, step) => step(h), html);
+}
+
 export function docsPlugin(): Plugin {
   return {
     name: 'topographic-docs',
+    enforce: 'post',
+    // In development every page is served from index.html, so /docs gets its head here.
+    transformIndexHtml: {
+      order: 'post',
+      handler(html, ctx) {
+        const path = (ctx.originalUrl ?? ctx.path).split('?')[0];
+        return /\/docs\/?$/.test(path) ? docsHead(html) : html;
+      },
+    },
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
         const base = server.config.base.startsWith('/') ? server.config.base : '/';
         const url = (req.url ?? '').split('?')[0];
         const path = (url.startsWith(base) ? url.slice(base.length) : url).replace(/^\//, '');
+        // The docs page. Without this, Vite would answer /docs with this plugin's own docs.ts.
+        if (path === 'docs' || path === 'docs/') { req.url = `${base}index.html`; return next(); }
         const body = buildDocs()[path];
         if (body === undefined) return next();
         res.setHeader('content-type', `${path.endsWith('.md') ? 'text/markdown' : 'text/plain'}; charset=utf-8`);
         res.end(body);
       });
     },
-    generateBundle() {
+    generateBundle(_options, bundle) {
       for (const [fileName, source] of Object.entries(buildDocs())) this.emitFile({ type: 'asset', fileName, source });
+      const index = bundle['index.html'];
+      if (index?.type !== 'asset') throw new Error('topographic-docs: no index.html in the bundle to make docs.html from');
+      this.emitFile({ type: 'asset', fileName: 'docs.html', source: docsHead(String(index.source)) });
     },
   };
 }

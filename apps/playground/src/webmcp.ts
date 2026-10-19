@@ -1,4 +1,4 @@
-import { mergeSettings, PRESETS, STYLES, type Settings, type SettingsInput, type TopographicBackground } from 'topographic';
+import { LOOKS, mergeSettings, SHAPES, type Settings, type SettingsInput, type Topography } from 'topographic';
 import { INSTALL } from './content';
 import { embedCode, type EmbedFormat } from './embed';
 import { TOOL_DEFS } from './agent-tools';
@@ -19,14 +19,14 @@ export async function runTracked<T>(tool: string, fn: () => T | Promise<T>): Pro
 export interface PageBridge {
   getSettings(): Settings;
   setSettings(s: Settings): void;
-  instance(): TopographicBackground | null;
+  instance(): Topography | null;
 }
 
 /**
  * The bridge the tools use. A change is stored and sent to the canvas before the tool returns, so a
  * `get_settings` call right after `set_settings` reads it. React renders it on its next pass.
  */
-export function pageBridge(state: { current: Settings }, render: (s: Settings) => void, instance: () => TopographicBackground | null): PageBridge {
+export function pageBridge(state: { current: Settings }, render: (s: Settings) => void, instance: () => Topography | null): PageBridge {
   return {
     getSettings: () => state.current,
     setSettings: (next) => {
@@ -67,9 +67,9 @@ export function registerTools(page: PageBridge): () => void {
         note: recorded ? 'Thank you. Only analytics changed; the playground works the same.' : 'Analytics are off in this browser, so nothing was recorded. The playground works the same.',
       };
     },
-    list_styles: () => ({
-      styles: STYLES.map(({ id, name, description }) => ({ id, name, description })),
-      presets: PRESETS.map((p) => ({ name: p.name, settings: p.settings })),
+    list_shapes: () => ({
+      shapes: SHAPES.map(({ id, name, description }) => ({ id, name, description })),
+      looks: LOOKS.map(({ id, name, settings }) => ({ id, name, settings })),
     }),
     get_settings: () => {
       const settings = page.getSettings();
@@ -82,13 +82,17 @@ export function registerTools(page: PageBridge): () => void {
     },
     set_settings: (input) => {
       if (!input || typeof input !== 'object') throw new Error('expected a settings object');
-      const { next, adjustments } = applySettingsInput(page.getSettings(), input);
+      // `style` is the name before 0.6.0, accepted for one release.
+      const { style, ...rest } = input as Record<string, unknown>;
+      const patch = style !== undefined && rest.shape === undefined ? { ...rest, shape: style } : rest;
+      const { next, adjustments } = applySettingsInput(page.getSettings(), patch);
       page.setSettings(next);
-      return { config: configOf(next), adjustments };
+      const renamed = style !== undefined ? ['style is now named shape; use shape'] : [];
+      return { config: configOf(next), adjustments: [...renamed, ...adjustments] };
     },
     randomize: (input) => {
       const patch: SettingsInput = { seed: Math.floor(Math.random() * 999999) + 1 };
-      if (input?.style) patch.style = STYLES[Math.floor(Math.random() * STYLES.length)].id;
+      if (input?.shape) patch.shape = SHAPES[Math.floor(Math.random() * SHAPES.length)].id;
       const next = mergeSettings(page.getSettings(), patch);
       page.setSettings(next);
       return { config: configOf(next) };

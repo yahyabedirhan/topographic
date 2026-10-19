@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg viewBox="0 0 960 680" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="library-architecture-title library-architecture-desc" id="library-architecture-root">
 <title id="library-architecture-title">Library architecture</title>
-<desc id="library-architecture-desc">How the topographic library fits together: the web component, React component and playground call one public API, which also takes an optional heightfield. Settings resolve from the params table, styles and presets, and one WebGL renderer draws them as a 2D contour shader or a 3D terrain pass, whose frames record() encodes as a video.</desc>
+<desc id="library-architecture-desc">How the topographic library fits together: the web component, React component and playground call one public API, which also takes an optional heightfield. Settings resolve from the params table, shapes and looks, and one WebGL renderer draws them as a 2D contour shader or a 3D terrain pass, whose frames record() encodes as a video.</desc>
 <defs>
       <style>@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;family=Noto+Serif:ital@0;1&amp;family=Noto+Sans+KR:wght@400;500;600&amp;family=Noto+Serif+KR:wght@400&amp;family=Noto+Sans+TC:wght@400;500;600&amp;family=Noto+Serif+TC:wght@400&amp;display=swap');
       #library-architecture-root { color: #e4e6e9; font-family: 'Inter Tight', system-ui, sans-serif; }
@@ -43,7 +43,7 @@
 <rect x="695.9" y="231" width="48.2" height="12" fill="url(#library-architecture-tile)"/>
 <text x="720.0" y="240" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">RESOLVED</text>
 <rect x="608.0" y="179" width="43.0" height="12" fill="url(#library-architecture-tile)"/>
-<text x="629.5" y="188" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">PRESETS</text>
+<text x="629.5" y="188" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">LOOKS</text>
 <rect x="848.0" y="179" width="64.1" height="12" fill="url(#library-architecture-tile)"/>
 <text x="880.0" y="188" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">INK · PAPER</text>
 <rect x="684.5" y="295" width="43.0" height="12" fill="url(#library-architecture-tile)"/>
@@ -57,13 +57,13 @@
 <rect x="48.5" y="96.5" width="28" height="12" fill="none" stroke="#6b7078" stroke-opacity="0.6" stroke-width="0.8"/>
 <text x="62.5" y="105.5" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">HTML</text>
 <text x="120.0" y="126" fill="#e4e6e9" font-size="12" font-weight="600" font-family="'Inter Tight', system-ui, sans-serif" text-anchor="middle">Web component</text>
-<text x="120.0" y="141" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">&lt;topographic-bg&gt;</text>
+<text x="120.0" y="141" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">&lt;topographic-view&gt;</text>
 <rect x="40" y="216" width="160" height="64" rx="2" fill="url(#library-architecture-tile)"/>
 <rect x="40.5" y="216.5" width="159" height="63" rx="2" fill="#222529" stroke="#ffffff" stroke-opacity="0.16" stroke-width="1"/>
 <rect x="48.5" y="224.5" width="33" height="12" fill="none" stroke="#6b7078" stroke-opacity="0.6" stroke-width="0.8"/>
 <text x="65.0" y="233.5" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">REACT</text>
 <text x="120.0" y="254" fill="#e4e6e9" font-size="12" font-weight="600" font-family="'Inter Tight', system-ui, sans-serif" text-anchor="middle">React component</text>
-<text x="120.0" y="269" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">&lt;TopographicBackground&gt;</text>
+<text x="120.0" y="269" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">&lt;Topography&gt;</text>
 <rect x="40" y="344" width="160" height="64" rx="2" fill="url(#library-architecture-tile)"/>
 <rect x="40.5" y="344.5" width="159" height="63" rx="2" fill="#222529" stroke="#ffffff" stroke-opacity="0.16" stroke-width="1"/>
 <rect x="48.5" y="352.5" width="23" height="12" fill="none" stroke="#6b7078" stroke-opacity="0.6" stroke-width="0.8"/>
@@ -75,7 +75,7 @@
 <rect x="288.5" y="224.5" width="23" height="12" fill="none" stroke="#6b7078" stroke-opacity="0.6" stroke-width="0.8"/>
 <text x="300.0" y="233.5" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">API</text>
 <text x="360.0" y="254" fill="#e4e6e9" font-size="12" font-weight="600" font-family="'Inter Tight', system-ui, sans-serif" text-anchor="middle">Public API</text>
-<text x="360.0" y="269" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">createTopographicBackground</text>
+<text x="360.0" y="269" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">createTopography</text>
 <rect x="280" y="472" width="160" height="64" rx="2" fill="url(#library-architecture-tile)"/>
 <rect x="280.5" y="472.5" width="159" height="63" rx="2" fill="#e4e6e9" fill-opacity="0.05" stroke="#8b9097" stroke-width="1"/>
 <rect x="288.5" y="480.5" width="28" height="12" fill="none" stroke="#6b7078" stroke-opacity="0.6" stroke-width="0.8"/>
@@ -86,8 +86,8 @@
 <rect x="520.5" y="88.5" width="159" height="63" rx="2" fill="#e4e6e9" fill-opacity="0.05" stroke="#8b9097" stroke-width="1"/>
 <rect x="528.5" y="96.5" width="28" height="12" fill="none" stroke="#6b7078" stroke-opacity="0.6" stroke-width="0.8"/>
 <text x="542.5" y="105.5" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">DATA</text>
-<text x="600.0" y="126" fill="#e4e6e9" font-size="12" font-weight="600" font-family="'Inter Tight', system-ui, sans-serif" text-anchor="middle">Params + styles</text>
-<text x="600.0" y="141" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">params · styles · presets</text>
+<text x="600.0" y="126" fill="#e4e6e9" font-size="12" font-weight="600" font-family="'Inter Tight', system-ui, sans-serif" text-anchor="middle">Params + shapes</text>
+<text x="600.0" y="141" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">shapes · looks</text>
 <path d="M520 218Q520 216 522 216H666L680 230V278Q680 280 678 280H522Q520 280 520 278Z" fill="#ffffff"/>
 <path d="M666 216L680 230H666Z" fill="#b9bec4"/>
 <rect x="528.5" y="224.5" width="28" height="12" fill="none" stroke="#4f545b" stroke-opacity="0.6" stroke-width="0.8"/>

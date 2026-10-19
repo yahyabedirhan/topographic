@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { resolveSettings } from 'topographic';
 import { applySettingsInput } from './settings-tool';
 
-const coloured = resolveSettings({ style: 'granite', theme: { mode: 'dark', paper: '#0b0b0d', ink: '#d7d2c8' } });
+const coloured = resolveSettings({ shape: 'granite', theme: { mode: 'dark', paper: '#0b0b0d', ink: '#d7d2c8' } });
 
 describe('set_settings input', () => {
   it('clears the earlier colours when only the theme mode changes, and says so', () => {

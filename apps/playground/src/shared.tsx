@@ -1,17 +1,16 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type MutableRefObject, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import {
-  GROUPS, RADIUS_MAX, RADIUS_MIN, STYLES, THEME_DEFAULTS, clampParam, mergeSettings, panBy, paramsIn, resolveMode, resolveSettings, rgbaToCss,
-  type GroupName, type Heightfield, type ParamDef, type Settings, type SettingsInput, type TopographicBackground as Instance,
+  GROUPS, LOOKS, RADIUS_MAX, RADIUS_MIN, SHAPES, THEME_DEFAULTS, clampParam, mergeSettings, panBy, paramsIn, resolveMode, resolveSettings, rgbaToCss,
+  type GroupName, type Heightfield, type ParamDef, type Settings, type SettingsInput, type Topography as Instance,
 } from 'topographic';
-import { TopographicBackground } from 'topographic-react';
+import { Topography } from 'topographic-react';
 import { isWheelNotch, notchZoom, pan2d, twoFingerKind, wheelZoom, zoom2d } from './gestures';
 import { bindPageUrlFlush, flushPageUrl, schedulePageUrl } from './page-history';
 import { pageBridge, registerTools } from './webmcp';
 import { configOf, readUrl } from './url';
 import { withQuery, writeSettings } from './share-url';
-import { LOOKS } from './looks';
 import { keepShape } from './shape';
-import { smooth } from './region/pipeline';
+import { smoothGrid } from 'topographic/locations';
 import { track } from './analytics';
 
 export interface Playground {
@@ -59,10 +58,10 @@ function band(p: ParamDef): [number, number] {
 }
 
 function rollSettings(): Settings {
-  const style = STYLES[Math.floor(Math.random() * STYLES.length)].id;
+  const shape = SHAPES[Math.floor(Math.random() * SHAPES.length)].id;
   const pair = PAIRS[Math.floor(Math.random() * PAIRS.length)];
   const input: SettingsInput = {
-    style,
+    shape,
     seed: 1 + Math.floor(Math.random() * 99999),
     theme: { mode: pair.mode, ink: pair.ink, paper: pair.paper },
   };
@@ -148,7 +147,7 @@ export function usePlayground(): Playground {
     change: (patch) => setSettings((s) => mergeSettings(s, patch)),
     replace: (next) => { cancelAnimationFrame(frame.current); setSettings(next); },
     // A look keeps the 3D view settings but always starts from its default camera pose; the motion stays.
-    applyLook: (i) => setSettings((s) => mergeSettings(resolveSettings(LOOKS[i].settings), {
+    applyLook: (i) => setSettings((s) => mergeSettings(resolveSettings({ look: LOOKS[i].id }), {
       mode: s.mode, elevation: s.elevation, extent: s.extent, detail: s.detail, quality: s.quality, camera: { motion: s.camera.motion },
     })),
   };
@@ -484,11 +483,11 @@ export function Backdrop({ pg, hold = false, className = 'pt-stage' }: { pg: Pla
   const insets = useStageInsets(pg);
   useEffect(() => { pg.instance.current?.hold(hold); }, [hold, pg.instance]);
   return (
-    <TopographicBackground
+    <Topography
       ref={orbit.node}
       className={`${className}${s.mode === '3d' ? ' is-3d' : ' is-2d'}`}
       aria-hidden="true"
-      styleName={s.style}
+      shape={s.shape}
       seed={s.seed}
       lines={s.lines}
       terrain={s.terrain}
@@ -617,7 +616,7 @@ export async function placeThumb(settings: Settings, field: Heightfield, width =
     const blob = await enqueueThumb(() => t.snapshot({
       frame: 4000, width: drawW, height: drawH,
       patch: placeThumbSettings(settings),
-      field: { ...field, samples: smooth(field.samples, field.size, 2.5) },
+      field: { ...field, samples: smoothGrid(field.samples, field.size, 2.5) },
     }));
     const bitmap = await createImageBitmap(blob);
     const canvas = document.createElement('canvas');
@@ -717,7 +716,10 @@ export function Wordmark({ children }: { children?: ReactNode }) {
     <div className="pt-wordmark">
       <a href={GITHUB} target="_blank" rel="noreferrer" aria-label="topographic on GitHub" onClick={() => track('ui_click', { section: 'header', target: 'github', href: GITHUB, outbound: true })}>topographic</a>
       <a href={SITE} target="_blank" rel="noreferrer" className="pt-wordmark-site" onClick={() => track('ui_click', { section: 'header', target: 'site', href: SITE, outbound: true })}>yahyapak.dev</a>
-      <a href={`${import.meta.env.BASE_URL}about`} className="pt-wordmark-site pt-wordmark-privacy">About</a>
+      <span className="pt-wordmark-pages">
+        <a href={`${import.meta.env.BASE_URL}about`} className="pt-wordmark-site pt-wordmark-privacy">About</a>
+        <a href={`${import.meta.env.BASE_URL}docs`} className="pt-wordmark-site pt-wordmark-privacy">Docs</a>
+      </span>
       {children}
     </div>
   );
