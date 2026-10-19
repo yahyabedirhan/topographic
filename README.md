@@ -86,7 +86,7 @@ topographic.update({ mode: '3d', elevation: 0.7, extent: 'block', camera: { moti
 - `extent` is `endless` (the default) or `block`. With `endless`, the land fades out at the edges. With `block`, the land sits on a square base.
 - `camera` sets where you look from: `azimuth` is the direction (349.7 by default), `elevation` is the height angle (33.6) and `radius` is the distance (1.92). `motion` makes the camera move: `still`, `orbit`, `push`, `flyover` or `drone`.
 - `quality` is `auto`, `low`, `medium` or `high`. `auto` follows the device and steps down when frames miss 60 Hz, or 120 Hz on a faster screen. The other values stay put.
-- In the [playground](https://topographic.yahyapak.dev/), drag in 3D to turn around the land. Scroll with two fingers to move it. Use ⌘/Ctrl + scroll or pinch to zoom. Double-click to centre it again. In 2D, drag moves the summit from the side toward the centre.
+- In the [playground](https://topographic.yahyapak.dev/), the gestures follow Google Maps and Google Earth. Drag to move the land. Scroll or pinch to zoom toward the pointer. In 3D, Shift, ⌘ or Ctrl + drag, or a right drag, turns and tilts the camera. On touch, twist two fingers to turn, and move two fingers up or down to tilt. Double tap zooms in, a two finger tap zooms out, and a double-click centres the land again.
 
 ### Real places
 
@@ -105,7 +105,7 @@ const clip = await topographic.record({ seconds: 6, motion: 'orbit', format: 'mp
 
 ### AI agents
 
-The [playground](https://topographic.yahyapak.dev/) has plain-text docs for AI tools at [`llms.txt`](https://topographic.yahyapak.dev/llms.txt). In browsers that support [WebMCP](https://github.com/webmachinelearning/webmcp), an AI agent can use the playground directly. It can change the settings, choose a place, take a screenshot, record a video and get the code.
+The [playground](https://topographic.yahyapak.dev/) has plain-text docs for AI tools at [`llms.txt`](https://topographic.yahyapak.dev/llms.txt). In browsers that support [WebMCP](https://github.com/webmachinelearning/webmcp), an AI agent can use the playground directly. It can change the settings, choose a place, take a screenshot, record a video and get the code. Without WebMCP, an agent can open a link with URL parameters, or call the same tools through a small stub; `llms.txt` shows how.
 
 The [guide](docs/guide.md) lists every setting with its range and default. It also covers [3D](docs/guide.md#three-dimensions), [PNG export](docs/guide.md#snapshots-and-png-export), colours and themes, server rendering and the [WebMCP tools](docs/guide.md#webmcp-tools).
 
