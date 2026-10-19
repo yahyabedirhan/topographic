@@ -60,7 +60,7 @@ export const ISTANBUL_SETTINGS = {
 
 /**
  * Every place but Istanbul shares the rose pod look on #0b0b0d paper, with its own ink, elevation and camera
- * angle, decoded from `?look=rose-pod&lc=36&lw=0&lo=0.9&ix=4&ink=…&paper=0b0b0d&mode=3d&ex=block&ev=…&az=341.8&ce=…&rd=1.32&px=0.033&pz=-0.049&place=…`.
+ * angle, decoded from `?look=rose-pod&lc=36&lw=0&lo=0.9&ix=4&ink=…&paper=0b0b0d&mode=3d&ex=block&ev=…&az=341.8&ce=…&rd=1.32&px=0.003&pz=0.05&place=…`.
  */
 function rosePod(ink: string, elevation: number, cameraElevation: number, azimuth = 341.8, camera: SettingsInput['camera'] = {}): SettingsInput {
   return {
@@ -74,7 +74,7 @@ function rosePod(ink: string, elevation: number, cameraElevation: number, azimut
     mode: '3d',
     elevation,
     extent: 'block',
-    camera: { azimuth, elevation: cameraElevation, radius: 1.32, motion: 'still', panX: 0.033, panZ: -0.049, ...camera },
+    camera: { azimuth, elevation: cameraElevation, radius: 1.32, motion: 'still', panX: 0.003, panZ: 0.05, ...camera },
   };
 }
 
