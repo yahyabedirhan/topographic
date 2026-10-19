@@ -484,3 +484,7 @@ The wording the maintainer chose for Share feedback:
 On "Yahya" in the Share feedback lede:
 
 > And make Yahya a link to my website.
+
+On "the developer of topographic":
+
+> Here for the topographic, use the font that we use for the logo.

@@ -232,7 +232,7 @@ export const SECTIONS = [
   },
   {
     id: 'feedback', title: 'Share feedback', nav: 'Share feedback',
-    lede: 'Hi, I\'m <a href="https://yahyapak.dev" target="_blank" rel="noreferrer">Yahya</a>, the developer of topographic.',
+    lede: 'Hi, I\'m <a href="https://yahyapak.dev" target="_blank" rel="noreferrer">Yahya</a>, the developer of <span class="wm-inline">topographic</span>.',
     body: '<p>I\'d love to hear what you make, and what doesn\'t work. If you have any comments, feedback or anything to report, you can contact me here:</p>',
     notes: [],
     contact: true,
