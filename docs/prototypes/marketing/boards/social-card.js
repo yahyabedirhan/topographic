@@ -3,6 +3,7 @@
 // a 2D canvas with the same layout numbers, so the saved file matches the card.
 import { terrain, h, LOOKS, LOGO } from '../live.js';
 import { COPY, PLACE_LOOK } from '../kit.js';
+import { TEXT } from '../draft.js';
 import { placeTerrain } from '../places.js';
 
 const W = 1200;
@@ -27,11 +28,14 @@ const css = `
 
 const loadImg = (src) => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
 
-/** Adds the Save PNG button: terrain layer from snapshot(), then paint(ctx) draws the type in canvas units. */
-function saver(stage, t, liveRect, file, paint) {
+/**
+ * Adds the Save PNG button: terrain layer from snapshot(), then paint(ctx) draws the type in canvas units.
+ * outside: the button sits above the card frame, as a prototype tool, so the card itself shows no control.
+ */
+function saver(stage, t, liveRect, file, paint, { outside = false } = {}) {
   const b = document.createElement('button');
   b.className = 'save';
-  b.textContent = 'Save PNG';
+  b.textContent = outside ? 'Save PNG (prototype tool, not part of the card)' : 'Save PNG';
   b.onclick = async () => {
     b.textContent = 'Rendering…';
     try {
@@ -55,7 +59,11 @@ function saver(stage, t, liveRect, file, paint) {
       console.warn(e);
     }
   };
-  stage.querySelector('.sc').append(b);
+  const frame = outside && stage.closest('.mb-frame');
+  if (frame) {
+    b.style.cssText = 'position:static;margin:0 0 8px;border:0;border-radius:999px;padding:7px 12px;font:500 12.5px Inter,sans-serif;background:#1a1a1e;color:#ecebe8;cursor:pointer';
+    frame.before(b);
+  } else stage.querySelector('.sc').append(b);
 }
 
 const font = (ctx, f, color) => { ctx.font = f; ctx.fillStyle = color; ctx.textBaseline = 'top'; };
@@ -67,6 +75,7 @@ function wrap(ctx, text, x, y, maxW, lh) {
     if (ctx.measureText(next).width > maxW && line) { ctx.fillText(line, x, y); y += lh; line = word; } else line = next;
   }
   if (line) ctx.fillText(line, x, y);
+  return y + lh;
 }
 function mark(ctx, logo, x, y, size = 56, px = 30) {
   ctx.drawImage(logo, x, y, size, size);
@@ -83,18 +92,20 @@ export default {
   variants: [
     {
       key: 'A',
-      name: 'Playground: Everest full bleed, the line, the call that draws it',
-      note: 'Round 2. For the playground URL. Everest and the Khumbu from real elevation fill the card; the line sits bottom-left on a soft gradient, with the one call that draws this view and a light pill to open the playground. No use keywords. Save PNG composites a frame of the live terrain and the type on a canvas.',
+      name: 'Everest full bleed, the headline, the call that draws it',
+      note: 'Round 3, the pick. Everest and the Khumbu from real elevation fill the card; the headline and sub line from the writing desk sit on the left over a soft gradient, with the one call that draws this view. No action button and no URL: the whole card is the link, and an address can change. The Save PNG button above the frame is a prototype tool for exporting the card; it is not part of it.',
       render(stage) {
-        const head = COPY.the.head;
+        const head = TEXT.head;
+        const sub = TEXT.sub;
         stage.append(h`<style>${css}</style><div class="sc">
           <div class="live" id="sc-a" style="inset:0"></div>
           <div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(11,11,13,.94) 26%,rgba(11,11,13,0) 72%)"></div>
           <div class="mark" style="left:72px;top:64px"><img src="${LOGO}" alt="">topographic</div>
-          <h1 style="left:72px;top:180px;width:660px;font-size:56px">${head}</h1>
-          <div class="line" style="left:72px;top:330px;width:520px">${COPY.the.sub}</div>
-          <div class="code" style="left:72px;top:416px"><b>createTopography</b>(el, { location: <i>'everest'</i> })</div>
-          <div class="pill" style="left:72px;top:500px">Open the playground →</div>
+          <div style="position:absolute;left:72px;top:176px;width:680px;display:grid;gap:22px;justify-items:start">
+            <h1 style="position:static;font-size:56px;text-wrap:wrap">${head}</h1>
+            <div class="line" style="position:static;width:560px">${sub}</div>
+            <div class="code" style="position:static;margin-top:20px"><b>createTopography</b>(el, { location: <i>'everest'</i> })</div>
+          </div>
         </div>`);
         const t = placeTerrain(stage.querySelector('#sc-a'), 'everest', PLACE_LOOK);
         saver(stage, t, [0, 0, W, H], 'og-playground.png', (ctx, logo) => {
@@ -103,19 +114,18 @@ export default {
           ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
           mark(ctx, logo, 72, 64);
           font(ctx, '600 56px Literata', '#ecebe8');
-          wrap(ctx, head, 72, 184, 660, 58);
-          font(ctx, '500 24px Inter', '#b9b8b3'); wrap(ctx, COPY.the.sub, 72, 333, 520, 31);
-          ctx.fillStyle = 'rgba(15,15,18,.82)'; ctx.beginPath(); ctx.roundRect(72, 416, 520, 51, 12); ctx.fill();
+          let y = wrap(ctx, head, 72, 180, 680, 58) + 22;
+          font(ctx, '500 24px Inter', '#b9b8b3'); y = wrap(ctx, sub, 72, y, 560, 31) + 42;
+          ctx.fillStyle = 'rgba(15,15,18,.82)'; ctx.beginPath(); ctx.roundRect(72, y, 520, 51, 12); ctx.fill();
           const parts = [['createTopography', '#8b8a86'], ['(el, { location: ', '#cfcdc7'], ["'everest'", '#8fd6a5'], [' })', '#cfcdc7']];
           let x = 88;
-          for (const [txt, c] of parts) { font(ctx, '400 18px JetBrains Mono', c); ctx.fillText(txt, x, 430); x += ctx.measureText(txt).width; }
-          ctx.fillStyle = '#ecebe8'; ctx.beginPath(); ctx.roundRect(72, 500, 296, 50, 25); ctx.fill();
-          font(ctx, '600 22px Inter', '#0b0b0d'); ctx.fillText('Open the playground →', 94, 514);
-        });
+          for (const [txt, c] of parts) { font(ctx, '400 18px JetBrains Mono', c); ctx.fillText(txt, x, y + 14); x += ctx.measureText(txt).width; }
+        }, { outside: true });
       },
     },
     {
       key: 'B',
+      archived: true,
       name: 'Docs: the code on the left, the Grand Canyon it draws on the right',
       note: 'Round 2. For /docs. The card is a working snippet with real parameters (<code>location="grand-canyon"</code>, <code>lines={{ count: 48 }}</code>) beside the live terrain those exact settings draw. A link preview that teaches the API and proves it.',
       render(stage) {
@@ -150,6 +160,7 @@ export default {
     },
     {
       key: 'C',
+      archived: true,
       name: 'Centred wordmark over Yosemite in 2D, its settings as chips',
       note: 'Round 2. Brand-first and quiet: Yosemite Valley as a flat contour map, full bleed, the wordmark and the line in the centre, and the three settings that draw it as chips instead of use keywords. Works for both URLs with only the line changed.',
       render(stage) {

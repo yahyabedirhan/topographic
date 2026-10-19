@@ -1,135 +1,113 @@
-// PROTOTYPE decisions and reviews waiting for the maintainer, each tied to the board variants it is about.
-// An option with `board` and `variant` renders that variant live; an option without one is shown as text.
-// Answer in chat or in the session pane as "<id>: <option>", such as "R4: A2".
+// PROTOTYPE decisions and reviews, numbered as in the maintainer's round 3 chat list (1–15), each tied to the
+// board variants it is about. An option with `board` and `variant` renders that variant live; an option without
+// one is shown as text. `state` is 'review' (waiting for the maintainer), 'later' (agreed to review together
+// later) or 'decided'; a decided item quotes the decision in the maintainer's words in `decided`.
+// Answer in chat or in the session pane as "<id>: <option>", such as "6: A4".
 
 export const WAITING = [
   {
-    id: 'R1', kind: 'Review', title: 'The line',
+    id: '1', state: 'decided', kind: 'Review', title: 'The line',
+    decided: '"Topographic terrain rendered with WebGL. Generate a land or turn a real place into a topographic terrain." I think this is really nice. "Topographic terrain, rendered live with WebGL" is something we can use. No topographic.yahyapak.dev in baked cards.',
     question: 'Which wording becomes the one line on every surface?',
     context: [
-      'The line goes under the name in the README, into the GitHub About box, the npm descriptions, yahyapak.dev, the social cards and the docs opening.',
-      'Your starting sentence: "Topographic terrain rendered with WebGL. Generate a land or turn a real place into a topographic terrain."',
-      'You asked to take the writing deliberately, so it lives on the writing desk, where you edit every line and see it in place.',
+      'The line goes under the name in the README, into the GitHub About box, the npm descriptions, yahyapak.dev and the docs opening. The headline goes on the social cards and the GitHub image.',
+      'The writing desk owns the text. The README, npm, GitHub and social card boards read it from <code>copy-draft.json</code>, so every surface shows what the desk shows.',
+      'Baked images (social cards, the GitHub social preview, README and npm pictures) carry no URL: the address may change.',
     ],
-    recommend: 'Write your idea in the "Your idea" field on the writing desk; we refine one line at a time from there.',
     link: { href: 'writing.html', label: 'Open the writing desk' },
     options: [],
   },
   {
-    id: 'R2', kind: 'Review', title: 'Docs page, round 2',
-    question: 'Does variant A, rebuilt with your five changes, ship as /docs?',
-    context: [
-      'Your changes: the playground wordmark font; Playground, GitHub, npm and yahyapak.dev as icon links top left; the section illustrations kept; the playground\'s Tune inputs driving the figure and rewriting the code block; real places as a first-class section.',
-      'Open it full size to scroll and play with the inputs.',
-    ],
-    recommend: 'Ship A at /docs. The existing /docs/*.md files for agents stay where they are.',
-    link: { href: 'docs/a.html', label: 'Open docs page A full size' },
-    options: [{ label: 'A, round 2', board: 'docs-page', variant: 'A' }],
+    id: '2', state: 'decided', kind: 'Decision', title: 'Install labels',
+    decided: 'Okay the agent skill and npm package is nice wording.',
+    question: 'What labels replace "With an agent" and "By hand" in the install parts of the playground and the docs?',
+    context: ['Each part holds one command: <code>npx skills add yahyabedirhan/topographic</code> installs the agent skill; <code>npm install topographic</code> installs the package.'],
+    options: [{ label: 'Agent skill / npm package', text: 'AGENT SKILL — npx skills add yahyabedirhan/topographic\nNPM PACKAGE — npm install topographic' }],
   },
   {
-    id: 'R3', kind: 'Decision', title: 'Where the Docs link sits',
+    id: '3', state: 'decided', kind: 'Review', title: 'README header',
+    decided: 'I think this is looking really nice. This is just the README header and on top of it we will have the rest of the README content.',
+    question: 'Does the README first screen ship as shown?',
+    context: ['README A: the badges, the line and the two opening paragraphs from the writing desk, the link row, a moving real-terrain hero, then install and the first snippet. The rest of today\'s README follows under it.'],
+    options: [{ label: 'README A', board: 'readme-header', variant: 'A' }],
+  },
+  {
+    id: '4', state: 'decided', kind: 'Decision', title: 'GitHub social image',
+    decided: 'There are two options: one is Everest, the other one is Yosemite. I think I like Yosemite better.',
+    question: 'Which real place goes on the GitHub social preview?',
+    context: ['GitHub A2: Yosemite Valley full bleed, the headline and the setting that draws it, with no URL in the image. You upload the image yourself in the repo settings; GitHub has no API for it.'],
+    options: [{ label: 'GitHub A2', board: 'github-repo', variant: 'A2' }],
+  },
+  {
+    id: '5', state: 'decided', kind: 'Decision', title: 'npm pages',
+    decided: 'I think I\'m going to go with variant F. Start with 2D, then 3D, then change its color completely, then the line count; the same for the generated shapes. No red badges, no mono font, and show less content instead of letting it overflow.',
+    question: 'Which npm page layout ships for both packages?',
+    context: [
+      'F, rebuilt from your notes: a moving Grand Canyon hero, then two build-ups with code beside each result. The place goes 2D, 3D, beige paper with dark navy lines, then more lines; the generated shape takes the same steps, then a new seed.',
+      'Picture labels are quiet black and white in Inter, and short enough for the smallest picture.',
+    ],
+    options: [{ label: 'F', board: 'npm-page', variant: 'F' }],
+  },
+  {
+    id: '6', state: 'review', kind: 'Review', title: 'Playground install entry',
+    question: 'Does A4, built from your notes on A1–A3, ship as the Install popover?',
+    context: [
+      'A4 is A1 with the live preview and the parameter chips, labelled "Istanbul · 3D" only (no line count, no "This scene").',
+      'The Agent skill and npm package parts each have their command. The npm package part also holds this scene as code and its link, as a shortcut to Export.',
+      'Each part has one bright Copy. Every other copy is a quiet icon button, and "Open Export" is a text link.',
+    ],
+    recommend: 'Ship A4.',
+    options: [
+      { label: 'A4', board: 'playground-install', variant: 'A4' },
+      { label: 'A1 (round 2)', board: 'playground-install', variant: 'A1' },
+    ],
+  },
+  {
+    id: '7', state: 'decided', kind: 'Decision', title: 'Docs link in the top-left row',
+    decided: 'I think this is all good. This is the header part of things and the rest of the documentation will stay similar to what we have right now.',
     question: 'Which placement of the Docs link in the playground\'s top-left row?',
-    context: ['Both show the real wordmark row over the playground. Placement 1 keeps the quiet 11 px style after About; placement 2 puts Docs first, in the text colour.'],
-    recommend: 'Placement 1, "About · Docs": the row stays calm, and the docs page itself carries the weight.',
-    options: [{ label: 'Both placements', board: 'docs-page', variant: 'D' }],
+    context: ['Placement 1, "About · Docs": Docs after About, in the same quiet 11 px style.'],
+    options: [{ label: 'About · Docs', board: 'docs-page', variant: 'D' }],
   },
   {
-    id: 'R4', kind: 'Review', title: 'README header and GitHub repo',
-    question: 'Do the README first screen and the repo\'s About and social image ship as shown, and with which real place?',
-    context: [
-      'README: variant A with the install line below a moving real-terrain hero.',
-      'GitHub: variant A with your topics, the new line, and a real terrain in the social image. GitHub only accepts a still image there, so the motion lives in the README hero.',
-      'You upload the social image yourself in the repo settings; GitHub has no API for it.',
-    ],
-    recommend: 'README A with the Everest orbit as the hero, and GitHub A2 (Yosemite) for the social image, so a shared link and the README show two different places.',
-    options: [
-      { label: 'README A', board: 'readme-header', variant: 'A' },
-      { label: 'GitHub A', board: 'github-repo', variant: 'A' },
-      { label: 'GitHub A2', board: 'github-repo', variant: 'A2' },
-    ],
-  },
-  {
-    id: 'R5', kind: 'Decision', title: 'npm pages',
-    question: 'Which new npm page layout ships for both packages?',
-    context: [
-      'All three start from A: a moving real-terrain hero, real places first, then generated shapes, then 2D and 3D, with each snippet beside the result it gives. Secondary views are stills.',
-      'npm pages only change when 0.6.0 is published, and their images are hosted at topographic.yahyapak.dev/readme/.',
-    ],
-    recommend: 'D: code beside its result in two columns, the same pattern as the docs page. E reads better on a phone; F tells one story step by step.',
-    options: [
-      { label: 'D', board: 'npm-page', variant: 'D' },
-      { label: 'E', board: 'npm-page', variant: 'E' },
-      { label: 'F', board: 'npm-page', variant: 'F' },
-      { label: 'A (round 1 baseline)', board: 'npm-page', variant: 'A' },
-    ],
-  },
-  {
-    id: 'R6', kind: 'Decision', title: 'Playground install entry',
-    question: 'Which version of the Install popover ships?',
-    context: [
-      'All three put the Install button in the top-right corner at the size of the other buttons, and follow the Export popover: a visual preview, then "With an agent" (npx skills add yahyabedirhan/topographic) and "By hand" (npm install), with no tabs.',
-    ],
-    recommend: 'A1: the preview, the parameter chips and both parts, without the scene code. A2 adds the code but makes the popover long; A3 is the quietest.',
-    options: [
-      { label: 'A1', board: 'playground-install', variant: 'A1' },
-      { label: 'A2', board: 'playground-install', variant: 'A2' },
-      { label: 'A3', board: 'playground-install', variant: 'A3' },
-    ],
-  },
-  {
-    id: 'R7', kind: 'Review', title: 'yahyapak.dev project page',
+    id: '8', state: 'decided', kind: 'Review', title: 'yahyapak.dev project page',
+    decided: 'I said I like this variant and you can go ahead and ship it.',
     question: 'Does variant A with icons on the Playground, Docs and npm links ship?',
     context: ['It ships in the same personal-website pull request as #26, which already fixes the 8 old playground links.'],
-    recommend: 'Ship it.',
     options: [{ label: 'A with icons', board: 'site-page', variant: 'A' }],
   },
   {
-    id: 'R8', kind: 'Decision', title: 'Social cards',
-    question: 'Which layout becomes the playground\'s card, and which the docs page\'s card?',
-    context: ['All three now use real terrains, the new copy, and code beside the result it gives. Each card has Save PNG.'],
-    recommend: 'The code-and-result layout for /docs; the full-bleed real terrain for the playground.',
-    options: [
-      { label: 'A', board: 'social-card', variant: 'A' },
-      { label: 'B', board: 'social-card', variant: 'B' },
-      { label: 'C', board: 'social-card', variant: 'C' },
-    ],
+    id: '9', state: 'decided', kind: 'Decision', title: 'Social cards',
+    decided: 'Okay let\'s use variant A. No need to have that action button and no need to have that Save PNG if it\'s a part of the social card.',
+    question: 'Which layout becomes the social card?',
+    context: ['A without the action button and without a URL: the whole card is the link. Save PNG now sits above the card frame, as a prototype tool only.'],
+    options: [{ label: 'A', board: 'social-card', variant: 'A' }],
   },
   {
-    id: 'D9', kind: 'Decision', title: 'Install labels',
-    question: 'What labels replace "With an agent" and "By hand" in the install parts of the playground and the docs?',
-    context: [
-      'Each part holds one command: npx skills add yahyabedirhan/topographic installs the agent skill; npm install topographic installs the package.',
-      'A label that names what the command installs reads as reference, the way package docs label their install tabs; a label about the person (agent, hand) reads as a mode.',
-    ],
-    recommend: 'Agent skill / npm package.',
-    options: [
-      { label: 'Agent skill / npm package', text: 'AGENT SKILL — npx skills add yahyabedirhan/topographic — "Your coding agent installs topographic and writes the code."\nNPM PACKAGE — npm install topographic' },
-      { label: 'Coding agent / Package manager', text: 'CODING AGENT — npx skills add yahyabedirhan/topographic\nPACKAGE MANAGER — npm install topographic' },
-      { label: 'Skill / Package', text: 'SKILL — npx skills add yahyabedirhan/topographic\nPACKAGE — npm install topographic' },
-    ],
-  },
-  {
-    id: 'D10', kind: 'Decision', title: 'Locations in 0.6.0',
+    id: '10', state: 'decided', kind: 'Decision', title: 'Locations in 0.6.0',
+    decided: '#81 in 0.6.0. We can build it and we can include it in that version.',
     question: 'Does #81 (locations in the library) ship inside 0.6.0?',
-    context: [
-      'Marketing may lead the product, but code examples must run: the README, npm, docs and social cards show location="everest".',
-      'Without #81 in 0.6.0, a reader who copies that code gets an error on day one.',
-    ],
-    recommend: 'A: put #81 in 0.6.0. Games stay copy only, with no code shown, so #78 can wait.',
-    options: [
-      { label: 'A: #81 in 0.6.0', text: 'Real places are the lead feature everywhere, and their code works the day it ships.' },
-      { label: 'B: rename only', text: 'Snippets show only shape. Real places appear as pictures and words, with no location code until #81 ships.' },
-    ],
+    context: ['The README, npm, docs and social cards show <code>location: \'grand-canyon\'</code> and other places, so the code works the day 0.6.0 ships.'],
+    options: [],
   },
   {
-    id: 'D8', kind: 'Decision', title: 'The topographic-marketing repository',
+    id: '11', state: 'decided', kind: 'Decision', title: 'The topographic-marketing repository',
+    decided: 'The topographic marketing repository will be private.',
     question: 'Should the new repository be private or public on GitHub?',
-    context: ['At the end of this session the whole prototype branch, with its history, every board (picked and archived), the feedback log, the plan and the writing drafts, moves to ~/Developer/yahyabedirhan/topographic-marketing.'],
-    recommend: 'Private.',
-    options: [
-      { label: 'Private', text: 'Only you can see it. Mock pages of npm and GitHub stay out of public view.' },
-      { label: 'Public', text: 'Anyone can browse the prototypes and the process.' },
-      { label: 'Local only', text: 'A git repository on your Mac with no GitHub remote.' },
-    ],
+    context: ['At the end of this session the prototype branch, with its history, every board, the feedback log, the plan and the writing drafts, moves to <code>~/Developer/yahyabedirhan/topographic-marketing</code>.'],
+    options: [],
   },
+  ...[
+    ['12', 'topographic #77', 'Renames the public API: createTopography, Topography, useTopography, &lt;topographic-view&gt;, shape.', 'https://github.com/yahyabedirhan/topographic/pull/77'],
+    ['13', 'topographic #83', 'The topographic agent skill, stacked on #77.', 'https://github.com/yahyabedirhan/topographic/pull/83'],
+    ['14', 'topographic #84', 'Cyprus uses the shared place camera, colours and lines in the playground.', 'https://github.com/yahyabedirhan/topographic/pull/84'],
+    ['15', 'personal-website #26', 'Points the 8 old github.io playground links at the playground.', 'https://github.com/yahyabedirhan/personal-website/pull/26'],
+  ].map(([id, title, what, href]) => ({
+    id, state: 'later', kind: 'Pull request', title,
+    decided: 'Let\'s ship everything and have a list of pull requests that I will review afterwards, all of them together.',
+    question: 'Review together with the other pull requests, after step 1 of the plan: the agent finishes its own remaining work first.',
+    context: [what],
+    link: { href, label: `Open ${title}` },
+    options: [],
+  })),
 ];

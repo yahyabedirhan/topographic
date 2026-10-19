@@ -4,7 +4,7 @@ import { COPY } from './kit.js';
 import { LOGO, shot } from './live.js';
 import { OPENING } from './opening.js';
 
-const START = 'Topographic terrain rendered with WebGL. Generate a land or turn a real place into a topographic terrain.';
+const START = OPENING.line;
 const lines = COPY.lines ?? [];
 
 /** Every public line. limit is the channel's hard or practical limit; aim is where it reads best. */
@@ -72,7 +72,7 @@ function update() {
   document.getElementById('prev').innerHTML = `
     <div><p class="wd-label">README, first screen</p><div class="wd-card rd"><img src="${LOGO}" alt=""><h4>topographic</h4><p>${esc(state.line)}</p><p style="text-align:left;margin-top:14px">${esc(state.open1)}</p><p style="text-align:left;margin-top:8px">${esc(state.open2)}</p></div></div>
     <div><p class="wd-label">Social card</p><div class="wd-card og" style="background-image:url(${shot('place-grand-canyon')})"><div class="in">
-      <span class="wm"><img src="${LOGO}" alt="">topographic</span><h3>${esc(state.head)}</h3><p>${esc(state.sub)}</p><span class="url">topographic.yahyapak.dev</span></div></div></div>
+      <span class="wm"><img src="${LOGO}" alt="">topographic</span><h3>${esc(state.head)}</h3><p>${esc(state.sub)}</p></div></div></div>
     <div><p class="wd-label">GitHub About</p><div class="wd-card gh"><h4>About</h4><div>${esc(state.github)}</div><div class="site">🔗 topographic.yahyapak.dev</div>
       <div class="topics">${topics.map((t) => `<i>${t}</i>`).join('')}</div></div></div>
     <div><p class="wd-label">npm search</p><div class="wd-card npm"><b>topographic</b><div>${esc(state.npmCore)}</div>

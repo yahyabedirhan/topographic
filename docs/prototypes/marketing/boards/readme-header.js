@@ -2,6 +2,7 @@
 import { terrain, h, shot, LOOKS, LOGO, NPM, NPM_REACT, PLAYGROUND } from '../live.js';
 import { SNIP, COPY, hl, badge, ICON, DOCS_URL, wireCopy, PLACE_LOOK } from '../kit.js';
 import { placeTerrain } from '../places.js';
+import { TEXT } from '../draft.js';
 
 const css = `
 .gh{position:absolute;inset:0;background:#0d1117;color:#f0f6fc;font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif;overflow:hidden}
@@ -57,7 +58,7 @@ const css = `
 `;
 
 /** The GitHub frame around a README body: header, tabs, title row, commit row, About sidebar. */
-function frame(stage, readme, description = COPY.line) {
+function frame(stage, readme, description = TEXT.github) {
   stage.append(h`<style>${css}</style><div class="gh">
     <div class="top"><span class="oct">${ICON.github.replace(/16/g, '32')}</span><span class="crumb">yahyabedirhan / <b>topographic</b></span><span class="search">Type / to search</span></div>
     <div class="tabs"><span class="on">&lt;&gt; Code</span><span>Issues <i>3</i></span><span>Pull requests <i>1</i></span><span>Actions</span><span>Projects</span><span>Security</span><span>Insights</span></div>
@@ -97,13 +98,15 @@ export default {
     {
       key: 'A',
       name: 'Badges, the line, a moving real place, then install',
-      note: 'Round 2. Badges stay on top (both npm packages and the license, without per-badge version numbers: the version shows once, in Releases; the zero-dependency badge is gone), then the new line and the link row, then the hero: Everest and the Khumbu, live from real elevation, orbiting. On GitHub it ships as <code>readme/hero-everest.webp</code>, an animated WebP loop (the only way to move in a README). <code>npm install topographic</code> now sits below the image, then the first snippet.',
+      note: 'Round 3, the pick. The line and the two opening paragraphs come from the writing desk (<code>copy-draft.json</code>), so the README, npm and the docs say the same thing. The hero is a plain image with no text or URL on it. Round 2: badges stay on top (both npm packages and the license, without per-badge version numbers: the version shows once, in Releases; the zero-dependency badge is gone), then the new line and the link row, then the hero: Everest and the Khumbu, live from real elevation, orbiting. On GitHub it ships as <code>readme/hero-everest.webp</code>, an animated WebP loop (the only way to move in a README). <code>npm install topographic</code> now sits below the image, then the first snippet.',
       render(stage) {
         frame(stage, `
           <div class="c-row"><img src="${LOGO}" width="72" alt=""></div>
           <h1 style="text-align:center">topographic</h1>
           <p class="c-row" style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap">${badge('npm', 'topographic', '#cb3837')} ${badge('npm', 'topographic-react', '#cb3837')} ${badge('license', 'Apache-2.0', '#007ec6')}</p>
-          <p class="c-row">${COPY.line}</p>
+          <p class="c-row">${TEXT.line}</p>
+          <p>${TEXT.open1}</p>
+          <p>${TEXT.open2}</p>
           <p class="c-row"><a href="${PLAYGROUND}"><b>Open the playground</b></a> · <a href="${DOCS_URL}">Docs</a> · ${npmLinks}</p>
           <div class="live" id="rh-a" style="height:400px;margin-bottom:16px;background:#0b0b0d"></div>
           ${pre('npm install topographic')}

@@ -1,7 +1,12 @@
 // PROTOTYPE decisions view: pick a decision on the left, switch its options on the right.
 // Options tied to a board variant render it live at its real size, scaled to fit, as the boards do.
 // URL: decisions.html?d=<id>&o=<option index>. Keys: ← → switch options, ↑ ↓ switch decisions.
-import { WAITING } from './decisions-data.js';
+import { WAITING as ALL } from './decisions-data.js';
+
+// What is still to review comes first, then what waits to be reviewed later, then what is decided.
+const GROUPS = [['review', 'To review'], ['later', 'Later, together'], ['decided', 'Decided']];
+const WAITING = GROUPS.flatMap(([s]) => ALL.filter((x) => (x.state ?? 'review') === s));
+const STATE = { review: 'To review', later: 'Later', decided: 'Decided' };
 import { destroyLive } from './live.js';
 
 const modules = import.meta.glob('./boards/*.js', { eager: true });
@@ -20,17 +25,21 @@ function render() {
   destroyLive();
   const { d, o } = get();
   root.innerHTML = `
-    <nav class="dv-list"><a href="./" class="mb-back">Review hub</a><h1>Waiting for you</h1>
-      ${WAITING.map((x) => `<button data-d="${x.id}" class="${x === d ? 'on' : ''}"><b>${x.id}</b><span>${x.title}</span><small>${x.kind} · ${x.options.length || 'no'} option${x.options.length === 1 ? '' : 's'}</small></button>`).join('')}
+    <nav class="dv-list"><a href="./" class="mb-back">Review hub</a><h1>Decisions and reviews</h1>
+      ${GROUPS.map(([s, name]) => {
+        const items = WAITING.filter((x) => (x.state ?? 'review') === s);
+        return items.length ? `<h3 class="dv-group">${name} · ${items.length}</h3>${items.map((x) => `<button data-d="${x.id}" class="${x === d ? 'on' : ''} ${s}"><b>${x.id}</b><span>${x.title}</span><small>${s === 'decided' ? 'Decided' : `${x.kind}${x.options.length ? ` · ${x.options.length} option${x.options.length === 1 ? '' : 's'}` : ''}`}</small></button>`).join('')}` : '';
+      }).join('')}
     </nav>
     <section class="dv-main">
-      <span class="dv-kind">${d.kind} ${d.id}</span><h2>${d.title}</h2>
+      <span class="dv-kind">${d.kind} ${d.id} · ${STATE[d.state ?? 'review']}</span><h2>${d.title}</h2>
       <p class="dv-q">${d.question}</p>
+      ${d.decided ? `<p class="dv-done ${d.state}"><b>${d.state === 'decided' ? 'Decided' : 'Agreed'}</b>${d.decided}</p>` : ''}
       <div class="dv-ctx">${d.context.map((c) => `<p>${c}</p>`).join('')}</div>
-      <p class="dv-rec"><b>Recommended</b>${d.recommend}</p>
+      ${d.recommend ? `<p class="dv-rec"><b>Recommended</b>${d.recommend}</p>` : ''}
       ${d.link ? `<a class="dv-link" href="${d.link.href}" target="_blank">${d.link.label} ↗</a>` : ''}
       ${d.options.length ? `<div class="dv-opts">${d.options.map((x, i) => `<button data-o="${i}" class="${i === o ? 'on' : ''}">${x.label}</button>`).join('')}
-        <span class="ans">Answer in chat: <code>${d.id}: ${d.options[o].label.split(':')[0]}</code></span></div>` : ''}
+        ${d.state === 'decided' ? '' : `<span class="ans">Answer in chat: <code>${d.id}: ${d.options[o].label.split(':')[0]}</code></span>`}</div>` : ''}
       <div id="dv-view"></div>
     </section>`;
   root.querySelectorAll('[data-d]').forEach((b) => b.addEventListener('click', () => go(b.dataset.d)));

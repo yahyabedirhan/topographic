@@ -1,18 +1,18 @@
 // PROTOTYPE review hub content: everything waiting for the maintainer's review, in one place.
 // The index page renders it above the board list. Update it whenever a review item lands.
 
-export const ROUND = 'Round 2 · 2026-10-19';
+export const ROUND = 'Round 3 · 2026-10-19';
 
 export const START = [
-  'Start with the boards you picked in round 1, rebuilt from your feedback: real places lead (Everest, the Grand Canyon, Yosemite Valley, drawn live from real elevation), then generated shapes, then 2D and 3D. Primary views move; secondary views are stills.',
-  'New variants to judge: <code>playground-install/A1</code>–<code>A3</code> (Install alone in the top-right corner, an Export-style popover with a live preview, "With an agent" and "By hand"), and <code>npm-page/D</code>–<code>F</code> (code beside its result, pair after pair, for both packages).',
-  'Updated in place: <code>readme-header/A</code> (install below the image), <code>github-repo/A</code> and <code>A2</code> (real-place social previews), <code>site-page/A</code> (link icons), and all three <code>social-card</code> layouts (code with the result its parameters give).',
-  'Variants you did not pick are archived, and so is the positioning board. "Show archived" brings them back. Every board uses line L1 from <code>kit.js</code> COPY.lines until you pick one on the writing page. Code names follow your decisions: <code>shape</code> and <code>&lt;topographic-view&gt;</code>.',
+  'One item is still to review: <code>playground-install/A4</code>, the Install popover built from your notes on A1–A3 (preview and chips labelled "Istanbul · 3D", Agent skill and npm package parts, the scene\'s code and link as a shortcut to Export, one bright Copy per part). "Decisions and reviews" opens on it.',
+  'Rebuilt from your decisions: <code>npm-page/F</code> (a moving Grand Canyon hero, then 2D, 3D, beige paper with dark navy lines and more lines, for a real place and a generated shape, code beside each result; quiet black and white labels in Inter), <code>social-card/A</code> (no action button, no URL; Save PNG sits above the frame as a prototype tool) and <code>github-repo/A2</code> (Yosemite, no URL in the image).',
+  'No baked image carries <code>topographic.yahyapak.dev</code> any more: social cards, the GitHub social preview, the README hero and the npm pictures. Links in page text stay.',
+  'The README, npm, GitHub and social card boards read the line, the headline and the two opening paragraphs from the writing desk, so every surface stays in sync with it. Everything not picked is archived; "Show archived" brings it back. Items 1–5 and 7–11 are decided; the pull requests, 12–15, wait for one review together after your own step.',
 ];
 
 /** Places to review outside the boards. Each: { title, kind, href, note }. */
 export const PLACES = [
-  { title: 'Decisions and reviews', kind: 'Start here', href: 'decisions.html', note: 'Everything waiting for you, each with its context, a recommendation and the variants it is about, switchable live.' },
+  { title: 'Decisions and reviews', kind: 'Start here', href: 'decisions.html', note: 'The 15 items from the round 3 list: what is still to review first, then the pull requests for later, then every decision in your words.' },
   { title: 'Writing desk', kind: 'Edit here', href: 'writing.html', note: 'Every public line in one place: write your idea and each line, see it live on the README, a social card, GitHub, npm and a search result. Saves as you type.' },
   { title: 'Docs page A, reference essay', kind: 'Full page', href: 'docs/a.html', note: 'The anatomy layout in dark: sticky nav, one column, margin notes and controls, live figures.' },
   { title: 'Docs page B, live split', kind: 'Full page', href: 'docs/b.html', note: 'One sticky live terrain that changes as each section scrolls in.' },

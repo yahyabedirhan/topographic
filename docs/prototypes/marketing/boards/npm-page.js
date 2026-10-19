@@ -5,6 +5,7 @@
 import { terrain, h, shot, LOOKS } from '../live.js';
 import { COPY, SNIP, hl, ICON, wireCopy, PLACE_LOOK, NAMES } from '../kit.js';
 import { placeTerrain } from '../places.js';
+import { TEXT } from '../draft.js';
 
 const HOST = 'https://topographic.yahyapak.dev/readme/';
 const LANDFORMS = ['drifting-lobes', 'granite', 'five-petals', 'seed-pod', 'gentle-summit', 'long-ridge', 'dunes'];
@@ -54,8 +55,8 @@ const css = `
 .np .art{position:relative;display:block;width:100%;border-radius:4px;overflow:hidden;background:#0b0b0d}
 .np .art img{display:block;width:100%;height:100%;object-fit:cover}
 .np .art .live{position:absolute;inset:0}
-.np .art i{position:absolute;left:6px;bottom:6px;font:600 10px/1 ui-monospace,Menlo,monospace;font-style:normal;color:#fff;background:rgba(203,56,55,.92);padding:3px 5px;border-radius:3px;z-index:2;white-space:nowrap}
-.np .art i.still{background:rgba(40,40,40,.85)}
+.np .art i{position:absolute;left:6px;bottom:6px;max-width:calc(100% - 12px);overflow:hidden;text-overflow:ellipsis;font:500 10.5px/1 Inter,system-ui,sans-serif;font-style:normal;letter-spacing:.01em;color:#fff;background:rgba(17,17,17,.78);padding:4px 7px;border-radius:999px;z-index:2;white-space:nowrap}
+.np .art i.still{color:#111;background:rgba(255,255,255,.88);box-shadow:inset 0 0 0 .5px rgba(0,0,0,.18)}
 .np .grid7{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 0 6px}
 .np .grid5{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:0 0 6px}
 .np .cap{font-size:13px;color:#555;margin:2px 0 0}
@@ -86,7 +87,12 @@ const spark = '<svg width="150" height="30" viewBox="0 0 150 30"><polyline fill=
 const art = ({ file, w, h: ht, kind = 'snap', patch = {}, src = '', anim = true, ratio, place = '' }) =>
   `<span class="art" style="aspect-ratio:${ratio ?? `${w}/${ht}`}" data-kind="${kind}" data-place="${place}" data-w="${w}" data-h="${ht}" data-patch='${JSON.stringify(patch)}'>
     ${kind === 'shot' ? `<img src="${src}" alt="">` : kind === 'live' || kind === 'place' ? '<span class="live"></span>' : kind === 'strip' ? `<span style="display:grid;grid-template-columns:repeat(${LANDFORMS.length},1fr);height:100%">${LANDFORMS.map((l) => `<img alt="" data-strip='${JSON.stringify(lfc(l))}'>`).join('')}</span>` : '<img alt="">'}
-    <i class="${anim ? '' : 'still'}">${file} · ${w}×${ht} · ${anim ? 'animated' : 'still'}</i></span>`;
+    <i class="${anim ? '' : 'still'}" title="${file} · ${w}×${ht}">${tag(file, w, anim)}</i></span>`;
+/** The label on a picture: quiet and short, so it never runs past a small picture. The full file name is in the manifest. */
+function tag(file, w, anim) {
+  const kind = anim ? 'Animated' : 'Still';
+  return w >= 800 && file.length <= 26 ? `${kind} · ${file}` : kind;
+}
 
 /** One npm package page: the search result that shows the description, then the page with its README. */
 function page({ name, desc, keywords, install, readme, deps }) {
@@ -237,7 +243,9 @@ const reactPage = (heroPlace, layout) => {
   return `
     <p align="center">${art({ file: `react-hero-${heroPlace}.webp`, w: 1600, h: 700, kind: 'place', place: heroPlace })}</p>
     <h1>topographic-react</h1>
-    <p><b>${COPY.line}</b> As one React component. <a>Playground</a> · <a>Docs</a></p>
+    <p><b>${TEXT.line}</b> As one React component.</p>
+    <p>${TEXT.open1}</p>
+    <p>${TEXT.open2} <a>Playground</a> · <a>Docs</a></p>
     ${pre('npm install topographic topographic-react')}
     ${pre(`import { Topography } from 'topographic-react';\n\n${jsx({ location: heroPlace })}`)}
     <h2>Every setting is a prop</h2>
@@ -245,8 +253,8 @@ const reactPage = (heroPlace, layout) => {
     <p><code>onReady</code> hands you the instance for <code>snapshot()</code> and <code>record()</code>. Every prop: <a>Docs</a>.</p>`;
 };
 
-const REACT_DESC = `The React component for topographic. ${COPY.the.head}`;
-const pages2 = (core, react) => page({ name: 'topographic', desc: COPY.line, keywords: COPY.keywords.core, install: 'npm i topographic', readme: core, deps: 0 })
+const REACT_DESC = TEXT.npmReact;
+const pages2 = (core, react) => page({ name: 'topographic', desc: TEXT.npmCore, keywords: COPY.keywords.core, install: 'npm i topographic', readme: core, deps: 0 })
   + '<div class="sep">topographic-react</div>'
   + page({ name: 'topographic-react', desc: REACT_DESC, keywords: [...COPY.keywords.react, ...COPY.keywords.core.slice(0, 12)], install: 'npm i topographic-react', readme: react, deps: 1 });
 const RULES = 'npm renders markdown with &lt;img&gt;, &lt;picture&gt;, &lt;p align&gt; and tables; no video, no JS, no styling. Pictures load from absolute URLs, and motion comes only from animated WebP.';
@@ -277,36 +285,68 @@ function sideOrStack(layout, heroPlace) {
     <p>In plain HTML: <code>&lt;${NAMES.tag} location="${heroPlace}"&gt;</code> from <code>topographic/element</code>. In React: <a>topographic-react</a>.</p>`;
 }
 
-/** Variant F: one real place, one parameter at a time, each change beside what it does. */
+/** The new look in step 3 of F: beige paper and dark navy lines, as far from the dark default as a look goes. */
+const SURVEY = { mode: 'light', paper: '#efe5cf', ink: '#1d2b4f' };
+/**
+ * Variant F: one build-up for a real place and one for a generated shape. Each step changes the picture a
+ * lot (2D, then 3D, then a new look, then the line count), and each sits beside the code that makes it.
+ */
 function oneByOne(heroPlace) {
+  const at = { location: heroPlace };
   const steps = [
-    [{ location: heroPlace }, 'Name the place.'],
-    [{ location: heroPlace, mode: '2d' }, 'Flatten it to a contour map.'],
-    [{ location: heroPlace, mode: '2d', lines: { count: 64 } }, 'Draw more lines.'],
-    [{ location: heroPlace, mode: '2d', lines: { count: 64, indexEvery: 8 } }, 'Make every eighth line an index line.'],
-    [{ location: heroPlace, elevation: 2.2 }, 'Back in 3D: raise the relief.'],
+    [{ ...at, mode: '2d' }, 'Start flat: the place as a contour map.'],
+    [{ ...at, mode: '3d' }, 'Lift it into 3D.'],
+    [{ ...at, mode: '3d', theme: SURVEY }, 'Change the look: beige paper, dark navy lines.'],
+    [{ ...at, mode: '3d', theme: SURVEY, lines: { count: 14 } }, 'Change the line count: fewer lines, only the big forms.'],
   ];
-  const row = ([o, say], i) => `<tr><td style="width:46%"><p style="margin:0 0 6px"><b>${i + 1}.</b> ${say}</p>${pre(js(o))}</td><td>${art({ file: `step-${i + 1}.webp`, w: 800, h: 450, kind: 'psnap', place: heroPlace, patch: live05(o), anim: false })}</td></tr>`;
-  const { shapes } = examples('side', heroPlace);
+  const sh = { shape: 'long-ridge', seed: 7 };
+  const shapeSteps = [
+    [sh, 'Pick a shape and a seed.', 'live'],
+    [{ ...sh, mode: '3d' }, 'Lift it into 3D.'],
+    [{ ...sh, mode: '3d', theme: SURVEY }, 'Change the look.'],
+    [{ ...sh, mode: '3d', theme: SURVEY, lines: { count: 80 } }, 'Change the line count: more than twice the lines.'],
+    [{ shape: 'dunes', seed: 21, mode: '3d', theme: SURVEY, lines: { count: 80 } }, 'Change the shape and the seed: a new land.'],
+  ];
+  const row = (prefix, kindOf) => ([o, say, k], i) => `<tr><td style="width:46%"><p style="margin:0 0 6px"><b>${i + 1}.</b> ${say}</p>${pre(js(o))}</td><td>${art({ file: `${prefix}-${i + 1}.webp`, w: 800, h: 450, kind: k ?? kindOf, place: heroPlace, patch: live05(o), anim: k === 'live' })}</td></tr>`;
   return `
     <p align="center">${art({ file: `hero-${heroPlace}.webp`, w: 1600, h: 800, kind: 'place', place: heroPlace })}</p>
     <h1>topographic</h1>
-    <p><b>${COPY.line}</b> <a>Open the playground</a> · <a>Docs</a></p>
+    <p><b>${TEXT.line}</b></p>
+    <p>${TEXT.open1}</p>
+    <p>${TEXT.open2} <a>Open the playground</a> · <a>Docs</a></p>
     ${pre('npm install topographic')}
-    <h2>Real places, one setting at a time</h2>
-    ${placeNote}
-    ${pairs(steps.map(row))}
+    <h2>A real place, one setting at a time</h2>
+    <p>Name a place. Its terrain comes from real elevation data; every setting after that changes how it is drawn.</p>
+    ${pairs(steps.map(row('place', 'psnap')))}
     ${alsoStrip}
-    <h2>Generated shapes</h2>
-    <p>No place? Pick a shape and a seed. Every seed is a new land.</p>
-    ${pairs(shapes.map(({ o, a }) => row2(js(o), a)))}
+    <h2>A generated shape, one setting at a time</h2>
+    <p>No place? Pick a shape and a seed. The same settings work on it.</p>
+    ${pairs(shapeSteps.map(row('shape', 'snap')))}
     <h2>Video and frames</h2>
     ${pre(`await topography.record();                    // a video of the 3D view\nawait topography.snapshot({ frame: 2400 });   // any exact frame, as PNG`)}`;
 }
 const SHAPE_LIVE = { shape: 'long-ridge', seed: 7 };
 const ROUND2 = [
   {
+    key: 'F',
+    name: 'The Grand Canyon, then each setting one at a time',
+    note: `Round 3, the pick, rebuilt from your notes. A moving Grand Canyon hero, the line and the two opening paragraphs from the writing desk, then two build-ups with the code beside each result: a real place (2D, then 3D, then a new look with beige paper and dark navy lines, then far fewer lines) and a generated shape (the same steps with more lines, then a new shape and seed). Every step changes the picture a lot. Picture labels are quiet black and white in Inter and short enough for the smallest picture; file names are in the manifest. ${RULES}`,
+    render(stage) {
+      mount2(stage, pages2(oneByOne('grand-canyon'), reactPage('yosemite', 'side'))
+        + manifest([
+          ['hero-grand-canyon.webp', '1600×800', 'animated, 6 s orbit', 'the Grand Canyon, real elevation'],
+          ['place-1.webp … place-4.webp', '800×450 ×4', 'still', 'one per step, same place and frame'],
+          [`place-{${ALSO.join(',')}}.webp`, '320×200 ×5', 'still', 'the other built-in places'],
+          ['shape-1.webp', '800×450', 'animated, 4 s loop', 'the first generated shape, moving'],
+          ['shape-2.webp … shape-5.webp', '800×450 ×4', 'still', 'one per step'],
+          ['react-hero-yosemite.webp', '1600×700', 'animated, 6 s orbit', 'Yosemite Valley'],
+          ['react-*.webp', '800×450 ×3', 'still', 'each prop example'],
+        ], '20 files, about 9 MB: three animated, the rest stills.'), SHAPE_LIVE);
+    },
+  },
+  {
     key: 'D',
+    archived: true,
     name: 'Real place hero, code beside its result',
     note: `Round 2, from A. A moving hero of Everest from real elevation, the line, install and the first call. Then the sections in order: real places, generated shapes, 2D and 3D. Each example is a two-column row: the exact settings on the left, the picture they make on the right. The hero and the first shape move; every other picture is a still. The seven base shapes are not listed: shapes are a setting with any seed. Both packages. ${RULES}`,
     render(stage) {
@@ -324,6 +364,7 @@ const ROUND2 = [
   },
   {
     key: 'E',
+    archived: true,
     name: 'Real place hero, code then its result, stacked',
     note: `The same sections and examples as D, without tables: each code block is followed by its picture at full width. Reads the same on npm's narrow mobile layout, where a two-column table squeezes the code. Longer page; every picture is larger. The hero is the Grand Canyon. ${RULES}`,
     render(stage) {
@@ -339,23 +380,6 @@ const ROUND2 = [
         ], '19 files, about 10 MB.'), SHAPE_LIVE);
     },
   },
-  {
-    key: 'F',
-    name: 'One real place, one setting at a time',
-    note: `A tutorial in pictures. After the moving Yosemite hero, five rows build one call step by step (place, 2D, more lines, index lines, relief), each beside its result, so a reader sees what each parameter does. Then the other places as stills, then generated shapes. 2D and 3D are part of the steps. ${RULES}`,
-    render(stage) {
-      mount2(stage, pages2(oneByOne('yosemite'), reactPage('grand-canyon', 'side'))
-        + manifest([
-          ['hero-yosemite.webp', '1600×800', 'animated, 6 s orbit', 'Yosemite Valley, real elevation'],
-          ['step-1.webp … step-5.webp', '800×450 ×5', 'still', 'one per setting, same place and frame'],
-          [`place-{${ALSO.join(',')}}.webp`, '320×200 ×5', 'still', 'the other built-in places'],
-          ['shape-long-ridge.webp', '800×450', 'animated, 4 s loop', 'the first generated shape, moving'],
-          ['shape-dunes.webp, shape-summit-terraces.webp', '800×450 ×2', 'still', 'the other shapes'],
-          ['react-hero-grand-canyon.webp', '1600×700', 'animated, 6 s orbit', 'the Grand Canyon'],
-          ['react-*.webp', '800×450 ×3', 'still', 'each prop example'],
-        ], '19 files, about 9 MB.'), SHAPE_LIVE);
-    },
-  },
 ];
 
 export default {
@@ -363,13 +387,14 @@ export default {
   title: 'npm pages',
   question: 'How visual should the two package READMEs be on npmjs.com, and which description strategy finds and convinces a developer fastest?',
   surface: 'npmjs.com/package/topographic and npmjs.com/package/topographic-react (packages/*/README.md, package.json description and keywords)',
-  size: [1440, 7400],
+  size: [1440, 8000],
   variants: [
     ...ROUND2,
     {
       key: 'A',
+      archived: true,
       name: 'Gallery README, category description',
-      note: 'Round 1 baseline, kept visible for comparison. The most visual. topographic: animated hero (dark/light &lt;picture&gt;), a grid of the 7 landforms as animated tiles, a strip of 5 real places, a 2D↔3D pair, then install and code. topographic-react: hero, then code beside its animated result. Description is category-first. npm renders markdown only: &lt;picture&gt;, &lt;img&gt;, &lt;p align&gt;, tables and &lt;details&gt; work; no video, no JS, no styling, so motion comes from animated WebP.',
+      note: 'Round 1 baseline. The most visual. topographic: animated hero (dark/light &lt;picture&gt;), a grid of the 7 landforms as animated tiles, a strip of 5 real places, a 2D↔3D pair, then install and code. topographic-react: hero, then code beside its animated result. Description is category-first. npm renders markdown only: &lt;picture&gt;, &lt;img&gt;, &lt;p align&gt;, tables and &lt;details&gt; work; no video, no JS, no styling, so motion comes from animated WebP.',
       render(stage) {
         const core = `
           <p align="center">${art({ file: 'hero-dark.webp', w: 1600, h: 800, kind: 'shot', src: shot('hero') })}</p>

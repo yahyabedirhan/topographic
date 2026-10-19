@@ -2,6 +2,7 @@
 import { terrain, h, shot, LOOKS, LOGO } from '../live.js';
 import { COPY, ICON, PLACE_LOOK } from '../kit.js';
 import { placeTerrain, PLACES } from '../places.js';
+import { TEXT } from '../draft.js';
 
 const css = `
 .gr{position:absolute;inset:0;background:#0d1117;color:#f0f6fc;font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif;display:grid;grid-template-columns:320px 960px;gap:40px;padding:48px 60px}
@@ -56,7 +57,7 @@ function compose(stage, desc, og, mount) {
   }, 2500), (e) => console.warn(e));
 }
 
-/** The round 2 card: a real place full bleed, the line on the left, and the code that draws the place. */
+/** The round 2 card: a real place full bleed, the headline on the left, and the code that draws the place. No URL in the image. */
 function placeCard(id) {
   const name = PLACES.find((p) => p.id === id)?.name ?? id;
   return `
@@ -64,7 +65,7 @@ function placeCard(id) {
     <div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(11,11,13,.95) 24%,rgba(11,11,13,0) 72%)"></div>
     <div style="position:absolute;left:72px;top:64px;bottom:64px;display:grid;align-content:space-between;max-width:620px">
       <div class="mark"><img src="${LOGO}" alt="">topographic</div>
-      <div style="display:grid;gap:20px"><h1 style="font-size:64px">${COPY.the.head}</h1><span class="url" style="font-size:26px;color:#cfcdc7">${COPY.the.sub}</span></div>
+      <div style="display:grid;gap:20px"><h1 style="font-size:64px">${TEXT.head}</h1><span class="url" style="font-size:26px;color:#cfcdc7">${TEXT.sub}</span></div>
       <span class="chip"><b>location:</b>'${id}'<b style="margin-left:6px">· ${name}</b></span>
     </div>`;
 }
@@ -78,6 +79,7 @@ export default {
   variants: [
     {
       key: 'A',
+      archived: true,
       name: 'The line, Everest full bleed',
       note: `Round 2. Description is the new line; topics unchanged. The social preview is Everest and the Khumbu from real elevation, with the line on the left and the one setting that draws it. ${STILL_NOTE}`,
       render(stage) {
@@ -87,9 +89,9 @@ export default {
     {
       key: 'A2',
       name: 'The line, Yosemite Valley full bleed',
-      note: `A with a different real place: Yosemite Valley (Half Dome, El Capitan and the valley floor), whose deep valley reads well even at unfurl size. ${STILL_NOTE}`,
+      note: `Round 3, the pick. Yosemite Valley (Half Dome, El Capitan and the valley floor), whose deep valley reads well even at unfurl size. The description is the line and the image text is the headline and sub line, all from the writing desk. The image carries no URL: the address may change, and a baked image cannot. The website link stays in the About sidebar, where it can be edited. ${STILL_NOTE}`,
       render(stage) {
-        compose(stage, COPY.line, placeCard('yosemite'), (el) => placeTerrain(el.querySelector('#gr-yosemite'), 'yosemite', PLACE_LOOK));
+        compose(stage, TEXT.github, placeCard('yosemite'), (el) => placeTerrain(el.querySelector('#gr-yosemite'), 'yosemite', PLACE_LOOK));
       },
     },
     {

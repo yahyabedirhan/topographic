@@ -137,6 +137,15 @@ const css2 = `
 .pi .code2{margin:0;padding:10px 12px 10px 8px;border-radius:12px;background:color-mix(in srgb,var(--paper) 42%,transparent);box-shadow:inset 0 0 0 .5px var(--line);font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--fg);display:grid;grid-template-columns:18px minmax(0,1fr);column-gap:10px;white-space:pre}
 .pi .code2 .ln{color:color-mix(in srgb,var(--mut) 70%,transparent);text-align:right}
 .pi .code2 .key{color:#c4a574}.pi .code2 .str{color:#7dba9a}.pi .code2 .num{color:#8aadd4}.pi .code2 .tg{font-weight:600}
+.pi .ibtn{display:grid;place-items:center;width:28px;height:28px;flex:none;border:0;border-radius:8px;background:transparent;color:var(--mut);cursor:pointer}
+.pi .ibtn:hover{background:color-mix(in srgb,var(--fg) 8%,transparent);color:var(--fg)}
+.pi .row.q{background:transparent}
+.pi .row.q code{color:color-mix(in srgb,var(--fg) 82%,transparent)}
+.pi .codebox{position:relative}
+.pi .codebox .ibtn{position:absolute;top:6px;right:6px}
+.pi .foot{display:flex;align-items:center;gap:6px;color:var(--mut);font-size:12px}
+.pi .foot a{color:var(--fg);text-decoration:none;margin-left:auto;display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:8px}
+.pi .foot a:hover{background:color-mix(in srgb,var(--fg) 8%,transparent)}
 .pi .code2 .vp{padding:0 4px;margin:0 -1px;border-radius:5px;background:color-mix(in srgb,currentColor 14%,transparent);box-shadow:inset 0 0 0 .5px color-mix(in srgb,currentColor 38%,transparent)}
 `;
 const LU = (d, size = 18) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
@@ -171,6 +180,20 @@ const SCENE_CODE = [
 ];
 const codeView = () => `<pre class="code2">${SCENE_CODE.map((l, i) => `<span class="ln">${i + 1}</span><span>${l}</span>`).join('')}</pre>`;
 const SKILL2 = 'npx skills add yahyabedirhan/topographic';
+/** A quiet icon-only copy button: every copy after a part's first is one of these, so each part has one bright button. */
+const icopy = (value, title = 'Copy') => `<button class="ibtn" data-copy="${value.replace(/"/g, '&quot;')}" title="${title}" aria-label="${title}">${LU(GLYPH.copy, 14)}</button>`;
+const qfield = (cmd) => `<div class="row q"><b>$</b><code>${cmd}</code>${icopy(cmd)}</div>`;
+/** The scene in the screenshot as JS, matching the npm install line above it, drawn as Export's code view. */
+const SCENE_JS = [
+  '<span class="tg">createTopography</span>(el, {',
+  '  <span class="key">location</span>: <span class="str vp">\'istanbul\'</span>,',
+  '  <span class="key">mode</span>: <span class="str vp">\'3d\'</span>,',
+  '  <span class="key">lines</span>: { count: <span class="num vp">36</span>, indexEvery: <span class="num vp">4</span> },',
+  '  <span class="key">camera</span>: { azimuth: <span class="num vp">341.8</span>, elevation: <span class="num vp">39.3</span> },',
+  '});',
+];
+const SCENE_JS_TEXT = `createTopography(el, {\n  location: 'istanbul',\n  mode: '3d',\n  lines: { count: 36, indexEvery: 4 },\n  camera: { azimuth: 341.8, elevation: 39.3 },\n});`;
+const SCENE_LINK = 'https://topographic.yahyapak.dev/?s=istanbul-3d-36-4-341.8-39.3';
 /** Mounts a round 2 variant: the corner, the popover, then the live preview of the scene (Istanbul in 3D). */
 function mount2(stage, icon, pop) {
   stage.append(h`<style>${css}${css2}</style><div class="pi">${corner(icon)}<div class="pop2 glass">${pop}</div></div>`);
@@ -179,7 +202,22 @@ function mount2(stage, icon, pop) {
 }
 const ROUND2 = [
   {
+    key: 'A4',
+    name: 'A1 with the scene\'s code and link, one bright button per part',
+    note: 'Round 3, built from what you liked in A1–A3. A1\'s base: the live preview and the parameter chips, with the label "Istanbul · 3D" only. Then the Agent skill part and the npm package part, each with its command. The npm package part also holds this scene as code and its link, a shortcut to Export, so people see how to make exactly what is on screen. Each part has one bright Copy; every other copy is a quiet icon button, and "Open Export" is a text link.',
+    render(stage) {
+      mount2(stage, 'code', `${preview(148, 'Istanbul · 3D')}${chips()}
+        <div class="sec"><div class="sec-t">${LU(GLYPH.sparkles, 13)}${INSTALL_LABELS.agent}</div>${field(SKILL2)}
+          <div class="hint2">Then ask your agent for this terrain. The skill installs the package and writes the code.</div></div>
+        <div class="sec"><div class="sec-t">${LU(GLYPH.hand, 13)}${INSTALL_LABELS.npm}</div>${field('npm install topographic')}
+          ${qfield('npm install topographic topographic-react')}
+          <div class="codebox"><pre class="code2">${SCENE_JS.map((l, i) => `<span class="ln">${i + 1}</span><span>${l}</span>`).join('')}</pre>${icopy(SCENE_JS_TEXT, 'Copy this code')}</div>
+          <div class="foot">${LU(GLYPH.share, 13)}<span>Link to this scene</span>${icopy(SCENE_LINK, 'Copy link')}<a href="#">${LU(GLYPH.download, 13)}Open Export</a></div></div>`);
+    },
+  },
+  {
     key: 'A1',
+    archived: true,
     name: 'Preview and chips, then two commands',
     note: 'Install is a glass circle of its own at the far top-right, the size of the cluster beside it (48px glass, 36px button). Its popover follows Export: a live preview of the scene with a label chip and the parameter chips under it, then two parts. The agent skill part is the skill install and one line on what happens next. The npm package part is the npm line, and the React line under it. No tabs. Every field is Export\'s mono field with its Copy pill.',
     render(stage) {
@@ -191,6 +229,7 @@ const ROUND2 = [
   },
   {
     key: 'A2',
+    archived: true,
     name: 'Smaller preview, the scene as code',
     note: 'Same corner and parts as A1, with a shorter preview and the scene\'s code in the npm package part, drawn as Export\'s code view: line numbers and tinted values, with Copy in the part\'s header. People see the exact settings that make what is on screen, and the install line above them. The longest popover of the three, still under the 720px cap.',
     render(stage) {
@@ -203,6 +242,7 @@ const ROUND2 = [
   },
   {
     key: 'A3',
+    archived: true,
     name: 'Large preview, one line each',
     note: 'The quietest: a large live preview carries the visual, then one field per part and nothing else. The React line and the scene code stay in Export. Best if the popover should feel like a start button rather than a reference.',
     render(stage) {
