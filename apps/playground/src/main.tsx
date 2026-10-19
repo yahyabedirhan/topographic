@@ -8,6 +8,7 @@ import { schedulePerformanceSample } from './perf';
 import { watchFrameHealth } from './device';
 import { TerrainBoundary } from './boundary';
 import { resolveRoute } from './route';
+import { DOCS_META } from './docs/copy';
 import './style.css';
 
 // A public build replaces this with a false constant, so the debug module is left out of the bundle.
@@ -25,6 +26,13 @@ if (route.page === 'about') {
   void import('./About').then(({ About }) => {
     document.title = 'About: topographic';
     root.render(<About home={base} />);
+  });
+} else if (route.page === 'docs') {
+  // The docs page is its own chunk too. Its title and share image come from docs.html; the title is set again
+  // for development, where every page is served from index.html.
+  void import('./docs/Docs').then(({ Docs }) => {
+    document.title = DOCS_META.title;
+    root.render(<Docs home={base} />);
   });
 } else {
   root.render(
