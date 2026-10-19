@@ -355,3 +355,11 @@ On the two opening paragraphs, "Not a picture of land. The land itself, drawn as
 > I really like this call-to-action description: "Generate a land. Or turn a real place into one."
 >
 > And I'm not sure if this one is necessary or not: "Documentation · Version 0.6.0".
+
+On the 2×2 grid of icon links (Playground, GitHub, npm, yahyapak.dev):
+
+> I think I still didn't like this area.
+> Maybe you can add these small dots in between these items to have small visual separations.
+> Also let's try to get the icons [out?] and instead we will have this, Playground, GitHub, npm, and the website link.
+
+Read as: no icons, one text row with small dots, like the playground's "yahyapak.dev · About". The icon grid stays behind `?links=icons` for comparison.
