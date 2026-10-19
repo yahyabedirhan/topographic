@@ -11,7 +11,7 @@ Animated contour-line backgrounds for the web, in 2D and 3D. No dependencies.
 - **Seven shapes:** `drifting-lobes`, `granite`, `five-petals`, `seed-pod`, `gentle-summit`, `long-ridge` and `dunes`, plus readable settings for lines, terrain, motion, layout and colours.
 - **Quality tiers:** `quality: 'auto'` starts phones on the low tier and steps down when frames miss the screen's refresh rate. `low`, `medium` and `high` stay put.
 - **Export:** `snapshot()` for PNG and `record()` for MP4 or WebM video.
-- **Plain HTML or JavaScript:** a `<topographic-map>` web component and a JavaScript API.
+- **Plain HTML or JavaScript:** a `<topographic-view>` web component and a JavaScript API.
 
 ```sh
 npm install topographic
@@ -22,7 +22,7 @@ npm install topographic
 ```html
 <script type="module">import 'topographic/element';</script>
 
-<topographic-map shape="dunes" line-count="30"></topographic-map>
+<topographic-view shape="dunes" line-count="30"></topographic-view>
 ```
 
 The background fills its element, so give the element a size.

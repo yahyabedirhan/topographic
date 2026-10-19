@@ -150,7 +150,7 @@ Behaviour:
 - Animation pauses when the element is off-screen or the tab is hidden.
 - Pixel budget: \`quality\` caps the device pixel ratio, the pixel count and the mesh. \`maxPixelRatio\` and \`maxPixels\` are the ceiling above that.
 
-## <topographic-map>
+## <topographic-view>
 
 \`import 'topographic/element'\` registers the element. Attributes: \`shape\`, \`seed\`, \`theme\`, \`ink\`, \`paper\`, \`mode\`, \`elevation\`, \`extent\`, \`detail\`, \`quality\`, \`azimuth\`, \`camera-elevation\`, \`radius\`, \`camera-motion\`, \`pan-x\`, \`pan-z\`, plus one per numeric setting (see [params.md](params.md)). Attribute changes apply live, and a removed attribute returns to its default. \`element.topographic\` is the instance, and \`element.snapshot(opts)\` is a shortcut.
 
@@ -230,7 +230,7 @@ While the heights load, the page sets \`data-loading=terrain\` and hides the def
 
 ## Packages
 
-- [topographic](https://www.npmjs.com/package/topographic): core and the \`<topographic-map>\` web component
+- [topographic](https://www.npmjs.com/package/topographic): core and the \`<topographic-view>\` web component
 - [topographic-react](https://www.npmjs.com/package/topographic-react): React component and hook
 
 ## Docs

@@ -13,7 +13,7 @@ export interface ParamDef {
   default: number;
   /** Whole numbers only. */
   integer?: boolean;
-  /** HTML attribute on <topographic-map>. */
+  /** HTML attribute on <topographic-view>. */
   attr: string;
   /** Short key used in shareable URLs. */
   short: string;

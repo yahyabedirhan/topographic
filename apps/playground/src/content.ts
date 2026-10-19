@@ -8,7 +8,7 @@ export const INSTALL = {
   import '${PACKAGE}/element';
 </script>
 
-<topographic-map shape="dunes" line-count="30"></topographic-map>`,
+<topographic-view shape="dunes" line-count="30"></topographic-view>`,
   reactUsage: `import { Topography } from '${REACT_PACKAGE}';
 
 export function Hero() {
@@ -29,7 +29,7 @@ const topography = createTopography(document.querySelector('#hero'), {
 topography.update({ terrain: { peaks: 3 } });   // live, clamped
 const png = await topographic.snapshot({ width: 1920, height: 1080 });
 topography.destroy();`,
-  css: `topographic-map {
+  css: `topographic-view {
   --topographic-ink: #9fb3c8;      /* line colour */
   --topographic-paper: transparent; /* let the page show through */
 }`,

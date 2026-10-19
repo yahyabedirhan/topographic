@@ -43,10 +43,10 @@ export class TopographyElement extends Base {
   }
 }
 
-if (typeof customElements !== 'undefined' && !customElements.get('topographic-map')) {
-  customElements.define('topographic-map', TopographyElement);
+if (typeof customElements !== 'undefined' && !customElements.get('topographic-view')) {
+  customElements.define('topographic-view', TopographyElement);
 }
 
 declare global {
-  interface HTMLElementTagNameMap { 'topographic-map': TopographyElement }
+  interface HTMLElementTagNameMap { 'topographic-view': TopographyElement }
 }

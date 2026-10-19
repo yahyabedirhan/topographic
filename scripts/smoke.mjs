@@ -93,7 +93,7 @@ try {
   await ep.goto(url.replace('smoke.html', 'element.html'));
   await ep.waitForFunction(() => window.ready);
   const el = await ep.evaluate(() => {
-    const e = document.querySelector('topographic-map'); const t = e.topographic;
+    const e = document.querySelector('topographic-view'); const t = e.topographic;
     const a = [t.status, t.settings.shape, t.settings.lines.count, t.settings.seed, t.settings.layout.fade].join();
     e.setAttribute('line-count', '12'); e.setAttribute('shape', 'granite');
     const b = [t.settings.shape, t.settings.lines.count, t.settings.layout.fade].join();
@@ -101,7 +101,7 @@ try {
     e.remove(); return { a, b, c, d: t.status };
   });
   check(el.a === 'webgl2,dunes,24,3,0.5' && el.b === 'granite,12,0.7' && el.c === 30 && el.d === 'destroyed',
-    `<topographic-map> attributes: ${el.a} | ${el.b} | reset ${el.c} | removed ${el.d}`);
+    `<topographic-view> attributes: ${el.a} | ${el.b} | reset ${el.c} | removed ${el.d}`);
 
   const nogl = await page();
   const fb = await nogl.evaluate(() => {

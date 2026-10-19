@@ -14,10 +14,10 @@ export function embedCode(s: Settings, format: EmbedFormat): string {
     const attrs = Object.entries(toAttributes(s)).map(([k, v]) => `  ${k}="${v}"`).join('\n');
     return `<script type="module">import '${PACKAGE}/element';</script>
 
-<topographic-map
+<topographic-view
 ${attrs}
   style="position:fixed;inset:0;z-index:-1"
-></topographic-map>`;
+></topographic-view>`;
   }
   if (format === 'vanilla') {
     return `import { createTopography } from '${PACKAGE}';
