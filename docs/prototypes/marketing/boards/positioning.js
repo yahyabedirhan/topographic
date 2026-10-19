@@ -17,6 +17,7 @@ const style = () => h`<style>${css}</style>`;
 
 export default {
   id: 'positioning',
+  archived: true,
   title: 'Positioning',
   question: 'What one sentence and first screen say what topographic is, without tying it to one use?',
   surface: 'README tagline, npm description, site, playground title, video end cards',
@@ -41,7 +42,7 @@ export default {
     {
       key: 'B',
       name: 'Three uses, side by side',
-      note: 'Shows the three uses as three framed scenes: a browser, a video timeline and a game HUD. Proves the range at a glance. The game frame needs D7 (heightmap export) to be honest.',
+      note: 'Shows the three uses as three framed scenes: a browser, a video timeline and a game HUD. Proves the range at a glance.',
       render(stage) {
         stage.append(style(), h`<div class="pz" style="background:#0e0e11">
           <div style="text-align:center;padding-top:80px;display:grid;gap:18px;justify-items:center">
