@@ -13,25 +13,6 @@ export interface Place {
 }
 
 /**
- * Cyprus's own look, decoded with readSettings from the query
- * `?look=stone-grain&lc=37&lw=0&lo=0.92&ix=6&sd=1.3&sk=0.35&an=0.43&fd=0.22&m=dark&ink=a9c7e4&paper=10151c&mode=3d&ex=block&ev=0.06&az=3&ce=80&rd=1.18`.
- * The camera motion and the detail are left out: they belong to the viewer, not the place.
- */
-export const CYPRUS_DEFAULTS = {
-  shape: 'granite',
-  seed: 127,
-  lines: { count: 37, width: 0, opacity: 0.92, indexEvery: 6 },
-  terrain: { peaks: 1, spread: 0.5, roughness: 0.5, sharpness: 0.5, terracing: 0, variant: 0.5 },
-  motion: { speed: 1.3, warp: 0.47, sparkle: 0.35 },
-  layout: { anchor: 0.43, fade: 0.22 },
-  theme: { mode: 'dark', paper: '#10151c', ink: '#a9c7e4' },
-  mode: '3d',
-  elevation: 0.06,
-  extent: 'block',
-  camera: { azimuth: 3, elevation: 80, radius: 1.18 },
-} as const satisfies SettingsInput;
-
-/**
  * What Apply sets on top of the current settings when it makes a terrain from the map. Colours,
  * theme, motion and the rest stay. Clear puts back the lines, camera, extent and elevation from
  * before the first place. Camera motion is left alone.
@@ -76,14 +57,15 @@ function landscape(location: LocationInfo): SettingsInput | undefined {
 /**
  * The library's built-in locations as one-tap examples, grouped by region. Istanbul's box holds the
  * whole metro area, about 101 × 64 km. Cyprus is the whole island with some sea around it, about
- * 261 × 166 km. Each landscape box is about 1.5:1 around its main feature, with its own camera and elevation.
+ * 261 × 166 km. Each landscape box is about 1.5:1 around its main feature. Cyprus and each landscape bring their own
+ * camera angle and elevation.
  */
 export const PLACES: readonly Place[] = LOCATIONS.map((location) => ({
   id: location.id,
   name: location.name,
   bbox: location.bbox,
   ...MENU[location.id],
-  defaults: location.id === 'cyprus' ? CYPRUS_DEFAULTS : landscape(location),
+  defaults: landscape(location),
 }));
 
 export function findPlace(id: string | null): Place | undefined {
@@ -118,7 +100,5 @@ export function restoredKeys(placeId: string | null): (keyof Settings)[] {
 export function beforePlace(s: Settings, keys: (keyof Settings)[] = restoredKeys(null)): BeforePlace {
   const out: Record<string, unknown> = {};
   for (const key of keys) out[key] = structuredClone(s[key]);
-  // A theme without its own ink or paper must clear the place's colours, so name them as undefined.
-  if (out.theme) out.theme = { ink: undefined, paper: undefined, ...(out.theme as object) };
   return out as BeforePlace;
 }

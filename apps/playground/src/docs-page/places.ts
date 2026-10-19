@@ -34,8 +34,8 @@ export function loadPlace(id: string): Promise<LoadedPlace> {
   const promise = loadLocation(id).then((ok): LoadedPlace => ({
     place,
     field: { samples: ok.samples, size: ok.size, aspect: ok.aspect },
-    // Every place uses the shared place camera, Cyprus too (the maintainer's call, also in pull request #84).
-    defaults: structuredClone(terrainDefaults(id === 'cyprus' ? null : id)),
+    // Every place uses the shared place camera with its own angle and elevation, Cyprus too.
+    defaults: structuredClone(terrainDefaults(id)),
   }));
   promise.catch(() => cache.delete(id));
   cache.set(id, promise);

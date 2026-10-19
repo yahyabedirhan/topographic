@@ -541,17 +541,15 @@ try {
   check((await call('clear_region')).cleared === true && (await call('get_region')).bbox === null, 'clear_region');
   await settle(agent, 400);
   check(await mini.count() === 0, 'the minimap hides without a place');
-  // Cyprus brings its own settings, colours included; Clear puts the earlier ones back.
+  // Cyprus uses the shared map terrain view with its own camera angle and elevation, and keeps the colours; Clear puts the earlier view back.
   await settle(agent);
   const pre = JSON.stringify((await call('get_settings')).config);
+  const preTheme = JSON.stringify((await call('get_settings')).config.theme);
   await call('set_region', { place: 'cyprus' }); await settle(agent);
   const cy = (await call('get_settings')).config;
-  const cyWant = { shape: 'granite', lines: { count: 37, width: 0, opacity: 0.92, indexEvery: 6 }, speed: 1.3, sparkle: 0.35, layout: { anchor: 0.43, fade: 0.22 },
-    theme: { mode: 'dark', ink: '#a9c7e4', paper: '#10151c' }, mode: '3d', elevation: 0.06, extent: 'block', camera: [3, 80, 1.18] };
-  const cyGot = { shape: cy.shape, lines: cy.lines, speed: cy.motion?.speed, sparkle: cy.motion?.sparkle, layout: cy.layout,
-    theme: { mode: cy.theme?.mode, ink: cy.theme?.ink, paper: cy.theme?.paper }, mode: cy.mode, elevation: cy.elevation, extent: cy.extent ?? 'block',
-    camera: [cy.camera?.azimuth, cy.camera?.elevation, cy.camera?.radius] };
-  check(JSON.stringify(cyGot) === JSON.stringify(cyWant), `set_region cyprus applies Cyprus's own settings (${JSON.stringify(cyGot)})`);
+  const cyWant = { lines: { count: 36, width: 0, opacity: 0.9, indexEvery: 4 }, theme: JSON.parse(preTheme ?? 'null'), mode: '3d', elevation: 0.1, extent: 'block', camera: [341.8, 35, 1.32] };
+  const cyGot = { lines: cy.lines, theme: cy.theme ?? null, mode: cy.mode, elevation: cy.elevation, extent: cy.extent ?? 'block', camera: [cy.camera?.azimuth, cy.camera?.elevation, cy.camera?.radius] };
+  check(JSON.stringify(cyGot) === JSON.stringify(cyWant), `set_region cyprus applies the shared place view (${JSON.stringify(cyGot)})`);
   await call('clear_region'); await settle(agent);
   const post = JSON.stringify((await call('get_settings')).config);
   check(post === pre, `clear_region after Cyprus restores the earlier settings${post === pre ? '' : ` (${pre} -> ${post})`}`);

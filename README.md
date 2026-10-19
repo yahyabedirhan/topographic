@@ -277,6 +277,7 @@ npx skills add yahyabedirhan/topographic
 
 The [playground](https://topographic.yahyapak.dev/) has plain-text docs for AI tools at [`llms.txt`](https://topographic.yahyapak.dev/llms.txt).
 In browsers that support [WebMCP](https://github.com/webmachinelearning/webmcp), an agent can use the playground directly: change the settings, choose a place, take a screenshot, record a video and get the code.
+Without WebMCP, an agent can open a link with URL parameters, or call the same tools through a small stub; `llms.txt` shows how.
 
 The [guide](docs/guide.md) lists every setting with its range and default, and covers colours and themes, server rendering and the [WebMCP tools](docs/guide.md#webmcp-tools).
 

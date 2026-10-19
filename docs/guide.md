@@ -196,7 +196,7 @@ A value outside its range is moved to the nearest limit. Whole-number settings a
 
 ### Three dimensions
 
-`mode` is `'2d'` or `'3d'`. 2D is the default. 3D shows the same contour lines as a landscape. With the same seed and settings, you get the same map in both modes. You can switch between them at any time.
+`mode` is `'2d'` or `'3d'`. 2D is the library default. The playground opens a bare URL in 3D, and a URL with settings in 2D unless it has `mode=3d`. 3D shows the same contour lines as a landscape. With the same seed and settings, you get the same map in both modes. You can switch between them at any time.
 
 | Setting | Attribute | Range | Default | What it does |
 |---|---|---|---|---|
@@ -516,18 +516,18 @@ The playground (`apps/playground`) is the project's live demo page.
   - The link tab shows a labelled still of the terrain the link will open, then each of the link's parameters as a key and value.
   - The PNG tab shows the view with a frame for each size: 2× the window, a phone (1170 × 2532) or 1920 × 1080. If a size has a different shape from the window, it crops the view. Drag its frame, or use the arrow keys, to choose the part to keep. For example, choose which part of a wide view goes on a phone. The frame is centred each time Export opens. The image is exactly that part of the screen, at full detail.
   - The Video tab previews the video. Drag the timeline to see any moment of the selected camera path. The path is drawn from above.
+  - The files are named after the named place on the map, such as `topographic-mount-fuji.png` and `topographic-mount-fuji-orbit.mp4`. Without a named place, a PNG is named after the shape and the seed, such as `topographic-seed-pod-71.png`, and a video after its camera path, such as `topographic-orbit.mp4`.
   - The code tabs number their lines. They colour the values that come from your settings.
 - **Map** opens a map with a frame. Use it to draw a real place as the terrain.
   - Pan and zoom the map, or drag the frame's corners and edges. You can also pick a place from the badge's menu. The places are grouped by region: Istanbul, Cyprus, Matterhorn & Zermatt and Geirangerfjord (Europe & Middle East); Grand Canyon, Yosemite Valley and Torres del Paine (Americas); Mount Fuji and Everest & the Khumbu (Asia); Kilimanjaro (Africa).
   - Press **Apply**. The real elevation inside the frame becomes the terrain.
   - Apply switches to 3D and uses the map terrain view: 36 lines at 0.5 px and 0.9 opacity, every fourth line bold, a block at elevation 0.12, and a closer camera.
-  - Cyprus has its own look instead: dark blue paper, light blue ink, 37 lines, elevation 0.06 and a camera from almost directly above.
   - Each place keeps that view but has its own camera angle and elevation. This puts its main feature in the middle, with the skyline above it.
   - Apply also saves the terrain in the dock, after the built-in map terrains. Its name is the place's name, or Area.
   - The dock starts with a built-in Istanbul map terrain for everyone. Like a look, it does not keep your changes. A click on it always brings back its own settings, camera and pan.
   - When a saved item is active, your changes to it are kept, including camera moves. A click on it brings back the view you left it in.
   - A built-in look does not keep your changes. A click on it always brings back its own camera. A plain shape uses the playground camera.
-  - **Clear** goes back to the generated terrain. It also brings back the lines, camera, extent and elevation you had before. After Cyprus, it also brings back your shape and colours.
+  - **Clear** goes back to the generated terrain. It also brings back the lines, camera, extent and elevation you had before.
   - When a map terrain is active, a small map above the right end of the dock shows the area you framed. In 3D, it turns with the camera, so it always matches the terrain on screen. Its compass points north. Click the compass to turn the camera back to north at the top (azimuth 0). Click the small map to open the map. In 2D, north is already at the top, so the small map does not turn.
   - The map loads only when you open it. It needs a network connection.
   - A link that opens a place hides the canvas until the heights arrive, so the default terrain does not flash. Contour rings draw in while it waits, on a desktop and on a phone. With reduced motion, the rings stay still. The page sets `data-loading` to `terrain`, and `get_region` returns `loading: true` with the message `Loading terrain`.
@@ -581,7 +581,11 @@ The playground is a Cloudflare Worker with static assets. With Workers Builds, a
 
 ### Hosting
 
-`wrangler.jsonc` at the repo root describes the Worker `topographic`. It has no script: it serves `apps/playground/dist` as static assets, with `_headers` from `apps/playground/public` for caching. Unknown paths fall back to `index.html`, since the playground keeps its state in the query string.
+`wrangler.jsonc` at the repo root describes the Worker `topographic`. It serves `apps/playground/dist` as static assets, with `_headers` from `apps/playground/public` for caching. The build also writes the page as `about.html`, so `/about` is a real file.
+
+- A browser that navigates to an unknown path gets `index.html`, since the playground keeps its state in the query string. The page then goes home and keeps the query.
+- Any other request for an unknown path, such as `curl` or `fetch` for `/.well-known/mcp.json`, reaches the small script `worker/index.js` and gets a plain-text 404 that points to `llms.txt`.
+- `robots.txt` allows every crawler and points to `llms.txt` and `sitemap.xml`.
 
 - `npm run deploy` builds the playground and runs `wrangler deploy`.
 - Workers Builds, connected to this repo, uses the build command `npm run build`, the deploy command `npx wrangler deploy` and `NODE_VERSION=20`.
@@ -590,12 +594,29 @@ The playground is a Cloudflare Worker with static assets. With Workers Builds, a
 
 [WebMCP](https://github.com/webmachinelearning/webmcp) lets a web page give tools to AI agents in the browser. In browsers that support it, the playground registers these tools with `document.modelContext.registerTool()`. Without WebMCP, no tools are registered.
 
+Most headless and agent browsers have no native WebMCP yet. An agent there can still drive the playground:
+
+- With URL parameters. `llms.txt` on the playground lists every key, and the page applies them on load.
+- With a stub. Before the page loads, give it a `document.modelContext` whose `registerTool` keeps each tool. Then call a tool's `execute(input)`. In Playwright:
+
+  ```js
+  await page.addInitScript(() => {
+    window.__tools = {};
+    document.modelContext = { registerTool: (tool) => { window.__tools[tool.name] = tool; } };
+  });
+  await page.goto('https://topographic.yahyapak.dev/?analytics_agent=claude&analytics_purpose=exploring');
+  await page.waitForFunction(() => window.__tools?.get_settings);
+  await page.evaluate(() => window.__tools.set_settings.execute({ shape: 'dunes', mode: '3d' }));
+  ```
+
+The `?analytics_agent=<name>&analytics_purpose=<purpose>` keys in that first URL are a polite request, not a rule. They tell the maintainer which agent visited and why, and change nothing else. [Analytics and error reports](#analytics-and-error-reports) lists the names and purposes, and `?analytics_optout=all` sends nothing.
+
 | Tool | What it does |
 |---|---|
 | `identify_agent` | Optional. The agent gives its `name` and a `purpose`, both from fixed lists, so analytics count it apart from people. Any other value is an error. |
 | `list_shapes` | Lists the shapes, with their ids and descriptions, and the looks, with their ids and settings. |
 | `get_settings` | Returns the current settings, the shortest config JSON, and the graphics tier that is drawing (`quality`, `fps`, `frameMs`, `mesh`). |
-| `set_settings` | Applies some settings. `look` applies a look by id, and the other keys in the same call override it. The land shape is `shape`; the old key `style` still works until the next release. Reports values that were moved into range and keys that were ignored. |
+| `set_settings` | Applies some settings. `look` applies a look by id, and the other keys in the same call override it. The land shape is `shape`; the old key `style` still works until the next release. Reports values that were moved into range and keys that were ignored. A new `theme.mode` clears the earlier `ink` and `paper`, as the theme button does, unless the same call gives them. The result says which colours were cleared. |
 | `randomize` | Picks a new random seed. With `{ "shape": true }`, it also picks a random shape. |
 | `take_screenshot` | Returns a PNG of the background as a data URL, 1200 px wide by default. An optional `region` (`{ x, y, width, height }`, as fractions of the view) keeps only that part. |
 | `record_video` | Records a short 3D video of the current terrain with a moving camera. Returns it as an MP4 or WebM data URL. The default is a 2 second orbit at 640×360. |

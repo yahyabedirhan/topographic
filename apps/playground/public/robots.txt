@@ -1,0 +1,9 @@
+# topographic playground: https://topographic.yahyapak.dev
+# Every crawler and AI agent is welcome.
+# Docs for AI agents: https://topographic.yahyapak.dev/llms.txt
+# Everything in one file: https://topographic.yahyapak.dev/llms-full.txt
+
+User-agent: *
+Allow: /
+
+Sitemap: https://topographic.yahyapak.dev/sitemap.xml

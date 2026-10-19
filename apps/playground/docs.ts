@@ -1,5 +1,5 @@
 import type { Plugin } from 'vite';
-import { LOOKS, PARAMS, SHAPES, defaultSettings } from 'topographic';
+import { LOOKS, PARAMS, RADIUS_MAX, RADIUS_MIN, SHAPES, defaultSettings } from 'topographic';
 import { AREA_LIMITS, LOCATIONS } from 'topographic/locations';
 import { INSTALL, TAGLINE } from './src/content';
 import { TOOL_DEFS } from './src/agent-tools';
@@ -7,9 +7,45 @@ import { AGENT_NAMES, PURPOSES } from './src/actor';
 import { PLACES } from './src/region/places';
 import { REGION_TOOL_DEFS } from './src/region/tools';
 import { DOCS_META } from './src/docs-page/copy';
+import { HOME_QUERY } from './src/share-url';
 
 export const SITE_URL = 'https://topographic.yahyapak.dev/';
 export const WEBMCP_SPEC = 'https://github.com/webmachinelearning/webmcp/blob/d0e4e0e0f039358cc9d93f90074116622bfebd53/index.bs';
+
+const HOME_LOOK = new URLSearchParams(HOME_QUERY).get('look') ?? '';
+const NAME_LIST = () => AGENT_NAMES.map((n) => `\`${n}\``).join(', ');
+const PURPOSE_LIST = () => PURPOSES.map((p) => `\`${p}\``).join(', ');
+
+/** How an agent without native WebMCP reaches the tools: a stub that keeps each registration. */
+const STUB = `await page.addInitScript(() => {
+  window.__tools = {};
+  document.modelContext = { registerTool: (tool) => { window.__tools[tool.name] = tool; } };
+});
+await page.goto('${SITE_URL}?analytics_agent=claude&analytics_purpose=exploring');
+await page.waitForFunction(() => window.__tools?.get_settings);
+const out = await page.evaluate(() => window.__tools.set_settings.execute({ shape: 'dunes', mode: '3d' }));`;
+
+/** The guidance for agents, at the top of llms.txt and in docs/webmcp.md. */
+function agentsMd(level: string): string {
+  return `${level} For AI agents
+
+Pick the way that fits your tools:
+
+1. **Over HTTP only:** read these docs and build playground links from the URL keys below. Plain HTTP cannot run the tools.
+2. **In a browser without native WebMCP**, which is most headless and agent browsers: open a link with URL keys, or capture the tools with a stub before the page loads, then call each tool's \`execute(input)\`. With Playwright:
+
+\`\`\`js
+${STUB}
+\`\`\`
+
+   \`execute\` returns a promise of the tool's result. Puppeteer works the same with \`page.evaluateOnNewDocument\`.
+3. **In a browser with native WebMCP:** call the tools listed below.
+
+**A small request.** If you are happy to, add \`?analytics_agent=<name>&analytics_purpose=<purpose>\` to the first playground URL you open, or call \`identify_agent\` once. It tells the maintainer that an agent visited and why, so agent visits are counted apart from people. It is optional, and the playground works the same either way. Only these two values are recorded, from fixed lists, and nothing about the person you work for. Use \`testing\` while you develop or check this site, and \`demo\` for a demo or video. To send nothing at all, add \`?analytics_optout=all\` instead. The About page, ${SITE_URL}about, says what is collected.
+
+- Names: ${NAME_LIST()}. \`chatgpt\` covers ChatGPT and Codex. Use \`other\` when yours is not listed.
+- Purposes: ${PURPOSE_LIST()}.`;
+}
 
 function toolsList(): string {
   return TOOL_DEFS.map((t) => `- \`${t.name}\`${t.readOnly ? ' (read-only)' : ''}: ${t.description}`).join('\n');
@@ -19,6 +55,8 @@ function webmcpMd(): string {
   return `# WebMCP tools
 
 In browsers that support [WebMCP](https://github.com/webmachinelearning/webmcp), the playground page registers these tools with \`document.modelContext.registerTool()\`. Older builds that expose \`navigator.modelContext\` are used as a fallback. Without either, nothing is registered and the page works as normal.
+
+${agentsMd('##')}
 
 Written against the spec at webmachinelearning/webmcp commit \`d0e4e0e0f039358cc9d93f90074116622bfebd53\` (${WEBMCP_SPEC}). Tools are removed by aborting their registration \`AbortSignal\`, and read-only tools set \`annotations.readOnlyHint\`.
 
@@ -30,7 +68,7 @@ ${TOOL_DEFS.map((t) => `### ${t.name}\n\n\`\`\`json\n${JSON.stringify(t.inputSch
 
 ## Place tools
 
-A region is \`?region=west,south,east,north\` in degrees, or JSON such as \`{"bbox":[28.45,40.78,29.65,41.36]}\`. Named examples: ${PLACES.map((p) => `\`place=${p.id}\` (${p.name})`).join(', ')}. Istanbul is the whole metro area, about 101 × 64 km, Cyprus the whole island, about 261 × 166 km, and each landscape a box of 30 to 80 km around its main feature. A region draws its real heights; the seed, the terrain params and \`motion.warp\` have no effect on it. In the page, the **Map** button picks a region, and its Apply also switches to 3D with \`lc=36&lw=0&lo=0.9&ix=4&ex=block&ev=0.12&az=341.8&ce=39.3&rd=1.32\`; each landscape sets its own \`ev\`, \`az\` and \`ce\`, and Cyprus its own look. \`set_region\` sets the same view. A minimap above the dock shows the applied area; in 3D it turns with the camera, and its compass turns the camera back to north up, which is azimuth 0.
+A region is \`?region=west,south,east,north\` in degrees, or JSON such as \`{"bbox":[28.45,40.78,29.65,41.36]}\`. Named examples: ${PLACES.map((p) => `\`place=${p.id}\` (${p.name})`).join(', ')}. Istanbul is the whole metro area, about 101 × 64 km, Cyprus the whole island, about 261 × 166 km, and each landscape a box of 30 to 80 km around its main feature. A region draws its real heights; the seed, the terrain params and \`motion.warp\` have no effect on it. In the page, the **Map** button picks a region, and its Apply also switches to 3D with \`lc=36&lw=0&lo=0.9&ix=4&ex=block&ev=0.12&az=341.8&ce=39.3&rd=1.32\`; Cyprus and each landscape set their own \`ev\`, \`az\` and \`ce\`. \`set_region\` sets the same view. A minimap above the dock shows the applied area; in 3D it turns with the camera, and its compass turns the camera back to north up, which is azimuth 0.
 
 ${REGION_TOOL_DEFS.map((t) => `- \`${t.name}\`${t.readOnly ? ' (read-only)' : ''}: ${t.description}`).join('\n')}
 
@@ -61,14 +99,14 @@ Other settings:
 - \`seed\` (attribute \`seed\`): integer 0 to 999999. The same seed gives the same terrain; 0 is the original look.
 - \`theme.mode\` (attribute \`theme\`): \`auto\` (follows the OS), \`light\` or \`dark\`.
 - \`theme.ink\` / \`theme.paper\` (attributes \`ink\`, \`paper\`): any CSS colour; paper may be \`transparent\`. Without them, the CSS variables \`--topographic-ink\` and \`--topographic-paper\` are used, then the mode defaults.
-- \`mode\` (attribute \`mode\`): \`2d\` (default) or \`3d\`. 3D draws the same contour field as a terrain. The same seed gives the same map in both.
+- \`mode\` (attribute \`mode\`): \`2d\` (the library default) or \`3d\`. The playground opens a bare URL in 3D; see llms.txt. 3D draws the same contour field as a terrain. The same seed gives the same map in both.
 - \`elevation\` (attribute \`elevation\`): 0 to 1, default 0.62. 3D height. 0 is flat like the 2D map; higher values make the terrain taller, with a rounded crest.
 - \`extent\` (attribute \`extent\`): \`endless\` (default) continues the terrain past the view. \`block\` is a finite tabletop whose cut sides carry thin ink layer lines.
 - \`detail\` (attribute \`detail\`): 0 to 1, default 0.5. Mesh resolution, from 32² to 160². Use a low value on a slow device.
 - \`quality\` (attribute \`quality\`): \`auto\` (default), \`low\`, \`medium\` or \`high\`. \`auto\` starts a phone at low and a desktop at high, then steps down if frames miss 60 Hz, or 120 Hz once that refresh has been seen. It does not step back up. The other values stay put. The tier caps the pixel ratio, the pixel count and the mesh size.
 - \`camera.azimuth\` (attribute \`azimuth\`): degrees around the terrain. Any finite number. Default 349.7.
 - \`camera.elevation\` (attribute \`camera-elevation\`): degrees above the horizon, 2 to 80. The camera never goes below the terrain. Default 33.6.
-- \`camera.radius\` (attribute \`radius\`): distance from the terrain centre, 1.15 to 6.5. Default 1.92.
+- \`camera.radius\` (attribute \`radius\`): distance from the terrain centre, ${RADIUS_MIN} to ${RADIUS_MAX}. Default ${defaultSettings().camera.radius}.
 - \`camera.motion\` (attribute \`camera-motion\`): \`still\` (default), \`orbit\`, \`push\`, \`flyover\` or \`drone\`. The terrain's own \`motion.speed\` still morphs the field, so the two motions are independent.
 - \`camera.panX\` / \`camera.panZ\` (attributes \`pan-x\`, \`pan-z\`): where the camera looks, moved from the terrain centre across the ground (east and south), -6 to 6, default 0. The camera and every motion path turn around that point. The renderer keeps it over the terrain.
 
@@ -197,6 +235,15 @@ function llmsTxt(): string {
 
 Live playground: ${SITE_URL}
 
+${agentsMd('##')}
+
+## First view and default mode
+
+- The library (\`topographic\`, \`<topographic-view>\`, \`topographic-react\`) draws in 2D unless you set \`mode: '3d'\`.
+- The playground opens a bare URL, with no settings keys, on the dock look \`look=${HOME_LOOK}\` in 3D (\`?${HOME_QUERY}\`).
+- A playground URL with any settings key, such as \`?s=dunes\` or \`?look=night-lobes\`, is 2D unless it has \`mode=3d\`.
+- The page rewrites the address bar to the shortest query for the same view. It drops keys that have the default value, so \`?s=dunes&mode=2d\` becomes \`?s=dunes\`, and the view stays 2D.
+
 ## URL state
 
 The playground keeps its state in short query params. It writes only the values that differ from a base: the shape's defaults, or a library look by id such as \`look=night-lobes\` (the ids in [params.md](docs/params.md) > Looks). Other params override the look's values.
@@ -215,7 +262,7 @@ Examples:
 ${PARAMS.map((p) => `- \`${p.short}\`: ${p.label.toLowerCase()}`).join('\n')}
 - \`m\`: theme, light, dark or auto
 - \`ink\`, \`paper\`: colours, as hex without \`#\`
-- \`mode\`: \`3d\`; 2D is the default
+- \`mode\`: \`3d\` or \`2d\`; only \`3d\` is written, because 2D is the default once any settings key is set
 - \`ex\`: extent; only \`block\` is written, endless is the default
 - \`ev\`: elevation
 - \`dl\`: detail
@@ -268,7 +315,7 @@ Details and input schemas: [docs/webmcp.md](docs/webmcp.md).
 
 ## Analytics
 
-The playground counts visits and tool use without cookies, and counts AI agents apart from people. If you are an AI agent, you are welcome to call \`identify_agent\` once with your \`name\` and a \`purpose\`, or to open the page with \`?analytics_agent=<name>&analytics_purpose=<purpose>\`. It is optional and changes nothing else; use \`testing\` while developing or checking this site. Names: ${AGENT_NAMES.join(', ')}; chatgpt covers ChatGPT and Codex. Purposes: ${PURPOSES.join(', ')}. Only these values are recorded, nothing about the person you work for. To send nothing, add \`?analytics_optout=all\`.
+The playground counts visits and tool use without cookies, and counts AI agents apart from people. Browsers run by automation, such as Playwright, count as agents by themselves. Identifying is optional; see "For AI agents" at the top of this file.
 
 ## Quick start
 
