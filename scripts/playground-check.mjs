@@ -293,6 +293,7 @@ try {
   const labels = await p.locator('.pt-menu-label').allInnerTexts();
   check(labels.map((t) => t.toLowerCase()).join() === 'europe,middle east,africa,asia,oceania,north america,south america,antarctica,arctic', `the place menu groups places by continent (${labels.join()})`);
   // Search: typing goes to the field, accents do not matter, and Enter picks the first result.
+  await p.waitForFunction(() => document.activeElement?.getAttribute('aria-label') === 'Search places', null, { timeout: 5000 }).catch(() => {});
   await p.keyboard.type('reunion'); await settle(p, 200);
   const found = (await p.getByRole('option').allInnerTexts()).map((t) => t.split('\n')[0]);
   check(found.join() === 'Réunion' && (await p.locator('.pt-menu-label').allInnerTexts()).join().toLowerCase() === 'africa', `the place search ignores accents and hides empty groups (${found.join()})`);
@@ -301,10 +302,12 @@ try {
   await p.keyboard.press('Escape'); await settle(p);
   check(await place.isVisible() && await p.locator('.pt-place-menu').count() === 0, 'Escape closes the place menu and keeps the Map popover open');
   await badge.click(); await p.getByRole('option').first().waitFor();
+  await p.waitForFunction(() => document.activeElement?.getAttribute('aria-label') === 'Search places', null, { timeout: 5000 }).catch(() => {});
   await p.keyboard.type('fitz roy'); await settle(p, 200); await p.keyboard.press('Enter');
   await badge.filter({ hasText: 'Fitz Roy' }).waitFor({ timeout: 10000 }).catch(() => {});
   check(/^Fitz Roy & Cerro Torre [\d.]+ × [\d.]+ km$/.test(await badgeText()), `Enter picks a catalog place and moves the map to it (${await badgeText()})`);
   await badge.click(); await p.getByRole('option').first().waitFor();
+  await p.waitForFunction(() => document.activeElement?.getAttribute('aria-label') === 'Search places', null, { timeout: 5000 }).catch(() => {});
   await p.keyboard.type('istanbul'); await settle(p, 200); await p.keyboard.press('Enter'); await settle(p, 1200);
   check(await place.isVisible(), 'closing the place menu keeps the Map popover open');
   check(await apply.evaluate((el) => el.classList.contains('pt-action')) && await place.getByRole('button', { name: 'Generated' }).count() === 0, 'Apply is an action button and Generated is gone');
