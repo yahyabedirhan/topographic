@@ -8,41 +8,44 @@ React bindings for [`topographic`](https://www.npmjs.com/package/topographic), t
 
 - Animated contour lines in 2D, or the same map as a 3D terrain
 - Real elevation data through `setHeightfield()`
-- Seven styles and readable settings as props
+- Seven landforms and readable settings as props
 - Automatic quality tiers for phones and fast screens
 - PNG and video export
 
 ```sh
-npm install topographic@0.4.0 topographic-react@0.4.0
+npm install topographic topographic-react
 ```
 
 ```tsx
-import { TopographicBackground } from 'topographic-react';
+import { Topography } from 'topographic-react';
 
 export function Hero() {
   return (
-    <TopographicBackground styleName="granite" terrain={{ roughness: 0.3 }} style={{ height: '100vh' }}>
+    <Topography landform="granite" terrain={{ roughness: 0.3 }}>
       <h1>Hello</h1>
-    </TopographicBackground>
+    </Topography>
   );
 }
 ```
 
+`<Topography>` renders a div; size it like any other div.
+The [guide](https://github.com/yahyabedirhan/topographic/blob/main/docs/guide.md#sizing-and-layering) shows how to size it and put it behind the page.
+
 For the 3D terrain, add `mode="3d"`, and optionally `elevation`, `extent`, `detail`, `quality` and `camera`. `quality` is `auto` (the default, which follows the device), `low`, `medium` or `high`:
 
 ```tsx
-<TopographicBackground styleName="long-ridge" mode="3d" extent="block" camera={{ motion: 'orbit' }} style={{ height: '100vh' }} />
+<Topography landform="long-ridge" mode="3d" extent="block" camera={{ motion: 'orbit' }} style={{ height: '100vh' }} />
 ```
 
 `onReady` gives you the instance, for `snapshot()`, `record()` and `setHeightfield()`. To show a real place, pass a square grid of heights from 0 to 1:
 
 ```tsx
-<TopographicBackground mode="3d" onReady={(t) => t.setHeightfield({ samples, size: 256, aspect: 1.2 })} style={{ height: '100vh' }} />
+<Topography mode="3d" onReady={(t) => t.setHeightfield({ samples, size: 256, aspect: 1.2 })} style={{ height: '100vh' }} />
 ```
 
 The [playground](https://topographic.yahyapak.dev/) has ten real places ready, or any area up to 300 km wide.
 
-To put the background on your own element, use `useTopographicBackground(settings)`, which returns a ref.
+To put the background on your own element, use `useTopography(settings)`, which returns a ref.
 
 - [Project README](https://github.com/yahyabedirhan/topographic#readme)
 - [Guide](https://github.com/yahyabedirhan/topographic/blob/main/docs/guide.md)
