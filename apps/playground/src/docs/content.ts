@@ -59,6 +59,20 @@ export interface DocSection {
   live?: SettingsInput;
 }
 
+/**
+ * The library's looks, in the order of the playground's dock: LOOKS in packages/core/src/looks.ts on the
+ * look-setting branch (pull request 85). Once that lands, this list can come from LOOKS itself.
+ */
+export const LOOK_NAMES = [
+  'Survey ridge', 'Fine granite', 'Wide lobes', 'Rose pod', 'Terraces', 'High dunes', 'Moss granite', 'Sea dunes',
+  'Night flower', 'Night lobes', 'Violet pod', 'Ink petals', 'Stepped petals', 'Day lobes', 'Still dunes', 'Rocky spine',
+  'Pale dunes', 'Stone grain', 'Open pod', 'Quiet hill', 'Bloom', 'Soft summit', 'Paper ridge', 'Centred lobes',
+  'Survey map', 'Rocky',
+] as const;
+
+/** A look's id: its name in lower case, with dashes. */
+export const lookId = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
 export const GROUPS: { name: string; ids: string[] }[] = [
   { name: 'Start', ids: ['what', 'install', 'first'] },
   { name: 'Land', ids: ['locations', 'landforms', 'looks'] },
@@ -114,8 +128,8 @@ export const SECTIONS: DocSection[] = [
   {
     id: 'looks', title: 'Looks', nav: 'Looks',
     lede: 'A look is a finished design with a name, such as survey-map or sea-dunes.',
-    body: `<p>A look is a finished design with a name. Pass it, and change any setting on top of it. What you pass wins over the look.</p>\n<p>Today the same idea ships as <code>PRESETS</code>, ten named settings objects such as Survey map, Terraces and Rocky, and the ${ext(PLAYGROUND, 'playground')}'s dock holds 24 looks more.<sup class="fn"></sup></p>`,
-    notes: [`The final list of look names is still open. These names come from the presets and the ${ext(PLAYGROUND, 'playground')} dock.`],
+    body: `<p>A look is a finished design with a name. Pass it, and change any setting on top of it. What you pass wins over the look.</p>\n<p>There are ${LOOK_NAMES.length} looks, the same ones as in the ${ext(PLAYGROUND, 'playground')}'s dock, in the same order.<sup class="fn"></sup></p>`,
+    notes: [`The looks are ${LOOK_NAMES.slice(0, -1).join(', ')} and ${LOOK_NAMES.at(-1)}. A look's id is its name in lower case with dashes, such as <code>night-flower</code>`],
     code: 'looks',
   },
   {
@@ -263,7 +277,7 @@ export const SECTIONS: DocSection[] = [
 export const byId: Record<string, DocSection> = Object.fromEntries(SECTIONS.map((s) => [s.id, s]));
 
 /** Playground looks that have a screenshot (apps/playground/src/looks.ts). */
-export const LOOK_GALLERY = [
+export const LOOK_GALLERY: { name: (typeof LOOK_NAMES)[number]; shot: string }[] = [
   { name: 'Survey ridge', shot: 'look-survey-ridge-2d' },
   { name: 'Sea dunes', shot: 'look-sea-dunes-2d' },
   { name: 'Rose pod', shot: 'look-rose-pod-2d' },
