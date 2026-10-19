@@ -207,8 +207,7 @@ const ROUND2 = [
     note: 'Round 3, built from what you liked in A1–A3. A1\'s base: the live preview and the parameter chips, with the label "Istanbul · 3D" only. Then the Agent skill part and the npm package part, each with its command. The npm package part also holds this scene as code and its link, a shortcut to Export, so people see how to make exactly what is on screen. Each part has one bright Copy; every other copy is a quiet icon button, and "Open Export" is a text link.',
     render(stage) {
       mount2(stage, 'code', `${preview(148, 'Istanbul · 3D')}${chips()}
-        <div class="sec"><div class="sec-t">${LU(GLYPH.sparkles, 13)}${INSTALL_LABELS.agent}</div>${field(SKILL2)}
-          <div class="hint2">Then ask your agent for this terrain. The skill installs the package and writes the code.</div></div>
+        <div class="sec"><div class="sec-t">${LU(GLYPH.sparkles, 13)}${INSTALL_LABELS.agent}</div>${field(SKILL2)}</div>
         <div class="sec"><div class="sec-t">${LU(GLYPH.hand, 13)}${INSTALL_LABELS.npm}</div>${field('npm install topographic')}
           ${qfield('npm install topographic topographic-react')}
           <div class="codebox"><pre class="code2">${SCENE_JS.map((l, i) => `<span class="ln">${i + 1}</span><span>${l}</span>`).join('')}</pre>${icopy(SCENE_JS_TEXT, 'Copy this code')}</div>
