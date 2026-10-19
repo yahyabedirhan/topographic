@@ -488,3 +488,7 @@ On "Yahya" in the Share feedback lede:
 On "the developer of topographic":
 
 > Here for the topographic, use the font that we use for the logo.
+
+On "topographic runs wherever JavaScript runs. Put it in a page, a film, a game, a print, or something nobody has made yet.":
+
+> Here as well.
