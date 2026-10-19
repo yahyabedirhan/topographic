@@ -501,7 +501,7 @@ The playground (`apps/playground`) is the project's live demo page.
 
   2D and 3D keep their own pan and zoom: the 2D view is `view2d` (`vx`, `vy`, `vz` in the URL), the 3D view is the camera. The Anchor setting still places the summit in 2D: 0 keeps it to the side, 1 puts it in the centre.
   The terrain is centred in the space between the top buttons and the dock, not behind the dock. The pan and the zoom are part of the camera. A saved map terrain keeps them. A click on a look, or the camera reset in Tune, moves the camera back to the centre.
-- The buttons at the top right are **Map**, 2D/3D, **Tune** and **Export**. Each one opens its panel below the buttons. Only one panel is open at a time. The 2D/3D button has a small badge that shows the current mode.
+- The buttons at the top right are **Map**, 2D/3D, **Tune** and **Export**, and **Install** in its own circle in the corner. Each one opens its panel below the buttons. Only one panel is open at a time. The 2D/3D button has a small badge that shows the current mode.
 - **Tune** opens the settings, one tab at a time: Lines, Terrain, Motion, Layout and 3D.
   - Each tab starts with a small live picture of its settings. The pictures show the contour rings, the side view of the terrain, the movement, the page layout, or the camera from above and from the side. The camera picture follows a moving camera a few times a second.
   - Every row has a small icon. Each slider's track shows what the setting does, such as thicker lines, rougher ground or wider waves.
@@ -511,6 +511,7 @@ The playground (`apps/playground`) is the project's live demo page.
   - The playground starts at High detail and High budget, unless the link or saved terrain names its own. If the frame rate stays below 30 fps, a **Low performance: reduce quality** button shows under the top right buttons. It sets Detail and Budget to medium. It shows once per browser session.
   - In 3D, the frame rate shows just above the dock, at its left edge, with the graphics tier that is actually drawing.
   - When a map place is applied, the Terrain sliders and Motion's Warp are dimmed, because the place sets the terrain. A note with **Clear map** is above them.
+- **Install** shows a preview of the view with its main settings, the agent skill command `npx skills add yahyabedirhan/topographic`, the npm install lines and this view's code as one `createTopography` call. **Copy link** copies the same link as Export's Link tab, and **Export** opens the Export panel.
 - **Export** gives you a link, a PNG, a 4 second 3D video as MP4 or WebM, and the code as React, HTML or JSON.
   - The link tab shows a labelled still of the terrain the link will open, then each of the link's parameters as a key and value.
   - The PNG tab shows the view with a frame for each size: 2× the window, a phone (1170 × 2532) or 1920 × 1080. If a size has a different shape from the window, it crops the view. Drag its frame, or use the arrow keys, to choose the part to keep. For example, choose which part of a wide view goes on a phone. The frame is centred each time Export opens. The image is exactly that part of the screen, at full detail.
@@ -559,7 +560,7 @@ Each client loads in its own chunk when the page is idle after the first paint.
 - **PostHog** runs without cookies (`persistence: 'memory'`, `cookieless_mode: 'always'`, which needs the project's cookieless server hash setting), with no session recording and no autocapture, and it respects Do Not Track. It sends pageview and pageleave (time on page, referrer and UTM parameters) and the typed events in `apps/playground/src/analytics.ts`:
   - Navigation: `ui_click` (header links), `view_mode_changed`, `panel_opened`, `panel_closed` (with time open), `export_tab_changed`.
   - Looks and settings: `dock_item_clicked`, `saved_terrain_deleted`, `place_applied`, `region_loaded`, `setting_changed`, `quality_changed`, `theme_toggled`, `shuffle_clicked`, `colour_changed`.
-  - Sharing and export: `link_copied`, `code_copied`, `export_image_downloaded`, `export_image_failed`, `export_video_started`, `export_video_completed`, `export_video_failed`.
+  - Sharing and export: `link_copied`, `code_copied`, `install_copied`, `export_image_downloaded`, `export_image_failed`, `export_video_started`, `export_video_completed`, `export_video_failed`.
   - `performance_sample`, once about 20 seconds into a visible visit: median and 10th-percentile fps, refresh rate, quality tier, viewport, device pixel ratio, GPU renderer, device memory, browser, OS, long frames, context losses and time to first frame.
   - `low_performance_prompt_shown` (fps, view, detail and budget levels) and `low_performance_prompt_clicked`, from the low performance prompt.
   - `analytics_opted_out`, once, from the Opt out button.

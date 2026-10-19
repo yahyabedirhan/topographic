@@ -24,6 +24,11 @@ It is a clean break: the old names are gone, with no deprecated aliases.
 - From the old presets, Survey map and Rocky are now the looks `survey-map` and `rocky`. Terraces is now the playground's Terraces look. The presets that were a shape with a few changes are gone; use `shape` for them.
 - Playground: the dock and the `look=` link key use the library's looks. Links made before 0.6.0 keep working, because the ids are the old `look=` values. The dock gains Survey map and Rocky.
 - Playground: `set_settings` takes `look`, and `list_shapes` returns the looks with their ids in place of the presets.
+- New package descriptions and keywords: "Topographic terrain rendered with WebGL. Generate a land or turn a real place into a topographic terrain." The words background and animated-background are gone.
+- New READMEs for the project and both packages: real places first, then generated shapes, then 2D and 3D, with each code example beside the picture it draws. Limits have their own section.
+- Playground: **Install**, a new button in its own circle at the top right. It shows a preview of the view and its main settings, the agent skill and npm install lines, this view's code, and its link with a shortcut to Export.
+- Playground: new share images, `og.png` and `og-docs.png`, with a real place, the headline and the code that draws it. The page title and description use the new line.
+- Playground: Export no longer shows the hint about tinted values under the code, and the HTML hint says element instead of background.
 
 | Old name | New name |
 |---|---|

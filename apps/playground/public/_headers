@@ -13,7 +13,11 @@
 /llms-full.txt
   Cache-Control: public, max-age=0, must-revalidate
   Content-Type: text/plain; charset=utf-8
-/og-a.png
+/og.png
+  Cache-Control: public, max-age=86400
+/og-docs.png
+  Cache-Control: public, max-age=86400
+/readme/*
   Cache-Control: public, max-age=86400
 
 /*

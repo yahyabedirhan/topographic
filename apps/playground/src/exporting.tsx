@@ -49,7 +49,7 @@ function useCopied(): [boolean, (text: string) => void] {
 }
 
 /** A compact copy action: a copy glyph and its label, then a check and "Copied". */
-function CopyAction({ text, label = 'Copy', quiet = false, onCopy }: { text: string; label?: string; quiet?: boolean; onCopy?: () => void }) {
+export function CopyAction({ text, label = 'Copy', quiet = false, onCopy }: { text: string; label?: string; quiet?: boolean; onCopy?: () => void }) {
   const [copied, copy] = useCopied();
   return (
     <Button className={`pt-action pt-copy${quiet ? ' pt-action-quiet' : ''}${copied ? ' is-done' : ''}`} onClick={() => { onCopy?.(); copy(text); }}>
@@ -62,7 +62,7 @@ function CopyAction({ text, label = 'Copy', quiet = false, onCopy }: { text: str
 }
 
 /** An icon-only copy button, for a line that has its own copy next to a bigger one. */
-function CopyIcon({ text, label, onCopy }: { text: string; label: string; onCopy?: () => void }) {
+export function CopyIcon({ text, label, onCopy }: { text: string; label: string; onCopy?: () => void }) {
   const [copied, copy] = useCopied();
   return (
     <Tooltip.Root>
@@ -142,7 +142,7 @@ export type Crops = Record<CropId, number>;
 const CENTRED: Crops = { screen: 0.5, phone: 0.5, '1080p': 0.5 };
 
 /** A picture of the view as it is now, redrawn after the settings settle. */
-function useViewPicture(pg: Playground, width: number, height: number, motion?: CameraMotion, time = 0) {
+export function useViewPicture(pg: Playground, width: number, height: number, motion?: CameraMotion, time = 0) {
   const [src, setSrc] = useState('');
   const current = useRef('');
   const busy = useRef(false);
@@ -430,12 +430,11 @@ const TOKEN = /<\/?[A-Za-z][\w:-]*|\/?>|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:
 /** Lines that are the same for every background: their values are not settings. */
 const BOILERPLATE = /position|^\s*import\b|<script/;
 
-/** One line of code, coloured, with the setting values tinted as pills. Returns the nodes and whether it tinted any. */
-function highlightLine(line: string, key: number): [ReactNode[], boolean] {
+/** One line of code, coloured, with the setting values tinted as pills. */
+function highlightLine(line: string, key: number): ReactNode[] {
   const parts: ReactNode[] = [];
   let last = 0;
   let i = 0;
-  let tinted = false;
   const plain = BOILERPLATE.test(line);
   for (const m of line.matchAll(TOKEN)) {
     const index = m.index ?? 0;
@@ -447,28 +446,19 @@ function highlightLine(line: string, key: number): [ReactNode[], boolean] {
     // A JSON key is a string followed by a colon; every other string or number on a settings line is a value.
     const isKey = str && /^\s*:/.test(line.slice(index + v.length));
     const pill = !plain && (str || num) && !isKey;
-    if (pill) tinted = true;
     parts.push(<span key={`${key}-${i++}`} className={pill ? `${cls} pt-vpill${num ? ' is-num' : ''}` : cls}>{v}</span>);
     last = index + v.length;
   }
   if (last < line.length) parts.push(line.slice(last));
-  return [parts, tinted];
+  return parts;
 }
 
-function CodeView({ code }: { code: string }) {
-  const lines = code.split('\n');
-  let tinted = false;
-  const rows = lines.map((line, n) => {
-    const [nodes, t] = highlightLine(line, n);
-    tinted ||= t;
+export function CodeView({ code }: { code: string }) {
+  const rows = code.split('\n').map((line, n) => {
+    const nodes = highlightLine(line, n);
     return [<span key={`n${n}`} className="pt-ln" aria-hidden="true">{n + 1}</span>, <span key={`l${n}`} className="pt-lc">{nodes.length ? nodes : ' '}</span>];
   });
-  return (
-    <>
-      <pre className="pt-code" tabIndex={0}><code>{rows}</code></pre>
-      {tinted ? <p className="pt-hint pt-hint-small">Tinted values come from Tune. Change them there and this updates.</p> : null}
-    </>
-  );
+  return <pre className="pt-code" tabIndex={0}><code>{rows}</code></pre>;
 }
 
 function CodeBlock({ pg, format }: { pg: Playground; format: 'react' | 'html' | 'json' }) {
@@ -478,7 +468,7 @@ function CodeBlock({ pg, format }: { pg: Playground; format: 'react' | 'html' | 
   const hint = format === 'react'
     ? 'Install the packages, then place this component on the page.'
     : format === 'html'
-      ? 'Add the element script, then place this background on the page.'
+      ? 'Add the element script, then place this element on the page.'
       : 'The settings as data.';
   return (
     <div className="pt-export-block">

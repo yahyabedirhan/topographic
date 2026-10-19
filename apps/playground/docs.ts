@@ -243,7 +243,7 @@ While the heights load, the page sets \`data-loading=terrain\` and hides the def
 - **Dock:** terrain previews, with a chevron that scrolls to the next one.
 - **Theme and colours:** theme, shuffle and the two colours sit in a 2×2 grid.
 - **Link tab:** shows a labelled still of the terrain the link opens.
-- **Share image:** \`og-a.png\`, a dark granite still, with \`twitter:card\` set to \`summary_large_image\`.
+- **Share image:** \`og.png\`, Everest in 3D beside the headline and the code that draws it, with \`twitter:card\` set to \`summary_large_image\`. The docs page uses \`og-docs.png\`.
 
 ## Packages
 
