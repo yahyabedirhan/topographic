@@ -66,7 +66,7 @@ main p{margin:0 0 14px;color:var(--text)}
 main p b{color:var(--fg)}
 .intro{margin-top:28px}
 #fig-hero{margin-top:22px}
-#fig-hero .stage{height:400px}
+#fig-hero .stage,#fig-install .stage{height:400px}
 /* sections */
 .sec{position:relative;padding-top:64px}
 .sec-h{display:flex;align-items:center;gap:14px;margin-bottom:18px;font:600 18px/1.1 var(--serif);letter-spacing:-.01em;color:var(--fg)}
@@ -373,7 +373,7 @@ const liveFig = (id, { cls = '' } = {}) => `<figure class="fig"><div class="stag
 const LU = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const res = (inner, cap) => `<figure class="res">${inner}<figcaption>${cap}</figcaption></figure>`;
 const FIGS = {
-  install: () => `${res(`<div class="ph short" style="background-image:url(${shot('place-istanbul')})"></div>`, 'After install, <code>&lt;Topography location="istanbul" /&gt;</code> draws Istanbul.')}<div class="inst">
+  install: () => `${`<figure class="fig" id="fig-install"><div class="stage tall loading" id="f-install"></div><figcaption class="cap">After install, <code>&lt;Topography location="istanbul" /&gt;</code> draws Istanbul.</figcaption></figure>`}<div class="inst">
     <div><div class="inst-t">${LU('<path d="M9.94 14.06 4 20M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9Z"/>')}${INSTALL_WAYS.agent.label}</div>
       ${codeBlock(INSTALL_WAYS.agent.cmd, { lang: 'sh', one: true })}</div>
     <div><div class="inst-t">${LU('<path d="M18 11V6a2 2 0 0 0-4 0v1M14 10V4a2 2 0 0 0-4 0v2M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>')}<a href="${NPM}" target="_blank" rel="noreferrer">${INSTALL_WAYS.npm.label}</a></div>
@@ -721,6 +721,15 @@ let cameraView;
     placeNotes();
   };
 }
+
+/* install: Istanbul, live, the result of the one-line install example */
+let installView;
+// The same settings as the Everest hero (camera, relief, look); only the heights are Istanbul's, so the two figures match.
+Promise.all([loadPlace('istanbul'), loadPlace('everest')]).then(([{ field }, { defaults }]) => {
+  installView = lazyLive($('#f-install'), merge(defaults, PLACE_LOOK), { field });
+  $('#f-install').classList.remove('loading');
+});
+cluster($('#f-install'), modeToggle(true, (mode) => installView?.update({ mode })));
 
 /* heightmaps: the Matterhorn as contours beside its heights as a greyscale heightmap */
 loadPlace('matterhorn').then(({ field, defaults }) => {

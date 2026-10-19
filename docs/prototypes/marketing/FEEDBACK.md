@@ -433,3 +433,14 @@ On the places gallery, where Cyprus is drawn from straight above:
 > Use whatever we use for other places as well.
 >
 > And show Istanbul at the beginning of the list, okay?
+
+On the Install section's still image of Istanbul:
+
+> I want you to actually convert this one to a real working version of it instead of an image as well.
+>
+> Make that Istanbul look similar to the first Everest example.
+> Currently they are not looking the same.
+
+On the Cyprus thumbnail in the places gallery:
+
+> Also update the color for Cyprus as well, not only the camera angle but this one should also be updated here.
