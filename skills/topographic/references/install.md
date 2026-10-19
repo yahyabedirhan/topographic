@@ -32,18 +32,19 @@ const topography = createTopography(document.querySelector('#terrain'), { shape:
 ```tsx
 import { Topography } from 'topographic-react';
 
-<Topography shape="long-ridge" />
+<Topography shape="long-ridge" className="terrain" />
 ```
 
 ```html
 <script type="module">import 'topographic/element';</script>
-<topographic-view shape="long-ridge"></topographic-view>
+<topographic-view shape="long-ridge" class="terrain"></topographic-view>
 ```
 
 ## 4. Give it a size
 
-The terrain fills its element, and an element without a height draws nothing.
-Size it with the project's own CSS: a height for a section, or fixed and behind the content for a full page.
+Size the element the terrain draws in: the element passed to `createTopography`, or `<Topography>` and `<topographic-view>` themselves.
+A height on a wrapper around them does not reach them.
+Use the project's own CSS: a height for a section, or fixed and behind the content for a full page.
 The guide's [Sizing and layering](https://github.com/yahyabedirhan/topographic/blob/main/docs/guide.md#sizing-and-layering) has both.
 
 With server rendering, create the terrain in the browser only.
