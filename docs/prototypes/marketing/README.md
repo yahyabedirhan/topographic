@@ -29,6 +29,8 @@ With `?lite`, a page keeps one live view and shows stills for the rest, which th
 
 `live.js` mounts the real library from `packages/core/dist`, so a live variant shows what the library draws today.
 Variants use the 0.5.0 API names inside `live.js`, while the code they show uses the proposed 0.6.0 names.
+`places.js` loads the playground's ten built-in places, such as `everest`, as real heightfields through the playground's own region worker.
+`placeTerrain(el, id, settings)` mounts one live with the place's camera and elevation, and `loadPlace(id)` returns its heightfield and defaults, cached per id.
 
 ## Videos
 
