@@ -81,14 +81,17 @@ const HEAD = 'Topographic terrain, rendered live with WebGL.';
 const SUB = 'Generate a land. Or turn a real place into one.';
 const LOGO = '/assets/images/logo/topographic.png';
 const FADE = 'linear-gradient(90deg,rgba(11,11,13,.95) 30%,rgba(11,11,13,.55) 52%,rgba(11,11,13,0) 74%)';
-/** The card text: the mark, the headline, the sub line and the code that draws the terrain behind it. No URL and no button. */
-const cardHtml = ({ x, w, code, extra = '' }) => `<div class="col" style="left:${x}px;width:${w}px">
+/**
+ * The card text: the mark, the headline, the sub line, then the install line and the code that draws the
+ * terrain behind it, as two steps in one block. No URL and no button.
+ */
+const cardHtml = ({ x, w, code, install = 'npm install topographic', extra = '' }) => `<div class="col" style="left:${x}px;width:${w}px">
   <div class="mark"><img src="${LOGO}" alt="">topographic${extra}</div>
   <div class="words"><h1>${HEAD}</h1><p class="sub">${SUB}</p></div>
-  <pre>${code}</pre></div>`;
+  <pre><span class="step"><b>$</b> ${install}</span>${code}</pre></div>`;
 const CARDS = [
   ['og.png', pub, 'everest', 1200, 630, cardHtml({ x: 72, w: 600, code: `<b>createTopography</b>(el, {\n  location: <i>'everest'</i>,\n  lines: { count: <u>44</u> },\n});` })],
-  ['og-docs.png', pub, 'grand-canyon', 1200, 630, cardHtml({ x: 72, w: 600, extra: '<small>docs</small>', code: `&lt;<b>Topography</b>\n  location=<i>"grand-canyon"</i>\n  mode=<i>"3d"</i>\n/&gt;` })],
+  ['og-docs.png', pub, 'grand-canyon', 1200, 630, cardHtml({ x: 72, w: 600, extra: '<small>docs</small>', install: 'npm install topographic topographic-react', code: `&lt;<b>Topography</b>\n  location=<i>"grand-canyon"</i>\n  mode=<i>"3d"</i>\n/&gt;` })],
   ['github-preview.png', social, 'yosemite', 1280, 640, cardHtml({ x: 72, w: 640, code: `<b>createTopography</b>(el, {\n  location: <i>'yosemite'</i>,\n  lines: { count: <u>44</u> },\n});` })],
 ];
 /** The card terrains: the README look, moved right of the type by a pan. */
