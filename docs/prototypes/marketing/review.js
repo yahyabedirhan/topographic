@@ -23,15 +23,13 @@ export const PLACES = [
 
 /** Pull requests opened for this launch. Filled in as they open. */
 export const PULLS = [
-  { title: 'topographic #77', href: 'https://github.com/yahyabedirhan/topographic/pull/77', note: 'Renames the public API: createTopography, Topography, useTopography, &lt;topographic-map&gt;, landform. Old ?s= links and saved terrains keep working. Tests, typecheck, build and smoke pass.', state: 'Draft, uses D1–D3 defaults' },
+  { title: 'topographic #77', href: 'https://github.com/yahyabedirhan/topographic/pull/77', note: 'Renames the public API: createTopography, Topography, useTopography, &lt;topographic-view&gt;, shape. Old ?s= links and saved terrains keep working. Tests, typecheck, build and smoke pass.', state: 'Draft, uses D1–D3 defaults' },
   { title: 'topographic skill (in #77)', href: 'https://github.com/yahyabedirhan/topographic/tree/effort/topography-api/skills/topographic', note: 'A short entry point for agents: an install check, one example and a map of guide sections. references/install.md loads only for the first install. Install with npx skills add yahyabedirhan/topographic.', state: 'Draft, on the #77 branch' },
   { title: 'personal-website #26', href: 'https://github.com/yahyabedirhan/personal-website/pull/26', note: 'Points the 8 old github.io playground links on the topographic page at topographic.yahyapak.dev. No copy changes.', state: 'Open, ready to merge' },
 ];
 
 /** Decisions waiting for the maintainer, with the default agents used. */
 export const DECISIONS = [
-  { id: 'D1', q: 'Name of the land-shape setting that replaces style/styleName', def: 'landform', options: 'landform · shape · land', board: 'api-naming' },
-  { id: 'D2', q: 'Custom element tag that replaces &lt;topographic-bg&gt;', def: '&lt;topographic-map&gt;', options: 'topographic-map · topography-view · topographic-terrain', board: 'api-naming' },
   { id: 'D3', q: 'Old names in 0.6.0', def: 'Clean break with a migration table', options: 'Clean break · Aliases for one release' },
   { id: 'D4', q: 'How real locations ship in the library', def: 'Ten built-in locations in topographic/locations, plus fetchLocation() for any area', options: 'Built-in plus live · Built-in only · Live only' },
   { id: 'D5', q: 'Named looks as a library setting', def: 'Yes: one look setting, merging core presets and playground looks', options: 'Yes · Playground only' },

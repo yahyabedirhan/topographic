@@ -7,15 +7,15 @@ Parts 2 to 5 wait for the maintainer's decisions.
 
 ## Part 1: public names
 
-This part is built as a draft pull request, using the defaults of D1, D2 and D3.
+This part is built as a draft pull request, using the maintainer's names (`shape`, `<topographic-view>`) and the default of D3.
 
 | 0.5.0 | 0.6.0 |
 |---|---|
 | `createTopographicBackground(el, settings)` | `createTopography(el, settings)` |
 | `TopographicBackground` type | `Topography` type, and `TopographyInstance` in React |
 | `<TopographicBackground>` and `useTopographicBackground()` | `<Topography>` and `useTopography()` |
-| `<topographic-bg>` and `TopographicBackgroundElement` | `<topographic-map>` and `TopographyElement` |
-| `style`, `styleName`, `style-name` | `landform` |
+| `<topographic-bg>` and `TopographicBackgroundElement` | `<topographic-view>` and `TopographyElement` |
+| `style`, `styleName`, `style-name` | `shape` |
 
 The trade-off is a clean break (D3).
 0.x versions allow breaking changes, and the launch was recent, so few users depend on the old names.
