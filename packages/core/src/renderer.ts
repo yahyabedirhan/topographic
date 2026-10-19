@@ -76,7 +76,7 @@ export interface Topography {
   snapshot(opts?: SnapshotOptions): Promise<Blob>;
   /** Renders a 3D clip with a moving camera. The live canvas is not resized. */
   record(opts?: RecordOptions): Promise<Blob>;
-  /** Use a real elevation grid for the contours, or null for the procedural landform. */
+  /** Use a real elevation grid for the contours, or null for the procedural shape. */
   setHeightfield(field: Heightfield | null): void;
   /**
    * Stops drawing while another WebGL view (a map, a snapshot batch) needs the GPU.

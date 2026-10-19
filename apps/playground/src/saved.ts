@@ -34,10 +34,10 @@ function storage(): Storage | null {
   try { return globalThis.localStorage ?? null; } catch { return null; }
 }
 
-/** Terrains saved before 0.6.0 name their landform `style`. */
+/** Terrains saved before 0.6.0 name their shape `style`. */
 function savedSettings(s: SettingsInput & { style?: string }): Settings {
   const { style, ...rest } = s;
-  return resolveSettings(rest.landform === undefined && style !== undefined ? { ...rest, landform: style } : rest);
+  return resolveSettings(rest.shape === undefined && style !== undefined ? { ...rest, shape: style } : rest);
 }
 
 function isBox(v: unknown): v is BBox {

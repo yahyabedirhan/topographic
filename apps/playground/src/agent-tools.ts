@@ -1,4 +1,4 @@
-import { GROUPS, PARAMS, LANDFORMS } from 'topographic';
+import { GROUPS, PARAMS, SHAPES } from 'topographic';
 import { AGENT_NAMES, PURPOSES } from './actor';
 
 const groupSchema = (g: string) => ({
@@ -13,8 +13,8 @@ export const SETTINGS_SCHEMA = {
   type: 'object',
   additionalProperties: false,
   properties: {
-    landform: { type: 'string', enum: LANDFORMS.map((s) => s.id), description: 'The land shape of the procedural terrain.' },
-    style: { type: 'string', enum: LANDFORMS.map((s) => s.id), description: 'Old name of landform, accepted until the next release. Use landform.' },
+    shape: { type: 'string', enum: SHAPES.map((s) => s.id), description: 'The land shape of the procedural terrain.' },
+    style: { type: 'string', enum: SHAPES.map((s) => s.id), description: 'Old name of shape, accepted until the next release. Use shape.' },
     seed: { type: 'integer', minimum: 0, maximum: 999999, description: 'Same seed, same terrain. 0 is the original look.' },
     ...Object.fromEntries(GROUPS.map((g) => [g, groupSchema(g)])),
     theme: {
@@ -62,8 +62,8 @@ export const TOOL_DEFS: ToolDef[] = [
       name: { type: 'string', enum: AGENT_NAMES, description: 'Your agent or harness. chatgpt covers ChatGPT and Codex. Use other when yours is not listed.' },
       purpose: { type: 'string', enum: PURPOSES, description: PURPOSE_HELP },
     } } },
-  { name: 'list_landforms', title: 'List landforms', readOnly: true,
-    description: 'Lists the landforms and the presets, with ids, names and descriptions.',
+  { name: 'list_shapes', title: 'List shapes', readOnly: true,
+    description: 'Lists the shapes and the presets, with ids, names and descriptions.',
     inputSchema: { type: 'object', properties: {} } },
   { name: 'get_settings', title: 'Get settings', readOnly: true,
     description: 'Returns the current settings: the full resolved object, the minimal config JSON (only non-default values), and the graphics tier actually drawing (quality, fps, frameMs, mesh).',
@@ -72,8 +72,8 @@ export const TOOL_DEFS: ToolDef[] = [
     description: 'Changes the background. Takes a partial settings object; values are merged into the current settings, clamped to their ranges, and applied live. Returns the resulting config and any adjustments made.',
     inputSchema: SETTINGS_SCHEMA },
   { name: 'randomize', title: 'Randomize', readOnly: false,
-    description: 'Picks a new random seed. With landform: true, also picks a random landform.',
-    inputSchema: { type: 'object', properties: { landform: { type: 'boolean', description: 'Also randomize the landform.' } } } },
+    description: 'Picks a new random seed. With shape: true, also picks a random shape.',
+    inputSchema: { type: 'object', properties: { shape: { type: 'boolean', description: 'Also randomize the shape.' } } } },
   { name: 'take_screenshot', title: 'Take screenshot', readOnly: true,
     description: 'Renders the current background to a PNG and returns it as a data URL. Defaults to 1200 px wide at the screen aspect ratio. With region, only that slice of the current view, at full detail (for example a phone-shaped strip).',
     inputSchema: { type: 'object', properties: {

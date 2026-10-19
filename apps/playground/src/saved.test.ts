@@ -3,7 +3,7 @@ import { resolveSettings } from 'topographic';
 import { PLACES } from './region/places';
 import { addSaved, readSaved, SAVED_KEY, SAVED_MAX, savedName, writeSaved, type SavedTerrain } from './saved';
 
-const settings = resolveSettings({ landform: 'dunes', mode: '3d' });
+const settings = resolveSettings({ shape: 'dunes', mode: '3d' });
 
 function memory() {
   const data = new Map<string, string>();
@@ -48,9 +48,9 @@ describe('saved map terrains', () => {
   it('reads a terrain saved before 0.6.0 with a style key', () => {
     const store = memory();
     const { items } = addSaved([], { bbox: box(0), placeId: null, settings }, 1);
-    const { landform, ...old } = items[0].settings;
-    store.setItem(SAVED_KEY, JSON.stringify([{ ...items[0], settings: { ...old, style: landform } }]));
-    expect(readSaved(store)[0].settings.landform).toBe('dunes');
+    const { shape, ...old } = items[0].settings;
+    store.setItem(SAVED_KEY, JSON.stringify([{ ...items[0], settings: { ...old, style: shape } }]));
+    expect(readSaved(store)[0].settings.shape).toBe('dunes');
   });
 
   it('works without storage and ignores broken data', () => {

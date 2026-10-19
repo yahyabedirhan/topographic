@@ -42,7 +42,7 @@ export async function downloadPng(t: Topography, size: PngSize, region?: Snapsho
   const blob = await renderPng(t, size.width, size.height, region ?? undefined);
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `topographic-${t.settings.landform}-${t.settings.seed}.png`;
+  a.download = `topographic-${t.settings.shape}-${t.settings.seed}.png`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }

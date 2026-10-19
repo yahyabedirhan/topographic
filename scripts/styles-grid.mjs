@@ -9,12 +9,12 @@ export const TILES = [
   { preset: 'Drifting lobes' }, { preset: 'Granite' }, { preset: 'Five petals' }, { preset: 'Seed pod' },
   { preset: 'Gentle summit' }, { preset: 'Long ridge' }, { preset: 'Dunes' }, { preset: 'Survey map' },
   { preset: 'Terraces' }, { preset: 'Rocky' },
-  { name: 'Twin peaks', settings: { landform: 'drifting-lobes', seed: 7, terrain: { peaks: 2, spread: 1 } } },
-  { name: 'Fine lines', settings: { landform: 'drifting-lobes', seed: 21, lines: { count: 48 } } },
-  { name: 'Scree', settings: { landform: 'granite', seed: 3, terrain: { roughness: 0.6 } } },
-  { name: 'Bloom', settings: { landform: 'five-petals', seed: 12, lines: { count: 42 }, terrain: { variant: 0.9 } } },
-  { name: 'Wide dunes', settings: { landform: 'dunes', seed: 5, lines: { count: 16, width: 0.4 } } },
-  { name: 'Plateau', settings: { landform: 'seed-pod', seed: 9, terrain: { terracing: 0.6 } } },
+  { name: 'Twin peaks', settings: { shape: 'drifting-lobes', seed: 7, terrain: { peaks: 2, spread: 1 } } },
+  { name: 'Fine lines', settings: { shape: 'drifting-lobes', seed: 21, lines: { count: 48 } } },
+  { name: 'Scree', settings: { shape: 'granite', seed: 3, terrain: { roughness: 0.6 } } },
+  { name: 'Bloom', settings: { shape: 'five-petals', seed: 12, lines: { count: 42 }, terrain: { variant: 0.9 } } },
+  { name: 'Wide dunes', settings: { shape: 'dunes', seed: 5, lines: { count: 16, width: 0.4 } } },
+  { name: 'Plateau', settings: { shape: 'seed-pod', seed: 9, terrain: { terracing: 0.6 } } },
 ];
 
 const out = process.argv[2] ?? 'assets/screenshots/styles.png';
@@ -33,7 +33,7 @@ try {
   await page.waitForFunction(() => window.ready);
   await page.evaluate(async ({ tiles, show }) => {
     const resolved = tiles.map((t) => {
-      if (!t.preset) return { ...t, note: `${t.settings.landform} · seed ${t.settings.seed}` };
+      if (!t.preset) return { ...t, note: `${t.settings.shape} · seed ${t.settings.seed}` };
       const p = window.lib.PRESETS.find((x) => x.name === t.preset);
       if (!p) throw new Error(`unknown preset ${t.preset}`);
       return { name: p.name, settings: p.settings };

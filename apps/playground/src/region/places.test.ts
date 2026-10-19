@@ -83,7 +83,7 @@ describe('example places', () => {
   it('lets Clear restore the colours after Cyprus, and only the map view after Istanbul or a landscape', () => {
     expect(restoredKeys('istanbul').sort()).toEqual(['camera', 'elevation', 'extent', 'lines']);
     for (const place of LANDSCAPES) expect(restoredKeys(place.id).sort()).toEqual(['camera', 'elevation', 'extent', 'lines', 'mode']);
-    expect(restoredKeys('cyprus')).toEqual(expect.arrayContaining(['theme', 'landform', 'motion', 'layout', 'lines', 'camera']));
+    expect(restoredKeys('cyprus')).toEqual(expect.arrayContaining(['theme', 'shape', 'motion', 'layout', 'lines', 'camera']));
     const start = resolveSettings({ theme: { mode: 'light', ink: '#222222' } });
     const applied = mergeSettings(start, CYPRUS_DEFAULTS);
     expect(mergeSettings(applied, beforePlace(start, restoredKeys('cyprus')))).toEqual(start);

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { PARAMS } from '../params.js';
-import { LANDFORMS } from '../landforms.js';
+import { SHAPES } from '../shapes.js';
 import { wrapFragment } from './common.glsl.js';
 import { terrainFragmentSource, terrainVertexSource } from './terrain.glsl.js';
 import { TOPOGRAPHIC_FRAGMENT } from './topographic.glsl.js';
@@ -13,8 +13,8 @@ describe('topographic shader source', () => {
   it('reads every numeric param slot', () => {
     for (const p of PARAMS) if (typeof p.slot === 'number') expect(TOPOGRAPHIC_FRAGMENT).toContain(`uParams[${p.slot}]`);
   });
-  it('has a branch for every landform index', () => {
-    for (const s of LANDFORMS) {
+  it('has a branch for every shape index', () => {
+    for (const s of SHAPES) {
       const name = `STYLE_${s.id.toUpperCase().replace(/-/g, '_')}`;
       expect(TOPOGRAPHIC_FRAGMENT).toContain(`#define ${name} ${s.index}\n`);
       expect(TOPOGRAPHIC_FRAGMENT).toContain(`if(s==${name})`);

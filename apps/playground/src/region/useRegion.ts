@@ -46,9 +46,9 @@ function queryOf(bbox: BBox | null, placeId: string | null): RegionQuery {
   return { bbox, place: placeId };
 }
 
-/** Without a remembered state (a place opened from a link), Clear returns to the library defaults for the landform. */
-function generatedView(landform: string): BeforePlace {
-  const d = resolveSettings({ landform });
+/** Without a remembered state (a place opened from a link), Clear returns to the library defaults for the shape. */
+function generatedView(shape: string): BeforePlace {
+  const d = resolveSettings({ shape });
   return { lines: d.lines, camera: d.camera, extent: d.extent, elevation: d.elevation ?? DEFAULT_ELEVATION };
 }
 
@@ -193,7 +193,7 @@ export function useRegion(pg: Playground): RegionController {
     setStatus('idle');
     setGeneration((n) => n + 1);
     const back = before.current;
-    if (had) pgRef.current.change(back ? beforePlace(back.settings, [...back.keys]) : generatedView(settingsRef.current.landform));
+    if (had) pgRef.current.change(back ? beforePlace(back.settings, [...back.keys]) : generatedView(settingsRef.current.shape));
     before.current = null;
   }, []);
   const agent: RegionController = {

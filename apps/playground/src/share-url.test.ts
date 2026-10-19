@@ -16,18 +16,18 @@ describe('share url', () => {
     for (const look of LOOKS) roundTrip(playgroundSettings(look.settings));
   });
 
-  it('writes nothing for the home view, and names the landform otherwise', () => {
+  it('writes nothing for the home view, and names the shape otherwise', () => {
     const home = readSettings('');
     expect(home).toEqual(readSettings(HOME_QUERY));
     expect(query(home)).toBe('');
     expect(query(playgroundSettings())).toBe('lf=drifting-lobes');
     roundTrip(playgroundSettings());
-    expect(query(playgroundSettings({ landform: 'dunes' }))).toBe('lf=dunes');
-    roundTrip(playgroundSettings({ landform: 'dunes' }));
+    expect(query(playgroundSettings({ shape: 'dunes' }))).toBe('lf=dunes');
+    roundTrip(playgroundSettings({ shape: 'dunes' }));
   });
 
-  it('reads the landform from an old s= link', () => {
-    expect(readSettings('s=dunes&seed=4').landform).toBe('dunes');
+  it('reads the shape from an old s= link', () => {
+    expect(readSettings('s=dunes&seed=4').shape).toBe('dunes');
     expect(query(readSettings('s=dunes&seed=4'))).toBe('lf=dunes&seed=4');
   });
 
@@ -87,13 +87,13 @@ describe('share url', () => {
   });
 
   it('writes colours without # and reads them back', () => {
-    const s = playgroundSettings({ landform: 'gentle-summit', seed: 4, theme: { mode: 'dark', ink: '#9fb0cc', paper: '#0b0b0d' } });
+    const s = playgroundSettings({ shape: 'gentle-summit', seed: 4, theme: { mode: 'dark', ink: '#9fb0cc', paper: '#0b0b0d' } });
     expect(query(s)).toBe('lf=gentle-summit&seed=4&m=dark&ink=9fb0cc&paper=0b0b0d');
     roundTrip(s);
     expect(readSettings('ink=fff&paper=transparent').theme).toMatchObject({ ink: '#fff', paper: 'transparent' });
   });
 
-  it('falls back to the landform defaults when a look loses its colours', () => {
+  it('falls back to the shape defaults when a look loses its colours', () => {
     const s = { ...nightLobes, theme: { mode: 'auto' as const } };
     expect(query(s)).not.toContain('look=');
     roundTrip(s);

@@ -18,7 +18,7 @@ export interface Place {
  * The camera motion and the detail are left out: they belong to the viewer, not the place.
  */
 export const CYPRUS_DEFAULTS = {
-  landform: 'granite',
+  shape: 'granite',
   seed: 127,
   lines: { count: 37, width: 0, opacity: 0.92, indexEvery: 6 },
   terrain: { peaks: 1, spread: 0.5, roughness: 0.5, sharpness: 0.5, terracing: 0, variant: 0.5 },

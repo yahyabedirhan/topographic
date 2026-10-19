@@ -1,6 +1,6 @@
 import { GROUPS, PARAMS, clampParam, paramsIn, type GroupName, type GroupValues, type ParamDef } from './params.js';
 import { QUALITIES, type QualityName } from './quality.js';
-import { DEFAULT_LANDFORM, findLandform, type DeepPartialSettings, type LandformId } from './landforms.js';
+import { DEFAULT_SHAPE, findShape, type DeepPartialSettings, type ShapeId } from './shapes.js';
 
 export type ThemeMode = 'auto' | 'light' | 'dark';
 export interface ThemeSettings {
@@ -50,7 +50,7 @@ export const DEFAULT_VIEW2D: View2dSettings = { x: 0, y: 0, zoom: 1 };
 export const DEFAULT_EXTENT: TerrainExtent = 'endless';
 
 export interface Settings {
-  landform: LandformId;
+  shape: ShapeId;
   /** Integer seed; the same seed gives the same terrain. */
   seed: number;
   lines: GroupValues<'lines'>;
@@ -74,7 +74,7 @@ export interface Settings {
   view2d: View2dSettings;
 }
 
-export type SettingsInput = Omit<DeepPartialSettings, 'landform'> & { landform?: string };
+export type SettingsInput = Omit<DeepPartialSettings, 'shape'> & { shape?: string };
 
 const warned = new Set<string>();
 export function resetWarnings(): void { warned.clear(); }
@@ -173,7 +173,7 @@ function applyView(into: Settings, input: SettingsInput | undefined): void {
 
 export function defaultSettings(): Settings {
   return {
-    landform: DEFAULT_LANDFORM, seed: 0,
+    shape: DEFAULT_SHAPE, seed: 0,
     lines: groupDefaults('lines'), terrain: groupDefaults('terrain'),
     motion: groupDefaults('motion'), layout: groupDefaults('layout'),
     theme: { mode: 'auto' },
@@ -184,11 +184,11 @@ export function defaultSettings(): Settings {
   };
 }
 
-function resolveLandform(landform: string | undefined): LandformId {
-  if (landform === undefined) return DEFAULT_LANDFORM;
-  if (findLandform(landform)) return landform as LandformId;
-  warnOnce(`unknown landform "${landform}", using "${DEFAULT_LANDFORM}"`);
-  return DEFAULT_LANDFORM;
+function resolveShape(shape: string | undefined): ShapeId {
+  if (shape === undefined) return DEFAULT_SHAPE;
+  if (findShape(shape)) return shape as ShapeId;
+  warnOnce(`unknown shape "${shape}", using "${DEFAULT_SHAPE}"`);
+  return DEFAULT_SHAPE;
 }
 
 function applyGroups(into: Settings, input: SettingsInput | undefined): void {
@@ -207,20 +207,20 @@ function applyGroups(into: Settings, input: SettingsInput | undefined): void {
   if (input.theme) into.theme = { ...into.theme, ...input.theme };
 }
 
-/** Defaults, then the landform's own defaults, then the input. Every number is clamped. */
+/** Defaults, then the shape's own defaults, then the input. Every number is clamped. */
 export function resolveSettings(input: SettingsInput = {}): Settings {
   const out = defaultSettings();
-  out.landform = resolveLandform(input.landform);
-  applyGroups(out, findLandform(out.landform)?.defaults as SettingsInput | undefined);
+  out.shape = resolveShape(input.shape);
+  applyGroups(out, findShape(out.shape)?.defaults as SettingsInput | undefined);
   applyGroups(out, input);
   applyView(out, input);
   return out;
 }
 
-/** Merges a partial update into resolved settings. Changing the landform does not reset other values. */
+/** Merges a partial update into resolved settings. Changing the shape does not reset other values. */
 export function mergeSettings(current: Settings, patch: SettingsInput): Settings {
   const out: Settings = structuredClone(current);
-  if (patch.landform !== undefined) out.landform = resolveLandform(patch.landform);
+  if (patch.shape !== undefined) out.shape = resolveShape(patch.shape);
   applyGroups(out, patch);
   applyView(out, patch);
   return out;
@@ -232,7 +232,7 @@ export type ParamUniforms = { uParams: Float32Array; uCenter: number; uFade: num
 export function toUniforms(s: Settings, into?: Float32Array): ParamUniforms {
   const uParams = into ?? new Float32Array(16);
   if (into) into.fill(0);
-  const out: ParamUniforms = { uParams, uCenter: 0, uFade: 0, uStyle: findLandform(s.landform)!.index, uSeed: s.seed };
+  const out: ParamUniforms = { uParams, uCenter: 0, uFade: 0, uStyle: findShape(s.shape)!.index, uSeed: s.seed };
   for (const def of PARAMS as readonly ParamDef[]) {
     const raw = (s[def.group] as Record<string, number>)[def.key];
     const v = def.toUniform ? def.toUniform(raw) : raw;
@@ -245,7 +245,7 @@ export function toUniforms(s: Settings, into?: Float32Array): ParamUniforms {
 /** Reads settings from string attributes (as on <topographic-map>). Unknown attributes are ignored. */
 export function fromAttributes(get: (name: string) => string | null): SettingsInput {
   const input: Record<string, unknown> = {};
-  const landform = get('landform'); if (landform) input.landform = landform;
+  const shape = get('shape'); if (shape) input.shape = shape;
   const seed = get('seed'); if (seed !== null) input.seed = Number(seed);
   for (const def of PARAMS as readonly ParamDef[]) {
     const v = get(def.attr);
@@ -290,8 +290,8 @@ export function fromAttributes(get: (name: string) => string | null): SettingsIn
 
 /** Attributes that differ from the defaults, for embed snippets. */
 export function toAttributes(s: Settings): Record<string, string> {
-  const d = resolveSettings({ landform: s.landform });
-  const out: Record<string, string> = { landform: s.landform };
+  const d = resolveSettings({ shape: s.shape });
+  const out: Record<string, string> = { shape: s.shape };
   if (s.seed) out.seed = String(s.seed);
   for (const def of PARAMS as readonly ParamDef[]) {
     const v = (s[def.group] as Record<string, number>)[def.key];
@@ -319,8 +319,8 @@ export function toAttributes(s: Settings): Record<string, string> {
 
 /** Compact query string with only non-default values. */
 export function toQuery(s: Settings): string {
-  const d = resolveSettings({ landform: s.landform });
-  const q = new URLSearchParams({ lf: s.landform });
+  const d = resolveSettings({ shape: s.shape });
+  const q = new URLSearchParams({ lf: s.shape });
   if (s.seed) q.set('seed', String(s.seed));
   for (const def of PARAMS as readonly ParamDef[]) {
     const v = (s[def.group] as Record<string, number>)[def.key];
@@ -353,7 +353,7 @@ export function fromQuery(query: string): SettingsInput {
     elevation: 'ev', extent: 'ex', detail: 'dl', quality: 'ql', azimuth: 'az', 'camera-elevation': 'ce', radius: 'rd', 'camera-motion': 'cm', 'pan-x': 'px', 'pan-z': 'pz', 'view-x': 'vx', 'view-y': 'vy', 'view-zoom': 'vz',
   };
   return fromAttributes((name) => {
-    if (name === 'landform') return q.get('lf') ?? q.get('s');
+    if (name === 'shape') return q.get('lf') ?? q.get('s');
     if (name === 'theme') return q.get('m');
     if (name === 'mode') return q.get('mode');
     if (name === 'seed' || name === 'ink' || name === 'paper') return q.get(name);

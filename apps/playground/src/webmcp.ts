@@ -1,4 +1,4 @@
-import { mergeSettings, PRESETS, LANDFORMS, type Settings, type SettingsInput, type Topography } from 'topographic';
+import { mergeSettings, PRESETS, SHAPES, type Settings, type SettingsInput, type Topography } from 'topographic';
 import { INSTALL } from './content';
 import { embedCode, type EmbedFormat } from './embed';
 import { TOOL_DEFS } from './agent-tools';
@@ -35,11 +35,11 @@ const blobToDataUrl = (b: Blob) => new Promise<string>((resolve, reject) => {
   const r = new FileReader(); r.onload = () => resolve(String(r.result)); r.onerror = () => reject(r.error); r.readAsDataURL(b);
 });
 
-const TOP_KEYS = ['landform', 'seed', 'theme', 'lines', 'terrain', 'motion', 'layout', 'mode', 'elevation', 'extent', 'detail', 'quality', 'camera', 'view2d'];
+const TOP_KEYS = ['shape', 'seed', 'theme', 'lines', 'terrain', 'motion', 'layout', 'mode', 'elevation', 'extent', 'detail', 'quality', 'camera', 'view2d'];
 
 function adjustments(input: Record<string, unknown>, out: Settings): string[] {
   const notes: string[] = [];
-  if (typeof input.landform === 'string' && input.landform !== out.landform) notes.push(`unknown landform "${input.landform}", kept "${out.landform}"`);
+  if (typeof input.shape === 'string' && input.shape !== out.shape) notes.push(`unknown shape "${input.shape}", kept "${out.shape}"`);
   if (typeof input.mode === 'string' && input.mode !== out.mode) notes.push(`mode: ${JSON.stringify(input.mode)} adjusted to ${out.mode}`);
   if (typeof input.extent === 'string' && input.extent !== out.extent) notes.push(`extent: ${JSON.stringify(input.extent)} adjusted to ${out.extent}`);
   if (typeof input.elevation === 'number' && input.elevation !== out.elevation) notes.push(`elevation: ${input.elevation} adjusted to ${out.elevation}`);
@@ -74,8 +74,8 @@ export function registerTools(page: PageBridge): () => void {
         note: recorded ? 'Thank you. Only analytics changed; the playground works the same.' : 'Analytics are off in this browser, so nothing was recorded. The playground works the same.',
       };
     },
-    list_landforms: () => ({
-      landforms: LANDFORMS.map(({ id, name, description }) => ({ id, name, description })),
+    list_shapes: () => ({
+      shapes: SHAPES.map(({ id, name, description }) => ({ id, name, description })),
       presets: PRESETS.map((p) => ({ name: p.name, settings: p.settings })),
     }),
     get_settings: () => {
@@ -91,15 +91,15 @@ export function registerTools(page: PageBridge): () => void {
       if (!input || typeof input !== 'object') throw new Error('expected a settings object');
       // `style` is the name before 0.6.0, accepted for one release.
       const { style, ...rest } = input as Record<string, unknown>;
-      const patch = style !== undefined && rest.landform === undefined ? { ...rest, landform: style } : rest;
+      const patch = style !== undefined && rest.shape === undefined ? { ...rest, shape: style } : rest;
       const next = mergeSettings(page.getSettings(), patch as SettingsInput);
       page.setSettings(next);
-      const renamed = style !== undefined ? ['style is now named landform; use landform'] : [];
+      const renamed = style !== undefined ? ['style is now named shape; use shape'] : [];
       return { config: configOf(next), adjustments: [...renamed, ...adjustments(patch, next)] };
     },
     randomize: (input) => {
       const patch: SettingsInput = { seed: Math.floor(Math.random() * 999999) + 1 };
-      if (input?.landform) patch.landform = LANDFORMS[Math.floor(Math.random() * LANDFORMS.length)].id;
+      if (input?.shape) patch.shape = SHAPES[Math.floor(Math.random() * SHAPES.length)].id;
       const next = mergeSettings(page.getSettings(), patch);
       page.setSettings(next);
       return { config: configOf(next) };

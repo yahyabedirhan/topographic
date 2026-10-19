@@ -1,7 +1,7 @@
-import { LANDFORMS } from '../landforms.js';
+import { SHAPES } from '../shapes.js';
 import { COMMON } from './common.glsl.js';
 
-const STYLE_DEFINES = LANDFORMS.map((s) => `#define STYLE_${s.id.toUpperCase().replace(/-/g, '_')} ${s.index}`).join('\n');
+const STYLE_DEFINES = SHAPES.map((s) => `#define STYLE_${s.id.toUpperCase().replace(/-/g, '_')} ${s.index}`).join('\n');
 
 export const CONTOUR_FIELD = /* glsl */ `
 ${STYLE_DEFINES}

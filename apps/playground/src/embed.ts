@@ -24,8 +24,8 @@ ${attrs}
 
 const topography = createTopography(document.querySelector('#background'), ${literal(config).replace(/\n/g, '\n')});`;
   }
-  const { landform, ...rest } = config;
-  const props = [`landform="${landform}"`, ...Object.entries(rest).map(([k, v]) => typeof v === 'string' ? `${k}="${v}"` : `${k}={${typeof v === 'object' ? literal(v).replace(/\n\s*/g, ' ') : v}}`)];
+  const { shape, ...rest } = config;
+  const props = [`shape="${shape}"`, ...Object.entries(rest).map(([k, v]) => typeof v === 'string' ? `${k}="${v}"` : `${k}={${typeof v === 'object' ? literal(v).replace(/\n\s*/g, ' ') : v}}`)];
   return `import { Topography } from '${REACT_PACKAGE}';
 
 <Topography

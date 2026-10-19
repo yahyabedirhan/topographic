@@ -8,12 +8,12 @@ export const INSTALL = {
   import '${PACKAGE}/element';
 </script>
 
-<topographic-map landform="dunes" line-count="30"></topographic-map>`,
+<topographic-map shape="dunes" line-count="30"></topographic-map>`,
   reactUsage: `import { Topography } from '${REACT_PACKAGE}';
 
 export function Hero() {
   return (
-    <Topography landform="granite" terrain={{ roughness: 0.3 }} style={{ height: '100vh' }}>
+    <Topography shape="granite" terrain={{ roughness: 0.3 }} style={{ height: '100vh' }}>
       <h1>Hello</h1>
     </Topography>
   );
@@ -21,7 +21,7 @@ export function Hero() {
   vanilla: `import { createTopography } from '${PACKAGE}';
 
 const topography = createTopography(document.querySelector('#hero'), {
-  landform: 'gentle-summit',
+  shape: 'gentle-summit',
   lines: { count: 36, indexEvery: 5 },
   theme: { mode: 'dark' },
 });

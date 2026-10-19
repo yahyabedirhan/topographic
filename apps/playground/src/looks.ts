@@ -7,7 +7,7 @@ export interface Look {
 
 /**
  * Each look's 3D camera pose. A click on the look always brings it back; the motion stays as it is.
- * A plain landform without a look uses the playground camera (share-url.ts).
+ * A plain shape without a look uses the playground camera (share-url.ts).
  */
 export const LOOK_CAMERAS: Readonly<Record<string, { azimuth: number; elevation: number; radius: number }>> = {
   'Survey ridge': { azimuth: 349.7, elevation: 33.6, radius: 1.92 },
@@ -40,17 +40,17 @@ type Mode = 'light' | 'dark';
 
 function look(
   name: string,
-  landform: SettingsInput['landform'],
+  shape: SettingsInput['shape'],
   seed: number,
   mode: Mode,
   paper: string,
   ink: string,
-  rest: Omit<SettingsInput, 'landform' | 'seed' | 'theme' | 'camera'> = {},
+  rest: Omit<SettingsInput, 'shape' | 'seed' | 'theme' | 'camera'> = {},
 ): Look {
   const { layout, ...groups } = rest;
   return {
     name,
-    settings: { landform, seed, ...groups, layout: { fade: 0.15, ...layout }, theme: { mode, paper, ink }, camera: LOOK_CAMERAS[name] },
+    settings: { shape, seed, ...groups, layout: { fade: 0.15, ...layout }, theme: { mode, paper, ink }, camera: LOOK_CAMERAS[name] },
   };
 }
 

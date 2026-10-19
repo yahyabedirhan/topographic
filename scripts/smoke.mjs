@@ -29,10 +29,10 @@ async function page(extra = {}) {
   return p;
 }
 
-const coverage = (p, landform, opts = {}) => p.evaluate(async ({ landform, opts }) => {
+const coverage = (p, shape, opts = {}) => p.evaluate(async ({ shape, opts }) => {
   const host = document.getElementById('host');
   window.t?.destroy();
-  window.t = window.topographicLib.createTopography(host, { landform, theme: { mode: 'light' }, ...opts.settings }, opts.renderer);
+  window.t = window.topographicLib.createTopography(host, { shape, theme: { mode: 'light' }, ...opts.settings }, opts.renderer);
   const blob = await window.t.snapshot({ frame: 4000 });
   const bmp = await createImageBitmap(blob);
   const c = new OffscreenCanvas(bmp.width, bmp.height); const g = c.getContext('2d'); g.drawImage(bmp, 0, 0);
@@ -40,18 +40,18 @@ const coverage = (p, landform, opts = {}) => p.evaluate(async ({ landform, opts 
   let n = 0; for (let i = 0; i < d.length; i += 4) if (Math.abs(d[i] - 249) + Math.abs(d[i + 1] - 248) + Math.abs(d[i + 2] - 246) > 12) n++;
   const bytes = new Uint8Array(await blob.arrayBuffer());
   return { status: window.t.status, coverage: n / (d.length / 4), w: bmp.width, h: bmp.height, png: Array.from(bytes) };
-}, { landform, opts });
+}, { shape, opts });
 
 try {
-  const landforms = ['drifting-lobes', 'granite', 'five-petals', 'seed-pod', 'gentle-summit', 'long-ridge', 'dunes'];
+  const shapes = ['drifting-lobes', 'granite', 'five-petals', 'seed-pod', 'gentle-summit', 'long-ridge', 'dunes'];
   const p = await page();
-  for (const s of landforms) {
+  for (const s of shapes) {
     const r = await coverage(p, s);
     check(r.status === 'webgl2' && r.coverage > 0.02, `${s}: ${r.status}, ${(r.coverage * 100).toFixed(1)}% line pixels`);
     if (shots) await writeFile(join(shots, `${s}.png`), Buffer.from(r.png));
   }
-  for (const [name, settings] of [['dark', { theme: { mode: 'dark' } }], ['survey', { landform: 'gentle-summit', lines: { count: 44, indexEvery: 5, opacity: .55 }, terrain: { peaks: 3, spread: .6, roughness: .2 } }], ['seed-7', { seed: 7, landform: 'dunes' }]]) {
-    const r = await coverage(p, settings.landform ?? 'drifting-lobes', { settings });
+  for (const [name, settings] of [['dark', { theme: { mode: 'dark' } }], ['survey', { shape: 'gentle-summit', lines: { count: 44, indexEvery: 5, opacity: .55 }, terrain: { peaks: 3, spread: .6, roughness: .2 } }], ['seed-7', { seed: 7, shape: 'dunes' }]]) {
+    const r = await coverage(p, settings.shape ?? 'drifting-lobes', { settings });
     if (shots) await writeFile(join(shots, `extra-${name}.png`), Buffer.from(r.png));
   }
 
@@ -62,7 +62,7 @@ try {
   });
   check(sizes.before.join() === sizes.after.join() && sizes.snap.join() === '640,400', `snapshot 640 wide -> ${sizes.snap}, live canvas stays ${sizes.after}`);
 
-  const upd = await p.evaluate(() => { window.t.update({ lines: { count: 999 }, landform: 'volcano' }); return [window.t.settings.lines.count, window.t.settings.landform]; });
+  const upd = await p.evaluate(() => { window.t.update({ lines: { count: 999 }, shape: 'volcano' }); return [window.t.settings.lines.count, window.t.settings.shape]; });
   check(upd[0] === 60 && upd[1] === 'drifting-lobes', `update clamps and falls back: ${upd}`);
 
   const a = await coverage(p, 'dunes', { settings: { seed: 1 } }); const b = await coverage(p, 'dunes', { settings: { seed: 2 } });
@@ -94,9 +94,9 @@ try {
   await ep.waitForFunction(() => window.ready);
   const el = await ep.evaluate(() => {
     const e = document.querySelector('topographic-map'); const t = e.topographic;
-    const a = [t.status, t.settings.landform, t.settings.lines.count, t.settings.seed, t.settings.layout.fade].join();
-    e.setAttribute('line-count', '12'); e.setAttribute('landform', 'granite');
-    const b = [t.settings.landform, t.settings.lines.count, t.settings.layout.fade].join();
+    const a = [t.status, t.settings.shape, t.settings.lines.count, t.settings.seed, t.settings.layout.fade].join();
+    e.setAttribute('line-count', '12'); e.setAttribute('shape', 'granite');
+    const b = [t.settings.shape, t.settings.lines.count, t.settings.layout.fade].join();
     e.removeAttribute('line-count'); const c = t.settings.lines.count;
     e.remove(); return { a, b, c, d: t.status };
   });
