@@ -1,6 +1,6 @@
 # topographic: design
 
-topographic draws topographic backgrounds (animated contour lines, like a topographic map) with one WebGL shader. You pick a **shape** (the basic form of the terrain) and tune readable **settings**. The same core powers a vanilla JS API, a `<topographic-map>` web component, a React `<Topography>` component, and a playground site that exports what you build.
+topographic draws topographic backgrounds (animated contour lines, like a topographic map) with one WebGL shader. You pick a **shape** (the basic form of the terrain) and tune readable **settings**. The same core powers a vanilla JS API, a `<topographic-view>` web component, a React `<Topography>` component, and a playground site that exports what you build.
 
 ```js
 import { createTopography } from 'topographic';
@@ -29,7 +29,7 @@ const topography = createTopography(el, { shape: 'dunes', lines: { count: 30 } }
 - **Shape**: data, not code. `{ id, name, index, notes }`. `index` selects a branch in the one combined shader.
 - **Preset**: data. `{ name, settings: Partial<Settings> }`. Presets live in core, so every wrapper shares them.
 - **Theme**: resolves `ink` and `paper` from settings, then CSS variables (`--topographic-ink`, `--topographic-paper`), then light/dark defaults.
-- **`<topographic-map>`**: a custom element. Attributes become Settings, and it holds one Renderer.
+- **`<topographic-view>`**: a custom element. Attributes become Settings, and it holds one Renderer.
 - **React `<Topography>`** and **`useTopography`**: props become Settings, and they hold one Renderer.
 - **Playground**: a React app. Its state is Settings, mirrored in the URL. Export uses `snapshot`, `record` and the embed serializer. The place picker turns a map region into a heightfield and hands it to `setHeightfield`.
 
@@ -47,7 +47,7 @@ packages/core/src/
   theme.ts               ink/paper resolution, dark mode, CSS variables
   shader/common.glsl.ts  noise, smooth-min, line drawing
   shader/topographic.glsl.ts  combined height field, branch per shape
-  element.ts             <topographic-map> custom element
+  element.ts             <topographic-view> custom element
 packages/react/src/Topography.tsx   <Topography>, useTopography
 apps/playground/src/
   main.tsx               mounts App
@@ -71,7 +71,7 @@ topography.snapshot(opts?: { frame?: number; width?: number; height?: number; re
 topography.destroy(): void;
 ```
 ```html
-<topographic-map shape="dunes" line-count="30" seed="7"></topographic-map>
+<topographic-view shape="dunes" line-count="30" seed="7"></topographic-view>
 ```
 ```tsx
 <Topography shape="granite" terrain={{ roughness: 0.4 }} />

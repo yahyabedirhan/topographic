@@ -53,7 +53,7 @@ In plain HTML, use the web component:
 ```html
 <script type="module">import 'topographic/element';</script>
 
-<topographic-map shape="long-ridge"></topographic-map>
+<topographic-view shape="long-ridge"></topographic-view>
 ```
 
 In JavaScript:

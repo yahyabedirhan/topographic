@@ -67,12 +67,12 @@ The call adds a canvas inside `element`. The canvas fills the element, so give t
 | `maxPixels` | `4147200` (1920×1080×2) | The most pixels to draw. Above this, the canvas draws at a lower resolution. A `quality` setting can cap this further. |
 | `forceWebGL1` | `false` | Skip WebGL2. Useful for testing. |
 
-### Web component: `<topographic-map>`
+### Web component: `<topographic-view>`
 
 ```html
 <script type="module">import 'topographic/element';</script>
 
-<topographic-map shape="long-ridge" line-count="36" peaks="2" theme="dark"></topographic-map>
+<topographic-view shape="long-ridge" line-count="36" peaks="2" theme="dark"></topographic-view>
 ```
 
 - Every setting has an HTML attribute (listed in [Settings](#settings)). There are also `shape`, `seed`, `theme`, `ink` and `paper`.
@@ -116,7 +116,7 @@ The element needs a size: without a height, it draws nothing.
 To put the background behind the whole page, fix it to the window and move it behind the content:
 
 ```html
-<topographic-map shape="long-ridge" style="position:fixed;inset:0;z-index:-1"></topographic-map>
+<topographic-view shape="long-ridge" style="position:fixed;inset:0;z-index:-1"></topographic-view>
 ```
 
 ```tsx
@@ -280,7 +280,7 @@ createTopography(el, PRESETS.find((p) => p.name === 'Survey map').settings);
 There are two colours. `ink` is the line colour. `paper` is the background colour. Each colour comes from the first of these that is set: the settings, then the CSS variables, then the light or dark defaults.
 
 ```css
-topographic-map, .my-hero {
+topographic-view, .my-hero {
   --topographic-ink: #9fb3c8;
   --topographic-paper: transparent;
 }

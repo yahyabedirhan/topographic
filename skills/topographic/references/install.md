@@ -5,7 +5,7 @@ The install is done when step 5 shows the terrain in the running page.
 
 ## 1. Pick the packages
 
-- `topographic` always: the core library and the `<topographic-map>` web component.
+- `topographic` always: the core library and the `<topographic-view>` web component.
 - `topographic-react` too when the project's `package.json` lists `react` (version 18 or 19).
 
 Both packages are ESM only and have no dependencies.
@@ -39,7 +39,7 @@ import { Topography } from 'topographic-react';
 
 ```html
 <script type="module">import 'topographic/element';</script>
-<topographic-map shape="long-ridge"></topographic-map>
+<topographic-view shape="long-ridge"></topographic-view>
 ```
 
 ## 4. Give it a size

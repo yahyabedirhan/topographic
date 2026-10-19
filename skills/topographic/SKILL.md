@@ -27,7 +27,7 @@ topography.update({ terrain: { peaks: 3 } });
 ```
 
 In React, the same settings are props: `<Topography shape="long-ridge" mode="3d" />` from `topographic-react`.
-In HTML, they are attributes: `<topographic-map shape="long-ridge">` after `import 'topographic/element'`.
+In HTML, they are attributes: `<topographic-view shape="long-ridge">` after `import 'topographic/element'`.
 
 The guide is the source of truth for every name, range and default.
 Read the section you need before you write code:
