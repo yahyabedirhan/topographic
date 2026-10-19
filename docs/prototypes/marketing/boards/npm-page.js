@@ -273,7 +273,7 @@ function sideOrStack(layout, heroPlace) {
     <p>The same terrain as a flat contour map or a 3D surface.</p>
     ${show(modes)}
     <h2>Video and frames</h2>
-    ${pre(`await topography.record({ seconds: 12 });     // video of the 3D view\nawait topography.snapshot({ frame: 2400 });   // the exact frame at 2.4 s, as PNG`)}
+    ${pre(`await topography.record();                    // a video of the 3D view\nawait topography.snapshot({ frame: 2400 });   // any exact frame, as PNG`)}
     <p>In plain HTML: <code>&lt;${NAMES.tag} location="${heroPlace}"&gt;</code> from <code>topographic/element</code>. In React: <a>topographic-react</a>.</p>`;
 }
 
@@ -301,7 +301,7 @@ function oneByOne(heroPlace) {
     <p>No place? Pick a shape and a seed. Every seed is a new land.</p>
     ${pairs(shapes.map(({ o, a }) => row2(js(o), a)))}
     <h2>Video and frames</h2>
-    ${pre(`await topography.record({ seconds: 12 });     // video of the 3D view\nawait topography.snapshot({ frame: 2400 });   // the exact frame at 2.4 s, as PNG`)}`;
+    ${pre(`await topography.record();                    // a video of the 3D view\nawait topography.snapshot({ frame: 2400 });   // any exact frame, as PNG`)}`;
 }
 const SHAPE_LIVE = { shape: 'long-ridge', seed: 7 };
 const ROUND2 = [
@@ -389,7 +389,7 @@ export default {
             <td>${art({ file: 'pair-2d.webp', w: 800, h: 500, patch: lf('gentle-summit', { terrain: { terracing: 0.8, peaks: 2 }, theme: { ink: '#e0a24a', paper: '#120d07' } }) })}</td>
             <td>${art({ file: 'pair-3d.webp', w: 800, h: 500, kind: 'live' })}</td></tr></table>
           <h2>Video and frames</h2>
-          ${pre(`const clip = await topography.record({ seconds: 12, format: 'mp4' }); // 3D, up to 12 s\nconst png = await topography.snapshot({ frame: 2400, width: 1920, height: 1080 });`)}
+          ${pre(`const clip = await topography.record({ format: 'mp4' }); // a video of the 3D view\nconst png = await topography.snapshot({ frame: 2400, width: 1920, height: 1080 });`)}
           <p>Also as a web component: <code>&lt;${NAMES.tag} ${NAMES.shape}="dunes"&gt;</code> from <code>topographic/element</code>. React: <a>topographic-react</a>.</p>`;
         const react = `
           <p align="center">${art({ file: 'react-hero.webp', w: 1600, h: 640, patch: { ...LOOKS.ridge2d, mode: '2d', lines: { count: 40, indexEvery: 5, opacity: 0.9 } } })}</p>
@@ -441,7 +441,7 @@ export default {
             ${ba("theme.ink, theme.paper", base, { ...base, theme: { ink: '#6b2e5f', paper: '#f6e4ea' } }, 'theme-dark.webp', 'theme-rose.webp')}
           </table>
           <h2>Video and frames</h2>
-          ${pre(`await topography.record({ seconds: 12 });          // 3D video, up to 12 s\nawait topography.snapshot({ frame: 2400 });        // the exact frame at 2.4 s, as PNG`)}`;
+          ${pre(`await topography.record();                         // a video of the 3D view\nawait topography.snapshot({ frame: 2400 });        // any exact frame, as PNG`)}`;
         const react = `
           <h1>topographic-react</h1>
           <p>React component for <a>topographic</a>. React 18 and 19, safe for server rendering.</p>
@@ -481,7 +481,7 @@ export default {
           <ul><li><code>createTopography(el, settings)</code> returns a <code>topography</code></li>
             <li><code>topography.update(settings)</code>: change anything, live</li>
             <li><code>landform</code>, <code>location</code>, <code>look</code>, <code>mode: '3d'</code></li>
-            <li><code>snapshot({ frame })</code> for exact PNG frames; <code>record()</code> for 3D video up to 12 s</li></ul>
+            <li><code>snapshot({ frame })</code> for exact PNG frames; <code>record()</code> for video of the 3D view</li></ul>
           <p><a>Docs</a> · <a>Playground</a> · <a>GitHub</a></p>`;
         const react = `
           <p align="center">${art({ file: 'react-hero.webp', w: 1600, h: 600, patch: { ...LOOKS.dunes2d, mode: '2d' } })}</p>
