@@ -315,3 +315,8 @@ On "`topographic-react` adds the React component and the hook, for React 18 or 1
 
 > This last word in the sentence just creates a new multiline for these types of things.
 > Validate visually so that there are no unnecessary newlines like this and the documentation shows more beautifully visually.
+
+On text such as "A named design: …":
+
+> Don't use this [colon] and item, item, style in the documentation.
+> I don't like this style.
