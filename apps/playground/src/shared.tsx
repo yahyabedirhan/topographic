@@ -568,6 +568,8 @@ export function useLookThumbs(width = 168, height = 96): string[] {
         try {
           const blob = await enqueueThumb(() => t.snapshot({
             frame: 4000, width, height, patch: thumbSettings(resolveSettings(look.settings)),
+            // A look draws its own generated terrain, not the map place open in the live view.
+            field: null,
           }));
           const url = URL.createObjectURL(blob);
           made.push(url);
