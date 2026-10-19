@@ -105,12 +105,12 @@ export function About({ home }: { home: string }) {
 
       <section aria-labelledby="pv-auto">
         <h3 id="pv-auto">Pageviews</h3>
-        <p>PostHog records a pageview and a page leave with the page path, referrer, UTM campaign parameters and time on page. The browser also sends its name, device type, OS, screen size, language and timezone. Country and city are not recorded: in cookieless mode PostHog drops the IP address before it could look them up. The IP address is never stored. PostHog's own id is a salted hash that the server rotates daily. The first visit also saves a random visitor id in local storage under topographic:visitor, sent with every event so the visits of one browser can be counted together. Either opt out deletes it. The playground settings in the address bar are not sent.</p>
+        <p>Each page view records the page, the site you came from, and the time on the page. Your browser also shares its type, screen size, language and timezone. Your IP address is never stored, and your country and city are not recorded. A random id saved in your browser lets return visits count once; opting out deletes it.</p>
       </section>
 
       <section aria-labelledby="pv-agents">
         <h3 id="pv-agents">People and agents</h3>
-        <p>The playground counts AI agents apart from people, to see how agents use it. A person's events carry the random visitor id; an agent's carry a random agent id that lasts one tab. A visit counts as an agent's when the agent says so, which is optional, or when the browser is run by automation such as Playwright. Agents can give a name and a purpose from short lists; nothing written freely is recorded. When an agent uses a playground tool, the page notes which tool, whether it worked and roughly how long it took.</p>
+        <p>AI agents are counted apart from people, with their own id for one browser tab. An agent can say which agent it is and why it is here, from short lists; this is optional. When an agent uses a playground tool, the page notes which tool and whether it worked.</p>
       </section>
 
       <section aria-labelledby="pv-events">

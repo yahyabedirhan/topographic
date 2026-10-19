@@ -20,19 +20,19 @@ The choice is saved in the browser's local storage under `topographic:analytics`
 
 ## Pageviews
 
-PostHog records a pageview and a page leave with the page path, referrer, UTM campaign parameters and time on page. The browser also sends its name, device type, OS, screen size, language and timezone. Country and city are not recorded: in cookieless mode PostHog drops the IP address before it could look them up. The IP address is never stored. PostHog runs with `persistence: 'memory'` and `cookieless_mode: 'always'`: PostHog's own id is a salted hash that the server rotates daily.
+Each page view records the page, the site you came from, any campaign tags in the link, and the time on the page. Your browser also shares its type, screen size, language and timezone. Your IP address is never stored, and your country and city are not recorded.
 
 ## Visitor id
 
-The first visit makes a random UUID and saves it in local storage under `topographic:visitor`. Every event carries it as `visitor_id`, so the visits of one browser can be counted together across days. The id is random: it holds nothing about you, and it differs per browser and device. Either opt out deletes it and stops sending it, and clearing site data removes it. The playground settings in the query string are not sent.
+The first visit saves a random id in your browser under `topographic:visitor`, so return visits count once. It holds nothing about you. Opting out deletes it.
 
 ## People and agents
 
-The playground counts AI agents apart from people, to see how agents use it. A person's events carry the `visitor_id`. An agent's events carry a random `agent_id` instead, kept for one browser tab.
+AI agents are counted apart from people. An agent gets its own random id for one browser tab. Browsers run by automation, such as Playwright, count as agents.
 
-A visit counts as an agent's when the agent identifies itself, which is optional, or when the browser is run by automation such as Playwright. Automated browsers also send whether they were headless or visible. Agents can identify with the `identify_agent` tool or with `?analytics_agent=<name>&analytics_purpose=<purpose>`. Only a name and a purpose from these lists are recorded, never free text:
+An agent can say which agent it is and why it is here, with the `identify_agent` tool or `?analytics_agent=<name>&analytics_purpose=<purpose>`. This is optional, and only these values are recorded:
 
-- Names: claude, chatgpt, gemini, jules, copilot, cursor, windsurf, opencode, pi, amp, droid, cline, roo, kilo, aider, goose, kiro, devin, manus, grok, perplexity, other. chatgpt covers ChatGPT and Codex.
+- Names: claude, chatgpt, gemini, jules, copilot, cursor, windsurf, opencode, pi, amp, droid, cline, roo, kilo, aider, goose, kiro, devin, manus, grok, perplexity, other.
 - Purposes: testing, demo, creating, exploring, integrating, research, reverse-engineering, other.
 
 ## Events
