@@ -54,18 +54,18 @@ Ten places are built in.
 
 <table>
 <tr>
-<td align="center"><img src="apps/playground/public/readme/place-istanbul.webp" width="100%" alt="Istanbul, with the Bosphorus between the two shores"><br><code>istanbul</code></td>
-<td align="center"><img src="apps/playground/public/readme/place-cyprus.webp" width="100%" alt="Cyprus, the whole island"><br><code>cyprus</code></td>
-<td align="center"><img src="apps/playground/public/readme/place-matterhorn.webp" width="100%" alt="The Matterhorn above Zermatt"><br><code>matterhorn</code></td>
-<td align="center"><img src="apps/playground/public/readme/place-geirangerfjord.webp" width="100%" alt="Geirangerfjord between steep walls"><br><code>geirangerfjord</code></td>
-<td align="center"><img src="apps/playground/public/readme/place-grand-canyon.webp" width="100%" alt="The Grand Canyon from rim to rim"><br><code>grand-canyon</code></td>
+<td align="center" width="20%"><img src="apps/playground/public/readme/place-istanbul.webp" width="100%" alt="Istanbul, with the Bosphorus between the two shores"><br><code>istanbul</code></td>
+<td align="center" width="20%"><img src="apps/playground/public/readme/place-cyprus.webp" width="100%" alt="Cyprus, the whole island"><br><code>cyprus</code></td>
+<td align="center" width="20%"><img src="apps/playground/public/readme/place-matterhorn.webp" width="100%" alt="The Matterhorn above Zermatt"><br><code>matterhorn</code></td>
+<td align="center" width="20%"><img src="apps/playground/public/readme/place-geirangerfjord.webp" width="100%" alt="Geirangerfjord between steep walls"><br><code>geirangerfjord</code></td>
+<td align="center" width="20%"><img src="apps/playground/public/readme/place-grand-canyon.webp" width="100%" alt="The Grand Canyon from rim to rim"><br><code>grand-canyon</code></td>
 </tr>
 <tr>
-<td align="center"><img src="apps/playground/public/readme/place-yosemite.webp" width="100%" alt="Yosemite Valley, Half Dome and El Capitan"><br><code>yosemite</code></td>
-<td align="center"><img src="apps/playground/public/readme/place-torres-del-paine.webp" width="100%" alt="Torres del Paine, granite towers over lakes"><br><code>torres-del-paine</code></td>
-<td align="center"><img src="apps/playground/public/readme/place-fuji.webp" width="100%" alt="Mount Fuji, the cone and its lakes"><br><code>fuji</code></td>
-<td align="center"><img src="apps/playground/public/readme/place-everest.webp" width="100%" alt="Everest above the Khumbu valley"><br><code>everest</code></td>
-<td align="center"><img src="apps/playground/public/readme/place-kilimanjaro.webp" width="100%" alt="Kilimanjaro over the plains"><br><code>kilimanjaro</code></td>
+<td align="center" width="20%"><img src="apps/playground/public/readme/place-yosemite.webp" width="100%" alt="Yosemite Valley, Half Dome and El Capitan"><br><code>yosemite</code></td>
+<td align="center" width="20%"><img src="apps/playground/public/readme/place-torres-del-paine.webp" width="100%" alt="Torres del Paine, granite towers over lakes"><br><code>torres-del-paine</code></td>
+<td align="center" width="20%"><img src="apps/playground/public/readme/place-fuji.webp" width="100%" alt="Mount Fuji, the cone and its lakes"><br><code>fuji</code></td>
+<td align="center" width="20%"><img src="apps/playground/public/readme/place-everest.webp" width="100%" alt="Everest above the Khumbu valley"><br><code>everest</code></td>
+<td align="center" width="20%"><img src="apps/playground/public/readme/place-kilimanjaro.webp" width="100%" alt="Kilimanjaro over the plains"><br><code>kilimanjaro</code></td>
 </tr>
 </table>
 

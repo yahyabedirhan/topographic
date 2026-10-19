@@ -67,11 +67,11 @@ Ten places are built in, such as these:
 
 <table>
 <tr>
-<td align="center"><img src="https://topographic.yahyapak.dev/readme/place-istanbul.webp" width="100%" alt="istanbul in 3D"><br><code>istanbul</code></td>
-<td align="center"><img src="https://topographic.yahyapak.dev/readme/place-matterhorn.webp" width="100%" alt="matterhorn in 3D"><br><code>matterhorn</code></td>
-<td align="center"><img src="https://topographic.yahyapak.dev/readme/place-yosemite.webp" width="100%" alt="yosemite in 3D"><br><code>yosemite</code></td>
-<td align="center"><img src="https://topographic.yahyapak.dev/readme/place-fuji.webp" width="100%" alt="fuji in 3D"><br><code>fuji</code></td>
-<td align="center"><img src="https://topographic.yahyapak.dev/readme/place-everest.webp" width="100%" alt="everest in 3D"><br><code>everest</code></td>
+<td align="center" width="20%"><img src="https://topographic.yahyapak.dev/readme/place-istanbul.webp" width="100%" alt="istanbul in 3D"><br><code>istanbul</code></td>
+<td align="center" width="20%"><img src="https://topographic.yahyapak.dev/readme/place-matterhorn.webp" width="100%" alt="matterhorn in 3D"><br><code>matterhorn</code></td>
+<td align="center" width="20%"><img src="https://topographic.yahyapak.dev/readme/place-yosemite.webp" width="100%" alt="yosemite in 3D"><br><code>yosemite</code></td>
+<td align="center" width="20%"><img src="https://topographic.yahyapak.dev/readme/place-fuji.webp" width="100%" alt="fuji in 3D"><br><code>fuji</code></td>
+<td align="center" width="20%"><img src="https://topographic.yahyapak.dev/readme/place-everest.webp" width="100%" alt="everest in 3D"><br><code>everest</code></td>
 </tr>
 </table>
 

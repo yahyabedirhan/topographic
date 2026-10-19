@@ -13,7 +13,8 @@ npm install topographic
 ```js
 import { createTopography } from 'topographic';
 
-createTopography(document.querySelector('#terrain'), { location: 'grand-canyon' });
+const el = document.querySelector('#terrain');
+createTopography(el, { location: 'grand-canyon' });
 ```
 
 topographic draws terrain as contour lines, from real elevation data or from a shape and a seed.
@@ -66,11 +67,11 @@ Ten places are built in, such as these:
 
 <table>
 <tr>
-<td align="center"><img src="https://topographic.yahyapak.dev/readme/place-istanbul.webp" width="100%" alt="istanbul in 3D"><br><code>istanbul</code></td>
-<td align="center"><img src="https://topographic.yahyapak.dev/readme/place-matterhorn.webp" width="100%" alt="matterhorn in 3D"><br><code>matterhorn</code></td>
-<td align="center"><img src="https://topographic.yahyapak.dev/readme/place-yosemite.webp" width="100%" alt="yosemite in 3D"><br><code>yosemite</code></td>
-<td align="center"><img src="https://topographic.yahyapak.dev/readme/place-fuji.webp" width="100%" alt="fuji in 3D"><br><code>fuji</code></td>
-<td align="center"><img src="https://topographic.yahyapak.dev/readme/place-everest.webp" width="100%" alt="everest in 3D"><br><code>everest</code></td>
+<td align="center" width="20%"><img src="https://topographic.yahyapak.dev/readme/place-istanbul.webp" width="100%" alt="istanbul in 3D"><br><code>istanbul</code></td>
+<td align="center" width="20%"><img src="https://topographic.yahyapak.dev/readme/place-matterhorn.webp" width="100%" alt="matterhorn in 3D"><br><code>matterhorn</code></td>
+<td align="center" width="20%"><img src="https://topographic.yahyapak.dev/readme/place-yosemite.webp" width="100%" alt="yosemite in 3D"><br><code>yosemite</code></td>
+<td align="center" width="20%"><img src="https://topographic.yahyapak.dev/readme/place-fuji.webp" width="100%" alt="fuji in 3D"><br><code>fuji</code></td>
+<td align="center" width="20%"><img src="https://topographic.yahyapak.dev/readme/place-everest.webp" width="100%" alt="everest in 3D"><br><code>everest</code></td>
 </tr>
 </table>
 
@@ -137,7 +138,7 @@ The terrain fills its element, so give the element a size.
 const topography = createTopography(el, { location: 'everest' });
 
 const png = await topography.snapshot({ width: 1920, height: 1080 });
-const clip = await topography.record({ seconds: 6, motion: 'orbit', format: 'mp4' });
+const clip = await topography.record({ seconds: 6, format: 'mp4' });
 ```
 
 `update()` changes any setting live, and `destroy()` frees the WebGL context.
