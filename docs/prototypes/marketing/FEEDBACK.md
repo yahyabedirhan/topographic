@@ -213,3 +213,10 @@ Motion, for the READMEs and npm pages:
 > Okay.
 
 Issues filed for the next release: #78 heightmap export, #79 glTF mesh export, #80 2D and longer video, #81 locations in the library (D4), #82 the `look` setting (D5).
+
+### D6: launch videos
+
+> I will give you feedback for the videos, similar to the feedback I gave you for all of these marketing prototypes.
+> You just focus on the things that you showed me on this prototypes page (http://localhost:5199/docs/prototypes/marketing/).
+>
+> After I am done with them, I will hand over this session to another one to focus on the videos separately, okay?
