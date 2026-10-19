@@ -430,12 +430,11 @@ const TOKEN = /<\/?[A-Za-z][\w:-]*|\/?>|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:
 /** Lines that are the same for every background: their values are not settings. */
 const BOILERPLATE = /position|^\s*import\b|<script/;
 
-/** One line of code, coloured, with the setting values tinted as pills. Returns the nodes and whether it tinted any. */
-function highlightLine(line: string, key: number): [ReactNode[], boolean] {
+/** One line of code, coloured, with the setting values tinted as pills. */
+function highlightLine(line: string, key: number): ReactNode[] {
   const parts: ReactNode[] = [];
   let last = 0;
   let i = 0;
-  let tinted = false;
   const plain = BOILERPLATE.test(line);
   for (const m of line.matchAll(TOKEN)) {
     const index = m.index ?? 0;
@@ -447,28 +446,19 @@ function highlightLine(line: string, key: number): [ReactNode[], boolean] {
     // A JSON key is a string followed by a colon; every other string or number on a settings line is a value.
     const isKey = str && /^\s*:/.test(line.slice(index + v.length));
     const pill = !plain && (str || num) && !isKey;
-    if (pill) tinted = true;
     parts.push(<span key={`${key}-${i++}`} className={pill ? `${cls} pt-vpill${num ? ' is-num' : ''}` : cls}>{v}</span>);
     last = index + v.length;
   }
   if (last < line.length) parts.push(line.slice(last));
-  return [parts, tinted];
+  return parts;
 }
 
 function CodeView({ code }: { code: string }) {
-  const lines = code.split('\n');
-  let tinted = false;
-  const rows = lines.map((line, n) => {
-    const [nodes, t] = highlightLine(line, n);
-    tinted ||= t;
+  const rows = code.split('\n').map((line, n) => {
+    const nodes = highlightLine(line, n);
     return [<span key={`n${n}`} className="pt-ln" aria-hidden="true">{n + 1}</span>, <span key={`l${n}`} className="pt-lc">{nodes.length ? nodes : ' '}</span>];
   });
-  return (
-    <>
-      <pre className="pt-code" tabIndex={0}><code>{rows}</code></pre>
-      {tinted ? <p className="pt-hint pt-hint-small">Tinted values come from Tune. Change them there and this updates.</p> : null}
-    </>
-  );
+  return <pre className="pt-code" tabIndex={0}><code>{rows}</code></pre>;
 }
 
 function CodeBlock({ pg, format }: { pg: Playground; format: 'react' | 'html' | 'json' }) {
@@ -478,7 +468,7 @@ function CodeBlock({ pg, format }: { pg: Playground; format: 'react' | 'html' | 
   const hint = format === 'react'
     ? 'Install the packages, then place this component on the page.'
     : format === 'html'
-      ? 'Add the element script, then place this background on the page.'
+      ? 'Add the element script, then place this element on the page.'
       : 'The settings as data.';
   return (
     <div className="pt-export-block">

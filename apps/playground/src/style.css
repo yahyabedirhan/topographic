@@ -298,7 +298,6 @@ button.pt-credit-btn:hover,.pt-credit.is-open button.pt-credit-btn{color:var(--f
 .pt-export-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .pt-export-head .pt-hint{flex:1;min-width:0}
 .pt-hint-center{text-align:center;font-size:11.5px}
-.pt-hint-small{font-size:11.5px}
 /* Code: line numbers in a gutter, setting values tinted as pills. */
 .pt-code{margin:0;max-height:300px;overflow:auto;padding:10px 12px 10px 8px;border-radius:12px;background:color-mix(in srgb,var(--paper) 42%,transparent);
   box-shadow:inset 0 0 0 .5px var(--line);font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--fg)}
