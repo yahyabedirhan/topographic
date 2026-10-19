@@ -264,3 +264,8 @@ On the websites, videos and games categories at the top of the docs page:
 > I want to focus on building this marketing content and releasing it.
 
 This applies to every surface: no use categories anywhere. The showcase is a later idea, kept as MARK-3 in Notion.
+
+On the caption "Everest and the Khumbu valley, drawn from real elevation data with `location="everest"`. Switch it between the map and the landscape.":
+
+> And keep this short and maybe you can make this input a little bit smaller.
+> Try to make it just one line not multi-line, okay?
