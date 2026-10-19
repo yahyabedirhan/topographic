@@ -288,7 +288,7 @@ try {
   check(/^Istanbul [\d.]+ × [\d.]+ km$/.test(await badgeText()) && /^Generated terrain/.test(await status()), `the badge names the framed city and the footer the terrain (${await badgeText()} | ${await status()})`);
   await badge.click(); await p.getByRole('menuitem').first().waitFor();
   const items = (await p.getByRole('menuitem').allInnerTexts()).map((t) => t.split('\n')[0]);
-  check(items.join() === 'Istanbul,Cyprus,Matterhorn & Zermatt,Geirangerfjord,Grand Canyon,Yosemite Valley,Torres del Paine,Mount Fuji,Everest & the Khumbu,Kilimanjaro', `the badge opens the place menu (${items.join()})`);
+  check(items.join() === 'Istanbul,Cyprus,Matterhorn & Zermatt,Geirangerfjord,Grand Canyon,Yosemite Valley,Torres del Paine,Mount Fuji,Everest,Kilimanjaro', `the badge opens the place menu (${items.join()})`);
   const labels = await p.locator('.pt-menu-label').allInnerTexts();
   check(labels.map((t) => t.toLowerCase()).join() === 'europe & middle east,americas,asia,africa', `the place menu groups places by region (${labels.join()})`);
   await p.keyboard.press('Escape'); await settle(p);

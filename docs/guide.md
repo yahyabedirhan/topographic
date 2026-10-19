@@ -519,7 +519,7 @@ The playground (`apps/playground`) is the project's live demo page.
   - The files are named after the named place on the map, such as `topographic-mount-fuji.png` and `topographic-mount-fuji-orbit.mp4`. Without a named place, a PNG is named after the shape and the seed, such as `topographic-seed-pod-71.png`, and a video after its camera path, such as `topographic-orbit.mp4`.
   - The code tabs number their lines. They colour the values that come from your settings.
 - **Map** opens a map with a frame. Use it to draw a real place as the terrain.
-  - Pan and zoom the map, or drag the frame's corners and edges. You can also pick a place from the badge's menu. The places are grouped by region: Istanbul, Cyprus, Matterhorn & Zermatt and Geirangerfjord (Europe & Middle East); Grand Canyon, Yosemite Valley and Torres del Paine (Americas); Mount Fuji and Everest & the Khumbu (Asia); Kilimanjaro (Africa).
+  - Pan and zoom the map, or drag the frame's corners and edges. You can also pick a place from the badge's menu. The places are grouped by region: Istanbul, Cyprus, Matterhorn & Zermatt and Geirangerfjord (Europe & Middle East); Grand Canyon, Yosemite Valley and Torres del Paine (Americas); Mount Fuji and Everest (Asia); Kilimanjaro (Africa).
   - Press **Apply**. The real elevation inside the frame becomes the terrain.
   - Apply switches to 3D and uses the map terrain view: 36 lines at 0.5 px and 0.9 opacity, every fourth line bold, a block at elevation 0.12, and a closer camera.
   - Each place keeps that view but has its own camera angle and elevation. This puts its main feature in the middle, with the skyline above it.
