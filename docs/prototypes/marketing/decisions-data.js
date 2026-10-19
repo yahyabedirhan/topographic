@@ -41,7 +41,7 @@ export const WAITING = [
       'GitHub: variant A with your topics, the new line, and a real terrain in the social image. GitHub only accepts a still image there, so the motion lives in the README hero.',
       'You upload the social image yourself in the repo settings; GitHub has no API for it.',
     ],
-    recommend: 'README A with an Everest orbit as the hero; GitHub A with the Grand Canyon as the social image.',
+    recommend: 'README A with the Everest orbit as the hero, and GitHub A2 (Yosemite) for the social image, so a shared link and the README show two different places.',
     options: [
       { label: 'README A', board: 'readme-header', variant: 'A' },
       { label: 'GitHub A', board: 'github-repo', variant: 'A' },
@@ -55,7 +55,7 @@ export const WAITING = [
       'All three start from A: a moving real-terrain hero, real places first, then generated shapes, then 2D and 3D, with each snippet beside the result it gives. Secondary views are stills.',
       'npm pages only change when 0.6.0 is published, and their images are hosted at topographic.yahyapak.dev/readme/.',
     ],
-    recommend: 'Pick after comparing; A is the round-1 baseline for reference.',
+    recommend: 'D: code beside its result in two columns, the same pattern as the docs page. E reads better on a phone; F tells one story step by step.',
     options: [
       { label: 'D', board: 'npm-page', variant: 'D' },
       { label: 'E', board: 'npm-page', variant: 'E' },
@@ -69,7 +69,7 @@ export const WAITING = [
     context: [
       'All three put the Install button in the top-right corner at the size of the other buttons, and follow the Export popover: a visual preview, then "With an agent" (npx skills add yahyabedirhan/topographic) and "By hand" (npm install), with no tabs.',
     ],
-    recommend: 'Pick after comparing.',
+    recommend: 'A1: the preview, the parameter chips and both parts, without the scene code. A2 adds the code but makes the popover long; A3 is the quietest.',
     options: [
       { label: 'A1', board: 'playground-install', variant: 'A1' },
       { label: 'A2', board: 'playground-install', variant: 'A2' },
