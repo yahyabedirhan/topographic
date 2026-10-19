@@ -5,6 +5,7 @@ import {
   PARAMS, STYLES, PRESETS, QUALITY_TIERS, CAMERA_MOTIONS, DEFAULT_CAMERA, DEFAULT_ELEVATION, DEFAULT_DETAIL,
   DEFAULT_EXTENT, RADIUS_MIN, RADIUS_MAX, ZOOM_MIN, ZOOM_MAX, THEME_DEFAULTS, resolveSettings, createTopographicBackground,
 } from '/packages/core/dist/index.js';
+import { SHAPE_KEY, ELEMENT_TAG, named } from '../names.js';
 import { terrain as mountLive, shot, NPM, NPM_REACT, REPO, PLAYGROUND, LOGO } from '../live.js';
 
 export { PARAMS, STYLES, PRESETS, QUALITY_TIERS, CAMERA_MOTIONS, shot, NPM, NPM_REACT, REPO, PLAYGROUND, LOGO, resolveSettings };
@@ -15,7 +16,14 @@ const hex = (rgba) => `#${rgba.slice(0, 3).map((v) => Math.round(v * 255).toStri
 export const DARK = { ink: hex(THEME_DEFAULTS.dark.ink), paper: hex(THEME_DEFAULTS.dark.paper) };
 export const LIGHT = { ink: hex(THEME_DEFAULTS.light.ink), paper: hex(THEME_DEFAULTS.light.paper) };
 
-export const BADGE = '<span class="badge" title="Proposed for 0.6.0. Not in 0.5.0 yet.">0.6.0</span>';
+/** The two ways in, named once (decision D9 is open). */
+export const INSTALL_WAYS = {
+  agent: { label: 'Agent skill', cmd: 'npx skills add yahyabedirhan/topographic', hint: 'Your coding agent installs topographic and writes the code.' },
+  npm: { label: 'npm package', cmd: 'npm install topographic', react: 'npm install topographic topographic-react', hint: 'The second line adds React.' },
+};
+
+/** Per-item version badges are gone (round 2): the page shows its version once, in the header. */
+export const BADGE = '';
 export const LINKS = [
   ['Playground', PLAYGROUND], ['GitHub', REPO], ['npm topographic', NPM], ['npm topographic-react', NPM_REACT],
 ];
@@ -200,7 +208,7 @@ export function volcano(size = 128) {
 export const LANDFORMS = STYLES.map((s) => ({
   ...s,
   more: {
-    'drifting-lobes': 'The default landform. terrain.variant takes it from three lobes to four.',
+    'drifting-lobes': 'The default shape. terrain.variant takes it from three lobes to four.',
     granite: 'The Granite preset adds 34 lines and roughness 0.15; the Fine granite look uses 54 thin ones.',
     'five-petals': 'Terracing turns the petals into stepped bands, as in the Stepped petals look.',
     'seed-pod': 'Slow by nature: the Seed pod preset runs it at speed 0.7.',
@@ -283,7 +291,7 @@ const GUIDE_WHAT = {
   'terrain.roughness': 'Noise on the slopes. Low is smooth hills, high is rocky ground.',
   'terrain.sharpness': 'Below 0.5 summits get flatter. Above 0.5 they get sharper.',
   'terrain.terracing': 'Groups the lines into steps.',
-  'terrain.variant': 'Changes the shape in a way that depends on the landform. For drifting-lobes, three lobes become four.',
+  'terrain.variant': 'Changes the land in a way that depends on the base shape. For drifting-lobes, three lobes become four.',
   'motion.speed': 'Animation speed. 0 stops the animation.',
   'motion.warp': 'How much the lines wobble as they move.',
   'motion.sparkle': 'Small bright dots that travel along the lines.',
@@ -310,8 +318,8 @@ export const CAMERA_ROWS = [
   { key: 'view2d.zoom', attr: 'view-zoom', range: r(ZOOM_MIN, ZOOM_MAX), def: '1', what: 'The 2D map\'s zoom, up to eight times closer.' },
 ];
 export const TOP_ROWS = [
-  { key: 'landform', attr: 'landform', range: `one of ${STYLES.length} ids`, def: 'drifting-lobes', what: 'The starting shape of generated land.', badge: true },
-  { key: 'seed', attr: 'seed', range: '0–999999, whole', def: '0', what: 'One variation of the landform. 0 is the original.' },
+  { key: SHAPE_KEY, attr: SHAPE_KEY, range: `one of ${STYLES.length} base shapes`, def: 'drifting-lobes', what: 'The base shape generated land grows from.', badge: true },
+  { key: 'seed', attr: 'seed', range: '0–999999, whole', def: '0', what: 'One variation of the shape. 0 is the original.' },
   { key: 'location', attr: 'location', range: 'a place id', def: 'none', what: 'A real place by name, instead of generated land.', badge: true },
   { key: 'look', attr: 'look', range: 'a look name', def: 'none', what: 'A named design. Settings you pass win over it.', badge: true },
 ];
@@ -329,7 +337,7 @@ export const MEMBERS = [
   ['update(settings)', 'Changes some settings and applies them right away. Values are kept in range; only changed values reach the GPU.'],
   ['snapshot(options)', 'Draws one PNG in the background and returns it as a Blob.'],
   ['record(options)', 'Records a 3D clip with a moving camera and returns an MP4 or WebM Blob.'],
-  ['setHeightfield(field | null)', 'Draws your own heights instead of the landform. null brings the landform back.'],
+  ['setHeightfield(field | null)', 'Draws your own heights instead of generated land. null brings the generated land back.'],
   ['setInsets({ top, right, bottom, left } | null)', 'Tells the 3D view how much of it your UI covers, in CSS pixels, so the terrain centres in the free space.'],
   ['clampPan(panX, panZ)', 'Returns the pan as [x, z], limited so the view stays over the terrain.'],
   ['hold(paused)', 'Stops drawing while another WebGL view needs the GPU. The paper colour stays.'],
@@ -361,10 +369,10 @@ export const RECORD_OPTIONS = [
 
 export const WEBMCP_TOOLS = [
   ['identify_agent', 'The agent gives a name and a purpose from fixed lists, so analytics count it apart from people.'],
-  ['list_styles', 'Lists the landforms and presets, with ids and descriptions.'],
+  ['list_styles', 'Lists the base shapes and presets, with ids and descriptions.'],
   ['get_settings', 'The current settings, the shortest config JSON and the tier drawing now.'],
   ['set_settings', 'Applies some settings and reports values moved into range.'],
-  ['randomize', 'A new random seed, and with { style: true } a random landform.'],
+  ['randomize', 'A new random seed, and with { style: true } a random shape.'],
   ['take_screenshot', 'A PNG of the view as a data URL, 1200 px wide by default, or a region of it.'],
   ['record_video', 'A short 3D clip as an MP4 or WebM data URL. 2 s orbit at 640 × 360 by default.'],
   ['get_embed_code', 'Code for html, react, vanilla or json.'],
@@ -382,18 +390,20 @@ export const FALLBACKS = [
 ];
 
 export const LIMITS = [
-  ['No mesh or heightmap export', 'topographic draws terrain but cannot hand it to a game engine or a 3D tool yet: no GLB, OBJ or heightmap file. Whether to add it is an open decision. Today a game can use topographic in a web view, as PNG frames or as a clip.'],
-  ['Video is 3D only and short', 'record() draws the 3D view with a moving camera, for 0.5 to 12 seconds. It needs the browser\'s WebCodecs encoder; WebM works only where the browser can encode VP8. For anything longer or 2D, render PNG frames with snapshot({ frame }) and join them.'],
+  ['Real places', 'fetchLocation() takes areas up to 300 km across and needs the network the first time a place loads. Heights are resampled to a 256 × 256 grid, so small details smooth out.'],
+  ['Video', 'record() draws the 3D view with a moving camera, for 0.5 to 12 seconds, through the browser\'s WebCodecs encoder. WebM works where the browser can encode VP8. For 2D or longer, join PNG frames from snapshot({ frame }).'],
+  ['Image size', 'The largest snapshot is the GPU\'s renderbuffer limit, usually 8192 or 16384 px.'],
   ['A browser and WebGL', 'It draws on the GPU in a browser. There is no Node renderer; a server can drive headless Chrome. Without WebGL you get the paper colour.'],
   ['One WebGL context each', 'Every live view holds one context, and browsers allow about 16 per page. Reuse one view, or show stills from snapshot().'],
-  ['Seven landforms', 'Generated land starts from one of seven shapes. Any other shape comes in through setHeightfield().'],
+  ['2D zoom', 'view2d.zoom goes from 1 to 8.'],
+  ['React', 'topographic-react needs React 18 or 19.'],
+  ['WebMCP', 'The playground\'s agent tools need a secure page, HTTPS or localhost. Without one, no tools are registered and the page works as normal.'],
   ['No overlays', 'There is no API for markers, labels, routes or picking a point. Put your own elements on top.'],
-  ['Locations need the network', 'A location downloads elevation tiles the first time, for areas up to 300 km across. The grid is 256 × 256, so small details smooth out.'],
-  ['Decoration to screen readers', 'The canvas is aria-hidden. If the terrain carries meaning, describe it in your own text.'],
+  ['Screen readers', 'The canvas is aria-hidden. If the terrain carries meaning, describe it in your own text.'],
 ];
 
 export const QUESTIONS = [
-  ['Is it only for backgrounds?', 'No. A background is one use. It is a terrain renderer: a hero or a map on a website, frames and clips for video, and screens and maps in a game.'],
+  ['Is it only for backgrounds?', 'No. It runs wherever JavaScript runs, and draws whatever land you give it. A background is one thing you can make with it.'],
   ['Does the same input give the same picture?', 'Yes. The same settings, seed and frame give the same image on every screen, in 2D and in 3D.'],
   ['Does it work with Next.js and server rendering?', 'Yes. topographic-react starts with \'use client\' and renders an empty div on the server; the canvas appears after hydration. topographic/element registers only where customElements exists.'],
   ['How big is it?', 'The whole core package, element and video encoder included, is about 25 kB gzipped. It has no dependencies.'],
@@ -406,10 +416,14 @@ export const QUESTIONS = [
 
 /* ---------------------------------------------------------------- snippets (0.6.0 API) */
 
-export const CODE = {
+/** Every snippet through names.js, so a rename of the shape key or the element tag is one edit. */
+const mapCode = (o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, Object.fromEntries(Object.entries(v).map(([l, c]) => [l, named(c)]))]));
+export { SHAPE_KEY, ELEMENT_TAG, named };
+
+export const CODE = mapCode({
   settings: {
     js: `createTopography(el, {
-  landform: 'dunes',           // or location: 'fuji', or look: 'survey-map'
+  shape: 'dunes',               // or location: 'fuji', or look: 'survey-map'
   seed: 0,
   lines:   { count, width, opacity, indexEvery },
   terrain: { peaks, spread, roughness, sharpness, terracing, variant },
@@ -428,22 +442,22 @@ export const CODE = {
     js: `import { createTopography } from 'topographic';
 
 const topography = createTopography(document.querySelector('#map'), {
-  landform: 'long-ridge',
+  shape: 'long-ridge',
   mode: '3d',
 });`,
     react: `import { Topography } from 'topographic-react';
 
 export function Map() {
-  return <Topography landform="long-ridge" mode="3d" />;
+  return <Topography shape="long-ridge" mode="3d" />;
 }`,
     html: `<script type="module">import 'topographic/element';</script>
 
-<topographic-map landform="long-ridge" mode="3d"></topographic-map>`,
+<topographic-view shape="long-ridge" mode="3d"></topographic-view>`,
   },
   landforms: {
-    js: `createTopography(el, { landform: 'dunes', seed: 12 });`,
-    react: `<Topography landform="dunes" seed={12} />`,
-    html: `<topographic-map landform="dunes" seed="12"></topographic-map>`,
+    js: `createTopography(el, { shape: 'dunes', seed: 12 });`,
+    react: `<Topography shape="dunes" seed={12} />`,
+    html: `<topographic-view shape="dunes" seed="12"></topographic-view>`,
   },
   looks: {
     js: `createTopography(el, { look: 'survey-map' });
@@ -452,62 +466,62 @@ export function Map() {
 createTopography(el, { look: 'survey-map', lines: { count: 30 } });`,
     react: `<Topography look="survey-map" />
 <Topography look="sea-dunes" mode="3d" camera={{ motion: 'orbit' }} />`,
-    html: `<topographic-map look="survey-map"></topographic-map>
-<topographic-map look="sea-dunes" mode="3d" camera-motion="orbit"></topographic-map>`,
+    html: `<topographic-view look="survey-map"></topographic-view>
+<topographic-view look="sea-dunes" mode="3d" camera-motion="orbit"></topographic-view>`,
   },
   locations: {
     js: `import { createTopography } from 'topographic';
 import { fetchLocation } from 'topographic/locations';
 
-const topography = createTopography(el, { location: 'fuji', mode: '3d' });
+const topography = createTopography(el, { location: 'everest' });
 
-// any area up to 300 km across, in degrees
+// any area on Earth, by its corners in degrees
 const field = await fetchLocation({ west: 6.47, south: 61.93, east: 7.63, north: 62.28 });
 topography.setHeightfield(field);`,
-    react: `<Topography location="fuji" mode="3d" />`,
+    react: `<Topography location="everest" />`,
     html: `<script type="module">import 'topographic/element';</script>
 
-<topographic-map location="fuji" mode="3d"></topographic-map>`,
+<topographic-view location="everest"></topographic-view>`,
   },
   lines: {
     js: `topography.update({
   lines: { count: 44, width: 0.12, opacity: 0.55, indexEvery: 5 },
 });`,
     react: `<Topography lines={{ count: 44, width: 0.12, opacity: 0.55, indexEvery: 5 }} />`,
-    html: `<topographic-map line-count="44" line-width="0.12" line-opacity="0.55" index-every="5"></topographic-map>`,
+    html: `<topographic-view line-count="44" line-width="0.12" line-opacity="0.55" index-every="5"></topographic-view>`,
   },
   terrain: {
     js: `topography.update({
   terrain: { peaks: 3, spread: 0.6, roughness: 0.2, sharpness: 0.5, terracing: 0.4 },
 });`,
     react: `<Topography terrain={{ peaks: 3, spread: 0.6, roughness: 0.2, terracing: 0.4 }} />`,
-    html: `<topographic-map peaks="3" spread="0.6" roughness="0.2" terracing="0.4"></topographic-map>`,
+    html: `<topographic-view peaks="3" spread="0.6" roughness="0.2" terracing="0.4"></topographic-view>`,
   },
   motion: {
     js: `topography.update({ motion: { speed: 0.4, warp: 0.7, sparkle: 0 } });
 
 topography.update({ motion: { speed: 0 } }); // one still frame, no animation loop`,
     react: `<Topography motion={{ speed: 0.4, warp: 0.7, sparkle: 0 }} />`,
-    html: `<topographic-map speed="0.4" warp="0.7" sparkle="0"></topographic-map>`,
+    html: `<topographic-view speed="0.4" warp="0.7" sparkle="0"></topographic-view>`,
   },
   layout: {
     js: `topography.update({ layout: { anchor: 1, fade: 0 } });`,
     react: `<Topography layout={{ anchor: 1, fade: 0 }} />`,
-    html: `<topographic-map anchor="1" fade="0"></topographic-map>`,
+    html: `<topographic-view anchor="1" fade="0"></topographic-view>`,
   },
   theme: {
     js: `topography.update({ theme: { mode: 'dark', ink: '#a9c7e4', paper: '#10151c' } });
 
 topography.update({ theme: { paper: 'transparent' } }); // your page shows through`,
     react: `<Topography theme={{ mode: 'dark', ink: '#a9c7e4', paper: '#10151c' }} />`,
-    html: `<topographic-map theme="dark" ink="#a9c7e4" paper="#10151c"></topographic-map>`,
+    html: `<topographic-view theme="dark" ink="#a9c7e4" paper="#10151c"></topographic-view>`,
   },
   modes: {
     js: `topography.update({ mode: '3d', elevation: 0.7, extent: 'block', detail: 0.6 });
 
 topography.update({ mode: '2d' }); // the same land, flat`,
     react: `<Topography mode="3d" elevation={0.7} extent="block" detail={0.6} />`,
-    html: `<topographic-map mode="3d" elevation="0.7" extent="block" detail="0.6"></topographic-map>`,
+    html: `<topographic-view mode="3d" elevation="0.7" extent="block" detail="0.6"></topographic-view>`,
   },
   camera: {
     js: `topography.update({
@@ -517,7 +531,7 @@ topography.update({ mode: '2d' }); // the same land, flat`,
 
 topography.pose; // { azimuth, elevation, radius, panX, panZ } right now`,
     react: `<Topography mode="3d" camera={{ azimuth: 42, elevation: 34, radius: 2.45, motion: 'orbit' }} />`,
-    html: `<topographic-map mode="3d" azimuth="42" camera-elevation="34" radius="2.45" camera-motion="orbit"></topographic-map>`,
+    html: `<topographic-view mode="3d" azimuth="42" camera-elevation="34" radius="2.45" camera-motion="orbit"></topographic-view>`,
   },
   export: {
     js: `// one PNG, in the background
@@ -538,17 +552,33 @@ const clip = await topography.record({ seconds: 6, fps: 30, motion: 'orbit', for
   const [topography, setTopography] = useState(null);
   return (
     <>
-      <Topography landform="granite" mode="3d" onReady={setTopography} />
+      <Topography shape="granite" mode="3d" onReady={setTopography} />
       <button onClick={() => topography.snapshot({ width: 1920 }).then(save)}>PNG</button>
       <button onClick={() => topography.record({ seconds: 6 }).then(save)}>Video</button>
     </>
   );
 }`,
-    html: `<topographic-map landform="granite" mode="3d"></topographic-map>
+    html: `<topographic-view shape="granite" mode="3d"></topographic-view>
 <script type="module">
-  const map = document.querySelector('topographic-map');
+  const map = document.querySelector('topographic-view');
   const png = await map.snapshot({ width: 1920 });
   const clip = await map.topography.record({ seconds: 6, format: 'webm' });
+</script>`,
+  },
+  heightmaps: {
+    js: `const field = topography.heightfield(); // { samples, size, aspect }, 0 is low and 1 is high
+
+const png = await topography.exportHeightmap({ size: 1024, format: 'png16' });
+// a 16-bit greyscale PNG, ready for any terrain importer`,
+    react: `<Topography
+  location="matterhorn"
+  onReady={async (t) => save(await t.exportHeightmap({ size: 1024, format: 'png16' }))}
+/>`,
+    html: `<topographic-view location="matterhorn"></topographic-view>
+
+<script type="module">
+  const { topography } = document.querySelector('topographic-view');
+  const png = await topography.exportHeightmap({ size: 1024, format: 'png16' });
 </script>`,
   },
   heightfields: {
@@ -562,10 +592,10 @@ for (let y = 0; y < size; y++) {       // row 0 is the south edge
 }
 
 topography.setHeightfield({ samples, size, aspect: 1.25 }); // width ÷ height
-topography.setHeightfield(null); // back to the landform`,
+topography.setHeightfield(null); // back to generated land`,
     react: `<Topography mode="3d" onReady={(t) => t?.setHeightfield({ samples, size: 256, aspect: 1.25 })} />`,
     html: `<script type="module">
-  const map = document.querySelector('topographic-map');
+  const map = document.querySelector('topographic-view');
   map.topography.setHeightfield({ samples, size: 256, aspect: 1.25 });
 </script>`,
   },
@@ -574,7 +604,7 @@ topography.setHeightfield(null); // back to the landform`,
 
 export function Hero() {
   return (
-    <Topography landform="granite" terrain={{ roughness: 0.3 }}>
+    <Topography shape="granite" terrain={{ roughness: 0.3 }}>
       <h1>Children are drawn on top</h1>
     </Topography>
   );
@@ -582,17 +612,17 @@ export function Hero() {
 
 // your own element: the hook returns a ref
 export function Panel() {
-  const ref = useTopography({ landform: 'seed-pod' });
+  const ref = useTopography({ shape: 'seed-pod' });
   return <section ref={ref} />;
 }`,
   },
   element: {
     html: `<script type="module">import 'topographic/element';</script>
 
-<topographic-map landform="long-ridge" line-count="36" peaks="2" theme="dark"></topographic-map>
+<topographic-view shape="long-ridge" line-count="36" peaks="2" theme="dark"></topographic-view>
 
 <script type="module">
-  const map = document.querySelector('topographic-map');
+  const map = document.querySelector('topographic-view');
   map.setAttribute('camera-motion', 'orbit');  // applies right away
   map.removeAttribute('peaks');                // back to the default
   map.topography;                              // the instance
@@ -600,18 +630,18 @@ export function Panel() {
   },
   page: {
     css: `/* the terrain fills its element: give it a size */
-topographic-map { height: 100vh; }
+topographic-view { height: 100vh; }
 
 /* behind a section, with content on top */
 .hero { position: relative; isolation: isolate; }
-.hero topographic-map { position: absolute; inset: 0; z-index: -1; }
+.hero topographic-view { position: absolute; inset: 0; z-index: -1; }
 
 /* colours from CSS, read when no setting is passed */
-topographic-map {
+topographic-view {
   --topographic-ink: #9fb3c8;
   --topographic-paper: transparent;
 }`,
-    react: `<Topography landform="dunes" className="hero" style={{ height: '100vh' }}>
+    react: `<Topography shape="dunes" className="hero" style={{ height: '100vh' }}>
   <h1>Your page</h1>
 </Topography>
 
@@ -625,18 +655,18 @@ createTopography(el, settings, { maxPixelRatio: 1.5, maxPixels: 1920 * 1080 });
 
 topography.stats; // { fps, frameMs, mesh, quality: 'high' }`,
     react: `<Topography quality="medium" options={{ maxPixelRatio: 1.5 }} />`,
-    html: `<topographic-map quality="medium" detail="0.3"></topographic-map>`,
+    html: `<topographic-view quality="medium" detail="0.3"></topographic-view>`,
   },
   agents: {
     sh: `curl https://topographic.yahyapak.dev/llms.txt
 curl https://topographic.yahyapak.dev/llms-full.txt
 curl https://topographic.yahyapak.dev/docs/params.md`,
   },
-};
+});
 
 /** What each use looks like, for the opening gallery. */
 export const USES = [
   { id: 'web', title: 'Websites', sub: 'Element, React or JavaScript', lede: 'A live terrain in the page.', desc: 'A hero, a section, a map or a full-page scene, behind your content or on its own. It pauses off screen and respects reduced motion.', shot: 'hero' },
   { id: 'video', title: 'Videos', sub: 'snapshot() and record()', lede: 'The same land, frame for frame.', desc: 'Frame-exact PNG sequences at any size for an editor, or a 3D clip with a moving camera as MP4 or WebM, encoded in the browser.', shot: 'look-terraces-3d' },
-  { id: 'game', title: 'Games', sub: 'setHeightfield() and the canvas', lede: 'Maps, menus and title screens.', desc: 'Draw your level\'s own heights as contours, in a web game or a web view. Mesh export for engines is not in yet.', shot: 'place-matterhorn' },
+  { id: 'game', title: 'Games', sub: 'heightfield() and exportHeightmap()', lede: 'Maps, menus and the world itself.', desc: 'Draw a level\'s heights as contours for the map screen, and take the same land into your engine as a 16-bit heightmap.', shot: 'place-matterhorn' },
 ];

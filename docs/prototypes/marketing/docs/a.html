@@ -6,39 +6,50 @@
 <title>topographic docs · A reference essay</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=EB+Garamond:ital,wght@1,400;1,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Literata:opsz,wght@7..72,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="docs-base.css">
 <style>
-/* PROTOTYPE docs-page/A: the anatomy layout in dark. Nav, one narrow column, a margin for notes and controls. */
-:root{--col:560px;--nav:184px;--mar:224px;--g1:72px;--g2:48px}
+/* PROTOTYPE docs-page/A, round 2: the anatomy layout in dark. Nav with the playground's wordmark, one narrow column, a margin for notes. */
+:root{--col:560px;--nav:184px;--mar:224px;--g1:72px;--g2:48px;
+  /* the playground's tokens, for its Tune inputs (apps/playground/src/style.css) */
+  --paper:#0b0b0d;--seg-on:color-mix(in srgb,var(--fg) 15%,transparent);--seg-shadow:inset 0 0 0 .5px rgba(255,255,255,.06),0 1px 2px rgba(0,0,0,.25)}
 html{scroll-behavior:smooth;scroll-padding-top:40px}
+/* no lone last words: body text wraps prettily, headings and ledes balance, and a footnote marker stays with its word */
+main p,main li,main dd,main td,.sn,.inst-hint{text-wrap:pretty}
+h1,h2,.lede,.sub{text-wrap:balance}
+.nw{white-space:nowrap}
 .page{display:grid;grid-template-columns:var(--nav) var(--col) var(--mar);column-gap:var(--g1);justify-content:center;padding:0 24px}
 .page>main{grid-column:2;min-width:0;padding:52px 0 160px}
 /* nav */
-.nav{grid-column:1;grid-row:1;position:sticky;top:0;height:100vh;padding:52px 0 24px;font:400 13.5px/1 var(--sans)}
+.nav{grid-column:1;grid-row:1;position:sticky;top:0;height:100vh;padding:48px 0 24px;font:400 13.5px/1 var(--sans)}
 .nav ul{list-style:none;display:grid;gap:0}
-.nav a{display:block;padding:5px 0;color:var(--mut);text-decoration:none;transition:color .2s}
-.nav a:hover{color:var(--fg)}
-.nav a.on{color:var(--fg)}
-.nav .pages li:first-child a{color:var(--fg)}
-.nav .secs{margin-top:28px;position:relative}
+.nav .secs a{display:block;padding:5px 0;color:var(--mut);text-decoration:none;transition:color .2s}
+.nav .secs a:hover,.nav .secs a.on{color:var(--fg)}
+.nav .secs{margin-top:34px;position:relative}
 .nav .grp{height:9px}
 .nav .grp:first-child{display:none}
+/* the brand: the playground's wordmark (style.css .pt-wordmark) and its quiet links under it */
+.brand{display:grid;gap:12px;justify-items:start}
+.wordmark{font:600 17px/1 Literata,Georgia,serif;letter-spacing:-.01em;color:var(--fg);text-decoration:none;transition:opacity .15s}
+.wordmark:hover{opacity:.82}
+.blinks{list-style:none;display:grid;grid-template-columns:auto auto;gap:8px 16px;justify-content:start}
+.blinks a{display:inline-flex;align-items:center;gap:7px;font:400 12px/1 var(--sans);color:var(--mut);text-decoration:none;transition:color .15s}
+.blinks a:hover,.blinks a:focus-visible{color:var(--fg)}
+.blinks svg{width:13px;height:13px;flex:none;opacity:.9}
+.blinks a .ext{width:9px;height:9px;opacity:0;transition:opacity .15s;margin-left:-2px}
+.blinks a:hover .ext{opacity:.6}
 .ring{position:absolute;left:-44px;top:0;width:34px;height:24px;pointer-events:none;transition:transform .5s cubic-bezier(.2,.8,.2,1);color:var(--fg)}
 .ring svg{width:34px;height:24px;overflow:visible}
 .ring path{fill:none;stroke:currentColor;stroke-width:1}
 .ring path:nth-child(1){opacity:.28}.ring path:nth-child(2){opacity:.5}.ring path:nth-child(3){opacity:.85}
 .ring.moving svg{animation:ring .5s ease}
 @keyframes ring{40%{transform:rotate(-14deg) scale(1.12)}}
-/* head */
-.head{display:flex;align-items:center;gap:10px;font:400 14px/1.3 var(--sans);color:var(--mut)}
-.head b{color:var(--fg);font-weight:600}
-.head .icons{margin-left:auto;display:flex;gap:14px}
-.head .icons a{color:var(--mut);display:grid}
-.head .icons a:hover{color:var(--fg)}
-.head .icons svg{width:17px;height:17px}
-.tag{margin-top:22px;color:var(--fg);font-size:15.5px}
-.strip{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:22px 0 14px;padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+/* opening */
+.head{display:flex;align-items:center;gap:10px;font:400 13px/1.3 var(--sans);color:var(--mut)}
+.head .mlinks{display:none}
+.title{margin-top:26px;font:600 31px/1.14 var(--sans);letter-spacing:-.022em;color:var(--fg);text-wrap:balance}
+.sub{margin-top:12px;font:400 18px/1.45 var(--sans);letter-spacing:-.01em;color:var(--text);text-wrap:balance}
+.strip{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:28px 0 14px;padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
 .strip a{display:block;border-radius:8px;overflow:hidden;aspect-ratio:16/10;box-shadow:inset 0 0 0 1px var(--line);opacity:.82;transition:opacity .2s,transform .3s}
 .strip a:hover{opacity:1;transform:translateY(-2px)}
 .strip img{width:100%;height:100%;object-fit:cover}
@@ -47,16 +58,17 @@ html{scroll-behavior:smooth;scroll-padding-top:40px}
 .meta i{font-style:normal;color:var(--faint)}
 main p{margin:0 0 14px;color:var(--text)}
 main p b{color:var(--fg)}
-.intro{margin-top:40px}
+.intro{margin-top:36px}
 /* sections */
 .sec{position:relative;padding-top:64px}
-.sec-h{display:flex;align-items:center;gap:14px;margin-bottom:20px;font:500 15px/1 var(--sans);color:var(--fg)}
+.sec-h{display:flex;align-items:center;gap:14px;margin-bottom:18px;font:600 18px/1.1 var(--serif);letter-spacing:-.01em;color:var(--fg)}
 .sec-h::after{content:'';order:2;flex:1;height:1px;background:var(--line-2)}
-.sec-h .n{order:3;font:italic 400 18px/1 var(--serif);color:var(--mut)}
+.sec-h .n{order:3;font:400 12px/1 var(--sans);font-variant-numeric:tabular-nums;color:var(--mut)}
 .sec-h .badge{order:1;margin-left:-4px}
 .sec-h a{color:inherit;text-decoration:none}
-.lede{font:italic 400 19px/1.35 var(--serif);color:var(--fg);margin:0 0 16px}
-.sec>*+.code,.sec .code+.code,.sec .tbl-wrap,.sec figure.fig,.sec .gal,.sec .grid3,.sec .places,.sec .limits,.sec .faq{margin-top:22px}
+.lede{font:500 15.5px/1.45 var(--sans);letter-spacing:-.005em;color:var(--fg);margin:0 0 12px}
+.sec>*+.code,.sec .code+.code,.sec .tbl-wrap,.sec figure.fig,.sec .gal,.sec .grid3,.sec .plist,.sec .limits,.sec .faq,.sec .livecode,.sec .pair{margin-top:22px}
+.sec .tune+.livecode{margin-top:14px}
 .sec .tbl-wrap+.tbl-wrap{margin-top:28px}
 sup.fn{font:500 10px/0 var(--sans);vertical-align:super;margin-left:1px}
 sup.fn a{color:var(--mut);text-decoration:none}
@@ -71,16 +83,57 @@ sup.fn a{color:var(--mut);text-decoration:none}
 .fig .stage{position:relative;height:380px;border-radius:14px;overflow:hidden;background:#0b0b0d;box-shadow:inset 0 0 0 1px var(--line)}
 .fig .stage.tall{height:420px}
 .fig .stage.short{height:300px}
-.fig .cap{display:flex;gap:12px;align-items:baseline;margin-top:10px;font-size:12.5px;color:var(--mut)}
-.fig .cap b{font-weight:500}
+/* captions: one or two plain sentences under each visual, as on yahyapak.dev/projects/topographic */
+.fig .cap,.pair figcaption,.grid3 figcaption{display:block;margin-top:10px;font:400 12.5px/1.5 var(--sans);color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fig .cap code,.pair figcaption code,.grid3 figcaption code{font-size:11.5px}
+.loading::after{content:'Loading heights';position:absolute;left:14px;bottom:12px;font:500 11px/1 var(--sans);color:var(--mut);letter-spacing:.02em}
 .ctl{position:absolute;left:calc(100% + var(--g1));top:0;width:var(--mar);display:grid;gap:12px;font-size:12.5px;color:var(--mut)}
 .ctl .hint{color:var(--mut);font-size:12.5px;line-height:1.45}
 .ctl .read{font:400 11.5px/1.6 var(--mono);color:var(--fg);white-space:pre-wrap;padding-top:2px}
 .ctl .row{display:flex;flex-wrap:wrap;gap:6px}
-.ctl .k{display:flex;align-items:center;gap:8px}
 .ctl button.chip{font-size:11.5px;padding:6px 9px}
 .btn{font:500 12.5px/1 var(--sans);color:var(--bg);background:var(--fg);padding:9px 12px;border-radius:999px;justify-self:start}
 .btn:disabled{opacity:.5}
+/* the playground's Tune inputs (style.css .pt-sec, .pt-row, .pt-slider, .pt-chips), in a panel under each figure */
+.tune{margin-top:14px;padding:4px 16px 10px;border-radius:18px;background:color-mix(in srgb,var(--fg) 3%,transparent);box-shadow:inset 0 0 0 .5px var(--line-2)}
+.tune-rows{display:grid;grid-template-columns:1fr 1fr;column-gap:24px}
+.pt-sec{padding-top:6px}
+.pt-sec+.pt-sec{margin-top:6px;border-top:.5px solid var(--line);padding-top:8px}
+.pt-sec-head{display:flex;align-items:center;justify-content:space-between;height:26px}
+.pt-sec-title{font:600 10.5px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.pt-row{display:grid;grid-template-columns:16px 76px minmax(0,1fr) 40px;align-items:center;column-gap:10px;min-height:34px;color:var(--fg)}
+.pt-row-icon{display:grid;place-items:center;color:var(--mut)}
+.pt-row-label{font:400 12.5px/1.2 var(--sans);color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pt-row output{justify-self:end;font:12px/1 var(--sans);font-variant-numeric:tabular-nums;color:var(--mut);white-space:nowrap}
+.pt-row>.pt-chips,.pt-row>.pt-row-wide{grid-column:3/-1}
+.pt-slider{width:100%;min-width:0}
+.pt-slider-track{position:relative;width:100%;height:24px;touch-action:none}
+.pt-slider-track svg{display:block;overflow:visible}
+.pt-track-base{position:absolute;inset:0;color:color-mix(in srgb,var(--fg) 24%,transparent);pointer-events:none}
+.pt-slider-ind{position:absolute;left:0;top:0;bottom:0;overflow:hidden;color:var(--fg);pointer-events:none}
+.pt-slider-thumb{position:absolute;top:1px;width:4px;height:22px;margin-left:-2px;border-radius:2px;background:var(--fg);box-shadow:0 0 0 2px color-mix(in srgb,var(--paper) 85%,transparent),0 1px 4px rgba(0,0,0,.3);pointer-events:none}
+.pt-slider-track input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer;-webkit-appearance:none;appearance:none;background:transparent}
+.pt-slider-track input::-webkit-slider-thumb{-webkit-appearance:none;width:4px;height:24px}
+.pt-slider-track input::-moz-range-thumb{width:4px;height:24px;border:0}
+.pt-slider-track:has(input:focus-visible) .pt-slider-thumb{outline:2px solid var(--fg);outline-offset:3px}
+.pt-chips{display:flex;gap:2px;padding:2px;border-radius:9px;background:color-mix(in srgb,var(--fg) 7%,transparent)}
+.pt-chips button{flex:1 1 0;min-width:0;height:26px;padding:0 4px;border-radius:7px;display:flex;align-items:center;justify-content:center;gap:5px;color:var(--mut);font:400 12px/1 var(--sans);white-space:nowrap;overflow:hidden;transition:flex-grow .22s cubic-bezier(.22,1,.36,1),background .2s,color .2s}
+.pt-chips button svg{flex:none}
+.pt-chips button span{display:none;overflow:hidden;text-overflow:ellipsis}
+.pt-chips button:hover{color:var(--fg)}
+.pt-chips button[aria-pressed=true]{flex-grow:2.3;background:var(--seg-on);box-shadow:var(--seg-shadow);color:var(--fg)}
+.pt-chips button[aria-pressed=true] span,.pt-chips.is-two button span{display:inline}
+.pt-chips.is-two button[aria-pressed=true]{flex-grow:1}
+.tune .wide{grid-column:1/-1}
+.shapes{display:flex;flex-wrap:wrap;gap:4px;grid-column:3/-1;padding:4px 0}
+.shapes button{font:400 11.5px/1 var(--sans);color:var(--mut);padding:6px 8px;border-radius:7px;background:color-mix(in srgb,var(--fg) 6%,transparent)}
+.shapes button:hover{color:var(--fg)}
+.shapes button[aria-pressed=true]{color:var(--fg);background:var(--seg-on);box-shadow:var(--seg-shadow)}
+.newland{display:inline-flex;align-items:center;gap:7px;margin:6px 0 2px;font:500 12.5px/1 var(--sans);color:var(--bg);background:var(--fg);padding:8px 13px 8px 11px;border-radius:999px;transition:transform .15s}
+.newland:active{transform:scale(.97)}
+.livecode .code{transition:box-shadow .5s}
+.livecode.flash .code{animation:codeflash .7s ease}
+@keyframes codeflash{0%{box-shadow:inset 0 0 0 1px rgba(169,199,228,.45)}100%{box-shadow:inset 0 0 0 1px var(--line)}}
 /* gallery rows, as in anatomy */
 .gal{border-top:1px solid var(--line)}
 .gal .it{display:grid;grid-template-columns:150px 1fr;gap:22px;padding:18px 0;border-bottom:1px solid var(--line);align-items:start}
@@ -90,17 +143,37 @@ sup.fn a{color:var(--mut);text-decoration:none}
 .gal .sub{font:400 12.5px/1.4 var(--sans);color:var(--mut);margin:2px 0 8px}
 .gal .sub code{font-size:11.5px}
 .gal p{margin:0;font-size:14px;line-height:1.55}
-.gal p .i{font-size:16px}
+
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 12px}
 .grid3 figure{margin:0}
 .grid3 img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:8px;box-shadow:inset 0 0 0 1px var(--line)}
-.grid3 figcaption{margin-top:8px;font:500 13px/1.3 var(--sans);color:var(--fg)}
-.grid3 figcaption span{display:block;font-weight:400;color:var(--mut);font-size:12px;margin-top:2px}
-.places{display:grid;grid-template-columns:repeat(5,1fr);gap:14px 10px}
-.places figure{margin:0}
-.places img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;box-shadow:inset 0 0 0 1px var(--line)}
-.places figcaption{margin-top:7px;font:500 12px/1.3 var(--sans);color:var(--fg)}
-.places figcaption code{display:block;margin-top:3px;font-size:10.5px;background:none;padding:0;color:var(--mut)}
+/* results: every code block shows what it draws, right under it */
+.res{position:relative;margin:12px 0 0}
+.res .ph{position:relative;aspect-ratio:16/8;border-radius:14px;overflow:hidden;background:#0b0b0d center/cover;box-shadow:inset 0 0 0 .5px var(--line-2)}
+.res .ph.short{aspect-ratio:16/6}
+.res .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.res .two .ph{aspect-ratio:16/10}
+.res .over{position:absolute;inset:0;display:grid;place-content:center;text-align:center;font:600 22px/1.2 var(--sans);letter-spacing:-.02em;color:#ecebe8;text-shadow:0 1px 18px rgba(0,0,0,.6)}
+.res figcaption{display:block;margin-top:10px;font:400 12.5px/1.5 var(--sans);color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.res figcaption code{font-size:11.5px}
+.res pre.out{margin:0;padding:14px 16px;border-radius:12px;background:var(--code);box-shadow:inset 0 0 0 1px var(--line);font:400 12px/1.7 var(--mono);color:var(--text);white-space:pre-wrap}
+.res pre.out b{color:var(--fg);font-weight:500}
+/* install: two parts, no tabs, as in the playground's install popover */
+.inst{display:grid;gap:18px;margin-top:22px}
+.inst-t{display:flex;align-items:center;gap:7px;margin-bottom:8px;font:600 10.5px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.inst-t svg{width:13px;height:13px}
+.inst .code+.code{margin-top:8px}
+.inst-hint{margin:8px 0 0!important;font-size:13px;color:var(--mut)!important}
+/* the place list doubles as the picker for the live figure */
+.plist{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 10px}
+.plist button,.plist .any{display:block;text-align:left;margin:0}
+.plist img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:8px;box-shadow:inset 0 0 0 1px var(--line);opacity:.78;transition:opacity .2s,box-shadow .2s}
+.plist button:hover img{opacity:1}
+.plist button[aria-pressed=true] img{opacity:1;box-shadow:0 0 0 1.5px var(--fg)}
+.plist b{display:block;margin-top:7px;font:500 12.5px/1.3 var(--sans);color:var(--fg)}
+.plist code{display:block;margin-top:3px;font-size:10.5px;background:none;padding:0;color:var(--mut)}
+.plist .any .box{display:grid;place-items:center;aspect-ratio:16/10;border-radius:8px;box-shadow:inset 0 0 0 1px var(--line-2);background:repeating-linear-gradient(135deg,transparent 0 6px,rgba(255,255,255,.025) 6px 7px);color:var(--mut)}
+.plist .any .box svg{width:22px;height:22px}
 /* tabs over a figure */
 .tabs{display:flex;flex-wrap:wrap;gap:4px;margin:22px 0 10px}
 .tabs button{font:500 13px/1 var(--sans);color:var(--mut);padding:8px 11px;border-radius:8px}
@@ -109,11 +182,10 @@ sup.fn a{color:var(--mut);text-decoration:none}
 .pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .pair figure{margin:0;position:relative}
 .pair .ph{position:relative;aspect-ratio:16/10;border-radius:10px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--line);background:#0b0b0d center/cover}
+.pair .ph canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .pair .mock{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:6px;text-align:center}
 .pair .mock b{font:600 17px/1.2 var(--sans);color:#ecebe8}
 .pair .mock i{display:block;width:120px;height:5px;border-radius:3px;background:rgba(236,235,232,.35)}
-.pair figcaption{margin-top:8px;font-size:12.5px;color:var(--mut)}
-.pair figcaption code{font-size:11px}
 #theme-code{margin-top:14px}
 .shot-out{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 .shot-out img{border-radius:6px;box-shadow:inset 0 0 0 1px var(--line)}
@@ -129,7 +201,8 @@ sup.fn a{color:var(--mut);text-decoration:none}
 .faq details[open] summary::after{content:'–'}
 .faq summary::-webkit-details-marker{display:none}
 .faq p{padding:0 0 14px;font-size:14px}
-.foot{margin-top:80px;padding-top:18px;border-top:1px solid var(--line);font-size:12.5px;color:var(--mut);display:grid;gap:6px}
+.coda{margin-top:72px;font:500 15.5px/1.5 var(--sans);color:var(--fg);text-wrap:pretty}
+.foot{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);font-size:12.5px;color:var(--mut);display:grid;gap:6px}
 .foot a{color:var(--mut)}
 /* mobile */
 .mbar{display:none}
@@ -143,60 +216,60 @@ sup.fn a{color:var(--mut);text-decoration:none}
   .sn{position:static!important;width:auto}
   .ctl{position:static;width:auto;margin-top:14px;grid-template-columns:1fr 1fr;gap:12px 18px}
   .ctl .hint,.ctl .read,.ctl .row{grid-column:1/-1}
-  .mbar{display:flex;position:fixed;z-index:10;left:0;right:0;top:0;height:52px;align-items:center;gap:12px;padding:0 16px;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line);font:500 14px/1 var(--sans);color:var(--fg)}
-  .mbar select{margin-left:auto;max-width:56%;font:inherit;font-size:13px;color:var(--fg);background:var(--card);border:0;border-radius:8px;padding:8px 10px;box-shadow:inset 0 0 0 1px var(--line-2)}
+  .head{flex-wrap:wrap;row-gap:12px}
+  .head .mlinks{display:flex;flex-basis:100%}
+  .head .mlinks .blinks{display:flex;flex-wrap:wrap;gap:8px 16px}
+  .mbar{display:flex;position:fixed;z-index:10;left:0;right:0;top:0;height:52px;align-items:center;gap:12px;padding:0 16px;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+  .mbar .wordmark{font-size:16px}
+  .mbar select{margin-left:auto;max-width:56%;font:500 13px/1 var(--sans);color:var(--fg);background:var(--card);border:0;border-radius:8px;padding:8px 10px;box-shadow:inset 0 0 0 1px var(--line-2)}
 }
 @media (max-width:560px){
+  .title{font-size:26px}.sub{font-size:19px}
   .fig .stage{height:260px}.fig .stage.tall{height:300px}.fig .stage.short{height:220px}
   .strip{grid-template-columns:repeat(3,1fr)}.strip a:nth-child(n+4){display:none}
   .gal .it{grid-template-columns:96px 1fr;gap:14px}
   .grid3{grid-template-columns:1fr 1fr}
-  .places{grid-template-columns:repeat(2,1fr)}
+  .plist{grid-template-columns:repeat(2,1fr)}
   .pair{grid-template-columns:1fr}
+  .tune{padding:2px 12px 8px}
+  .tune-rows{grid-template-columns:1fr}
   .limits>div{grid-template-columns:1fr;gap:4px}
-  .head .icons{display:none}
+  .fig .cap,.pair figcaption{white-space:normal}
 }
 </style>
 </head>
 <body>
-<!-- PROTOTYPE docs-page/A. Never ships. Code shows the proposed 0.6.0 API; live figures run the real 0.5.0 library. -->
-<div class="mbar"><span>topographic <span style="color:var(--mut);font-weight:400">docs</span></span><select id="mnav" aria-label="Jump to section"></select></div>
+<!-- PROTOTYPE docs-page/A, round 2. Never ships. Code shows the proposed 0.6.0 API; live figures run the real 0.5.0 library. -->
+<div class="mbar"><a class="wordmark" href="#top">topographic</a><select id="mnav" aria-label="Jump to section"></select></div>
 <div class="page">
   <nav class="nav" aria-label="Docs">
-    <ul class="pages">
-      <li><a href="#top">topographic</a></li>
-      <li><a href="https://topographic.yahyapak.dev" target="_blank" rel="noreferrer">Playground</a></li>
-      <li><a href="https://github.com/yahyabedirhan/topographic" target="_blank" rel="noreferrer">GitHub</a></li>
-      <li><a href="https://www.npmjs.com/package/topographic" target="_blank" rel="noreferrer">npm</a></li>
-    </ul>
+    <div class="brand"><a class="wordmark" href="#top">topographic</a><div data-links></div></div>
     <div class="secs" id="secs">
       <div class="ring" id="ring" aria-hidden="true"><svg viewBox="0 0 34 24"><path d="M3 12c0-6 7-9.5 14.5-9.5S31 6 31 12s-6.5 9.5-14 9.5S3 18 3 12z"/><path d="M8 12.2c0-3.7 4.3-6 9-6s8.6 2.3 8.6 5.8-4 6-8.8 6S8 15.9 8 12.2z"/><path d="M13 12.3c0-1.6 1.9-2.6 4-2.6s3.7 1 3.7 2.5-1.7 2.6-3.8 2.6-3.9-1-3.9-2.5z"/></svg></div>
       <ul id="navlist"></ul>
     </div>
   </nav>
   <main id="top">
-    <div class="head"><b>topographic</b><span>· documentation</span>
-      <span class="icons">
-        <a href="https://github.com/yahyabedirhan/topographic" target="_blank" rel="noreferrer" aria-label="GitHub"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg></a>
-        <a href="https://www.npmjs.com/package/topographic" target="_blank" rel="noreferrer" aria-label="npm"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M0 4.5h16v6H8v1.5H4.5v-1.5H0v-6zm1 1v4h2v-3h1v3h1v-4H1zm5 0v5h2v-1h2v-4H6zm2 1h1v2H8v-2zm3-1v4h2v-3h1v3h1v-3h1v3h1v-4h-7z"/></svg></a>
-      </span></div>
-    <p class="tag">Contour lines of real and made-up land, drawn <span class="i">live</span> in 2D and 3D.</p>
+    <div class="head"><span>Documentation</span><span style="color:var(--faint)">·</span><span>Version 0.6.0</span><div class="mlinks" data-links></div></div>
+    <h1 class="title">Topographic terrain, rendered live with WebGL.</h1>
+    <p class="sub">Generate a land. Or turn a real place into one.</p>
     <div class="strip" id="strip"></div>
-    <div class="meta"><span>/docs</span><i>·</i><a href="#landforms">7 landforms</a><i>·</i><a href="#locations">10 locations</a><i>·</i><span>0.5.0, names for 0.6.0</span><i>·</i><a href="#install">Install ↓</a></div>
+    <div class="meta"><a href="#locations">Real places</a><i>·</i><a href="#landforms">Generated shapes</a><i>·</i><a href="#modes">2D and 3D</a><i>·</i><a href="#heightmaps">Heightmaps</a><i>·</i><a href="#install">Install ↓</a></div>
     <div class="intro">
-      <p>Most terrain on the web is a picture: a still image, or a video that loops. topographic draws <span class="i">the land itself</span>, as contour lines that move, from a few settings or from real elevation data, and it draws the same land every time.</p>
-      <p>This page is the whole library. Every setting is here with its range and default, every figure is the real library running in this page, and every example is the code you would write. Proposed names are marked <span id="b06"></span>.</p>
+      <p>Not a picture of land. <span class="i">The land itself</span>, drawn as contour lines that move, from real elevation data or from a seed. The same settings draw the same terrain on every screen.</p>
+      <p>Every figure on this page is the library running live. Every input rewrites the code under it, ready to copy.</p>
     </div>
-    <figure class="fig" id="fig-hero" style="margin-top:34px">
-      <div class="stage tall" id="hero"></div>
+    <figure class="fig" id="fig-hero" style="margin-top:30px">
+      <div class="stage tall loading" id="hero"></div>
       <div class="ctl">
-        <span class="hint">The camera orbits on its own. Switch the same land between the map and the landscape.</span>
+        <span class="hint">Real heights. The camera orbits on its own.</span>
         <div class="row"><button class="chip" data-hero="2d">2D</button><button class="chip" data-hero="3d" aria-pressed="true">3D</button></div>
         <span class="read" id="hero-read">azimuth —</span>
       </div>
-      <figcaption class="cap"><b>granite</b><span>seed 67 · 36 lines · a bold one in four · orbit</span></figcaption>
+      <figcaption class="cap">Everest and the Khumbu, <code>location="everest"</code>.</figcaption>
     </figure>
     <div id="content"></div>
+    <p class="coda">topographic runs wherever JavaScript runs. Put it in a page, a film, a game, a print, or something nobody has made yet.</p>
     <footer class="foot">
       <span>topographic is Apache 2.0, by Yahya Bedirhan Pak. Heights from Mapzen Terrain Tiles on AWS Open Data; map images from OpenFreeMap, OpenMapTiles and OpenStreetMap.</span>
       <span class="toplinks" id="foot-links"></span>
@@ -205,44 +278,92 @@ sup.fn a{color:var(--mut);text-decoration:none}
 </div>
 <script type="module">
 import {
-  BADGE, CODE, STYLES, LANDFORMS, LOOK_GALLERY, LOCATIONS, USES, TILE, LIGHT, DARK, shot, linksHtml,
-  live, stills, wireCode, codeBlock, codeTabs, fullSettings, PARAMS,
+  BADGE, CODE, LOOK_GALLERY, LOCATIONS, INSTALL_WAYS, LIGHT, DARK, STYLES, shot, linksHtml, stills, wireCode, codeBlock,
+  PLAYGROUND, REPO, NPM, SHAPE_KEY, resolveSettings, fullSettings, vivid,
 } from './docs-content.js';
+import { RADIUS_MIN, RADIUS_MAX } from '/packages/core/dist/index.js';
 import { SECTIONS, GROUPS, byId } from './docs-sections.js';
 import { extras, sectionCode, numberNotes, bodyWithMarkers, fieldFor } from './docs-parts.js';
+import { glyph, paramRow, sliderRow, segRow, tunePanel, codeFor, asProps, liveCode, lazyLive, merge, liveCount } from './docs-tune.js';
+import { loadPlace } from '../places.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const content = $('#content');
-$('#b06').outerHTML = BADGE;
 $('#foot-links').innerHTML = linksHtml();
 
-/* header strip */
-$('#strip').innerHTML = [['place-fuji', 'locations'], ['look-sea-dunes-2d', 'looks'], ['look-terraces-3d', 'modes'], ['place-matterhorn', 'locations'], ['look-night-flower-3d', 'theme']]
-  .map(([s, id]) => `<a href="#${id}"><img src="${shot(s)}" alt="" loading="lazy"></a>`).join('');
+/* the brand links: Playground, GitHub, npm and yahyapak.dev, once each */
+const SITE = 'https://yahyapak.dev/projects/topographic';
+const ICONS = {
+  playground: glyph('count', 13, 1.6),
+  github: '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>',
+  npm: '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M1.5 1.5h13v13h-13zM3.5 3.5v9h4.5V6h2.5v6.5h2V3.5z"/></svg>',
+  site: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 2.5a14 14 0 0 0 0 19M12 2.5a14 14 0 0 1 0 19M2.5 12h19"/></svg>',
+};
+const EXT = '<svg class="ext" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M3 2h5v5M8 2 2.5 7.5"/></svg>';
+const BRAND_LINKS = [['playground', 'Playground', PLAYGROUND], ['github', 'GitHub', REPO], ['npm', 'npm', NPM], ['site', 'yahyapak.dev', SITE]];
+for (const host of document.querySelectorAll('[data-links]')) {
+  host.innerHTML = `<ul class="blinks">${BRAND_LINKS.map(([k, t, u]) => `<li><a href="${u}" target="_blank" rel="noreferrer">${ICONS[k]}${t}${EXT}</a></li>`).join('')}</ul>`;
+}
+
+/* header strip: real places first */
+$('#strip').innerHTML = ['everest', 'grand-canyon', 'yosemite', 'matterhorn', 'fuji']
+  .map((id) => `<a href="#locations" data-goto="${id}"><img src="${shot(`place-${id}`)}" alt="" loading="lazy"></a>`).join('');
 
 /* sections */
 const numbers = numberNotes(SECTIONS);
 const pad = (i) => String(i + 1).padStart(2, '0');
+const ORDER = ['everest', 'grand-canyon', 'yosemite', 'matterhorn', 'fuji', 'torres-del-paine', 'geirangerfjord', 'kilimanjaro', 'cyprus', 'istanbul'];
+const PLACES = ORDER.map((id) => LOCATIONS.find((p) => p.id === id));
+const liveFig = (id, { cls = '' } = {}) => `<figure class="fig"><div class="stage ${cls}" id="f-${id}"></div><div class="ctl" id="c-${id}"></div><figcaption class="cap" id="cap-${id}"></figcaption></figure><div id="t-${id}"></div><div class="livecode" id="code-${id}"></div>`;
+const LU = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const res = (inner, cap) => `<figure class="res">${inner}<figcaption>${cap}</figcaption></figure>`;
 const FIGS = {
-  what: () => `<div class="gal">${USES.map((u) => `<div class="it"><div class="th"><img src="${shot(u.shot)}" alt="" loading="lazy"></div><div><h4>${u.title}</h4><div class="sub">${u.sub}</div><p><span class="i">${u.lede}</span> ${u.desc}</p></div></div>`).join('')}</div>`,
-  landforms: () => `<div class="gal" id="lf-gal">${LANDFORMS.map((l) => `<div class="it"><div class="th"><img data-lf="${l.id}" alt=""></div><div><h4>${l.name}</h4><div class="sub"><code>${l.id}</code></div><p><span class="i">${l.looks}</span> ${l.more.replace(/(terrain\.\w+)/g, '<code>$1</code>')}</p></div></div>`).join('')}</div>`,
-  looks: () => `<div class="grid3">${LOOK_GALLERY.map((l) => `<figure><img src="${shot(l.shot)}" alt="" loading="lazy"><figcaption>${l.name}<span>${l.sub}</span></figcaption></figure>`).join('')}</div>`,
-  locations: () => `<div class="places">${LOCATIONS.map((p) => `<figure><img src="${shot(p.shot)}" alt="${p.note}" loading="lazy"><figcaption>${p.name}<code>location="${p.id}"</code></figcaption></figure>`).join('')}</div>`,
-  lines: () => `<figure class="fig"><div class="stage short" id="f-lines"></div><div class="ctl" id="c-lines"></div><figcaption class="cap"><b>long-ridge</b><span>the Survey ridge look, in 2D</span></figcaption></figure>`,
-  terrain: () => `<figure class="fig"><div class="stage short" id="f-terrain"></div><div class="ctl" id="c-terrain"></div><figcaption class="cap"><b id="t-name">gentle-summit</b><span>pick a landform in the margin</span></figcaption></figure>`,
-  layout: () => `<div class="pair"><figure><div class="ph" id="lay-0"><div class="mock"><b>Your heading</b><i></i></div></div><figcaption><code>anchor: 1, fade: 0</code> · the summit and its lines run through the text</figcaption></figure><figure><div class="ph" id="lay-1"><div class="mock"><b>Your heading</b><i></i></div></div><figcaption><code>anchor: 0, fade: 0.9</code> · the summit moves aside, the column stays clear</figcaption></figure></div>`,
-  theme: () => `<div class="tabs" role="tablist" id="theme-tabs"></div><figure class="fig"><div class="stage short" id="f-theme"></div></figure><div id="theme-code"></div>`,
-  modes: () => `<figure class="fig"><div class="stage" id="f-modes"></div><div class="ctl" id="c-modes"></div><figcaption class="cap"><b>granite</b><span>the same seed in both modes</span></figcaption></figure>`,
-  camera: () => `<figure class="fig"><div class="stage" id="f-camera"></div><div class="ctl" id="c-camera"></div><figcaption class="cap"><b>long-ridge</b><span>seed 181, rough and sharp</span></figcaption></figure>`,
-  heightfields: () => `<figure class="fig"><div class="stage short" id="f-hf" style="background:#0b0b0d center/cover"></div><figcaption class="cap"><b>volcano()</b><span>a made-up cone, crater and lake from 12 lines of code, drawn with setHeightfield</span></figcaption></figure>`,
+  install: () => `${res(`<div class="ph short" style="background-image:url(${shot('place-istanbul')})"></div>`, 'After install, <code>&lt;Topography location="istanbul" /&gt;</code> draws Istanbul.')}<div class="inst">
+    <div><div class="inst-t">${LU('<path d="M9.94 14.06 4 20M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9Z"/>')}${INSTALL_WAYS.agent.label}</div>
+      ${codeBlock(INSTALL_WAYS.agent.cmd, { lang: 'sh', one: true })}
+      <p class="inst-hint">${INSTALL_WAYS.agent.hint}</p></div>
+    <div><div class="inst-t">${LU('<path d="M18 11V6a2 2 0 0 0-4 0v1M14 10V4a2 2 0 0 0-4 0v2M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>')}${INSTALL_WAYS.npm.label}</div>
+      ${codeBlock(INSTALL_WAYS.npm.cmd, { lang: 'sh', one: true })}
+      ${codeBlock(INSTALL_WAYS.npm.react, { lang: 'sh', one: true })}
+      <p class="inst-hint">${INSTALL_WAYS.npm.hint}</p></div>
+  </div>`,
+  locations: () => `${liveFig('place', { cls: 'tall loading' })}
+    <div class="plist" id="plist">${PLACES.map((p) => `<button type="button" data-place="${p.id}" aria-pressed="false"><img src="${shot(p.shot)}" alt="" loading="lazy"><b>${p.name}</b><code>${p.id}</code></button>`).join('')}
+      <div class="any"><div class="box">${glyph('place', 22, 1.5)}</div><b>Any area</b><code>fetchLocation()</code></div></div>
+    ${codeBlock(CODE.locations.js, { file: 'main.js' })}`,
+  first: () => `<figure class="fig"><div class="stage short" id="f-first"></div><figcaption class="cap">All three snippets draw this long ridge in 3D.</figcaption></figure>`,
+  export: () => res('<div class="two"><div class="ph" id="ex-0"></div><div class="ph" id="ex-1"></div></div>', 'Two snapshots of one orbit, at frame 0 and frame 4000.'),
+  react: () => res('<div class="ph" id="r-react"><div class="over">Children are drawn on top</div></div>', 'The Hero component draws granite with a heading on top.'),
+  element: () => res('<div class="ph" id="r-element"></div>', 'The element above draws a long ridge with two peaks.'),
+  page: () => res('<div class="ph" id="r-page"><div class="over">Your page</div></div>', 'Dunes behind a section, with the content on top.'),
+  performance: () => res('<div class="ph short" id="r-perf"></div>', 'Granite in 3D at the low tier, with lines that stay sharp.'),
+  agents: () => res(`<pre class="out"><b># topographic</b>
+
+> Topographic terrain, rendered live with WebGL. Generate a land, or turn a real place into one.
+
+## Settings
+- ${SHAPE_KEY}: the base shape of generated land
+- location: a real place by name …</pre>`, 'The first lines of <code>llms.txt</code>.'),
+  landforms: () => liveFig('shape'),
+  looks: () => `<div class="grid3">${LOOK_GALLERY.map((l) => `<figure><img src="${shot(l.shot)}" alt="" loading="lazy"><figcaption>${l.name}</figcaption></figure>`).join('')}</div>`,
+  lines: () => liveFig('lines', { cls: 'short' }),
+  terrain: () => liveFig('terrain', { cls: 'short' }),
+  motion: () => liveFig('motion', { cls: 'short' }),
+  layout: () => `<div class="pair"><figure><div class="ph" id="lay-0"><div class="mock"><b>Your heading</b><i></i></div></div><figcaption>With <code>anchor: 1, fade: 0</code> the lines cross the text.</figcaption></figure><figure><div class="ph" id="lay-1"><div class="mock"><b>Your heading</b><i></i></div></div><figcaption>With <code>anchor: 0, fade: 0.9</code> the text stays clear.</figcaption></figure></div>`,
+  theme: () => `<div class="tabs" role="tablist" id="theme-tabs"></div><figure class="fig"><div class="stage short" id="f-theme"></div><figcaption class="cap" id="cap-theme"></figcaption></figure><div class="livecode" id="theme-code"></div>`,
+  modes: () => liveFig('modes'),
+  camera: () => liveFig('camera'),
+  heightfields: () => `<figure class="fig"><div class="stage short" id="f-hf" style="background:#0b0b0d center/cover"></div><figcaption class="cap">A made-up volcano, drawn with <code>setHeightfield()</code>.</figcaption></figure>`,
+  heightmaps: () => `<div class="pair"><figure><div class="ph loading" id="f-game"></div><figcaption>The Matterhorn as contours.</figcaption></figure><figure><div class="ph" id="hm"><canvas id="hm-c" width="256" height="256"></canvas></div><figcaption>The same land as a 16-bit heightmap.</figcaption></figure></div>`,
 };
-/** Figures that sit before the section's code rather than after it. */
-const FIG_FIRST = new Set(['what', 'landforms', 'looks', 'locations', 'lines', 'terrain', 'layout', 'theme', 'modes', 'camera', 'heightfields']);
+/** Sections whose code is written by their figure, from what it shows. */
+const LIVE_CODE = new Set(['locations', 'landforms', 'lines', 'terrain', 'motion', 'modes', 'camera']);
+const FIG_FIRST = new Set(['looks', 'layout', 'theme', 'heightfields', 'heightmaps', ...LIVE_CODE]);
 
 content.innerHTML = SECTIONS.map((s, i) => {
   const ns = numbers[s.id];
   const fig = FIGS[s.id]?.() ?? '';
-  const code = s.id === 'theme' ? '' : sectionCode(s);
+  const code = s.id === 'theme' || s.id === 'install' || LIVE_CODE.has(s.id) ? '' : sectionCode(s);
   return `<section class="sec" id="${s.id}" aria-labelledby="h-${s.id}">
     <h2 class="sec-h" id="h-${s.id}"><a href="#${s.id}">${s.title}</a>${s.badge ? BADGE : ''}<span class="n">${pad(i)}</span></h2>
     <p class="lede">${s.lede}</p>
@@ -305,77 +426,183 @@ document.addEventListener('click', (e) => {
   n.classList.remove('flash'); void n.offsetWidth; n.classList.add('flash');
   setTimeout(() => n.classList.remove('flash'), 900);
 });
+const relayout = () => requestAnimationFrame(placeNotes);
 
-/* controls helpers */
-function slider(host, { label, min, max, step, value, fmt = (v) => v }, on) {
-  const w = document.createElement('label');
-  w.className = 'rng';
-  w.innerHTML = `<span>${label}</span><output>${fmt(value)}</output><input type="range" min="${min}" max="${max}" step="${step}" value="${value}">`;
-  const input = w.querySelector('input');
-  input.oninput = () => { w.querySelector('output').textContent = fmt(+input.value); on(+input.value); };
-  host.append(w);
-  return input;
+/* helpers */
+/** Real places on this page: brighter ink and slightly heavier lines than the playground's quiet default, and an orbit. */
+const PLACE_LOOK = { theme: { mode: 'dark', ink: '#c6d2e4' }, lines: { width: 0.16 }, camera: { motion: 'orbit' } };
+const strip = ({ field, place, ...s }) => s;
+const hint = (id, text) => { $(`#c-${id}`).insertAdjacentHTML('afterbegin', `<span class="hint">${text}</span>`); };
+const SHAPE = SHAPE_KEY;
+/**
+ * A figure whose inputs drive the live view and rewrite the code under it. The code names exactly the settings
+ * the view was given, so copying it gives the same picture.
+ */
+function tuned(id, raw, { keys, sections, cap }) {
+  const view = lazyLive($(`#f-${id}`), vivid(raw));
+  const write = liveCode($(`#code-${id}`), id);
+  const show = () => {
+    write(codeFor(asProps(view.settings, keys)));
+    if (cap) $(`#cap-${id}`).innerHTML = cap(resolveSettings(view.settings));
+  };
+  const set = (patch) => { view.update(patch); show(); };
+  $(`#t-${id}`).replaceWith(tunePanel(sections(set, resolveSettings(view.settings))));
+  show();
+  return { view, set, show };
 }
-const P = (g, k) => PARAMS.find((p) => p.group === g && p.key === k);
-const fmtObj = (name, o) => `${name}: { ${Object.entries(o).map(([k, v]) => `${k}: ${v}`).join(', ')} }`;
-const strip = ({ field, ...s }) => s;
+const rows = (group, keys, s, set) => keys.map((k) => paramRow(group, k, s[group][k], (v) => set({ [group]: { [k]: v } })));
 
-/* hero: one 3D view that switches to 2D */
-const heroSettings = byId.what.live;
-const hero = live($('#hero'), strip(heroSettings));
+/* hero: Everest from real heights, switched between the map and the landscape */
+let heroView;
+loadPlace('everest').then(({ field, defaults }) => {
+  heroView = lazyLive($('#hero'), merge(defaults, PLACE_LOOK), { field });
+  $('#hero').classList.remove('loading');
+});
 for (const b of document.querySelectorAll('[data-hero]')) {
   b.onclick = () => {
-    hero.update({ mode: b.dataset.hero });
+    heroView?.update({ mode: b.dataset.hero });
     for (const x of document.querySelectorAll('[data-hero]')) x.setAttribute('aria-pressed', String(x === b));
   };
 }
 setInterval(() => {
-  const p = hero.pose;
-  if (p) $('#hero-read').textContent = hero.settings.mode === '3d' ? `pose.azimuth  ${p.azimuth.toFixed(1)}°\npose.elevation ${p.elevation.toFixed(1)}°` : 'mode: \'2d\'\nthe flat map';
+  const p = heroView?.pose;
+  if (p) $('#hero-read').textContent = heroView.settings.mode === '3d' ? `pose.azimuth  ${p.azimuth.toFixed(1)}°\npose.elevation ${p.elevation.toFixed(1)}°` : 'mode: \'2d\'\nthe flat map';
 }, 250);
 
-/* lines: margin sliders drive the live figure */
+/* real places: the list picks the live place, and the code names it. Until someone picks, three famous places take turns. */
 {
-  const s = strip(byId.lines.live);
-  const t = live($('#f-lines'), s);
-  const host = $('#c-lines');
-  const read = document.createElement('span');
-  read.className = 'read';
-  const vals = { ...s.lines };
-  const show = () => { read.textContent = fmtObj('lines', vals); };
-  host.insertAdjacentHTML('beforeend', '<span class="hint">Drag to change the lines.</span>');
-  for (const k of ['count', 'width', 'opacity', 'indexEvery']) {
-    const p = P('lines', k);
-    slider(host, { label: p.label, min: p.min, max: p.max, step: p.step, value: vals[k] }, (v) => { vals[k] = v; t.update({ lines: { [k]: v } }); show(); });
-  }
-  host.append(read); show();
+  const stage = $('#f-place');
+  const write = liveCode($('#code-place'), 'place');
+  let view = null;
+  let want = '';
+  let touring = true;
+  const TOUR = ['grand-canyon', 'yosemite', 'everest'];
+  let step = 0;
+  hint('place', 'Pick a place below. Until you do, the Grand Canyon, Yosemite Valley and Everest take turns.');
+  const show = async (id) => {
+    want = id;
+    for (const b of document.querySelectorAll('[data-place]')) b.setAttribute('aria-pressed', String(b.dataset.place === id));
+    const p = LOCATIONS.find((x) => x.id === id);
+    $('#cap-place').innerHTML = `${p.name}, <code>location="${id}"</code>.`;
+    write(codeFor({ location: id }));
+    const { field, defaults } = await loadPlace(id);
+    if (want !== id) return;
+    stage.classList.remove('loading');
+    const s = merge(defaults, PLACE_LOOK);
+    if (!view) view = lazyLive(stage, s, { field });
+    else { view.update(fullSettings(s)); view.setHeightfield(field); }
+  };
+  $('#plist').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-place]');
+    if (!b) return;
+    touring = false;
+    show(b.dataset.place);
+  });
+  for (const a of document.querySelectorAll('[data-goto]')) a.addEventListener('click', () => { touring = false; show(a.dataset.goto); });
+  show(TOUR[0]);
+  setInterval(() => {
+    if (!touring || document.hidden) return;
+    const r = stage.getBoundingClientRect();
+    if (r.bottom < 0 || r.top > innerHeight) return;
+    step = (step + 1) % TOUR.length;
+    show(TOUR[step]);
+  }, 7000);
+  // Warm the cache for the tour, so each turn draws at once.
+  TOUR.forEach((id) => loadPlace(id));
 }
 
-/* terrain: landform chips and terrain sliders */
+/* generated shapes: a base shape, a seed and the terrain settings; New land rolls all of them */
 {
-  const s = strip(byId.terrain.live);
-  const t = live($('#f-terrain'), s);
-  const host = $('#c-terrain');
-  const vals = { peaks: 3, spread: 0.6, roughness: 0.2, sharpness: 0.5, terracing: 0.4 };
+  let shapeRow;
+  let seedRow;
+  const tr = {};
+  const pick = (v) => { for (const b of shapeRow.querySelectorAll('button')) b.setAttribute('aria-pressed', String(b.dataset.v === v)); };
+  tuned('shape', strip(byId.landforms.live), {
+    keys: [SHAPE, 'seed', 'terrain', 'lines', 'mode', 'camera'],
+    cap: (full) => `<code>${SHAPE}: '${full.style}'</code> at seed ${full.seed}, one variation in a million.`,
+    sections: (set, s) => {
+      shapeRow = document.createElement('div');
+      shapeRow.className = 'pt-row wide';
+      shapeRow.innerHTML = `<span class="pt-row-icon">${glyph('style')}</span><span class="pt-row-label">Shape</span><div class="shapes">${STYLES.map((x) => `<button type="button" data-v="${x.id}" aria-pressed="${x.id === s.style}">${x.id}</button>`).join('')}</div>`;
+      shapeRow.onclick = (e) => { const b = e.target.closest('button'); if (!b) return; pick(b.dataset.v); set({ style: b.dataset.v }); };
+      seedRow = sliderRow({ label: 'Seed', icon: 'seed', art: 'variant', min: 0, max: 9999, step: 1, value: s.seed, fmt: String, hint: 'One variation of the shape. The library takes 0 to 999999.' }, (v) => set({ seed: v }));
+      for (const k of ['peaks', 'spread', 'roughness', 'sharpness']) tr[k] = paramRow('terrain', k, s.terrain[k], (v) => set({ terrain: { [k]: v } }));
+      const roll = document.createElement('div');
+      roll.className = 'wide';
+      roll.innerHTML = `<button type="button" class="newland">${glyph('seed', 14, 1.8)}New land</button>`;
+      roll.onclick = () => {
+        const r = (a, b, st = 0.01) => +(a + Math.round((Math.random() * (b - a)) / st) * st).toFixed(2);
+        const next = {
+          style: STYLES[Math.floor(Math.random() * STYLES.length)].id, seed: Math.floor(Math.random() * 10000),
+          terrain: { peaks: r(1, 5, 1), spread: r(0.2, 0.9), roughness: r(0, 0.6), sharpness: r(0.25, 0.8) },
+        };
+        pick(next.style);
+        seedRow.set(next.seed);
+        for (const k of Object.keys(next.terrain)) tr[k].set(next.terrain[k]);
+        set(next);
+      };
+      return [['Land', [shapeRow, seedRow, ...Object.values(tr), roll]]];
+    },
+  });
+  hint('shape', 'Roll new land, or pick a shape and scrub the seed. The code under the inputs is always what you see.');
+}
+
+/* lines */
+tuned('lines', strip(byId.lines.live), {
+  cap: () => 'A long ridge in 2D.',
+  keys: [SHAPE, 'seed', 'lines', 'theme'],
+  sections: (set, s) => [['Lines', rows('lines', ['count', 'width', 'opacity', 'indexEvery'], s, set)]],
+});
+hint('lines', 'The playground\'s own inputs. Each track draws what its setting does.');
+
+/* terrain */
+tuned('terrain', strip(byId.terrain.live), {
+  cap: (f) => `A gentle summit with ${f.terrain.peaks} ${f.terrain.peaks === 1 ? 'peak' : 'peaks'}.`,
+  keys: [SHAPE, 'terrain', 'layout', 'theme'],
+  sections: (set, s) => [['Shape', rows('terrain', ['peaks', 'spread', 'sharpness', 'variant'], s, set)], ['Surface', rows('terrain', ['roughness', 'terracing'], s, set)]],
+});
+hint('terrain', 'Summits, spread, sharpness and the surface. Terracing groups the lines into steps.');
+
+/* motion */
+tuned('motion', strip(byId.motion.live), {
+  cap: (f) => (f.motion.speed === 0 ? 'A seed pod, held still.' : `A seed pod at ${f.motion.speed.toFixed(2)}× speed.`),
+  keys: [SHAPE, 'seed', 'motion', 'lines', 'theme'],
+  sections: (set, s) => [['Motion', rows('motion', ['speed', 'warp', 'sparkle'], s, set)]],
+});
+hint('motion', 'Speed 0 holds one frame and stops the loop.');
+
+/* 2D and 3D */
+tuned('modes', strip(byId.modes.live), {
+  cap: (f) => (f.mode === '2d' ? 'Granite as the flat map.' : f.extent === 'block' ? 'Granite as a solid block.' : 'Granite as an endless plane.'),
+  keys: [SHAPE, 'seed', 'mode', 'extent', 'elevation', 'detail', 'camera'],
+  sections: (set, s) => [['View', [
+    segRow({ label: 'Mode', icon: 'mode', value: s.mode, options: [{ id: '2d', label: '2D', glyph: 'wide' }, { id: '3d', label: '3D', glyph: 'block' }] }, (v) => set({ mode: v })),
+    segRow({ label: 'Extent', icon: 'extent', value: s.extent, options: [{ id: 'block', label: 'Block', glyph: 'block' }, { id: 'endless', label: 'Endless', glyph: 'endless' }] }, (v) => set({ extent: v })),
+    sliderRow({ label: 'Elevation', icon: 'elevation', art: 'elevation', min: 0, max: 1, step: 0.01, value: s.elevation, fmt: (v) => v.toFixed(2) }, (v) => set({ elevation: v })),
+    sliderRow({ label: 'Detail', icon: 'detail', art: 'count', min: 0, max: 1, step: 0.01, value: s.detail, fmt: (v) => `${Math.round(32 + v * 128)}²` }, (v) => set({ detail: v })),
+  ]]],
+});
+hint('modes', 'One seed, two views. Change the mode, the extent and how tall the land stands.');
+
+/* camera */
+let cameraView;
+{
+  const f = tuned('camera', strip(byId.camera.live), {
+    cap: (f) => (f.camera.motion === 'still' ? 'A rough ridge under a still camera.' : `A rough ridge on the ${f.camera.motion} path.`),
+    keys: [SHAPE, 'seed', 'mode', 'terrain', 'camera'],
+    sections: (set, s) => [['Camera', [
+      segRow({ label: 'Path', icon: 'camMotion', wide: true, value: s.camera.motion, options: ['still', 'orbit', 'push', 'flyover', 'drone'].map((m) => ({ id: m, label: m[0].toUpperCase() + m.slice(1), glyph: m })) }, (v) => set({ camera: { motion: v } })),
+      sliderRow({ label: 'Azimuth', icon: 'azimuth', art: 'azimuth', min: 0, max: 360, step: 1, value: Math.round(s.camera.azimuth), fmt: (v) => `${v}°` }, (v) => set({ camera: { azimuth: v } })),
+      sliderRow({ label: 'Angle', icon: 'angle', art: 'angle', min: 2, max: 80, step: 1, value: Math.round(s.camera.elevation), fmt: (v) => `${v}°` }, (v) => set({ camera: { elevation: v } })),
+      sliderRow({ label: 'Distance', icon: 'distance', art: 'distance', min: RADIUS_MIN, max: RADIUS_MAX, step: 0.01, value: s.camera.radius, fmt: (v) => v.toFixed(2) }, (v) => set({ camera: { radius: v } })),
+    ]]],
+  });
+  cameraView = f.view;
+  hint('camera', 'Pick a path, or Still and set the angles yourself.');
   const read = document.createElement('span');
   read.className = 'read';
-  const show = () => { read.textContent = fmtObj('terrain', vals); };
-  const chips = document.createElement('div');
-  chips.className = 'row';
-  chips.innerHTML = STYLES.map((x) => `<button class="chip" data-lf="${x.id}" aria-pressed="${x.id === 'gentle-summit'}">${x.id}</button>`).join('');
-  chips.onclick = (e) => {
-    const b = e.target.closest('[data-lf]');
-    if (!b) return;
-    t.update({ style: b.dataset.lf });
-    $('#t-name').textContent = b.dataset.lf;
-    for (const x of chips.children) x.setAttribute('aria-pressed', String(x === b));
-  };
-  host.append(chips);
-  for (const k of Object.keys(vals)) {
-    const p = P('terrain', k);
-    slider(host, { label: p.label, min: p.min, max: p.max, step: p.step, value: vals[k] }, (v) => { vals[k] = v; t.update({ terrain: { [k]: v } }); show(); });
-  }
-  host.append(read); show();
+  $('#c-camera').append(read);
+  setInterval(() => { const p = f.view.pose; if (p) read.textContent = `pose ${p.azimuth.toFixed(0)}° ${p.elevation.toFixed(0)}° r ${p.radius.toFixed(2)}`; }, 200);
 }
 
 /* theme tabs over one live figure; the code under it follows the tab */
@@ -389,66 +616,22 @@ setInterval(() => {
     ['Transparent', { mode: 'dark', ink: '#c9c2b4', paper: 'transparent' }],
   ];
   const stage = $('#f-theme');
-  const t = live(stage, strip(byId.theme.live));
+  const t = lazyLive(stage, strip(byId.theme.live));
   const tabs = $('#theme-tabs');
   tabs.innerHTML = THEMES.map(([n], i) => `<button role="tab" aria-selected="${i === 0}" data-i="${i}">${n}</button>`).join('');
-  const codeFor = (th) => {
-    const q = (v) => `'${v}'`;
-    const js = `topography.update({ theme: { ${Object.entries(th).map(([k, v]) => `${k}: ${q(v)}`).join(', ')} } });`;
-    const html = `<topographic-map theme="${th.mode}"${th.ink ? ` ink="${th.ink}"` : ''}${th.paper ? ` paper="${th.paper}"` : ''}></topographic-map>`;
-    const react = `<Topography theme={{ ${Object.entries(th).map(([k, v]) => `${k}: ${q(v)}`).join(', ')} }} />`;
-    return codeTabs({ js, react, html }, { id: 'theme' });
-  };
+  const write = liveCode($('#theme-code'), 'theme');
   const pick = (i) => {
     const th = THEMES[i][1];
     t.update({ theme: { ink: undefined, paper: undefined, ...th } });
     stage.classList.toggle('checker', th.paper === 'transparent');
     for (const b of tabs.children) b.setAttribute('aria-selected', String(+b.dataset.i === i));
-    $('#theme-code').innerHTML = codeFor(th) + (th.mode === 'dark' && !th.ink ? `<p style="margin-top:12px;font-size:13px;color:var(--mut)">Without colours, dark mode draws <code>${DARK.ink}</code> on <code>${DARK.paper}</code>; light mode draws <code>${LIGHT.ink}</code> on <code>${LIGHT.paper}</code>.</p>` : '');
-    document.dispatchEvent(new Event('docs-relayout'));
+    write(codeFor({ theme: th }));
+    $('#cap-theme').innerHTML = th.paper === 'transparent' ? 'With transparent paper the page shows through.' : `The ${THEMES[i][0].toLowerCase()} theme.`;
+    relayout();
   };
   tabs.onclick = (e) => { const b = e.target.closest('[data-i]'); if (b) pick(+b.dataset.i); };
   pick(0);
-}
-
-/* 2D and 3D: mode, extent, elevation, detail */
-{
-  const s = strip(byId.modes.live);
-  const t = live($('#f-modes'), s);
-  const host = $('#c-modes');
-  host.innerHTML = '<span class="hint">One seed, two views. Change the mode, the extent and how tall the land stands.</span>';
-  const group = (name, opts, cur, on) => {
-    const row = document.createElement('div');
-    row.className = 'row';
-    row.innerHTML = opts.map((o) => `<button class="chip" aria-pressed="${o === cur}">${o}</button>`).join('');
-    row.onclick = (e) => { const b = e.target.closest('button'); if (!b) return; for (const x of row.children) x.setAttribute('aria-pressed', String(x === b)); on(b.textContent); };
-    host.append(row);
-  };
-  group('mode', ['2d', '3d'], '3d', (v) => t.update({ mode: v }));
-  group('extent', ['endless', 'block'], 'block', (v) => t.update({ extent: v }));
-  slider(host, { label: 'Elevation', min: 0, max: 1, step: 0.01, value: 0.7 }, (v) => t.update({ elevation: v }));
-  slider(host, { label: 'Detail', min: 0, max: 1, step: 0.01, value: 0.5, fmt: (v) => `${v} · ${Math.round(32 + v * 128)}²` }, (v) => t.update({ detail: v }));
-}
-
-/* camera: motions, angles and a live pose readout */
-let cameraView;
-{
-  const s = strip(byId.camera.live);
-  const t = cameraView = live($('#f-camera'), s);
-  const host = $('#c-camera');
-  host.innerHTML = '<span class="hint">Pick a path, or still and set the angles yourself.</span>';
-  const row = document.createElement('div');
-  row.className = 'row';
-  row.innerHTML = ['still', 'orbit', 'push', 'flyover', 'drone'].map((m) => `<button class="chip" aria-pressed="${m === 'flyover'}">${m}</button>`).join('');
-  row.onclick = (e) => { const b = e.target.closest('button'); if (!b) return; for (const x of row.children) x.setAttribute('aria-pressed', String(x === b)); t.update({ camera: { motion: b.textContent } }); };
-  host.append(row);
-  slider(host, { label: 'Azimuth', min: 0, max: 360, step: 0.1, value: 349.7, fmt: (v) => `${v}°` }, (v) => t.update({ camera: { azimuth: v } }));
-  slider(host, { label: 'Elevation', min: 2, max: 80, step: 0.1, value: 33.6, fmt: (v) => `${v}°` }, (v) => t.update({ camera: { elevation: v } }));
-  slider(host, { label: 'Radius', min: 0.4, max: 6.5, step: 0.01, value: 1.92 }, (v) => t.update({ camera: { radius: v } }));
-  const read = document.createElement('span');
-  read.className = 'read';
-  host.append(read);
-  setInterval(() => { const p = t.pose; if (p) read.textContent = `pose ${p.azimuth.toFixed(0)}° ${p.elevation.toFixed(0)}° r ${p.radius.toFixed(2)}`; }, 200);
+  $('#theme-code').insertAdjacentHTML('afterend', `<p style="margin-top:12px;font-size:13px;color:var(--mut)">Without colours, dark mode draws <code>${DARK.ink}</code> on <code>${DARK.paper}</code>; light mode draws <code>${LIGHT.ink}</code> on <code>${LIGHT.paper}</code>.</p>`);
 }
 
 /* export: a working snapshot of the camera figure, in the margin */
@@ -457,7 +640,7 @@ let cameraView;
   const box = document.createElement('div');
   box.className = 'ctl';
   box.style.position = 'static';
-  box.innerHTML = '<span class="hint">Try it: two PNGs of the camera figure above, at frame 0 and 4000, on its flyover path.</span><button class="btn" id="snap">Take two snapshots</button><div class="shot-out" id="snap-out"></div>';
+  box.innerHTML = '<span class="hint">Take two PNGs of the camera figure above, at frame 0 and 4000 of its flyover path.</span><button class="btn" id="snap">Take two snapshots</button><div class="shot-out" id="snap-out"></div>';
   const wrap = document.createElement('div');
   wrap.className = 'sn';
   wrap.style.paddingLeft = '0';
@@ -479,10 +662,47 @@ let cameraView;
   };
 }
 
-/* stills: seven landforms, two layouts and a heightfield, from one temporary context */
+/* heightmaps: the Matterhorn as contours beside its heights as a greyscale heightmap */
+loadPlace('matterhorn').then(({ field, defaults }) => {
+  $('#f-game').classList.remove('loading');
+  lazyLive($('#f-game'), merge(defaults, merge(PLACE_LOOK, { theme: { ink: '#d6cfc0' } })), { field });
+  const c = $('#hm-c');
+  const { size, samples } = field;
+  c.width = size;
+  c.height = size;
+  const ctx = c.getContext('2d');
+  const img = ctx.createImageData(size, size);
+  let lo = Infinity;
+  let hi = -Infinity;
+  for (const v of samples) { if (v < lo) lo = v; if (v > hi) hi = v; }
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      // Row 0 is the south edge, so flip the rows to draw north up.
+      const v = Math.round(((samples[(size - 1 - y) * size + x] - lo) / (hi - lo || 1)) * 255);
+      const i = (y * size + x) * 4;
+      img.data[i] = v; img.data[i + 1] = v; img.data[i + 2] = v; img.data[i + 3] = 255;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+});
+
+/* First terrain: the snippet's own result, live */
+lazyLive($('#f-first'), strip(byId.first.live));
+
+/* stills: the results under secondary code, two layouts and a heightfield, from one temporary context */
 (async () => {
-  const lf = await stills(LANDFORMS.map((l) => ({ ...TILE, style: l.id })), { width: 480, height: 300 });
-  LANDFORMS.forEach((l, i) => { const img = document.querySelector(`img[data-lf="${l.id}"]`); if (img && lf[i]) img.src = lf[i]; });
+  const W = { width: 1120, height: 560 };
+  const bg = (sel, url) => { if (url) $(sel).style.backgroundImage = `url(${url})`; };
+  const ex = { style: 'granite', seed: 67, mode: '3d', lines: { count: 36, indexEvery: 4, opacity: 0.8 }, camera: { motion: 'orbit' }, theme: { mode: 'dark', ink: '#9fb0cc' } };
+  bg('#ex-0', (await stills([ex], { width: 640, height: 400, frame: 0 }))[0]);
+  bg('#ex-1', (await stills([ex], { width: 640, height: 400, frame: 4000 }))[0]);
+  const [r1, r2, r3] = await stills([
+    { style: 'granite', terrain: { roughness: 0.3 }, lines: { opacity: 0.6 }, theme: { mode: 'dark', ink: '#9fb0cc' } },
+    { style: 'long-ridge', lines: { count: 36, opacity: 0.72 }, terrain: { peaks: 2 }, theme: { mode: 'dark', ink: '#9fb0cc' } },
+    { style: 'dunes', seed: 5, lines: { count: 16, width: 0.4 }, theme: { mode: 'dark', ink: '#9fb3c8', paper: '#0d1418' } },
+  ], W);
+  bg('#r-react', r1); bg('#r-element', r2); bg('#r-page', r3);
+  bg('#r-perf', (await stills([{ ...strip(byId.performance.live), lines: { opacity: 0.72 }, theme: { mode: 'dark', ink: '#9fb0cc' } }], { width: 1120, height: 420 }))[0]);
   const base = { style: 'drifting-lobes', seed: 223, lines: { count: 34, opacity: 0.7, width: 0.22 }, theme: { mode: 'dark' } };
   const [l0, l1] = await stills([{ ...base, layout: { anchor: 1, fade: 0 } }, { ...base, layout: { anchor: 0, fade: 0.9 } }], { width: 560, height: 350 });
   if (l0) $('#lay-0').style.backgroundImage = `url(${l0})`;
@@ -493,7 +713,39 @@ let cameraView;
   placeNotes();
 })();
 
-document.addEventListener('docs-relayout', () => requestAnimationFrame(placeNotes));
+/**
+ * No short last lines: the last 16 or so characters of every text block are joined with no-break spaces, so a
+ * block never ends on a lone word or a tiny line. text-wrap: pretty does the rest where the browser has it.
+ */
+const TEXT = 'main p, main li, main dd, main dt, main td, .sn, .lede, h1, .sub, .inst-hint, .hint';
+function noWidows(root = document) {
+  for (const el of root.querySelectorAll(TEXT)) {
+    if (el.closest('pre, .code') || el.dataset.nw) continue;
+    el.dataset.nw = '1';
+    const nodes = [];
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) nodes.push(n);
+    let tail = 0;
+    let joined = 0;
+    for (let i = nodes.length - 1; i >= 0 && tail < 18; i--) {
+      const chars = [...nodes[i].data];
+      for (let j = chars.length - 1; j >= 0 && tail < 18; j--) {
+        if (chars[j] === ' ' && tail > 0) {
+          if (tail >= 16 && joined) break;
+          chars[j] = '\u00a0';
+          joined++;
+        }
+        tail++;
+      }
+      nodes[i].data = chars.join('');
+    }
+  }
+}
+noWidows();
+setTimeout(() => { noWidows(); placeNotes(); }, 1200);
+window.__docs = { liveCount };
+document.addEventListener('docs-relayout', relayout);
+new ResizeObserver(relayout).observe(content);
 placeNotes(); spy();
 </script>
 </body>

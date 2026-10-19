@@ -88,9 +88,10 @@ export function numberNotes(sections) {
 /** The body with numbered markers. */
 export function bodyWithMarkers(section, numbers) {
   let i = 0;
-  return section.body.replace(/<sup class="fn"><\/sup>/g, () => {
+  // The marker stays glued to the word before it, so it never wraps onto a line of its own.
+  return section.body.replace(/([^\s<>]*)<sup class="fn"><\/sup>/g, (_, word) => {
     const n = numbers[i++];
-    return n ? `<sup class="fn" id="fnref-${n}"><a href="#fn-${n}">${n}</a></sup>` : '';
+    return n ? `<span class="nw">${word}<sup class="fn" id="fnref-${n}"><a href="#fn-${n}">${n}</a></sup></span>` : word;
   });
 }
 

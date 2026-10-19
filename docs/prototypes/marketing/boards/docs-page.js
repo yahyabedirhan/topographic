@@ -42,17 +42,19 @@ export default {
     {
       key: 'A',
       name: 'Reference essay',
-      note: 'The anatomy layout in dark. A sticky nav whose contour-ring marker follows the section, one 560 px column, numbered section rules, and a margin with footnotes and controls: sliders there drive the live lines, terrain, 3D and camera figures. Galleries of the seven landforms (drawn by the library through snapshot()), nine looks and ten locations, and theme tabs over one live view. Six live views at most. Open it full size: <a href="docs/a.html" target="_blank">docs/a.html</a>.',
+      note: 'Round 2, the pick. The anatomy layout in dark with the playground\'s Literata wordmark, and Playground, GitHub, npm and yahyapak.dev as quiet icon links under it; the nav stays put as you scroll. Real places come right after the first terrain: Everest leads the page, and the Grand Canyon, Yosemite Valley and Everest take turns live until you pick one of the ten. Generated shapes are shape, seed and settings, with a New land button. Every tuned figure uses the playground\'s own Tune inputs, and each input rewrites the code under it. Literata is the only serif, and the version shows once, in the header. Live views mount near the viewport and free their WebGL context when far away, so the page holds two or three at a time. Open it full size: <a href="docs/a.html" target="_blank">docs/a.html</a>.',
       render: page('a.html', 'Docs variant A, reference essay'),
     },
     {
       key: 'B',
+      archived: true,
       name: 'Live split',
       note: 'Scrollytelling. One sticky live terrain on the right changes its settings as each of the 24 sections crosses the middle of the screen, with a readout of what it draws written as 0.6.0 code. Each section has an "On the stage" panel: landform and look chips, sliders, motions, and real snapshot() and record() runs. One WebGL context for the whole page. Open it full size: <a href="docs/b.html" target="_blank">docs/b.html</a>.',
       render: page('b.html', 'Docs variant B, live split'),
     },
     {
       key: 'C',
+      archived: true,
       name: 'Developer reference',
       note: 'Dense three columns, like an API reference. A filterable nav (press /), prose with every table open, and a sticky code column per section. One language choice (JavaScript, React, HTML) for the page, and a names switch that shows each snippet with the 0.5.0 names. A single live preview moves into whichever section you preview. Adds one full-width table of every setting. Open it full size: <a href="docs/c.html" target="_blank">docs/c.html</a>.',
       render: page('c.html', 'Docs variant C, developer reference'),
