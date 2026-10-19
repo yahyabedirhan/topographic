@@ -70,6 +70,36 @@ try {
   const a = await coverage(p, 'dunes', { settings: { seed: 1 } }); const b = await coverage(p, 'dunes', { settings: { seed: 2 } });
   check(Buffer.compare(Buffer.from(a.png), Buffer.from(b.png)) !== 0, 'different seeds give different images');
 
+  // Sparkle on a heightfield: the dots must not line up from one contour to the next into stripes.
+  // A ramp draws parallel contours; the mean line brightness along each diagonal of the frame stays flat
+  // unless the dots on neighbouring lines share a phase.
+  const stripes = await p.evaluate(async () => {
+    const n = 64; const samples = new Float32Array(n * n);
+    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) samples[y * n + x] = 0.02 + 0.96 * x / (n - 1);
+    window.t?.destroy();
+    window.t = window.topographicLib.createTopography(document.getElementById('host'), {
+      mode: '2d', theme: { mode: 'dark' }, lines: { count: 60, width: 0, opacity: 1, indexEvery: 0 },
+      motion: { sparkle: 1 }, layout: { fade: 0 },
+    });
+    window.t.setHeightfield({ samples, size: n, aspect: 1 });
+    const bmp = await createImageBitmap(await window.t.snapshot({ frame: 2000 }));
+    const W = bmp.width, H = bmp.height;
+    const c = new OffscreenCanvas(W, H); const g = c.getContext('2d'); g.drawImage(bmp, 0, 0);
+    const d = g.getImageData(0, 0, W, H).data; const paper = d[1];
+    const score = (sign) => {
+      const sum = new Float64Array(W + H), cnt = new Float64Array(W + H);
+      for (let y = H >> 2; y < (3 * H) >> 2; y++) for (let x = W >> 2; x < (3 * W) >> 2; x++) {
+        const v = d[(y * W + x) * 4 + 1] - paper; if (v < 12) continue;
+        const k = sign > 0 ? x + y : x - y + H; sum[k] += v; cnt[k]++;
+      }
+      const prof = []; for (let k = 0; k < W + H; k++) if (cnt[k] > 20) prof.push(sum[k] / cnt[k]);
+      const mean = prof.reduce((a, b) => a + b, 0) / prof.length;
+      return Math.sqrt(prof.reduce((a, b) => a + (b - mean) ** 2, 0) / prof.length) / mean;
+    };
+    return Math.max(score(1), score(-1));
+  });
+  check(stripes < 0.08, `heightfield sparkle makes no diagonal stripes: ${(stripes * 100).toFixed(1)}% brightness swing along the diagonals`);
+
   const w1 = await coverage(p, 'granite', { renderer: { forceWebGL1: true } });
   check(w1.status === 'webgl1' && w1.coverage > 0.02, `webgl1 fallback renders: ${w1.status}`);
 
