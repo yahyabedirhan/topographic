@@ -664,3 +664,11 @@ Applied: the row keeps one item, "Open Export", with the same icon as the Export
 > Does it make sense?
 
 Applied: the bottom item reads "Export", with the Export button's icon, and opens the Export popover.
+
+> And next to Export maybe we can also show one icon button, similarly with an icon, maybe separated by a small dot between them.
+> It just has a share link, which is quick access for copying the link in the export area.
+>
+> Yes this is what I'm talking about.
+> Just change their orders: Copy Link on the left and Export on the right, okay?
+
+Applied: the bottom row reads "Copy link · Export", each with its icon.

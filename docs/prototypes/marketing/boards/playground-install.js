@@ -144,12 +144,15 @@ const css2 = `
 .pi .codebox{position:relative}
 .pi .codebox .ibtn{position:absolute;top:6px;right:6px}
 .pi .foot{display:flex;align-items:center;gap:6px;color:var(--mut);font-size:12px}
-.pi .foot a{color:var(--fg);text-decoration:none;margin-left:auto;display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:8px}
+.pi .foot .fdot{color:var(--mut);opacity:.6}
+.pi .foot a:first-child{margin-left:auto}
+.pi .foot a{color:var(--fg);text-decoration:none;display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:8px}
 .pi .foot a:hover{background:color-mix(in srgb,var(--fg) 8%,transparent)}
 .pi .code2 .vp{padding:0 4px;margin:0 -1px;border-radius:5px;background:color-mix(in srgb,currentColor 14%,transparent);box-shadow:inset 0 0 0 .5px color-mix(in srgb,currentColor 38%,transparent)}
 `;
 const LU = (d, size = 18) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
 const GLYPH = {
+  link: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
   earth: '<path d="M21.54 15H17a2 2 0 0 0-2 2v4.54"/><path d="M7 3.34V5a3 3 0 0 0 3 3a2 2 0 0 1 2 2c0 1.1.9 2 2 2a2 2 0 0 0 2-2c0-1.1.9-2 2-2h3.17"/><path d="M11 21.95V18a2 2 0 0 0-2-2a2 2 0 0 1-2-2v-1a2 2 0 0 0-2-2H2.05"/><circle cx="12" cy="12" r="10"/>',
   box: '<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>',
   sliders: '<line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/>',
@@ -211,7 +214,7 @@ const ROUND2 = [
         <div class="sec"><div class="sec-t">${LU(GLYPH.hand, 13)}${INSTALL_LABELS.npm}</div>${field('npm install topographic')}
           ${qfield('npm install topographic topographic-react')}
           <div class="codebox"><pre class="code2">${SCENE_JS.map((l, i) => `<span class="ln">${i + 1}</span><span>${l}</span>`).join('')}</pre>${icopy(SCENE_JS_TEXT, 'Copy this code')}</div>
-          <div class="foot"><a href="#">${LU(GLYPH.share, 13)}Export</a></div></div>`);
+          <div class="foot"><a href="#" data-copy="${SCENE_LINK.replace(/"/g, '&quot;')}">${LU(GLYPH.link, 13)}Copy link</a><span class="fdot">·</span><a href="#">${LU(GLYPH.share, 13)}Export</a></div></div>`);
     },
   },
   {
