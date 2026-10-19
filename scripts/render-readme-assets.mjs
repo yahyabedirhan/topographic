@@ -99,7 +99,7 @@ const CARD_SETTINGS = deep(DARK, { lines: { count: 44, indexEvery: 4 } });
 
 // ---------------------------------------------------------------- run
 
-const vite = await createServer({ root, logLevel: 'warn', server: { port: 5288, host: '127.0.0.1' }, optimizeDeps: { noDiscovery: true, include: [] } });
+const vite = await createServer({ root, logLevel: 'warn', server: { port: 5288, host: '127.0.0.1' } });
 await vite.listen();
 const base = vite.resolvedUrls.local[0];
 const args = process.env.SOFTWARE_GL ? ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : ['--ignore-gpu-blocklist'];
