@@ -492,3 +492,7 @@ On "the developer of topographic":
 On "topographic runs wherever JavaScript runs. Put it in a page, a film, a game, a print, or something nobody has made yet.":
 
 > Here as well.
+
+On "Put it in a page, a film, a game, a print, or something nobody has made yet.":
+
+> Put it in a website, a video, a game, a slide, or something nobody has made yet.
