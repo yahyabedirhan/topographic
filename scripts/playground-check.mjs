@@ -72,7 +72,7 @@ try {
     const first = nav.locator('.pt-thumb').first();
     check(await first.getAttribute('aria-label') === 'Istanbul map' && await nav.locator('.pt-saved[data-builtin]').count() === 4
       && await nav.getByRole('button', { name: /^Delete / }).count() === 0 && await nav.getAttribute('data-saved') === '0', 'a fresh profile shows the built-in Istanbul first in the dock, with no delete');
-    const OWNER = { place: 'istanbul', s: 'gentle-summit', seed: '67', lc: '36', ix: '4', m: 'dark', mode: '3d', ex: 'block', ev: '0.12', az: '341.6', ce: '45.3', rd: '1.15', px: '-0.005', pz: '-0.013' };
+    const OWNER = { place: 'istanbul', lf: 'gentle-summit', seed: '67', lc: '36', ix: '4', m: 'dark', mode: '3d', ex: 'block', ev: '0.12', az: '341.6', ce: '45.3', rd: '1.15', px: '-0.005', pz: '-0.013' };
     const matches = () => Object.entries(OWNER).every(([k, v]) => q(b).get(k) === v);
     await first.click(); await settle(b, 600);
     await b.waitForFunction(() => document.documentElement.dataset.region === 'ready', null, { timeout: 60000 }).catch(() => {});
@@ -90,9 +90,9 @@ try {
   }
 
   // URL state: short params load, and the page writes its state back as short params.
-  await open(p, '?s=granite&lc=40');
+  await open(p, '?lf=granite&lc=40');
   let c = await cfg(p);
-  check(c.style === 'granite' && c.lines?.count === 40 && q(p).get('s') === 'granite' && q(p).get('lc') === '40', `short query loads (?${q(p)})`);
+  check(c.landform === 'granite' && c.lines?.count === 40 && q(p).get('lf') === 'granite' && q(p).get('lc') === '40', `short query loads (?${q(p)})`);
   await p.getByRole('button', { name: 'Tune', exact: true }).click();
   const tabs = await p.locator('.pt-tabs button.pt-tab').allInnerTexts();
   check(tabs.join() === 'Lines,Terrain,Motion,Layout,3D', `Tune tabs are labelled (${tabs.join()})`);
@@ -124,12 +124,12 @@ try {
   const look = dock.getByRole('button', { name: 'Fine granite' });
   await look.click(); await settle(p);
   c = await cfg(p);
-  check(q(p).get('look') === 'fine-granite' && c.style === 'granite' && c.seed === 191 && c.lines?.count === 54, `dock look applies and syncs (?${q(p)})`);
+  check(q(p).get('look') === 'fine-granite' && c.landform === 'granite' && c.seed === 191 && c.lines?.count === 54, `dock look applies and syncs (?${q(p)})`);
   check(await look.getAttribute('aria-current') === 'true', 'dock marks the applied look');
   check(await p.evaluate(() => document.documentElement.dataset.theme) === 'dark', 'dark look sets data-theme dark');
   await dock.getByRole('button', { name: 'Quiet hill' }).click(); await settle(p);
   c = await cfg(p);
-  check(q(p).get('look') === 'quiet-hill' && c.style === 'gentle-summit' && c.seed === 197, `a second look switches style and seed (?${q(p)})`);
+  check(q(p).get('look') === 'quiet-hill' && c.landform === 'gentle-summit' && c.seed === 197, `a second look switches landform and seed (?${q(p)})`);
   check(await p.evaluate(() => document.documentElement.dataset.theme) === 'light', 'light look sets data-theme light');
 
   const search = q(p).toString();
@@ -184,7 +184,7 @@ try {
   await cropShot.focus(); await p.keyboard.press('End'); await settle(p);
   check(JSON.parse(await cropShot.getAttribute('data-crop')).x + crop0.width > 0.999 && await cropShot.getAttribute('aria-valuetext') === 'right edge', 'the crop frame moves with the keyboard');
   await menu.getByRole('button', { name: 'React', exact: true }).click();
-  check((await menu.locator('pre.pt-code').innerText()).includes('styleName="gentle-summit"') && await menu.locator('.pt-vpill').count() > 0 && await menu.locator('.pt-ln').count() > 5,
+  check((await menu.locator('pre.pt-code').innerText()).includes('landform="gentle-summit"') && await menu.locator('.pt-vpill').count() > 0 && await menu.locator('.pt-ln').count() > 5,
     'React code shown with line numbers and tinted values');
   check(Math.abs((await menu.boundingBox()).width - width) < 1, 'Export keeps one width across tabs');
   const install = menu.locator('.pt-install code');
@@ -193,10 +193,10 @@ try {
   check((await clip(p)) === 'npm install topographic topographic-react' && await menu.getByRole('button', { name: 'Copied', exact: true }).count() === 1, 'the install line has its own copy');
   await menu.getByRole('button', { name: 'Copy', exact: true }).click();
   const jsx = await clip(p);
-  check(jsx.includes('npm install') && jsx.includes('<TopographicBackground') && jsx.includes('styleName="gentle-summit"'), 'React code copied with install line');
+  check(jsx.includes('npm install') && jsx.includes('<Topography') && jsx.includes('landform="gentle-summit"'), 'React code copied with install line');
   await menu.getByRole('button', { name: 'HTML', exact: true }).click();
   await menu.getByRole('button', { name: 'Copy', exact: true }).click();
-  check((await clip(p)).includes('style-name="gentle-summit"'), 'HTML embed copied');
+  check((await clip(p)).includes('landform="gentle-summit"'), 'HTML embed copied');
   await menu.getByRole('button', { name: 'JSON', exact: true }).click();
   await menu.getByRole('button', { name: 'Copy', exact: true }).click();
   const json = JSON.parse(await clip(p));
@@ -378,7 +378,7 @@ try {
   await dockNav.getByRole('button', { name: 'Fine granite' }).click(); await settle(p, 600);
   c = await cfg(p);
   const lookAz = q(p).get('az');
-  check(q(p).get('place') === null && c.style === 'granite' && c.seed === 191 && await pinDot() === 0, 'a built-in look clears the place and brings its shape');
+  check(q(p).get('place') === null && c.landform === 'granite' && c.seed === 191 && await pinDot() === 0, 'a built-in look clears the place and brings its shape');
   await dockNav.getByRole('button', { name: 'Matterhorn & Zermatt map' }).click(); await settle(p, 600);
   check(q(p).get('place') === 'matterhorn' && JSON.stringify(await cfg(p)) === JSON.stringify(matterhorn), 'the saved item returns with its own colours');
   // Edits to the active saved item are kept, the camera included.
@@ -447,14 +447,15 @@ try {
   check(JSON.stringify(await cfg(back)) === JSON.stringify(quiet), 'copied link restores the settings');
   await open(back, '?look=fine-granite');
   c = await cfg(back);
-  check(c.style === 'granite' && c.seed === 191 && c.lines?.count === 54, '?look= loads a dock look');
+  check(c.landform === 'granite' && c.seed === 191 && c.lines?.count === 54, '?look= loads a dock look');
   await open(back, '?s=dunes&mode=3d');
+  check((await cfg(back)).landform === 'dunes', 'an old ?s= link loads its landform');
   check((await cfg(back)).mode === '3d' && await back.locator('.pt-stage.is-3d').count() === 1, '?mode=3d opens 3D');
   await back.close();
 
   if (shots) {
     const m = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
-    await m.goto(base + '?s=dunes'); await m.waitForSelector('.pt-stage canvas'); await m.waitForTimeout(600);
+    await m.goto(base + '?lf=dunes'); await m.waitForSelector('.pt-stage canvas'); await m.waitForTimeout(600);
     await m.screenshot({ path: join(shots, 'playground-phone.png') }); await m.close();
   }
 
@@ -469,7 +470,7 @@ try {
   await agent.addInitScript(stub);
   await agent.goto(base);
   await agent.waitForSelector('.pt-stage canvas');
-  const want = 'clear_region,get_embed_code,get_install_instructions,get_region,get_settings,identify_agent,list_styles,randomize,record_video,set_region,set_settings,take_screenshot';
+  const want = 'clear_region,get_embed_code,get_install_instructions,get_region,get_settings,identify_agent,list_landforms,randomize,record_video,set_region,set_settings,take_screenshot';
   await agent.waitForFunction((n) => Object.keys(window.__tools).length >= n, 12, { timeout: 10000 }).catch(() => {});
   const names = await agent.evaluate(() => Object.keys(window.__tools).sort().join());
   check(names === want, `WebMCP registers 12 tools${names === want ? '' : ': ' + names}`);
@@ -483,15 +484,18 @@ try {
   }
   const desc = await agent.evaluate(() => window.__tools.identify_agent.description);
   check(/Optional/.test(desc) && /nothing about the person/.test(desc), 'identify_agent says it is optional and records nothing about the person');
-  check((await call('list_styles')).styles.length === 7, 'list_styles');
-  const set = await call('set_settings', { style: 'dunes', lines: { count: 999 }, bogus: 1 });
-  check(set.config.style === 'dunes' && set.config.lines.count === 60 && set.adjustments.length === 2, `set_settings validates: ${JSON.stringify(set.adjustments)}`);
+  check((await call('list_landforms')).landforms.length === 7, 'list_landforms');
+  const set = await call('set_settings', { landform: 'dunes', lines: { count: 999 }, bogus: 1 });
+  check(set.config.landform === 'dunes' && set.config.lines.count === 60 && set.adjustments.length === 2, `set_settings validates: ${JSON.stringify(set.adjustments)}`);
+  const old = await call('set_settings', { style: 'granite' });
+  check(old.config.landform === 'granite' && /landform/.test(old.adjustments[0] ?? ''), `set_settings takes the old style key: ${JSON.stringify(old.adjustments)}`);
+  await call('set_settings', { landform: 'dunes' });
   await settle(agent);
-  const styleKey = q(agent).get('s') ?? q(agent).get('look') ?? '';
-  check(/dune/.test(styleKey) && q(agent).get('lc') === '60', `set_settings updates the page and URL (?${q(agent)})`);
+  const landformKey = q(agent).get('lf') ?? q(agent).get('look') ?? '';
+  check(/dune/.test(landformKey) && q(agent).get('lc') === '60', `set_settings updates the page and URL (?${q(agent)})`);
   check((await call('get_settings')).config.lines.count === 60, 'get_settings');
   const before = (await call('get_settings')).config.seed;
-  const rnd = await call('randomize', { style: true });
+  const rnd = await call('randomize', { landform: true });
   check(rnd.config.seed > 0 && rnd.config.seed !== before, 'randomize');
   const shot = await call('take_screenshot', { width: 400 });
   check(shot.dataUrl.startsWith('data:image/png;base64,') && shot.width === 400, `take_screenshot ${shot.width}x${shot.height}`);
@@ -502,7 +506,7 @@ try {
   const video = await call('record_video', { seconds: 0.5, width: 160, height: 160, motion: 'orbit' }).catch((e) => ({ error: String(e) }));
   check(/^data:video\/(mp4|webm)/.test(video.dataUrl ?? '') && video.byteLength > 0,
     `record_video ${video.mimeType ?? video.error} ${video.byteLength ?? 0} bytes in ${((Date.now() - t0) / 1000).toFixed(1)}s`);
-  check((await call('get_embed_code', { format: 'react' })).code.includes('<TopographicBackground'), 'get_embed_code');
+  check((await call('get_embed_code', { format: 'react' })).code.includes('<Topography'), 'get_embed_code');
   check((await call('get_install_instructions', { target: 'react' })).instructions.includes('npm install'), 'get_install_instructions');
   const region = await call('set_region', { place: 'istanbul' });
   check(region.accepted === true && region.place === 'istanbul' && region.bbox.west === 28.45, `set_region accepts istanbul (${region.query})`);
@@ -536,9 +540,9 @@ try {
   const pre = JSON.stringify((await call('get_settings')).config);
   await call('set_region', { place: 'cyprus' }); await settle(agent);
   const cy = (await call('get_settings')).config;
-  const cyWant = { style: 'granite', lines: { count: 37, width: 0, opacity: 0.92, indexEvery: 6 }, speed: 1.3, sparkle: 0.35, layout: { anchor: 0.43, fade: 0.22 },
+  const cyWant = { landform: 'granite', lines: { count: 37, width: 0, opacity: 0.92, indexEvery: 6 }, speed: 1.3, sparkle: 0.35, layout: { anchor: 0.43, fade: 0.22 },
     theme: { mode: 'dark', ink: '#a9c7e4', paper: '#10151c' }, mode: '3d', elevation: 0.06, extent: 'block', camera: [3, 80, 1.18] };
-  const cyGot = { style: cy.style, lines: cy.lines, speed: cy.motion?.speed, sparkle: cy.motion?.sparkle, layout: cy.layout,
+  const cyGot = { landform: cy.landform, lines: cy.lines, speed: cy.motion?.speed, sparkle: cy.motion?.sparkle, layout: cy.layout,
     theme: { mode: cy.theme?.mode, ink: cy.theme?.ink, paper: cy.theme?.paper }, mode: cy.mode, elevation: cy.elevation, extent: cy.extent ?? 'block',
     camera: [cy.camera?.azimuth, cy.camera?.elevation, cy.camera?.radius] };
   check(JSON.stringify(cyGot) === JSON.stringify(cyWant), `set_region cyprus applies Cyprus's own settings (${JSON.stringify(cyGot)})`);

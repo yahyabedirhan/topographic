@@ -29,10 +29,10 @@ async function page(extra = {}) {
   return p;
 }
 
-const coverage = (p, style, opts = {}) => p.evaluate(async ({ style, opts }) => {
+const coverage = (p, landform, opts = {}) => p.evaluate(async ({ landform, opts }) => {
   const host = document.getElementById('host');
   window.t?.destroy();
-  window.t = window.topographicLib.createTopographicBackground(host, { style, theme: { mode: 'light' }, ...opts.settings }, opts.renderer);
+  window.t = window.topographicLib.createTopography(host, { landform, theme: { mode: 'light' }, ...opts.settings }, opts.renderer);
   const blob = await window.t.snapshot({ frame: 4000 });
   const bmp = await createImageBitmap(blob);
   const c = new OffscreenCanvas(bmp.width, bmp.height); const g = c.getContext('2d'); g.drawImage(bmp, 0, 0);
@@ -40,18 +40,18 @@ const coverage = (p, style, opts = {}) => p.evaluate(async ({ style, opts }) => 
   let n = 0; for (let i = 0; i < d.length; i += 4) if (Math.abs(d[i] - 249) + Math.abs(d[i + 1] - 248) + Math.abs(d[i + 2] - 246) > 12) n++;
   const bytes = new Uint8Array(await blob.arrayBuffer());
   return { status: window.t.status, coverage: n / (d.length / 4), w: bmp.width, h: bmp.height, png: Array.from(bytes) };
-}, { style, opts });
+}, { landform, opts });
 
 try {
-  const styles = ['drifting-lobes', 'granite', 'five-petals', 'seed-pod', 'gentle-summit', 'long-ridge', 'dunes'];
+  const landforms = ['drifting-lobes', 'granite', 'five-petals', 'seed-pod', 'gentle-summit', 'long-ridge', 'dunes'];
   const p = await page();
-  for (const s of styles) {
+  for (const s of landforms) {
     const r = await coverage(p, s);
     check(r.status === 'webgl2' && r.coverage > 0.02, `${s}: ${r.status}, ${(r.coverage * 100).toFixed(1)}% line pixels`);
     if (shots) await writeFile(join(shots, `${s}.png`), Buffer.from(r.png));
   }
-  for (const [name, settings] of [['dark', { theme: { mode: 'dark' } }], ['survey', { style: 'gentle-summit', lines: { count: 44, indexEvery: 5, opacity: .55 }, terrain: { peaks: 3, spread: .6, roughness: .2 } }], ['seed-7', { seed: 7, style: 'dunes' }]]) {
-    const r = await coverage(p, settings.style ?? 'drifting-lobes', { settings });
+  for (const [name, settings] of [['dark', { theme: { mode: 'dark' } }], ['survey', { landform: 'gentle-summit', lines: { count: 44, indexEvery: 5, opacity: .55 }, terrain: { peaks: 3, spread: .6, roughness: .2 } }], ['seed-7', { seed: 7, landform: 'dunes' }]]) {
+    const r = await coverage(p, settings.landform ?? 'drifting-lobes', { settings });
     if (shots) await writeFile(join(shots, `extra-${name}.png`), Buffer.from(r.png));
   }
 
@@ -62,7 +62,7 @@ try {
   });
   check(sizes.before.join() === sizes.after.join() && sizes.snap.join() === '640,400', `snapshot 640 wide -> ${sizes.snap}, live canvas stays ${sizes.after}`);
 
-  const upd = await p.evaluate(() => { window.t.update({ lines: { count: 999 }, style: 'volcano' }); return [window.t.settings.lines.count, window.t.settings.style]; });
+  const upd = await p.evaluate(() => { window.t.update({ lines: { count: 999 }, landform: 'volcano' }); return [window.t.settings.lines.count, window.t.settings.landform]; });
   check(upd[0] === 60 && upd[1] === 'drifting-lobes', `update clamps and falls back: ${upd}`);
 
   const a = await coverage(p, 'dunes', { settings: { seed: 1 } }); const b = await coverage(p, 'dunes', { settings: { seed: 2 } });
@@ -83,7 +83,7 @@ try {
 
   const rm = await page({ reducedMotion: 'reduce' });
   const still = await rm.evaluate(async () => {
-    const t = window.topographicLib.createTopographicBackground(document.getElementById('host'), {});
+    const t = window.topographicLib.createTopography(document.getElementById('host'), {});
     let frames = 0; const orig = window.requestAnimationFrame; window.requestAnimationFrame = (f) => { frames++; return orig(f); };
     await new Promise((r) => setTimeout(r, 300)); return { frames, status: t.status };
   });
@@ -93,20 +93,20 @@ try {
   await ep.goto(url.replace('smoke.html', 'element.html'));
   await ep.waitForFunction(() => window.ready);
   const el = await ep.evaluate(() => {
-    const e = document.querySelector('topographic-bg'); const t = e.topographic;
-    const a = [t.status, t.settings.style, t.settings.lines.count, t.settings.seed, t.settings.layout.fade].join();
-    e.setAttribute('line-count', '12'); e.setAttribute('style-name', 'granite');
-    const b = [t.settings.style, t.settings.lines.count, t.settings.layout.fade].join();
+    const e = document.querySelector('topographic-map'); const t = e.topographic;
+    const a = [t.status, t.settings.landform, t.settings.lines.count, t.settings.seed, t.settings.layout.fade].join();
+    e.setAttribute('line-count', '12'); e.setAttribute('landform', 'granite');
+    const b = [t.settings.landform, t.settings.lines.count, t.settings.layout.fade].join();
     e.removeAttribute('line-count'); const c = t.settings.lines.count;
     e.remove(); return { a, b, c, d: t.status };
   });
   check(el.a === 'webgl2,dunes,24,3,0.5' && el.b === 'granite,12,0.7' && el.c === 30 && el.d === 'destroyed',
-    `<topographic-bg> attributes: ${el.a} | ${el.b} | reset ${el.c} | removed ${el.d}`);
+    `<topographic-map> attributes: ${el.a} | ${el.b} | reset ${el.c} | removed ${el.d}`);
 
   const nogl = await page();
   const fb = await nogl.evaluate(() => {
     HTMLCanvasElement.prototype.getContext = ((orig) => function (type, ...rest) { return type.startsWith('webgl') ? null : orig.call(this, type, ...rest); })(HTMLCanvasElement.prototype.getContext);
-    const t = window.topographicLib.createTopographicBackground(document.getElementById('host'), { theme: { mode: 'dark' } });
+    const t = window.topographicLib.createTopography(document.getElementById('host'), { theme: { mode: 'dark' } });
     return { status: t.status, bg: getComputedStyle(t.canvas).backgroundColor };
   });
   check(fb.status === 'fallback' && fb.bg.includes('11, 11, 13'), `no webgl -> ${fb.status}, paper ${fb.bg}`);
