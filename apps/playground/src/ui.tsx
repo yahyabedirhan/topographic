@@ -129,10 +129,12 @@ export function Readout({ pg }: { pg: Playground }) {
   return <div className="pt-fps" data-tier={stats.quality} aria-live="polite">{`${stats.fps} fps · ${stats.frameMs.toFixed(1)} ms · ${stats.mesh}² · ${stats.quality}`}</div>;
 }
 
-export function Cluster({ pg, place, tune, clusterRef }: {
+export function Cluster({ pg, place, tune, share, clusterRef }: {
   pg: Playground;
   place?: ReactNode;
   tune: ReactNode;
+  /** Export and Install, after a thin separator. */
+  share?: ReactNode;
   clusterRef?: Ref<HTMLDivElement>;
 }) {
   return (
@@ -140,6 +142,7 @@ export function Cluster({ pg, place, tune, clusterRef }: {
       {place}
       <ModeToggle pg={pg} />
       {tune}
+      {share ? <><span className="pt-cluster-sep" aria-hidden="true" />{share}</> : null}
     </div>
   );
 }
@@ -662,7 +665,7 @@ export function Shell({ pg, terrains, place, tune, install, clusterRef, onOpenMa
   onOpenMap?: () => void;
   place?: ReactNode;
   tune: ReactNode;
-  /** Export and Install, in their own glass cluster at the far right of the top bar. */
+  /** Export and Install, the cluster's second group. */
   install?: ReactNode;
   clusterRef?: Ref<HTMLDivElement>;
   children?: ReactNode;
@@ -674,8 +677,7 @@ export function Shell({ pg, terrains, place, tune, install, clusterRef, onOpenMa
       <GlRecovery pg={pg} />
       <Wordmark />
       <div className="pt-top">
-        <Cluster pg={pg} place={place} tune={tune} clusterRef={clusterRef} />
-        {install}
+        <Cluster pg={pg} place={place} tune={tune} share={install} clusterRef={clusterRef} />
       </div>
       <LowPerformancePrompt pg={pg} loading={terrains.region.status === 'loading'} />
       {children}
@@ -726,7 +728,6 @@ export function GlassFrame({ pg, terrains, tune, exporting }: {
   exporting: (open: boolean, onOpenChange: (open: boolean) => void, clusterRef: RefObject<HTMLDivElement | null>) => ReactNode;
 }) {
   const clusterRef = useRef<HTMLDivElement>(null);
-  const rightRef = useRef<HTMLDivElement>(null);
   // One popover at a time: opening one closes the others.
   const [open, setOpen] = useState<PopName | null>(null);
   const openChange = (which: PopName) => (next: boolean) => setOpen((cur) => (next ? which : cur === which ? null : cur));
@@ -771,7 +772,7 @@ export function GlassFrame({ pg, terrains, tune, exporting }: {
       install={(
         <InstallMenu
           pg={pg} region={region} open={open === 'install'} onOpenChange={openChange('install')} onOpenExport={() => setOpen('export')}
-          anchor={rightRef} exporting={exporting(open === 'export', openChange('export'), rightRef)}
+          anchor={clusterRef} exporting={exporting(open === 'export', openChange('export'), clusterRef)}
         />
       )}
     />
