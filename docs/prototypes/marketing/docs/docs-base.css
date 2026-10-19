@@ -78,4 +78,5 @@ kbd{font:500 11px/1 var(--mono);color:var(--fg);background:rgba(255,255,255,.07)
 .toplinks a{color:var(--mut);text-decoration:none}
 .toplinks a:hover{color:var(--fg)}
 
+@media (max-width:700px){.tbl-wrap .tbl{min-width:620px}.tbl-wrap{-webkit-overflow-scrolling:touch}}
 @media (prefers-reduced-motion:reduce){*{transition-duration:0s!important;animation:none!important;scroll-behavior:auto!important}}

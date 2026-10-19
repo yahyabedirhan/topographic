@@ -59,7 +59,7 @@
 .step>.code,.step .code+.code,.step .try,.step details.more,.step .tbl-wrap,.step .fns,.step .limits,.step .faq,.step .places{margin-top:22px}
 .fns{display:grid;gap:6px;font-size:12.5px;line-height:1.5;color:var(--mut);padding-top:12px;border-top:1px dashed var(--line-2)}
 .fns p{margin:0;padding-left:16px;position:relative}
-.fns p span{position:absolute;left:0;color:var(--faint);font-size:10.5px;top:1px}
+.fns p>span.k{position:absolute;left:0;color:var(--faint);font-size:10.5px;top:1px}
 sup.fn{font:500 10px/0 var(--sans);vertical-align:super}
 sup.fn a{color:var(--mut);text-decoration:none}
 .try{display:grid;gap:12px;padding:16px;border-radius:12px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line)}
@@ -198,7 +198,7 @@ $('#steps').innerHTML = SECTIONS.map((s, i) => {
     ${TRY[s.id]?.() ?? ''}
     ${sectionCode(s)}
     ${ex ? (big ? ex : `<details class="more"><summary>Every ${s.title.toLowerCase()} setting, with ranges</summary><div>${ex}</div></details>`) : ''}
-    ${s.notes.length ? `<div class="fns">${s.notes.map((n, j) => `<p id="fn-${ns[j]}"><span>${ns[j]}</span>${n}</p>`).join('')}</div>` : ''}
+    ${s.notes.length ? `<div class="fns">${s.notes.map((n, j) => `<p id="fn-${ns[j]}"><span class="k">${ns[j]}</span>${n}</p>`).join('')}</div>` : ''}
   </section>`;
 }).join('');
 wireCode(document);

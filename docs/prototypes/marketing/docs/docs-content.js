@@ -310,7 +310,7 @@ export const CAMERA_ROWS = [
   { key: 'view2d.zoom', attr: 'view-zoom', range: r(ZOOM_MIN, ZOOM_MAX), def: '1', what: 'The 2D map\'s zoom, up to eight times closer.' },
 ];
 export const TOP_ROWS = [
-  { key: 'landform', attr: 'landform', range: STYLES.map((s) => s.id).join(', '), def: 'drifting-lobes', what: 'The starting shape of generated land.', badge: true },
+  { key: 'landform', attr: 'landform', range: `one of ${STYLES.length} ids`, def: 'drifting-lobes', what: 'The starting shape of generated land.', badge: true },
   { key: 'seed', attr: 'seed', range: '0–999999, whole', def: '0', what: 'One variation of the landform. 0 is the original.' },
   { key: 'location', attr: 'location', range: 'a place id', def: 'none', what: 'A real place by name, instead of generated land.', badge: true },
   { key: 'look', attr: 'look', range: 'a look name', def: 'none', what: 'A named design. Settings you pass win over it.', badge: true },
@@ -407,6 +407,20 @@ export const QUESTIONS = [
 /* ---------------------------------------------------------------- snippets (0.6.0 API) */
 
 export const CODE = {
+  settings: {
+    js: `createTopography(el, {
+  landform: 'dunes',           // or location: 'fuji', or look: 'survey-map'
+  seed: 0,
+  lines:   { count, width, opacity, indexEvery },
+  terrain: { peaks, spread, roughness, sharpness, terracing, variant },
+  motion:  { speed, warp, sparkle },
+  layout:  { anchor, fade },
+  theme:   { mode, ink, paper },
+  mode, elevation, extent, detail, quality,
+  camera:  { azimuth, elevation, radius, motion, panX, panZ },
+  view2d:  { x, y, zoom },
+});`,
+  },
   install: {
     sh: 'npm install topographic\nnpm install topographic topographic-react   # for React 18 or 19',
   },

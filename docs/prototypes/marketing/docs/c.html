@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>topographic docs · C developer reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=EB+Garamond:ital,wght@1,400;1,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="docs-base.css">
+<style>
+/* PROTOTYPE docs-page/C: dense three columns. Nav, prose, and a code column with one language choice for the page. */
+:root{--nav:236px;--code:560px;--bar:56px;--code-bg:#0e0e11}
+html{scroll-padding-top:calc(var(--bar) + 8px)}
+body{font-size:14.5px;line-height:1.6}
+.bar{position:fixed;z-index:20;inset:0 0 auto 0;height:var(--bar);display:flex;align-items:center;gap:16px;padding:0 20px;background:rgba(11,11,13,.86);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.bar .wm{display:flex;align-items:center;gap:9px;font:600 14.5px/1 var(--sans);color:var(--fg);text-decoration:none}
+.bar .wm img{width:22px;height:22px;border-radius:5px}
+.bar .wm span{font-weight:400;color:var(--mut)}
+.seg{display:inline-flex;padding:3px;border-radius:9px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line)}
+.seg button{font:500 12px/1 var(--sans);color:var(--mut);padding:6px 10px;border-radius:6px}
+.seg button[aria-pressed=true]{background:rgba(255,255,255,.09);color:var(--fg)}
+.bar .lbl{font:500 11.5px/1 var(--sans);color:var(--faint);margin-right:-8px}
+.bar .toplinks{margin-left:auto;font-size:12.5px}
+.layout{display:grid;grid-template-columns:var(--nav) minmax(0,1fr);padding-top:var(--bar)}
+/* nav */
+.nav{position:sticky;top:var(--bar);height:calc(100vh - var(--bar));overflow-y:auto;padding:18px 14px 40px 20px;border-right:1px solid var(--line);scrollbar-width:thin}
+.filter{position:relative;margin-bottom:14px}
+.filter input{width:100%;height:32px;padding:0 30px 0 10px;border:0;border-radius:8px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line-2);font:400 13px/1 var(--sans);color:var(--fg)}
+.filter input::placeholder{color:var(--faint)}
+.filter kbd{position:absolute;right:7px;top:7px}
+.nav h4{font:500 10.5px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin:16px 0 6px}
+.nav a{display:flex;align-items:center;gap:6px;padding:4px 8px;margin:0 -8px;border-radius:6px;font:400 13px/1.3 var(--sans);color:var(--mut);text-decoration:none}
+.nav a:hover{color:var(--fg);background:rgba(255,255,255,.03)}
+.nav a.on{color:var(--fg);background:rgba(255,255,255,.06)}
+.nav a .badge{margin-left:auto;height:15px;font-size:9.5px;padding:0 5px}
+.nav .hidden{display:none}
+/* rows: prose left, code right */
+.row{display:grid;grid-template-columns:minmax(0,1fr) var(--code);border-bottom:1px solid var(--line)}
+.row>.p{padding:40px 48px 44px;max-width:720px;min-width:0}
+.row>.c{background:var(--code-bg);border-left:1px solid var(--line);padding:40px 28px 44px;min-width:0}
+.row>.c>.stick{position:sticky;top:calc(var(--bar) + 20px);display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+.row h2{display:flex;align-items:center;gap:8px;font:600 21px/1.2 var(--sans);letter-spacing:-.015em;color:var(--fg)}
+.row h2 a.hash{color:var(--faint);text-decoration:none;font-weight:400;opacity:0;transition:opacity .15s}
+.row h2:hover a.hash{opacity:1}
+.row .sub{font:italic 400 17px/1.4 var(--serif);color:var(--mut);margin:4px 0 16px}
+.row p{margin:0 0 12px}
+.row .tbl-wrap,.row .limits,.row .faq,.row .notes{margin-top:18px}
+.row .tbl{font-size:13px}
+.notes{display:grid;gap:6px;padding:12px 14px;border-radius:10px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line);font-size:12.5px;line-height:1.5;color:var(--mut)}
+.notes p{margin:0;padding-left:20px;position:relative}
+.notes p>span.k{position:absolute;left:0;top:1px;font:500 10px/1.4 var(--mono);color:var(--faint)}
+sup.fn{font:500 10px/0 var(--sans);vertical-align:super}
+sup.fn a{color:var(--mut);text-decoration:none}
+.c .hd{display:flex;align-items:center;gap:8px;font:500 11.5px/1 var(--sans);color:var(--mut)}
+.c .hd .run{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font:500 12px/1 var(--sans);color:var(--fg);padding:7px 10px;border-radius:7px;box-shadow:inset 0 0 0 1px var(--line-2)}
+.c .hd .run:hover{background:rgba(255,255,255,.05)}
+.c .hd .run::before{content:'';width:0;height:0;border-left:7px solid currentColor;border-top:4.5px solid transparent;border-bottom:4.5px solid transparent}
+.c .hd .run.on{color:var(--ok);box-shadow:inset 0 0 0 1px rgba(157,206,192,.4)}
+.c .hd .run.on::before{border:0;width:7px;height:7px;border-radius:50%;background:currentColor}
+.c .code{background:#0a0a0c}
+.c .only{font-size:12px;color:var(--warm);line-height:1.45}
+#preview{position:relative;aspect-ratio:16/10;border-radius:10px;overflow:hidden;background:#0b0b0d;box-shadow:inset 0 0 0 1px var(--line-2)}
+#preview .pv-tag{position:absolute;z-index:2;left:10px;bottom:9px;font:500 11px/1 var(--mono);color:var(--fg);padding:5px 7px;border-radius:6px;background:rgba(11,11,13,.7)}
+#preview .pv-img{position:absolute;inset:0;z-index:1;background:center/cover;opacity:0;transition:opacity .3s}
+#preview .pv-img.on{opacity:1}
+/* intro row */
+.intro h1{font:600 30px/1.15 var(--sans);letter-spacing:-.022em;color:var(--fg);margin-bottom:10px}
+.intro .meta{display:flex;flex-wrap:wrap;gap:6px 14px;margin:14px 0 4px;font-size:12.5px;color:var(--mut)}
+.intro .meta b{font-weight:500}
+.quick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:18px}
+.quick a{display:grid;gap:3px;padding:12px;border-radius:10px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line);text-decoration:none;font-size:12.5px;color:var(--mut)}
+.quick a b{font-size:13px;color:var(--fg)}
+.quick a:hover{box-shadow:inset 0 0 0 1px var(--line-2)}
+.thumbs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:18px}
+.thumbs figure{margin:0;font:400 11px/1.3 var(--sans);color:var(--mut)}
+.thumbs img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px;box-shadow:inset 0 0 0 1px var(--line);margin-bottom:5px}
+.thumbs code{font-size:10px;background:none;padding:0;color:var(--mut)}
+.limits{border-top:1px solid var(--line)}
+.limits>div{display:grid;grid-template-columns:200px 1fr;gap:16px;padding:10px 0;border-bottom:1px solid var(--line)}
+.limits dt{font:500 13.5px/1.45 var(--sans);color:var(--fg)}
+.limits dd{font-size:13.5px}
+.faq{border-top:1px solid var(--line)}
+.faq details{border-bottom:1px solid var(--line)}
+.faq summary{cursor:pointer;list-style:none;padding:10px 24px 10px 0;font:500 13.5px/1.4 var(--sans);color:var(--fg);position:relative}
+.faq summary::after{content:'+';position:absolute;right:2px;top:9px;color:var(--mut)}
+.faq details[open] summary::after{content:'–'}
+.faq summary::-webkit-details-marker{display:none}
+.faq p{padding:0 0 12px;font-size:13.5px}
+.row>.wide{grid-column:1/-1;padding:8px 48px 48px;border-top:1px solid var(--line)}
+.row>.wide .tbl td:nth-child(3){white-space:normal}
+.foot{padding:28px 48px 60px;font-size:12.5px;color:var(--mut);display:grid;gap:6px}
+.mnav{display:none}
+@media (max-width:1280px){:root{--code:480px;--nav:210px}.row>.p{padding:36px 32px}}
+@media (max-width:1020px){
+  .layout{grid-template-columns:minmax(0,1fr)}
+  .nav{display:none}
+  .row{grid-template-columns:minmax(0,1fr)}
+  .row>.c{border-left:0;border-top:1px solid var(--line);padding:20px 16px 24px}
+  .row>.c>.stick{position:static}
+  .row>.p{padding:28px 16px 24px;max-width:none}
+  .bar{gap:10px;padding:0 12px}
+  .bar .toplinks,.bar .lbl,.bar .names{display:none}
+  .bar .wm{font-size:0;gap:0}
+  .seg button{padding:6px 8px;font-size:11.5px}
+  .mnav{max-width:34%}
+  .mnav{display:block;margin-left:auto;max-width:44%;font:500 12.5px/1 var(--sans);color:var(--fg);background:var(--card);border:0;border-radius:8px;padding:8px;box-shadow:inset 0 0 0 1px var(--line-2)}
+  .quick{grid-template-columns:1fr}
+  .thumbs{grid-template-columns:repeat(3,1fr)}
+  .limits>div{grid-template-columns:1fr;gap:2px}
+  .foot{padding:24px 16px 60px}
+  .row>.wide{padding:8px 16px 32px}
+  .intro h1{font-size:25px}
+}
+</style>
+</head>
+<body>
+<!-- PROTOTYPE docs-page/C. Never ships. Code shows the proposed 0.6.0 API, or the 0.5.0 names with the switch; the preview runs the real 0.5.0 library. -->
+<header class="bar">
+  <a class="wm" href="#"><img src="/assets/images/logo/topographic.png" alt="">topographic <span>reference</span></a>
+  <span class="lbl">Code</span>
+  <div class="seg" id="langs" role="group" aria-label="Code language"><button data-lang="js">JavaScript</button><button data-lang="react">React</button><button data-lang="html">HTML</button></div>
+  <span class="lbl names">Names</span>
+  <div class="seg names" id="names" role="group" aria-label="API names"><button data-n="06" aria-pressed="true">0.6.0</button><button data-n="05">0.5.0</button></div>
+  <nav class="toplinks" id="links" aria-label="Project links"></nav>
+  <select class="mnav" id="mnav" aria-label="Jump to section"></select>
+</header>
+<div class="layout">
+  <nav class="nav" aria-label="Reference">
+    <label class="filter"><input id="filter" type="search" placeholder="Filter sections" autocomplete="off"><kbd>/</kbd></label>
+    <div id="navlist"></div>
+  </nav>
+  <main id="rows"></main>
+</div>
+<script type="module">
+import {
+  BADGE, CODE, LOCATIONS, STYLES, shot, linksHtml, live, vivid, fullSettings, highlight, selectLang, FILES, TAB_NAMES,
+} from './docs-content.js';
+import { SECTIONS, GROUPS, byId } from './docs-sections.js';
+import { extras, numberNotes, bodyWithMarkers, fieldFor, settingsTable, ALL_ROWS } from './docs-parts.js';
+
+const $ = (s, r = document) => r.querySelector(s);
+$('#links').innerHTML = linksHtml();
+
+/* C adds one section of its own: every setting in one table. */
+const REF = { id: 'settings', code: 'settings', title: 'Every setting', nav: 'Every setting', lede: 'All of them, in one table.', body: '<p>Every setting with its attribute, range and default, generated from the library\'s own tables. React props use the setting\'s first key: <code>lines={{ count }}</code>, <code>camera={{ motion }}</code>.</p>', notes: [], live: { style: 'drifting-lobes', theme: { mode: 'dark' } } };
+const LIST = [...SECTIONS.slice(0, SECTIONS.findIndex((s) => s.id === 'instance')), REF, ...SECTIONS.slice(SECTIONS.findIndex((s) => s.id === 'instance'))];
+const GROUPS_C = GROUPS.map((g) => (g.name === 'API' ? { ...g, ids: ['settings', ...g.ids] } : g));
+const BY = { ...byId, settings: REF };
+const numbers = numberNotes(LIST);
+
+/* 0.5.0 names, for readers on the current release */
+const ONLY_06 = /location|look|fetchLocation/;
+function to05(code, lang) {
+  let c = code
+    .replace(/useTopography/g, 'useTopographicBackground')
+    .replace(/createTopography/g, 'createTopographicBackground')
+    .replace(/\bTopography\b/g, 'TopographicBackground')
+    .replace(/setTopography/g, 'setTopographic')
+    .replace(/\btopography\b/g, 'topographic')
+    .replace(/topographic-map/g, 'topographic-bg');
+  if (lang === 'react') c = c.replace(/\blandform=/g, 'styleName=').replace(/\blandform:/g, 'style:');
+  else if (lang === 'html') c = c.replace(/\blandform=/g, 'style-name=');
+  else c = c.replace(/\blandform:/g, 'style:');
+  return c;
+}
+let names = '06';
+let lang = 'js';
+try { lang = localStorage.getItem('topographic-docs-lang') || 'js'; } catch { /* fine */ }
+
+const COPY = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="5.5" y="5.5" width="8" height="8" rx="1.6"/><path d="M10.5 3.5v-.4A1.6 1.6 0 0 0 8.9 1.5H3.1A1.6 1.6 0 0 0 1.5 3.1v5.8a1.6 1.6 0 0 0 1.6 1.6h.4"/></svg>';
+/** The code column of a section: the chosen language if the snippet has it, else what it has. */
+function codeFor(s) {
+  const code = CODE[s.id === 'what' ? 'first' : s.code];
+  if (!code) return '';
+  const keys = Object.keys(code);
+  const blocks = (s.id === 'page' ? ['css', 'react'] : [keys.includes(lang) ? lang : keys[0]]).map((k) => {
+    let src = code[k].trim();
+    const only = names === '05' && ONLY_06.test(src) && s.badge;
+    if (names === '05') src = to05(src, k);
+    const hl = { react: 'js', html: 'js', js: 'js' }[k] ?? k;
+    const file = { js: 'main.js', react: k === 'react' && s.id === 'page' ? 'Hero.jsx' : 'Map.jsx', html: 'index.html', css: 'style.css', sh: 'terminal' }[k];
+    return `<figure class="code"><div class="code-head"><span class="code-file">${file}</span><span class="code-file" style="margin-right:6px;color:var(--faint)">${TAB_NAMES[k]}</span><button class="copy" aria-label="Copy code">${COPY}</button></div><pre><code>${highlight(src, hl)}</code></pre></figure>${only ? '<p class="only">This snippet uses 0.6.0 settings that 0.5.0 does not have.</p>' : ''}`;
+  });
+  return blocks.join('');
+}
+
+function row(s, i) {
+  const ns = numbers[s.id];
+  const body = bodyWithMarkers(s, ns);
+  const ex = s.id === 'settings' ? '' : extras(s);
+  const intro = s.id === 'what' ? `<div class="meta"><span><b>0.5.0</b> on npm</span><span>names for <b>0.6.0</b> ${BADGE}</span><span>ESM, no dependencies</span><span>about 25 kB gzipped</span></div>
+    <div class="quick"><a href="#install"><b>Install</b>npm install topographic</a><a href="#first"><b>First terrain</b>JS, React or HTML</a><a href="#settings"><b>Every setting</b>one table, ranges and defaults</a></div>` : '';
+  const gal = s.id === 'locations' ? `<div class="thumbs">${LOCATIONS.map((p) => `<figure><img src="${shot(p.shot)}" alt="" loading="lazy">${p.name}<br><code>${p.id}</code></figure>`).join('')}</div>`
+    : s.id === 'landforms' ? `<div class="thumbs" id="lf">${STYLES.map((x) => `<figure><img data-lf="${x.id}" alt="">${x.name}<br><code>${x.id}</code></figure>`).join('')}</div>` : '';
+  return `<section class="row${s.id === 'what' ? ' intro' : ''}" id="${s.id}">
+    <div class="p">
+      ${s.id === 'what' ? `<h1>topographic</h1><p class="sub" style="margin-top:0">2D and 3D topographic terrain for websites, videos and games.</p>` : `<h2>${s.title}${s.badge ? BADGE : ''}<a class="hash" href="#${s.id}" aria-label="Link to ${s.title}">#</a></h2><p class="sub">${s.lede}</p>`}
+      ${body}${intro}${gal}${ex}
+      ${s.notes.length ? `<div class="notes">${s.notes.map((n, j) => `<p id="fn-${ns[j]}"><span class="k">${ns[j]}</span>${n}</p>`).join('')}</div>` : ''}
+    </div>
+    <div class="c"><div class="stick">
+      <div class="hd"><span>${String(i + 1).padStart(2, '0')} · ${s.nav}</span><button class="run" data-run="${s.id}">Preview</button></div>
+      <div class="slot"></div>
+      <div class="codes">${codeFor(s)}</div>
+    </div></div>
+    ${s.id === 'settings' ? `<div class="wide">${settingsTable(ALL_ROWS())}</div>` : ''}
+  </section>`;
+}
+$('#rows').innerHTML = LIST.map(row).join('') + `<footer class="foot"><span>topographic is Apache 2.0, by Yahya Bedirhan Pak. Heights from Mapzen Terrain Tiles on AWS Open Data.</span><span class="toplinks">${linksHtml()}</span></footer>`;
+
+function rerenderCode() {
+  for (const s of LIST) { const el = document.querySelector(`#${s.id} .codes`); if (el) el.innerHTML = codeFor(s); }
+  for (const b of $('#langs').children) b.setAttribute('aria-pressed', String(b.dataset.lang === lang));
+  for (const b of $('#names').children) b.setAttribute('aria-pressed', String(b.dataset.n === names));
+}
+$('#langs').onclick = (e) => { const b = e.target.closest('[data-lang]'); if (!b) return; lang = b.dataset.lang; try { localStorage.setItem('topographic-docs-lang', lang); } catch { /* fine */ } rerenderCode(); };
+$('#names').onclick = (e) => { const b = e.target.closest('[data-n]'); if (!b) return; names = b.dataset.n; rerenderCode(); };
+rerenderCode();
+document.addEventListener('click', async (e) => {
+  const copy = e.target.closest('.copy');
+  if (!copy) return;
+  try { await navigator.clipboard.writeText(copy.closest('.code').querySelector('pre').textContent); } catch { /* fine */ }
+  copy.classList.add('done'); setTimeout(() => copy.classList.remove('done'), 1200);
+});
+
+/* nav, filter and scroll spy */
+$('#navlist').innerHTML = GROUPS_C.map((g) => `<div class="grp"><h4>${g.name}</h4>${g.ids.map((id) => `<a href="#${id}" data-id="${id}">${BY[id].nav}${BY[id].badge ? BADGE : ''}</a>`).join('')}</div>`).join('');
+$('#mnav').innerHTML = LIST.map((s) => `<option value="${s.id}">${s.nav}</option>`).join('');
+$('#mnav').onchange = (e) => document.getElementById(e.target.value).scrollIntoView();
+const filter = $('#filter');
+filter.oninput = () => {
+  const q = filter.value.trim().toLowerCase();
+  for (const g of document.querySelectorAll('#navlist .grp')) {
+    let any = false;
+    for (const a of g.querySelectorAll('a')) {
+      const s = BY[a.dataset.id];
+      const hit = !q || `${s.title} ${s.lede} ${s.body}`.toLowerCase().includes(q);
+      a.classList.toggle('hidden', !hit); any ||= hit;
+    }
+    g.classList.toggle('hidden', !any);
+  }
+};
+filter.onkeydown = (e) => { if (e.key === 'Enter') { const a = $('#navlist a:not(.hidden)'); if (a) { a.click(); filter.blur(); } } };
+addEventListener('keydown', (e) => { if (e.key === '/' && document.activeElement !== filter) { e.preventDefault(); filter.focus(); } });
+let cur = '';
+function spy() {
+  let id = LIST[0].id;
+  for (const s of LIST) if (document.getElementById(s.id).getBoundingClientRect().top < 140) id = s.id;
+  if (id === cur) return;
+  cur = id;
+  for (const a of document.querySelectorAll('#navlist a')) a.classList.toggle('on', a.dataset.id === id);
+  const a = $(`#navlist a[data-id="${id}"]`);
+  a?.scrollIntoView({ block: 'nearest' });
+  $('#mnav').value = id;
+}
+addEventListener('scroll', () => requestAnimationFrame(spy), { passive: true });
+spy();
+
+/* one preview, moved into whichever row asks for it */
+const preview = document.createElement('div');
+preview.id = 'preview';
+preview.innerHTML = '<div class="pv-img"></div><span class="pv-tag"></span>';
+const view = live(preview, {});
+const strip = ({ field, ...s }) => s;
+function run(id) {
+  const s = BY[id];
+  document.querySelector(`#${id} .slot`).append(preview);
+  view.setHeightfield(s.live.field ? fieldFor(s.live.field) : null);
+  view.update(fullSettings(vivid(strip(s.live))));
+  const img = preview.querySelector('.pv-img');
+  img.classList.toggle('on', id === 'locations');
+  if (id === 'locations') img.style.backgroundImage = `url(${shot('place-fuji')})`;
+  preview.querySelector('.pv-tag').textContent = id === 'locations' ? 'location="fuji" · playground screenshot' : `${s.live.style}${s.live.mode === '3d' ? ' · 3d' : ''}`;
+  for (const b of document.querySelectorAll('.run')) { const on = b.dataset.run === id; b.classList.toggle('on', on); b.textContent = on ? 'Live' : 'Preview'; }
+}
+document.addEventListener('click', (e) => { const b = e.target.closest('[data-run]'); if (b) run(b.dataset.run); });
+run('what');
+
+/* landform thumbnails from one temporary context */
+import('./docs-content.js').then(async ({ stills, TILE }) => {
+  const urls = await stills(STYLES.map((x) => ({ ...TILE, style: x.id })), { width: 240, height: 240 });
+  STYLES.forEach((x, i) => { const img = document.querySelector(`img[data-lf="${x.id}"]`); if (img && urls[i]) img.src = urls[i]; });
+});
+</script>
+</body>
+</html>
