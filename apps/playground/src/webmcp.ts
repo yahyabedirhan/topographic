@@ -4,6 +4,16 @@ import { embedCode, type EmbedFormat } from './embed';
 import { TOOL_DEFS } from './agent-tools';
 import { renderPng } from './png';
 import { configOf } from './url';
+import { AGENT_CHOICES, identifyAgent, trackToolCall } from './analytics';
+import { isAgentName, isPurpose } from './actor';
+
+/** Runs a WebMCP tool and sends `agent_tool_called` with its name, whether it worked and how long it took. */
+export async function runTracked<T>(tool: string, fn: () => T | Promise<T>): Promise<T> {
+  const start = performance.now();
+  let ok = false;
+  try { const out = await fn(); ok = true; return out; }
+  finally { trackToolCall(tool, ok, performance.now() - start); }
+}
 
 export interface PageBridge {
   getSettings(): Settings;
@@ -55,6 +65,15 @@ export function registerTools(page: PageBridge): () => void {
   const controller = new AbortController();
 
   const run: Record<string, (input: Record<string, unknown>) => unknown> = {
+    identify_agent: (input) => {
+      if (!isAgentName(input?.name)) throw new Error(`name must be one of: ${AGENT_CHOICES.names.join(', ')}`);
+      if (!isPurpose(input?.purpose)) throw new Error(`purpose must be one of: ${AGENT_CHOICES.purposes.join(', ')}`);
+      const recorded = identifyAgent({ name: input.name, purpose: input.purpose });
+      return {
+        name: input.name, purpose: input.purpose, recorded,
+        note: recorded ? 'Thank you. Only analytics changed; the playground works the same.' : 'Analytics are off in this browser, so nothing was recorded. The playground works the same.',
+      };
+    },
     list_styles: () => ({
       styles: STYLES.map(({ id, name, description }) => ({ id, name, description })),
       presets: PRESETS.map((p) => ({ name: p.name, settings: p.settings })),
@@ -129,7 +148,7 @@ export function registerTools(page: PageBridge): () => void {
       description: def.description,
       inputSchema: def.inputSchema,
       annotations: { readOnlyHint: def.readOnly },
-      execute: async (input: Record<string, unknown> = {}) => run[def.name](input),
+      execute: async (input: Record<string, unknown> = {}) => runTracked(def.name, () => run[def.name](input)),
     };
     Promise.resolve(mc.registerTool(tool, { signal: controller.signal }))
       .catch((e) => console.warn(`[topographic] WebMCP could not register ${def.name}:`, e));

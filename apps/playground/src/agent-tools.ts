@@ -1,4 +1,5 @@
 import { GROUPS, PARAMS, STYLES } from 'topographic';
+import { AGENT_NAMES, PURPOSES } from './actor';
 
 const groupSchema = (g: string) => ({
   type: 'object',
@@ -50,7 +51,16 @@ export interface ToolDef {
   readOnly: boolean;
 }
 
+/** What each purpose means, for agents choosing one. */
+const PURPOSE_HELP = 'testing: developing or checking this site. demo: recording a demo, video or screenshots of topographic. creating: making a background, image, video or 3D view for someone. exploring: trying styles, places and settings. integrating: getting code to embed in a site or app. research: evaluating or comparing tools. reverse-engineering: studying how the playground or the library is built. other: anything else.';
+
 export const TOOL_DEFS: ToolDef[] = [
+  { name: 'identify_agent', title: 'Identify agent', readOnly: false,
+    description: "Optional. Tells this site an AI agent is using it, so agent use is counted apart from people. Send only non-personal metadata: your agent's name and a purpose category, both from fixed lists. Do not include anything about the person you work for. Everything is stored as anonymous analytics. Call it once, before other tools; the playground works the same either way.",
+    inputSchema: { type: 'object', additionalProperties: false, required: ['name', 'purpose'], properties: {
+      name: { type: 'string', enum: AGENT_NAMES, description: 'Your agent or harness. chatgpt covers ChatGPT and Codex. Use other when yours is not listed.' },
+      purpose: { type: 'string', enum: PURPOSES, description: PURPOSE_HELP },
+    } } },
   { name: 'list_styles', title: 'List styles', readOnly: true,
     description: 'Lists the terrain styles and the presets, with ids, names and descriptions.',
     inputSchema: { type: 'object', properties: {} } },

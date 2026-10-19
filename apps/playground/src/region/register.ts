@@ -1,4 +1,4 @@
-import { getModelContext } from '../webmcp';
+import { getModelContext, runTracked } from '../webmcp';
 import type { BBox } from './pipeline';
 import { REGION_TOOL_DEFS, regionQuery, regionUpdate, type RegionToolState } from './tools';
 
@@ -76,7 +76,7 @@ export function registerRegionTools(get: () => RegionAgent): () => void {
       description: def.description,
       inputSchema: def.inputSchema,
       annotations: { readOnlyHint: def.readOnly },
-      execute: async (input: Record<string, unknown> = {}) => run[def.name](input),
+      execute: async (input: Record<string, unknown> = {}) => runTracked(def.name, () => run[def.name](input)),
     };
     Promise.resolve(mc.registerTool(tool, { signal: controller.signal }))
       .catch((error) => console.warn(`[topographic] WebMCP could not register ${def.name}:`, error));
