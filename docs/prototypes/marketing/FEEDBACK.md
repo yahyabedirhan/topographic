@@ -305,3 +305,8 @@ On "Any other area up to 300 km wide comes in by its corners":
 > All of these types of limitations and constraints: don't mix them up with the marketing language and give them a separate place to live.
 
 This applies to every surface: constraints live only in the docs' Limits section.
+
+On the "With an agent" and "By hand" labels in the install parts:
+
+> And I didn't like that separation of [With an] Agent and by hand.
+> Let's find a little bit more professional and useful terminology for those.
