@@ -18,7 +18,8 @@
     "typecheck": "tsc -p packages/core && tsc -p packages/react",
     "smoke": "node scripts/smoke.mjs && node scripts/playground-check.mjs",
     "dev": "npm run build:packages && npm run dev -w apps/playground",
-    "deploy": "npm run build && wrangler deploy"
+    "deploy": "npm run build && wrangler deploy",
+    "marketing": "npm run build:packages && vite --port 5199 --strictPort --open /docs/prototypes/marketing/"
   },
   "devDependencies": {
     "esbuild": "^0.24.0",
