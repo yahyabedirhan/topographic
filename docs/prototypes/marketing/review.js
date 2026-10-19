@@ -11,6 +11,9 @@ export const START = [
 
 /** Places to review outside the boards. Each: { title, kind, href, note }. */
 export const PLACES = [
+  { title: 'Docs page A, reference essay', kind: 'Full page', href: 'docs/a.html', note: 'The anatomy layout in dark: sticky nav, one column, margin notes and controls, live figures.' },
+  { title: 'Docs page B, live split', kind: 'Full page', href: 'docs/b.html', note: 'One sticky live terrain that changes as each section scrolls in.' },
+  { title: 'Docs page C, developer reference', kind: 'Full page', href: 'docs/c.html', note: 'Three columns: filterable nav, prose and tables, sticky code with JS / React / HTML.' },
   { title: '0.6.0 plan', kind: 'Plan', href: 'https://github.com/yahyabedirhan/topographic/blob/prototype/marketing/docs/prototypes/marketing/PLAN.md', note: 'The costly-to-undo changes as one plan: names, locations in the library, looks, heightmap export, the copy. Trade-offs and picks.' },
   { title: 'Feedback log', kind: 'File', href: 'https://github.com/yahyabedirhan/topographic/blob/prototype/marketing/docs/prototypes/marketing/FEEDBACK.md', note: 'What was shown in each round and what you chose.' },
   { title: 'Launch framework (MARK-1)', kind: 'Notion', href: 'https://app.notion.com/p/3fe271c227d4813e86b3e8ff63a002a5', note: 'The repeatable method: eight phases, surface checklist by product kind, messaging kit, prototyping, the topographic case study.' },

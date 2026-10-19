@@ -5,7 +5,7 @@ import { h, shot } from '../live.js';
 
 const page = (file, title) => (stage) => {
   const lite = stage.closest('.small') ? '?lite' : '';
-  stage.append(h`<iframe src="/docs/prototypes/marketing/docs/${file}${lite}" title="${title}" style="display:block;width:1440px;height:900px;border:0;background:#0b0b0d"></iframe>`);
+  stage.append(h`<iframe src="docs/${file}${lite}" title="${title}" style="display:block;width:1440px;height:900px;border:0;background:#0b0b0d"></iframe>`);
 };
 
 /* D: the playground's top-left wordmark (apps/playground/src/shared.tsx Wordmark, style.css .pt-wordmark). */
