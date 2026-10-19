@@ -41,7 +41,7 @@ export const snapshotTable = () => `<div class="tbl-wrap"><table class="tbl"><th
 export const recordTable = () => `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>record option</th><th>Range</th><th>Default</th></tr></thead><tbody>
   ${RECORD_OPTIONS.map(([k, r, d]) => `<tr><td>${c(k)}</td><td>${r}</td><td>${d}</td></tr>`).join('')}</tbody></table></div>`;
 
-export const toolsTable = () => `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>WebMCP tool</th><th>What it does</th></tr></thead><tbody>
+export const toolsTable = () => `<div class="tbl-wrap"><table class="tbl"><thead><tr><th><a href="https://github.com/webmachinelearning/webmcp" target="_blank" rel="noreferrer">WebMCP</a> tool</th><th>What it does</th></tr></thead><tbody>
   ${WEBMCP_TOOLS.map(([k, w]) => `<tr><td>${c(k)}</td><td>${w}</td></tr>`).join('')}</tbody></table></div>`;
 
 export const motionsTable = () => `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>camera.motion</th><th>The path</th></tr></thead><tbody>

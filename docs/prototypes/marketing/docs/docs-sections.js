@@ -27,7 +27,7 @@ export const SECTIONS = [
   },
   {
     id: 'install', title: 'Install', nav: 'Install',
-    lede: 'One command for your agent, or one for npm.',
+    lede: 'One command for your agent, or one for <a href="https://www.npmjs.com/package/topographic" target="_blank" rel="noreferrer">npm</a>.',
     body: `<p><a href="https://www.npmjs.com/package/topographic" target="_blank" rel="noreferrer"><code>topographic</code></a> holds the JavaScript API and the HTML element. <a href="https://www.npmjs.com/package/topographic-react" target="_blank" rel="noreferrer"><code>topographic-react</code></a> adds the React component.<sup class="fn"></sup></p>`,
     notes: ['Importing <code>topographic/element</code> registers the element. Nothing else runs on import.'],
     code: 'install',
@@ -46,7 +46,7 @@ export const SECTIONS = [
     lede: 'Name a mountain. Get its contours.',
     body: `<p>Any place on Earth can be the land. Ten come built in by name, from Everest to Yosemite Valley.<sup class="fn"></sup> Any other area on Earth comes in by its corners, through <code>fetchLocation()</code>.<sup class="fn"></sup></p>
 <p>A place draws its real heights, so the seed, the terrain settings and <code>motion.warp</code> rest while it is on. Lines, colours, layout and the camera still apply.</p>`,
-    notes: ['The playground does this today in its Map panel, and a link such as <code>?place=everest</code> opens a place. The figures here use the playground\'s own pipeline.', 'Heights come from Mapzen Terrain Tiles on AWS Open Data.'],
+    notes: ['The playground does this today in its Map panel, and a link such as <code>?place=everest</code> opens a place. The figures here use the playground\'s own pipeline.', 'Heights come from <a href="https://registry.opendata.aws/terrain-tiles/" target="_blank" rel="noreferrer">Mapzen Terrain Tiles</a> on <a href="https://registry.opendata.aws/" target="_blank" rel="noreferrer">AWS Open Data</a>.'],
     code: 'locations',
     live: { style: 'gentle-summit', mode: '3d', theme: { mode: 'dark' } },
     place: 'grand-canyon',
@@ -208,7 +208,7 @@ export const SECTIONS = [
   {
     id: 'agents', title: 'AI agents', nav: 'AI agents',
     lede: 'Plain-text docs and live tools for agents.',
-    body: `<p>The playground serves <a href="https://topographic.yahyapak.dev/llms.txt" target="_blank" rel="noreferrer"><code>llms.txt</code></a>, <code>llms-full.txt</code> and Markdown pages under <code>/docs/</code>, made from the same settings table as the code.<sup class="fn"></sup></p>
+    body: `<p>The <a href="https://topographic.yahyapak.dev" target="_blank" rel="noreferrer">playground</a> serves <a href="https://topographic.yahyapak.dev/llms.txt" target="_blank" rel="noreferrer"><code>llms.txt</code></a>, <a href="https://topographic.yahyapak.dev/llms-full.txt" target="_blank" rel="noreferrer"><code>llms-full.txt</code></a> and Markdown pages such as <a href="https://topographic.yahyapak.dev/docs/params.md" target="_blank" rel="noreferrer"><code>/docs/params.md</code></a>, made from the same settings table as the code.<sup class="fn"></sup></p>
 <p>In browsers with <a href="https://github.com/webmachinelearning/webmcp" target="_blank" rel="noreferrer">WebMCP</a>, the playground gives an agent tools to change settings, pick a place, take a screenshot, record a video and get the code.</p>`,
     notes: [],
     code: 'agents', tools: true,

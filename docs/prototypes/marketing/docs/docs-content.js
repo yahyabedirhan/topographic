@@ -376,7 +376,7 @@ export const WEBMCP_TOOLS = [
   ['take_screenshot', 'A PNG of the view as a data URL, 1200 px wide by default, or a region of it.'],
   ['record_video', 'A short 3D clip as an MP4 or WebM data URL. 2 s orbit at 640 × 360 by default.'],
   ['get_embed_code', 'Code for html, react, vanilla or json.'],
-  ['get_install_instructions', 'Setup steps for npm, web-component, react or vanilla.'],
+  ['get_install_instructions', 'Setup steps for <code>npm</code>, <code>web-component</code>, <code>react</code> or <code>vanilla</code>.'],
   ['set_region', 'Draws a real place, by name or bounding box.'],
   ['get_region', 'The current region, its load status and URL query.'],
   ['clear_region', 'Goes back to generated land.'],
@@ -396,8 +396,8 @@ export const LIMITS = [
   ['A browser and WebGL', 'It draws on the GPU in a browser. There is no Node renderer; a server can drive headless Chrome. Without WebGL you get the paper colour.'],
   ['One WebGL context each', 'Every live view holds one context, and browsers allow about 16 per page. Reuse one view, or show stills from snapshot().'],
   ['2D zoom', 'view2d.zoom goes from 1 to 8.'],
-  ['React', 'topographic-react needs React 18 or 19.'],
-  ['WebMCP', 'The playground\'s agent tools need a secure page, HTTPS or localhost. Without one, no tools are registered and the page works as normal.'],
+  ['React', '<a href="https://www.npmjs.com/package/topographic-react" target="_blank" rel="noreferrer">topographic-react</a> needs React 18 or 19.'],
+  ['<a href="https://github.com/webmachinelearning/webmcp" target="_blank" rel="noreferrer">WebMCP</a>', 'The playground\'s agent tools need a secure page, HTTPS or localhost. Without one, no tools are registered and the page works as normal.'],
   ['No overlays', 'There is no API for markers, labels, routes or picking a point. Put your own elements on top.'],
   ['Screen readers', 'The canvas is aria-hidden. If the terrain carries meaning, describe it in your own text.'],
 ];
@@ -410,8 +410,8 @@ export const QUESTIONS = [
   ['Can I use my own elevation data?', 'Yes. Any square grid of heights from 0 to 1 goes into setHeightfield(), with the area\'s width over height as aspect.'],
   ['Why is nothing showing?', 'The terrain fills its element, so the element needs a size. Give it a height, or position: fixed; inset: 0.'],
   ['Why does it not move?', 'Check motion.speed, the system\'s reduced motion setting, and whether the element is on screen.'],
-  ['Does it collect data?', 'The npm packages collect nothing. The playground site sends cookieless analytics; PRIVACY.md lists every event and how to opt out.'],
-  ['What is the licence?', 'Apache 2.0. The name, the logo and the screenshots are not covered and are all rights reserved.'],
+  ['Does it collect data?', 'The <a href="https://www.npmjs.com/package/topographic" target="_blank" rel="noreferrer">npm packages</a> collect nothing. The <a href="https://topographic.yahyapak.dev" target="_blank" rel="noreferrer">playground</a> sends cookieless analytics, and <a href="https://github.com/yahyabedirhan/topographic/blob/main/PRIVACY.md" target="_blank" rel="noreferrer">PRIVACY.md</a> lists every event and how to opt out.'],
+  ['What is the licence?', '<a href="https://github.com/yahyabedirhan/topographic/blob/main/LICENSE" target="_blank" rel="noreferrer">Apache 2.0</a>. The name, the logo and the screenshots are not covered and are all rights reserved.'],
 ];
 
 /* ---------------------------------------------------------------- snippets (0.6.0 API) */

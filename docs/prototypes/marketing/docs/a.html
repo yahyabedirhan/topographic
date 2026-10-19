@@ -193,6 +193,8 @@ main :not(pre)>code{white-space:nowrap}
 .inst{display:grid;gap:18px;margin-top:22px}
 .inst-t{display:flex;align-items:center;gap:7px;margin-bottom:8px;font:600 10.5px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
 .inst-t svg{width:13px;height:13px}
+.inst-t a{color:inherit;text-decoration:none}
+.inst-t a:hover{color:var(--fg)}
 .inst .code+.code{margin-top:8px}
 .inst-hint{margin:8px 0 0!important;font-size:13px;color:var(--mut)!important}
 /* the place list doubles as the picker for the live figure */
@@ -230,8 +232,13 @@ main :not(pre)>code{white-space:nowrap}
 .faq summary::-webkit-details-marker{display:none}
 .faq p{padding:0 0 14px;font-size:14px}
 .coda{margin-top:72px;font:500 15.5px/1.5 var(--sans);color:var(--fg);text-wrap:pretty}
-.foot{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);font-size:12.5px;color:var(--mut);display:grid;gap:6px}
-.foot a{color:var(--mut)}
+/* footer: three quiet columns under a hairline */
+.foot{margin-top:56px;padding-top:28px;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.foot h3{margin-bottom:10px;font:600 11px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.foot ul{list-style:none;display:grid;gap:7px}
+.foot li{font:400 12.5px/1.45 var(--sans);color:var(--mut);white-space:nowrap}
+.foot a{color:var(--mut);text-decoration:none}
+.foot a:hover{color:var(--fg)}
 /* mobile */
 .mbar{display:none}
 @media (max-width:1180px){:root{--mar:200px;--g1:48px;--nav:160px;--col:520px}}
@@ -263,6 +270,7 @@ main :not(pre)>code{white-space:nowrap}
   .tune{padding:2px 12px 8px}
   .tune-rows{grid-template-columns:1fr}
   .limits>div{grid-template-columns:1fr;gap:4px}
+  .foot{grid-template-columns:1fr;gap:20px}
   .fig .cap,.pair figcaption{white-space:normal}
 }
 </style>
@@ -291,8 +299,24 @@ main :not(pre)>code{white-space:nowrap}
     <div id="content"></div>
     <p class="coda">topographic runs wherever JavaScript runs. Put it in a page, a film, a game, a print, or something nobody has made yet.</p>
     <footer class="foot">
-      <span>topographic is Apache 2.0, by Yahya Bedirhan Pak. Heights from Mapzen Terrain Tiles on AWS Open Data; map images from OpenFreeMap, OpenMapTiles and OpenStreetMap.</span>
-      <span class="toplinks" id="foot-links"></span>
+      <div><h3>Project</h3><ul>
+        <li><a href="https://topographic.yahyapak.dev" target="_blank" rel="noreferrer">Playground</a></li>
+        <li><a href="https://github.com/yahyabedirhan/topographic" target="_blank" rel="noreferrer">GitHub</a></li>
+        <li><a href="https://www.npmjs.com/package/topographic" target="_blank" rel="noreferrer">topographic on npm</a></li>
+        <li><a href="https://www.npmjs.com/package/topographic-react" target="_blank" rel="noreferrer">topographic-react on npm</a></li>
+      </ul></div>
+      <div><h3>License</h3><ul>
+        <li><a href="https://github.com/yahyabedirhan/topographic/blob/main/LICENSE" target="_blank" rel="noreferrer">Apache 2.0</a></li>
+        <li>© <a href="https://yahyapak.dev" target="_blank" rel="noreferrer">Yahya Bedirhan Pak</a></li>
+        <li><a href="https://github.com/yahyabedirhan/topographic/blob/main/PRIVACY.md" target="_blank" rel="noreferrer">Privacy</a></li>
+      </ul></div>
+      <div><h3>Data</h3><ul>
+        <li><a href="https://registry.opendata.aws/terrain-tiles/" target="_blank" rel="noreferrer">Mapzen Terrain Tiles</a></li>
+        <li><a href="https://registry.opendata.aws/" target="_blank" rel="noreferrer">AWS Open Data</a></li>
+        <li><a href="https://openfreemap.org/" target="_blank" rel="noreferrer">OpenFreeMap</a></li>
+        <li><a href="https://openmaptiles.org/" target="_blank" rel="noreferrer">OpenMapTiles</a></li>
+        <li><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a></li>
+      </ul></div>
     </footer>
   </main>
 </div>
@@ -309,7 +333,6 @@ import { loadPlace } from '../places.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const content = $('#content');
-$('#foot-links').innerHTML = linksHtml();
 
 /* the brand links: Playground, GitHub, npm and yahyapak.dev, once each */
 const SITE = 'https://yahyapak.dev/projects/topographic';
@@ -353,7 +376,7 @@ const FIGS = {
   install: () => `${res(`<div class="ph short" style="background-image:url(${shot('place-istanbul')})"></div>`, 'After install, <code>&lt;Topography location="istanbul" /&gt;</code> draws Istanbul.')}<div class="inst">
     <div><div class="inst-t">${LU('<path d="M9.94 14.06 4 20M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9Z"/>')}${INSTALL_WAYS.agent.label}</div>
       ${codeBlock(INSTALL_WAYS.agent.cmd, { lang: 'sh', one: true })}</div>
-    <div><div class="inst-t">${LU('<path d="M18 11V6a2 2 0 0 0-4 0v1M14 10V4a2 2 0 0 0-4 0v2M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>')}${INSTALL_WAYS.npm.label}</div>
+    <div><div class="inst-t">${LU('<path d="M18 11V6a2 2 0 0 0-4 0v1M14 10V4a2 2 0 0 0-4 0v2M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>')}<a href="${NPM}" target="_blank" rel="noreferrer">${INSTALL_WAYS.npm.label}</a></div>
       ${codeBlock(INSTALL_WAYS.npm.cmd, { lang: 'sh', one: true })}
       ${codeBlock(INSTALL_WAYS.npm.react, { lang: 'sh', one: true })}</div>
   </div>`,
@@ -373,7 +396,7 @@ const FIGS = {
 
 ## Settings
 - ${SHAPE_KEY}: the base shape of generated land
-- location: a real place by name …</pre>`, 'The first lines of <code>llms.txt</code>.'),
+- location: a real place by name …</pre>`, 'The first lines of <a href="https://topographic.yahyapak.dev/llms.txt" target="_blank" rel="noreferrer"><code>llms.txt</code></a>.'),
   landforms: () => liveFig('shape'),
   looks: () => `<div class="grid3">${LOOK_GALLERY.map((l) => `<figure><img src="${shot(l.shot)}" alt="" loading="lazy"><figcaption>${l.name}</figcaption></figure>`).join('')}</div>`,
   lines: () => liveFig('lines', { cls: 'short' }),
@@ -757,7 +780,7 @@ lazyLive($('#f-first'), strip(byId.first.live));
 const TEXT = 'main p, main li, main dd, main dt, main td, .sn, .lede, h1, .sub, .inst-hint, .hint';
 function noWidows(root = document) {
   for (const el of root.querySelectorAll(TEXT)) {
-    if (el.closest('pre, .code') || el.dataset.nw) continue;
+    if (el.closest('pre, .code, .foot') || el.dataset.nw) continue;
     el.dataset.nw = '1';
     const nodes = [];
     const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
