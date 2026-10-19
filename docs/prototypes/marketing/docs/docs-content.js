@@ -376,7 +376,7 @@ export const WEBMCP_TOOLS = [
   ['take_screenshot', 'A PNG of the view as a data URL, 1200 px wide by default, or a region of it.'],
   ['record_video', 'A short 3D clip as an MP4 or WebM data URL. 2 s orbit at 640 × 360 by default.'],
   ['get_embed_code', 'Code for html, react, vanilla or json.'],
-  ['get_install_instructions', 'Setup steps for <code>npm</code>, <code>web-component</code>, <code>react</code> or <code>vanilla</code>.'],
+  ['get_install_instructions', 'Setup steps for <code>npm</code>, <code>web-component</code>, <code>react</code> or <code>vanilla</code>'],
   ['set_region', 'Draws a real place, by name or bounding box.'],
   ['get_region', 'The current region, its load status and URL query.'],
   ['clear_region', 'Goes back to generated land.'],

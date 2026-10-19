@@ -306,7 +306,7 @@ a[data-id="feedback"]{color:var(--fg)!important}
     <figure class="fig" id="fig-hero">
       <div class="stage tall loading" id="hero"></div>
       <div class="ctl"><figure class="code mini" id="hero-code"><div class="code-head"><button class="copy" aria-label="Copy code"></button></div><pre data-lang="react"><code></code></pre></figure></div>
-      <figcaption class="cap">Everest and the Khumbu, <code>location="everest"</code>.</figcaption>
+      <figcaption class="cap">Everest and the Khumbu, <code>location="everest"</code></figcaption>
     </figure>
     <div class="intro"><p id="open1"></p><p id="open2"></p></div>
     <div id="content"></div>
@@ -419,7 +419,7 @@ const FIGS = {
   theme: () => `<figure class="fig"><div class="stage short" id="f-theme"></div><figcaption class="cap" id="cap-theme"></figcaption></figure><div class="livecode" id="theme-code"></div>`,
   modes: () => liveFig('modes'),
   camera: () => liveFig('camera'),
-  heightfields: () => `<figure class="fig"><div class="stage short" id="f-hf" style="background:#0b0b0d center/cover"></div><figcaption class="cap">A made-up volcano, drawn with <code>setHeightfield()</code>.</figcaption></figure>`,
+  heightfields: () => `<figure class="fig"><div class="stage short" id="f-hf" style="background:#0b0b0d center/cover"></div><figcaption class="cap">A made-up volcano, drawn with <code>setHeightfield()</code></figcaption></figure>`,
   heightmaps: () => `<div class="pair"><figure><div class="ph loading" id="f-game"></div><figcaption>The Matterhorn as contours.</figcaption></figure><figure><div class="ph" id="hm"><canvas id="hm-c" width="256" height="256"></canvas></div><figcaption>The same land as a 16-bit heightmap.</figcaption></figure></div>`,
 };
 /** Sections whose code is written by their figure, from what it shows. */
@@ -557,7 +557,7 @@ cluster($('#hero'), modeToggle(true, (mode) => heroView?.update({ mode })));
     want = id;
     for (const b of document.querySelectorAll('[data-place]')) b.setAttribute('aria-pressed', String(b.dataset.place === id));
     const p = LOCATIONS.find((x) => x.id === id);
-    $('#cap-place').innerHTML = `${p.name}, <code>location="${id}"</code>.`;
+    $('#cap-place').innerHTML = `${p.name}, <code>location="${id}"</code>`;
     write(codeFor({ location: id }));
     const { field, defaults } = await loadPlace(id);
     if (want !== id) return;
@@ -704,7 +704,7 @@ let cameraView;
   };
   tabs.onclick = (e) => { const b = e.target.closest('[data-i]'); if (b) pick(+b.dataset.i); };
   pick(0);
-  $('#theme-code').insertAdjacentHTML('afterend', `<p style="margin-top:12px;font-size:13px;color:var(--mut)">Without colours, dark mode draws <code>${DARK.ink}</code> on <code>${DARK.paper}</code>; light mode draws <code>${LIGHT.ink}</code> on <code>${LIGHT.paper}</code>.</p>`);
+  $('#theme-code').insertAdjacentHTML('afterend', `<p style="margin-top:12px;font-size:13px;color:var(--mut)">Without colours, dark mode draws <code>${DARK.ink}</code> on <code>${DARK.paper}</code>; light mode draws <code>${LIGHT.ink}</code> on <code>${LIGHT.paper}</code></p>`);
 }
 
 /* export: a working snapshot of the camera figure, in the margin */

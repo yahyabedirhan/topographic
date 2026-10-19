@@ -496,3 +496,10 @@ On "topographic runs wherever JavaScript runs. Put it in a page, a film, a game,
 On "Put it in a page, a film, a game, a print, or something nobody has made yet.":
 
 > Put it in a website, a video, a game, a slide, or something nobody has made yet.
+
+On "Everest and the Khumbu, `location="everest"`.":
+
+> The . at the end looks weird.
+> So if we end a sentence with this character ` then I think you don't have to use that dot.
+
+Applied where inline code ends a caption, paragraph or note. A sentence that ends in code in the middle of a paragraph keeps its full stop, so the next sentence still reads as new.

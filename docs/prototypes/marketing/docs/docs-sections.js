@@ -44,7 +44,7 @@ export const SECTIONS = [
   {
     id: 'locations', title: 'Real places', nav: 'Real places', badge: true,
     lede: 'Name a mountain. Get its contours.',
-    body: `<p>Any place on Earth can be the land. Ten come built in by name, from Everest to Yosemite Valley.<sup class="fn"></sup> Any other area on Earth comes in by its corners, through <code>fetchLocation()</code>.<sup class="fn"></sup></p>
+    body: `<p>Any place on Earth can be the land. Ten come built in by name, from Everest to Yosemite Valley.<sup class="fn"></sup> Any other area on Earth comes in by its corners, through <code>fetchLocation()</code><sup class="fn"></sup></p>
 <p>A place draws its real heights, so the seed, the terrain settings and <code>motion.warp</code> rest while it is on. Lines, colours, layout and the camera still apply.</p>`,
     notes: ['The playground does this today in its Map panel, and a link such as <code>?place=everest</code> opens a place. The figures here use the playground\'s own pipeline.', 'Heights come from <a href="https://registry.opendata.aws/terrain-tiles/" target="_blank" rel="noreferrer">Mapzen Terrain Tiles</a> on <a href="https://registry.opendata.aws/" target="_blank" rel="noreferrer">AWS Open Data</a>.'],
     code: 'locations',
@@ -132,7 +132,7 @@ export const SECTIONS = [
     lede: 'PNG at any size, frame-exact sequences and clips.',
     body: `<p><code>snapshot</code> draws one PNG in the background, at any size, while the live view keeps its size and keeps moving. Give it a <code>frame</code> and the same settings always give the same picture, so a loop of snapshots is a frame-exact sequence for an editor or ffmpeg.<sup class="fn"></sup></p>
 <p><code>record</code> encodes a clip with a moving camera right in the browser, as MP4 or WebM.<sup class="fn"></sup></p>`,
-    notes: ['Exports always centre the terrain and ignore <code>setInsets</code>.', 'Pass <code>format: \'mp4\'</code> or <code>\'webm\'</code>, a length in seconds and a frame rate.'],
+    notes: ['Exports always centre the terrain and ignore <code>setInsets</code>', 'Pass <code>format: \'mp4\'</code> or <code>\'webm\'</code>, a length in seconds and a frame rate.'],
     code: 'export',
     live: { style: 'gentle-summit', seed: 131, terrain: { terracing: 0.85, peaks: 2 }, lines: { count: 36, width: 0.14 }, mode: '3d', camera: { motion: 'orbit', azimuth: 294.7, elevation: 34, radius: 2.3 }, theme: { mode: 'dark', paper: '#16130f', ink: '#e0b089' } },
   },
@@ -157,7 +157,7 @@ export const SECTIONS = [
   {
     id: 'instance', title: 'The instance', nav: 'Instance',
     lede: 'What createTopography returns.',
-    body: `<p><code>createTopography</code> returns the instance. The component hands it to <code>onReady</code>, and the element keeps it as <code>element.topography</code>.<sup class="fn"></sup></p>`,
+    body: `<p><code>createTopography</code> returns the instance. The component hands it to <code>onReady</code>, and the element keeps it as <code>element.topography</code><sup class="fn"></sup></p>`,
     notes: ['A third argument takes renderer options, such as <code>maxPixelRatio</code>. You rarely need them.'],
     members: true,
     live: { style: 'drifting-lobes', seed: 11, terrain: { variant: 0.15 }, lines: { count: 22, width: 0.18 }, theme: { mode: 'dark', ink: '#9fb0cc' } },
