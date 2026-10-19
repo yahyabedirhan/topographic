@@ -3,11 +3,11 @@
 The plan for the changes that are costly to undo.
 Agents wrote it while the maintainer was away.
 The rename (part 1) is built as a draft pull request.
-Parts 2 to 5 wait for the maintainer's decisions.
+Part 2 is decided (ten built-in locations plus live fetch) and is built next. Parts 3 and 4 wait for D5 and D7.
 
 ## Part 1: public names
 
-This part is built as a draft pull request, using the maintainer's names (`shape`, `<topographic-view>`) and the default of D3.
+This part is built as a draft pull request, using the maintainer's names (`shape`, `<topographic-view>`) and a clean break, as the maintainer decided.
 
 | 0.5.0 | 0.6.0 |
 |---|---|
@@ -34,7 +34,7 @@ Trade-offs:
 
 - Built-in grids work offline and give the same result every time, which video frames and games need, but they add about 1 MB to the package on disk (not to a page's download).
 - Live fetching covers any area, but it needs the network and a third-party tile host.
-- The default ships both.
+- The maintainer chose both.
 
 ## Part 3: named looks (D5)
 
