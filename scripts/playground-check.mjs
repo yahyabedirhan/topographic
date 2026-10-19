@@ -481,7 +481,7 @@ try {
     check(err.includes(`${field} must be one of`), `identify_agent refuses ${JSON.stringify(bad)}: ${err.slice(0, 60)}`);
   }
   const desc = await agent.evaluate(() => window.__tools.identify_agent.description);
-  check(/non-personal metadata/.test(desc) && /Optional/.test(desc), 'identify_agent says it is optional and asks for non-personal metadata only');
+  check(/Optional/.test(desc) && /nothing about the person/.test(desc), 'identify_agent says it is optional and records nothing about the person');
   check((await call('list_styles')).styles.length === 7, 'list_styles');
   const set = await call('set_settings', { style: 'dunes', lines: { count: 999 }, bogus: 1 });
   check(set.config.style === 'dunes' && set.config.lines.count === 60 && set.adjustments.length === 2, `set_settings validates: ${JSON.stringify(set.adjustments)}`);

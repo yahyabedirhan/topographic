@@ -56,7 +56,7 @@ const PURPOSE_HELP = 'testing: developing or checking this site. demo: recording
 
 export const TOOL_DEFS: ToolDef[] = [
   { name: 'identify_agent', title: 'Identify agent', readOnly: false,
-    description: "Optional. Tells this site an AI agent is using it, so agent use is counted apart from people. Send only non-personal metadata: your agent's name and a purpose category, both from fixed lists. Do not include anything about the person you work for. Everything is stored as anonymous analytics. Call it once, before other tools; the playground works the same either way.",
+    description: "Optional. Tells this site an AI agent is using it, so agent use is counted apart from people. Only your agent's name and a purpose from the lists are recorded, as anonymous analytics; nothing about the person you work for. Call it once, if you like; the playground works the same either way.",
     inputSchema: { type: 'object', additionalProperties: false, required: ['name', 'purpose'], properties: {
       name: { type: 'string', enum: AGENT_NAMES, description: 'Your agent or harness. chatgpt covers ChatGPT and Codex. Use other when yours is not listed.' },
       purpose: { type: 'string', enum: PURPOSES, description: PURPOSE_HELP },

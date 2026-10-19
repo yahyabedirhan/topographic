@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { EVENT_NAMES, optIn, optOut } from './analytics';
 import { consent, type Consent } from './consent';
-import { AGENT_LISTS, EVENT_INFO, SUPER_PROPS } from './privacy-content';
+import { EVENT_INFO, SUPER_PROPS } from './privacy-content';
 import { latestUpdates } from './changelog';
 import changelog from '../../../CHANGELOG.md?raw';
 import hero from './assets/hero.webp';
@@ -96,7 +96,7 @@ export function About({ home }: { home: string }) {
 
       <section id="analytics" aria-labelledby="pv-analytics">
       <h2 id="pv-analytics">Analytics</h2>
-      <p>The playground counts visits and how its tools are used, so they can be improved. It uses no cookies, has no accounts, and does not record sessions. It keeps one random visitor id in your browser's local storage. It counts AI agents apart from people, with metadata only. The topographic npm packages collect nothing.</p>
+      <p>The playground counts visits and how its tools are used, so they can be improved. It uses no cookies, has no accounts, and does not record sessions. It keeps one random visitor id in your browser's local storage. It counts AI agents apart from people. The topographic npm packages collect nothing.</p>
 
       <section aria-labelledby="pv-choice">
         <h3 id="pv-choice">Your choice</h3>
@@ -110,9 +110,7 @@ export function About({ home }: { home: string }) {
 
       <section aria-labelledby="pv-agents">
         <h3 id="pv-agents">People and agents</h3>
-        <p>Every event says who it comes from: a person, with the random visitor id, or an AI agent, with an agent id instead. The agent id is random and kept in that tab's session storage under topographic:agent, so it goes when the tab closes.</p>
-        <p>A visit counts as an agent's when the agent calls the identify_agent tool, when the first address has ?analytics_agent=&lt;name&gt;&amp;analytics_purpose=&lt;purpose&gt;, or when the browser is driven over WebDriver (Playwright, Selenium, Puppeteer). The first two also send the agent's name and purpose; the last sends whether the browser was headless or visible. Each WebMCP tool call is sent as an agent's agent_tool_called event.</p>
-        <p>Names and purposes come only from fixed lists; anything else is refused and nothing is recorded. Names: {AGENT_LISTS.names}. Purposes: {AGENT_LISTS.purposes}. No field takes text an agent writes, so an agent cannot send details about the person it works for, even by accident. Opting out covers agents too.</p>
+        <p>The playground counts AI agents apart from people, to see how agents use it. A person's events carry the random visitor id; an agent's carry a random agent id that lasts one tab. A visit counts as an agent's when the agent says so, which is optional, or when the browser is run by automation such as Playwright. Agents can give a name and a purpose from short lists; nothing written freely is recorded. When an agent uses a playground tool, the page notes which tool, whether it worked and roughly how long it took.</p>
       </section>
 
       <section aria-labelledby="pv-events">
@@ -136,8 +134,8 @@ export function About({ home }: { home: string }) {
       <section aria-labelledby="pv-never">
         <h3 id="pv-never">Never collected</h3>
         <ul>
-          <li>Cookies or fingerprints. Local storage only holds your opt out choice and the random visitor id; session storage holds an agent's id, name and purpose for one tab.</li>
-          <li>Anything an agent types or receives: tool inputs, tool results, prompts or error messages.</li>
+          <li>Cookies or fingerprints. Local storage only holds your opt out choice and the random visitor id; session storage holds an agent's id for one tab.</li>
+          <li>What an agent types or receives through the tools.</li>
           <li>Your IP address, name, email or any account.</li>
           <li>Text you type, colours, hex values, coordinates of your own areas, or the settings in a link.</li>
           <li>Images or videos you export.</li>

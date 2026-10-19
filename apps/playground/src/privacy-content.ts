@@ -33,10 +33,7 @@ export const EVENT_INFO: Record<AnalyticsEvent, EventInfo> = {
   low_performance_prompt_shown: { props: 'The frame rate, the view, and the detail and budget levels', why: 'to see how often the default graphics are too heavy' },
   low_performance_prompt_clicked: { props: 'Nothing more', why: 'to see if the prompt helps' },
   analytics_opted_out: { props: 'The previous level (all or pageviews only)', why: 'sent once when you opt out, to count opt outs' },
-  agent_tool_called: { props: 'Sent by the page when an AI agent calls one of its WebMCP tools: the tool name, whether it worked, and how long it took as a range (under 1 s, 1 to 5 s, 5 to 30 s, over 30 s). Never what the agent asked for, the result or an error message', why: 'to see which tools agents use and which ones fail' },
+  agent_tool_called: { props: "When an agent uses a playground tool: the tool's name, whether it worked, and a rough duration. Never the agent's input or the result", why: 'to see which tools agents use' },
 };
 
-export const SUPER_PROPS = 'Every event also carries: site and app name, app version, a coarse screen class (phone, tablet or desktop), mobile or desktop, OS family, the view the visit started in, and who it comes from: a person with the random visitor id, or an AI agent with an agent id.';
-
-/** The names and purposes an agent can choose from. Nothing else is accepted. */
-export const AGENT_LISTS = { names: 'claude, chatgpt (ChatGPT and Codex), gemini, jules, copilot, cursor, windsurf, opencode, pi, amp, droid, cline, roo, kilo, aider, goose, kiro, devin, manus, grok, perplexity and other', purposes: 'testing, demo, creating, exploring, integrating, research, reverse-engineering and other' };
+export const SUPER_PROPS = 'Every event also carries: site and app name, app version, a coarse screen class (phone, tablet or desktop), mobile or desktop, OS family, the view the visit started in, and whether it comes from a person or an AI agent.';
