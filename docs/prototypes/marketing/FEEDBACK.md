@@ -406,3 +406,8 @@ On "The npm packages collect nothing. The playground site sends cookieless analy
 
 > Let's link this privacy.md to what it actually refers to: GitHub.
 > Similarly make sure that these types of references are actual links in the documentation if there are any similar links.
+
+On the footer ("topographic is Apache 2.0, by Yahya Bedirhan Pak. Heights from Mapzen Terrain Tiles on AWS Open Data; map images from OpenFreeMap, OpenMapTiles and OpenStreetMap." and a row of links):
+
+> This area is looking a little bit crowded.
+> It's not visually understandable what this is about so let's try to make this a little bit more beautiful and structural.
