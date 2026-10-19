@@ -13,6 +13,11 @@
 /llms-full.txt
   Cache-Control: public, max-age=0, must-revalidate
   Content-Type: text/plain; charset=utf-8
+/robots.txt
+  Cache-Control: public, max-age=0, must-revalidate
+  Content-Type: text/plain; charset=utf-8
+/sitemap.xml
+  Cache-Control: public, max-age=0, must-revalidate
 /og-a.png
   Cache-Control: public, max-age=86400
 
