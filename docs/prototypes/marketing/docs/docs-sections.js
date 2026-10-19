@@ -232,8 +232,8 @@ export const SECTIONS = [
   },
   {
     id: 'feedback', title: 'Share feedback', nav: 'Share feedback',
-    lede: 'Hi, I\'m Yahya.',
-    body: '<p>If you have any comments, feedback or anything to report, you can contact me here.</p>',
+    lede: 'If you have any comments, feedback or anything to report, you can contact me here.',
+    body: '<p>I\'m Yahya, the developer of topographic. You can find my other work on <a href="https://yahyapak.dev" target="_blank" rel="noreferrer">yahyapak.dev</a>.</p>',
     notes: [],
     contact: true,
     live: { style: 'gentle-summit', theme: { mode: 'dark' } },

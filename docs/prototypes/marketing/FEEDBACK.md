@@ -465,3 +465,10 @@ On the icon in the footer's License column:
 
 > This icon here doesn't look consistent with the other ones.
 > Maybe you can show this: "yahyapak.dev" after the Apache 2.0 [and] privacy, and this one without an icon.
+
+On "Hi, I'm Yahya." in Share feedback:
+
+> So instead of just this one, let's try to be more explanatory about what my connection is with this library.
+> Start with this: "If you have any comments, feedback, or anything to report, you can contact me here. I'm Yahya, developer of this project, and you can check out my other work as well."
+> Something like this.
+> You can find a better [wording] for it.
