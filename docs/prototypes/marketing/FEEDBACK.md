@@ -363,3 +363,7 @@ On the 2×2 grid of icon links (Playground, GitHub, npm, yahyapak.dev):
 > Also let's try to get the icons [out?] and instead we will have this, Playground, GitHub, npm, and the website link.
 
 Read as: no icons, one text row with small dots, like the playground's "yahyapak.dev · About". The icon grid stays behind `?links=icons` for comparison.
+
+On the 2D/3D icon button over a figure:
+
+> You can decrease the padding around this button because when it's not hovered it looks like it's a huge button.
