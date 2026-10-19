@@ -2,7 +2,7 @@
 
 This covers the playground at https://topographic.yahyapak.dev. The `topographic` and `topographic-react` npm packages collect nothing and contain no analytics or error reporting.
 
-The playground counts visits and how its tools are used, so they can be improved. It uses no cookies and no stored ids, has no accounts, and does not record sessions. The same list is on the [About page](https://topographic.yahyapak.dev/about#analytics).
+The playground counts visits and how its tools are used, so they can be improved. It uses no cookies, has no accounts, and does not record sessions. It keeps one random visitor id in your browser's local storage. The same list is on the [About page](https://topographic.yahyapak.dev/about#analytics).
 
 ## Opting out
 
@@ -16,15 +16,19 @@ Add one of these to any playground address:
 
 The Analytics section of the About page also has an Opt out button. It sends one last `analytics_opted_out` event, then nothing.
 
-The choice is saved in the browser's local storage under `topographic:analytics`, so each browser and device keeps its own and must opt out separately. Clearing site data resets it. Browsers with Do Not Track on send no analytics.
+The choice is saved in the browser's local storage under `topographic:analytics`, so each browser and device keeps its own and must opt out separately. Clearing site data resets it. Either opt out also deletes the visitor id. Browsers with Do Not Track on send no analytics.
 
 ## Pageviews
 
-PostHog records a pageview and a page leave with the page path, referrer, UTM campaign parameters and time on page. From the request it derives country, browser, device type and OS. The IP address is discarded and not stored. PostHog runs with `persistence: 'memory'` and `cookieless_mode: 'always'`: unique visitors are counted per day from a salted hash that the server rotates daily, so a visit cannot be linked to another day. The playground settings in the query string are not sent.
+PostHog records a pageview and a page leave with the page path, referrer, UTM campaign parameters and time on page. From the request it derives country, browser, device type and OS. The IP address is discarded and not stored. PostHog runs with `persistence: 'memory'` and `cookieless_mode: 'always'`: PostHog's own id is a salted hash that the server rotates daily.
+
+## Visitor id
+
+The first visit makes a random id (a UUID) and saves it in local storage under `topographic:visitor`. Every event carries it as `visitor_id`, so the visits of one browser can be counted together across days. The id is random: it holds nothing about you, and it differs per browser and device. Either opt out deletes it and stops sending it, and clearing site data removes it. The playground settings in the query string are not sent.
 
 ## Events
 
-Every event also carries: site and app name, app version, a coarse screen class (phone, tablet or desktop), mobile or desktop, OS family, and the view the visit started in.
+Every event also carries: site and app name, app version, a coarse screen class (phone, tablet or desktop), mobile or desktop, OS family, the view the visit started in, and the random visitor id.
 
 | Event | Contains | Why |
 | --- | --- | --- |
@@ -60,7 +64,7 @@ Sentry receives crash reports: the error message and stack trace, browser and OS
 
 ## Never collected
 
-- Cookies, local storage ids or fingerprints. Local storage only holds the opt out choice.
+- Cookies or fingerprints. Local storage only holds the opt out choice and the random visitor id.
 - IP addresses, names, emails or accounts.
 - Typed text, colours, hex values, coordinates of custom areas, or the settings in a link.
 - Exported images or videos.

@@ -96,7 +96,7 @@ export function About({ home }: { home: string }) {
 
       <section id="analytics" aria-labelledby="pv-analytics">
       <h2 id="pv-analytics">Analytics</h2>
-      <p>The playground counts visits and how its tools are used, so they can be improved. It uses no cookies and no stored ids, has no accounts, and does not record sessions. The topographic npm packages collect nothing.</p>
+      <p>The playground counts visits and how its tools are used, so they can be improved. It uses no cookies, has no accounts, and does not record sessions. It keeps one random visitor id in your browser's local storage. The topographic npm packages collect nothing.</p>
 
       <section aria-labelledby="pv-choice">
         <h3 id="pv-choice">Your choice</h3>
@@ -105,7 +105,7 @@ export function About({ home }: { home: string }) {
 
       <section aria-labelledby="pv-auto">
         <h3 id="pv-auto">Pageviews</h3>
-        <p>PostHog records a pageview and a page leave with the page path, referrer, UTM campaign parameters and time on page. From the request it derives country, browser, device type and OS. The IP address is discarded and not stored. Unique visitors are counted per day from a salted hash that the server rotates daily, so a visit cannot be linked to another day. The playground settings in the address bar are not sent.</p>
+        <p>PostHog records a pageview and a page leave with the page path, referrer, UTM campaign parameters and time on page. From the request it derives country, browser, device type and OS. The IP address is discarded and not stored. PostHog's own id is a salted hash that the server rotates daily. The first visit also saves a random visitor id in local storage under topographic:visitor, sent with every event so the visits of one browser can be counted together. Either opt out deletes it. The playground settings in the address bar are not sent.</p>
       </section>
 
       <section aria-labelledby="pv-events">
@@ -129,7 +129,7 @@ export function About({ home }: { home: string }) {
       <section aria-labelledby="pv-never">
         <h3 id="pv-never">Never collected</h3>
         <ul>
-          <li>Cookies, local storage ids or fingerprints. Local storage only holds your opt out choice.</li>
+          <li>Cookies or fingerprints. Local storage only holds your opt out choice and the random visitor id.</li>
           <li>Your IP address, name, email or any account.</li>
           <li>Text you type, colours, hex values, coordinates of your own areas, or the settings in a link.</li>
           <li>Images or videos you export.</li>

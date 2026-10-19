@@ -379,7 +379,7 @@ The playground can send product analytics to PostHog and errors to Sentry. Both 
 
 Each client loads in its own chunk when the page is idle after the first paint.
 
-- **PostHog** runs without cookies or stored ids (`persistence: 'memory'`, `cookieless_mode: 'always'`, which needs the project's cookieless server hash setting), with no session recording and no autocapture, and it respects Do Not Track. It sends pageview and pageleave (time on page, referrer and UTM parameters) and the typed events in `apps/playground/src/analytics.ts`:
+- **PostHog** runs without cookies (`persistence: 'memory'`, `cookieless_mode: 'always'`, which needs the project's cookieless server hash setting), with no session recording and no autocapture, and it respects Do Not Track. It sends pageview and pageleave (time on page, referrer and UTM parameters) and the typed events in `apps/playground/src/analytics.ts`:
   - Navigation: `ui_click` (header links), `view_mode_changed`, `panel_opened`, `panel_closed` (with time open), `export_tab_changed`.
   - Looks and settings: `dock_item_clicked`, `saved_terrain_deleted`, `place_applied`, `region_loaded`, `setting_changed`, `quality_changed`, `theme_toggled`, `shuffle_clicked`, `colour_changed`.
   - Sharing and export: `link_copied`, `code_copied`, `export_image_downloaded`, `export_image_failed`, `export_video_started`, `export_video_completed`, `export_video_failed`.
@@ -387,7 +387,7 @@ Each client loads in its own chunk when the page is idle after the first paint.
   - `low_performance_prompt_shown` (fps, view, detail and budget levels) and `low_performance_prompt_clicked`, from the low performance prompt.
   - `analytics_opted_out`, once, from the Opt out button.
 
-  Every event carries fixed super properties: `site`, `app`, `app_version`, `viewport_class`, `is_mobile`, `platform`, `os` and `initial_view_mode`. Properties never hold free text, colours or the query string.
+  Every event carries fixed super properties: `site`, `app`, `app_version`, `viewport_class`, `is_mobile`, `platform`, `os` and `initial_view_mode`, and `visitor_id`: a random UUID that `visitor.ts` saves in local storage under `topographic:visitor`, so one browser's visits can be counted together across days. PostHog's distinct id stays the server's daily hash. Either opt out deletes the visitor id and stops sending it. Properties never hold free text, colours or the query string.
 - **Sentry** reports errors only, with no tracing or replay and no user data, cookies, headers or query string. It reports error-boundary crashes and lost WebGL contexts, tagged with the quality tier and GPU. A small buffer keeps errors from before it loads, and one page sends at most 10 reports.
 
 Visitors can opt out with `?optout` (pageviews only, no error reports), `?optout=all` (nothing; neither client loads) or `?optin`, or with the button on `/about#analytics`. The choice is kept in local storage under `topographic:analytics`, per browser. [PRIVACY.md](../PRIVACY.md) and the Analytics section of `/about` list every event; `privacy-content.ts` is typed against the event map, and a test checks that PRIVACY.md names every event.
