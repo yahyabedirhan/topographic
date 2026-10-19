@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { latToY, lonToX, resample, type BBox, type Mosaic } from './pipeline';
+import { latToY, lonToX, resample, type BBox, type Mosaic } from '../../../../packages/core/src/locations/pipeline';
 import { fitRotating, minimapTurn, NORTH_UP, northTarget } from './compass';
 // Core internals that the package does not export. Read-only here: the 3D mapping lives in packages/core.
 import { viewProjection } from '../../../../packages/core/src/camera';

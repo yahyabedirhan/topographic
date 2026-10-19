@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { mergeSettings, resolveSettings, type Settings } from 'topographic';
 import { findMapLook, MAP_LOOKS, type MapLook } from './region/map-looks';
-import type { BBox } from './region/pipeline';
+import type { BBox } from 'topographic/locations';
 import { sameBox, terrainDefaults } from './region/places';
 import { useRegion, type RegionController } from './region/useRegion';
 import { useSaved, type SavedStore, type SavedTerrain } from './saved';
