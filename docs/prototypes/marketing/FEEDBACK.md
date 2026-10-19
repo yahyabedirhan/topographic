@@ -383,3 +383,10 @@ On the first code block, titled `Everest.jsx`:
 > We don't have to name this JavaScript file.
 > We don't have to show something like this.
 > Treat it as just a React block without this top bar but have this copy icon in the top-right corner of it.
+
+On the mode button's "3D" badge:
+
+> I actually changed my mind about this 3D and 2D.
+> Let's remove those 3D/2D labels on the top-right corner here in this example.
+> Instead just show the icon.
+> Otherwise the 3D text takes too much of my attention.
