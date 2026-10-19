@@ -1,6 +1,6 @@
 # Privacy
 
-This page covers the playground at https://topographic.yahyapak.dev.
+This page explains what the topographic playground at https://topographic.yahyapak.dev collects when you or an AI agent use it, what it never collects, why, where the data goes, and how to opt out. It also covers the npm packages, which collect nothing.
 
 ## The npm packages
 
