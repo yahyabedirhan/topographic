@@ -127,7 +127,7 @@ try {
     }
     const out = join(readme, file);
     // 10 frames a second: one swing there and back in 6.4 seconds.
-    execFileSync('img2webp', ['-loop', '0', '-d', '100', '-lossy', '-q', process.env.LOOP_Q ?? '48', '-m', '6', ...list, '-o', out], { stdio: 'ignore' });
+    execFileSync('img2webp', ['-loop', '0', '-d', '100', '-lossy', '-q', process.env.LOOP_Q ?? '44', '-m', '6', ...list, '-o', out], { stdio: 'ignore' });
     await note(out);
   }
 
