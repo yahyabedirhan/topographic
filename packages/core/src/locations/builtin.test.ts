@@ -13,7 +13,7 @@ describe('built-in locations', () => {
       expect(l.aspect).toBe(spanOf(l.bbox).aspect);
       expect(l.name.length).toBeGreaterThan(0);
     }
-    expect(findLocation('everest')?.name).toBe('Everest & the Khumbu');
+    expect(findLocation('everest')?.name).toBe('Everest');
     expect(findLocation('atlantis')).toBeUndefined();
   });
 

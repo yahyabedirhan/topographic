@@ -88,7 +88,7 @@ export const LOCATIONS: readonly LocationInfo[] = [
   place('yosemite', 'Yosemite Valley', { west: -119.755, south: 37.647, east: -119.415, north: 37.823 }, view(341.8, 35, 0.16)),
   place('torres-del-paine', 'Torres del Paine', { west: -73.478, south: -51.175, east: -72.622, north: -50.825 }, view(341.8, 35, 0.16)),
   place('fuji', 'Mount Fuji', { west: 138.433, south: 35.278, east: 139.007, north: 35.582 }, view(341.8, 30, 0.24)),
-  place('everest', 'Everest & the Khumbu', { west: 86.515, south: 27.725, east: 87.125, north: 28.075 }, view(341.8, 40, 0.1)),
+  place('everest', 'Everest', { west: 86.757, south: 27.892, east: 87.093, north: 28.084 }, view(341.8, 40, 0.32)),
   place('kilimanjaro', 'Kilimanjaro', { west: 37.0, south: -3.303, east: 37.72, north: -2.837 }, view(341.8, 30, 0.24)),
 ];
 

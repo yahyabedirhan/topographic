@@ -86,7 +86,7 @@ Sizes are the box's width and height.
 | Place | Country | Kind | Size | Id |
 |---|---|---|---|---|
 | Mount Fuji (built in) | Japan | volcano | 52 × 34 km | `fuji` |
-| Everest & the Khumbu (built in) | Nepal / China | mountain | 60 × 39 km | `everest` |
+| Everest (built in) | Nepal / China | mountain | 33 × 21 km | `everest` |
 | Annapurna Sanctuary | Nepal | mountain | 50 × 34 km | `annapurna` |
 | K2 & the Baltoro | Pakistan / China | glacier | 60 × 40 km | `k2` |
 | Nanda Devi | India | mountain | 45 × 32 km | `nanda-devi` |
@@ -180,4 +180,3 @@ Sizes are the box's width and height.
 | Ilulissat Icefjord | Greenland | glacier | 90 × 60 km | `ilulissat` |
 | Scoresby Sund | Greenland | fjord | 150 × 100 km | `scoresby-sund` |
 | Mount Thor, Baffin Island | Canada | valley | 54 × 40 km | `mount-thor` |
-

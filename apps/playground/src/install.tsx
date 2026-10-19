@@ -66,7 +66,7 @@ function FootAction({ icon, label, onClick }: { icon: ReactNode; label: string; 
 }
 
 /**
- * Export and Install, together in the top-right corner. Install shows a preview of the view with its
+ * Export and Install, the second group of the top cluster. Install shows a preview of the view with its
  * main settings, the agent skill and the npm packages, and this view's code and link as a shortcut to Export.
  */
 export function InstallMenu({ pg, region, open, onOpenChange, onOpenExport, anchor, exporting }: {
@@ -75,12 +75,12 @@ export function InstallMenu({ pg, region, open, onOpenChange, onOpenExport, anch
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onOpenExport: () => void;
-  /** The right cluster, which both popovers open under. */
+  /** The top cluster, which the popover opens under. */
   anchor: RefObject<HTMLDivElement>;
   exporting: ReactNode;
 }) {
   return (
-    <div className="pt-cluster pt-glass pt-install-solo" ref={anchor}>
+    <>
       {exporting}
       <Popover.Root open={open} onOpenChange={onOpenChange}>
         <Tooltip.Root>
@@ -97,7 +97,7 @@ export function InstallMenu({ pg, region, open, onOpenChange, onOpenExport, anch
           </Popover.Positioner>
         </Popover.Portal>
       </Popover.Root>
-    </div>
+    </>
   );
 }
 

@@ -95,7 +95,7 @@ export const MAP_LOOKS: readonly MapLook[] = [
   mapLook('fuji', 'fuji', rosePod('#9fbecc', 0.24, 30), fujiThumb, fujiMinimap),
   mapLook('matterhorn', 'matterhorn', rosePod('#c4d7e8', 0.16, 35), matterhornThumb, matterhornMinimap),
   mapLook('torres-del-paine', 'torres-del-paine', rosePod('#b3d6d0', 0.16, 35), torresDelPaineThumb, torresDelPaineMinimap),
-  mapLook('everest', 'everest', rosePod('#d5e2ee', 0.1, 40), everestThumb, everestMinimap),
+  mapLook('everest', 'everest', rosePod('#d5e2ee', 0.32, 40), everestThumb, everestMinimap),
   mapLook('kilimanjaro', 'kilimanjaro', rosePod('#d4c39e', 0.24, 30), kilimanjaroThumb, kilimanjaroMinimap),
   mapLook('cyprus', 'cyprus', rosePod('#d6cdb0', 0.1, 51.1, 0.1, { radius: 1.28, panX: -0.014, panZ: -0.01 }), cyprusThumb, cyprusMinimap),
 ];
