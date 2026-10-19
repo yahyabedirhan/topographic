@@ -2,6 +2,7 @@
 // Styles copy the playground's tokens (apps/playground/src/style.css): glass, 22px popovers, 11px titles.
 import { h, shot, NPM, REPO } from '../live.js';
 import { hl, ICON, wireCopy, wireTabs, DOCS_URL } from '../kit.js';
+import { placeTerrain } from '../places.js';
 
 const css = `
 .pi{position:absolute;inset:0;--sans:-apple-system,BlinkMacSystemFont,Inter,system-ui,sans-serif;--fg:#ecebe8;--mut:#8b8a86;--line:rgba(255,255,255,.09);--paper:#0b0b0d;--seg-on:color-mix(in srgb,var(--fg) 15%,transparent);
@@ -54,8 +55,8 @@ createTopography(el, {
 />`,
   html: `<script type="module">import 'topographic/element';</script>
 
-<topographic-map location="istanbul" mode="3d"
-  line-count="36"></topographic-map>`,
+<topographic-view location="istanbul" mode="3d"
+  line-count="36"></topographic-view>`,
 };
 const INST = { js: 'npm install topographic', react: 'npm install topographic topographic-react', html: 'npm install topographic' };
 
@@ -100,6 +101,122 @@ function agentBody(title) {
     <div class="links"><a href="${NPM}">npm</a><a href="${REPO}">${ICON.github} GitHub</a><a href="${DOCS_URL}">Docs</a></div>`;
 }
 
+
+// ---------------------------------------------------------------- round 2: Install alone in the corner
+// Sizes from apps/playground/src/style.css: .pt-top at 16px from the top and right with an 8px gap,
+// .pt-cluster padding 6px around 36px .pt-ibtn circles (48px tall), popovers 10px under the cluster,
+// 22px radius. Export is 412px wide; Install is 456px so the skill command shows in full beside its Copy pill. The popover's parts copy the Export popover (exporting.tsx):
+// .pt-link-shot preview with a label chip, .pt-urlchip parameter chips, .pt-linkrow fields with the
+// .pt-copy pill, .pt-code with line numbers and tinted values.
+const css2 = `
+.pi .cover{position:absolute;top:10px;right:10px;width:180px;height:60px;background:url(${shot('playground-dark')}) -1000px -10px/1440px 900px no-repeat}
+.pi .cluster{position:absolute;top:16px;right:72px;display:flex;align-items:center;gap:2px;padding:6px;border-radius:999px}
+.pi .solo{position:absolute;top:16px;right:16px;padding:6px;border-radius:999px;display:flex}
+.pi .ib{position:relative;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:var(--fg)}
+.pi .ib.open{background:color-mix(in srgb,var(--fg) 14%,transparent)}
+.pi .ib .tag{position:absolute;top:-1px;right:-5px;padding:2px 3px;border-radius:999px;font:600 9px/1 var(--sans);color:var(--paper);background:var(--fg)}
+.pi .ib .dot{position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--fg)}
+.pi .pop2{position:absolute;top:74px;right:16px;width:456px;padding:14px 16px 16px;border-radius:22px;display:grid;gap:8px}
+.pi .shot{position:relative;margin:0;border-radius:14px;overflow:hidden;background:var(--paper);box-shadow:inset 0 0 0 .5px var(--line)}
+.pi .shot .live{position:absolute;inset:0}
+.pi .shot figcaption{position:absolute;left:8px;top:8px;padding:4px 7px;border-radius:999px;font:500 10.5px/1 var(--sans);color:var(--mut);background:color-mix(in srgb,var(--paper) 72%,transparent);z-index:1}
+.pi .chips{display:flex;flex-wrap:wrap;gap:5px}
+.pi .uc{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px 0 8px;border-radius:999px;font-size:11.5px;line-height:1;background:color-mix(in srgb,var(--fg) 7%,transparent);box-shadow:inset 0 0 0 .5px var(--line)}
+.pi .uc i{font:normal 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--mut)}
+.pi .sec{margin-top:6px;padding-top:10px;border-top:.5px solid var(--line);display:grid;gap:8px}
+.pi .sec-t{display:flex;align-items:center;gap:7px;font:600 10.5px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.pi .sec-t svg{color:var(--fg)}
+.pi .hint2{color:var(--mut);font-size:12.5px;line-height:1.45}
+.pi .hint2 code{font:11.5px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--fg)}
+.pi .row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:8px;padding:4px 4px 4px 12px;border-radius:12px;background:color-mix(in srgb,var(--paper) 42%,transparent);box-shadow:inset 0 0 0 .5px var(--line)}
+.pi .row b{color:var(--mut);font:400 12px ui-monospace,SFMono-Regular,Menlo,monospace}
+.pi .row code{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:6px 0;font:12px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--fg)}
+.pi .pill2{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px 0 10px;border:0;border-radius:999px;background:var(--fg);color:var(--paper);font:500 12.5px/1 var(--sans);cursor:pointer;white-space:nowrap}
+.pi .pill2.quiet{background:color-mix(in srgb,var(--fg) 8%,transparent);color:var(--fg)}
+.pi .head2{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.pi .code2{margin:0;padding:10px 12px 10px 8px;border-radius:12px;background:color-mix(in srgb,var(--paper) 42%,transparent);box-shadow:inset 0 0 0 .5px var(--line);font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--fg);display:grid;grid-template-columns:18px minmax(0,1fr);column-gap:10px;white-space:pre}
+.pi .code2 .ln{color:color-mix(in srgb,var(--mut) 70%,transparent);text-align:right}
+.pi .code2 .key{color:#c4a574}.pi .code2 .str{color:#7dba9a}.pi .code2 .num{color:#8aadd4}.pi .code2 .tg{font-weight:600}
+.pi .code2 .vp{padding:0 4px;margin:0 -1px;border-radius:5px;background:color-mix(in srgb,currentColor 14%,transparent);box-shadow:inset 0 0 0 .5px color-mix(in srgb,currentColor 38%,transparent)}
+`;
+const LU = (d, size = 18) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const GLYPH = {
+  earth: '<path d="M21.54 15H17a2 2 0 0 0-2 2v4.54"/><path d="M7 3.34V5a3 3 0 0 0 3 3a2 2 0 0 1 2 2c0 1.1.9 2 2 2a2 2 0 0 0 2-2c0-1.1.9-2 2-2h3.17"/><path d="M11 21.95V18a2 2 0 0 0-2-2a2 2 0 0 1-2-2v-1a2 2 0 0 0-2-2H2.05"/><circle cx="12" cy="12" r="10"/>',
+  box: '<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>',
+  sliders: '<line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/>',
+  share: '<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/>',
+  code: '<path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/>',
+  download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>',
+  terminal: '<polyline points="4 17 10 11 4 5"/><line x1="12" x2="20" y1="19" y2="19"/>',
+  copy: '<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
+  sparkles: '<path d="M9.94 14.06 4 20M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9Z"/>',
+  hand: '<path d="M18 11V6a2 2 0 0 0-4 0v1M14 10V4a2 2 0 0 0-4 0v2M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>',
+};
+/** The top-right corner after the change: the four existing buttons, then Install alone at the far right, open. */
+const corner = (icon) => `<div class="cover"></div>
+  <div class="cluster glass"><span class="ib">${LU(GLYPH.earth)}<i class="dot"></i></span><span class="ib">${LU(GLYPH.box)}<span class="tag">3D</span></span><span class="ib">${LU(GLYPH.sliders)}</span><span class="ib">${LU(GLYPH.share)}</span></div>
+  <div class="solo glass"><span class="ib open" title="Install">${LU(GLYPH[icon])}</span></div>`;
+const field = (cmd, label = 'Copy', quiet = false) => `<div class="row"><b>$</b><code>${cmd}</code><button class="pill2${quiet ? ' quiet' : ''}" data-copy="${cmd}">${LU(GLYPH.copy, 14)}${label}</button></div>`;
+const CHIPS = [['location', 'istanbul'], ['mode', '3d'], ['lines', '36'], ['indexEvery', '4'], ['azimuth', '341.8°'], ['elevation', '39.3°']];
+const chips = (n = CHIPS.length) => `<div class="chips">${CHIPS.slice(0, n).map(([k, v]) => `<span class="uc"><i>${k}</i>${v}</span>`).join('')}</div>`;
+const preview = (h, label) => `<figure class="shot" style="height:${h}px"><div class="live"></div><figcaption>${label}</figcaption></figure>`;
+/** The scene as React code with tinted values, as Export's code view draws it. */
+const SCENE_CODE = [
+  '<span class="tg">&lt;Topography</span>',
+  '  <span class="key">location</span>=<span class="str vp">"istanbul"</span>',
+  '  <span class="key">mode</span>=<span class="str vp">"3d"</span>',
+  '  <span class="key">lines</span>={{ count: <span class="num vp">36</span>, indexEvery: <span class="num vp">4</span> }}',
+  '  <span class="key">camera</span>={{ azimuth: <span class="num vp">341.8</span>, elevation: <span class="num vp">39.3</span> }}',
+  '<span class="tg">/&gt;</span>',
+];
+const codeView = () => `<pre class="code2">${SCENE_CODE.map((l, i) => `<span class="ln">${i + 1}</span><span>${l}</span>`).join('')}</pre>`;
+const SKILL2 = 'npx skills add yahyabedirhan/topographic';
+/** Mounts a round 2 variant: the corner, the popover, then the live preview of the scene (Istanbul in 3D). */
+function mount2(stage, icon, pop) {
+  stage.append(h`<style>${css}${css2}</style><div class="pi">${corner(icon)}<div class="pop2 glass">${pop}</div></div>`);
+  wireCopy(stage);
+  placeTerrain(stage.querySelector('.shot .live'), 'istanbul', { theme: { mode: 'dark', ink: '#c4cfe2', paper: '#0b0b0d' }, lines: { count: 36, indexEvery: 4, opacity: 1 }, camera: { azimuth: 341.8, elevation: 39.3, radius: 1.5, motion: 'orbit' } });
+}
+const ROUND2 = [
+  {
+    key: 'A1',
+    name: 'Preview and chips, then two commands',
+    note: 'Install is a glass circle of its own at the far top-right, the size of the cluster beside it (48px glass, 36px button). Its popover follows Export: a live preview of the scene with a label chip and the parameter chips under it, then two parts. "With an agent" is the skill install and one line on what happens next. "By hand" is the npm line, and the React line under it. No tabs. Every field is Export\'s mono field with its Copy pill.',
+    render(stage) {
+      mount2(stage, 'code', `${preview(148, 'This scene')}${chips()}
+        <div class="sec"><div class="sec-t">${LU(GLYPH.sparkles, 13)}With an agent</div>${field(SKILL2)}
+          <div class="hint2">Then ask your agent for a terrain, such as this one. The skill installs the package and writes the code.</div></div>
+        <div class="sec"><div class="sec-t">${LU(GLYPH.hand, 13)}By hand</div>${field('npm install topographic')}
+          ${field('npm install topographic topographic-react', 'Copy', true)}
+          <div class="hint2">The second line is for React. Then add <code>&lt;Topography location="istanbul" /&gt;</code>.</div></div>`);
+    },
+  },
+  {
+    key: 'A2',
+    name: 'Smaller preview, the scene as code',
+    note: 'Same corner and parts as A1, with a shorter preview and the scene\'s code in the "By hand" part, drawn as Export\'s code view: line numbers and tinted values, with Copy in the part\'s header. People see the exact settings that make what is on screen, and the install line above them. The longest popover of the three, still under the 720px cap.',
+    render(stage) {
+      mount2(stage, 'download', `${preview(108, 'This scene · Istanbul in 3D')}
+        <div class="sec"><div class="sec-t">${LU(GLYPH.sparkles, 13)}With an agent</div>${field(SKILL2)}
+          <div class="hint2">Your agent learns topographic, then installs and writes the code when you ask for a terrain.</div></div>
+        <div class="sec"><div class="sec-t">${LU(GLYPH.hand, 13)}By hand</div>${field('npm install topographic topographic-react')}
+          <div class="head2"><span class="hint2">Then place this scene in your React app.</span><button class="pill2" data-copy="&lt;Topography location=&quot;istanbul&quot; mode=&quot;3d&quot; /&gt;">${LU(GLYPH.copy, 14)}Copy</button></div>
+          ${codeView()}</div>`);
+    },
+  },
+  {
+    key: 'A3',
+    name: 'Large preview, one line each',
+    note: 'The quietest: a large live preview carries the visual, then one field per part and nothing else. Plainer words ("Ask your agent", "Install it yourself"). The React line and the scene code stay in Export. Best if the popover should feel like a start button rather than a reference.',
+    render(stage) {
+      mount2(stage, 'terminal', `${preview(212, 'Istanbul · 3D · 36 lines')}
+        <div class="sec"><div class="sec-t">${LU(GLYPH.sparkles, 13)}Ask your agent</div>${field(SKILL2)}
+          <div class="hint2">Installs the topographic skill. Then ask for any terrain in words.</div></div>
+        <div class="sec"><div class="sec-t">${LU(GLYPH.hand, 13)}Install it yourself</div>${field('npm install topographic')}</div>`);
+    },
+  },
+];
+
 const mount = (stage, html) => {
   stage.append(h`<style>${css}</style><div class="pi">${html}</div>`);
   wireCopy(stage);
@@ -112,8 +229,10 @@ export default {
   question: 'Where in the playground does a visitor find install and the code for what they see, without hunting inside Export?',
   surface: 'topographic.yahyapak.dev: the top-right cluster, the top-left wordmark row, or the bottom dock',
   variants: [
+    ...ROUND2,
     {
       key: 'A',
+      archived: true,
       name: 'Install pill beside the controls',
       note: 'A labelled "Install" pill sits left of the top-right cluster and opens a playground-style popover: JS / React / HTML tabs, a copyable install line, this scene as code with "Copy this scene as code", and npm, GitHub and Docs links. The only labelled button in the top bar, so it is found first. Today install lives only inside Export.',
       render(stage) {
@@ -124,6 +243,7 @@ export default {
     },
     {
       key: 'B',
+      archived: true,
       name: 'Docs · npm in the wordmark row, plus a copy chip',
       note: 'The quietest change: "Docs" and "npm" join yahyapak.dev and About under the wordmark, and a small copy chip with the install command sits below them. One click copies; no popover. The scene code stays in Export. The tooltip shows the copied state.',
       render(stage) {
@@ -136,6 +256,7 @@ export default {
     },
     {
       key: 'C',
+      archived: true,
       name: 'End card in the dock',
       note: 'A "Use it in your project" card closes the row of looks in the bottom dock, where people already browse. It opens a popover above the dock with this scene as React code first, since the dock is about the current look. Reads as the next step after picking a look.',
       render(stage) {
@@ -148,6 +269,7 @@ export default {
     },
     {
       key: 'D',
+      archived: true,
       name: 'First-visit banner',
       note: 'A one-time glass banner at the top centre after the first look change: "Like it? npm install topographic" with Copy, Docs and a close button. Never shows again once closed. Catches visitors who never open a menu; costs one dismissal for everyone else.',
       render(stage) {
@@ -161,6 +283,7 @@ export default {
     },
     {
       key: 'E',
+      archived: true,
       name: 'Agent first: skill, then ask',
       note: 'Agent-first take on A. The "Install" pill opens on a "With an agent" tab: install the topographic skill with one command, then three example asks (a website, a video, this scene) to copy, and "Copy this scene as a prompt". "By hand" keeps the npm line and the scene code. The skill is skills/topographic in draft PR #77.',
       render(stage) {
@@ -171,6 +294,7 @@ export default {
     },
     {
       key: 'F',
+      archived: true,
       name: 'This scene as a prompt, from the dock',
       note: 'No install step on screen at all: the dock end card copies one prompt that tells an agent to install the skill and rebuild exactly what is on screen. The prompt is shown so people see what they paste. The npm route stays in Export. Best for people who will never open a terminal themselves.',
       render(stage) {
@@ -189,6 +313,7 @@ export default {
     },
     {
       key: 'G',
+      archived: true,
       name: 'Skill chip in the wordmark row',
       note: 'Agent-first take on B: the always-visible chip under the wordmark copies the skill install instead of npm. "Docs" and "npm" sit beside About for people who install by hand. The quietest agent-first option.',
       render(stage) {
