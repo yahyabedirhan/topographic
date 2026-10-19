@@ -17,8 +17,8 @@ import {
 } from 'topographic';
 import { LOOK_CAMERAS, LOOKS } from './looks';
 import { PLAYGROUND_QUALITY } from './share-url';
-import { OffNote, Preview, Section, SegRow, SliderRow, Tabs, Tip, type TabItem } from './parts';
-import { contourArt, flowArt, layoutArt, rigArt, terrainArt, type GlyphName, type TrackKind } from './track-art';
+import { OffNote, ParamRow, Preview, Section, SegRow, SliderRow, Tabs, Tip, linePx, ordinal, type TabItem } from './parts';
+import { contourArt, flowArt, layoutArt, rigArt, terrainArt, type GlyphName } from './track-art';
 import {
   Backdrop, ColorPicker, GROUP_LABELS, INK_SWATCHES, PAPER_SWATCHES, Wordmark, currentColour, rollColour, useLookThumbs,
   type Playground,
@@ -350,12 +350,6 @@ const TUNE_TABS: TabItem<TuneTab>[] = [
   { id: 'view', label: '3D', icon: Box },
 ];
 
-/** Labels that need to fit the 80px label column. The slider keeps the full name. */
-const SHORT_LABEL: Partial<Record<string, string>> = { indexEvery: 'Bold lines' };
-
-/** Every Nth line drawn bolder, read as "1 in N". */
-const boldEvery = (v: number) => (Math.round(v) < 1 ? 'Off' : `1 in ${Math.round(v)}`);
-
 /** Groups with more than four rows split into sections; the rest keep one, named after the group. */
 const SECTIONS: Partial<Record<GroupName, { title: string; keys: string[] }[]>> = {
   terrain: [
@@ -363,17 +357,6 @@ const SECTIONS: Partial<Record<GroupName, { title: string; keys: string[] }[]>> 
     { title: 'Surface', keys: ['roughness', 'terracing'] },
   ],
 };
-
-/** Line width is stored 0–1 but drawn as a 0.5–4 px stroke (the core's toUniform), so it reads in pixels. */
-export function linePx(value: number): string {
-  return `${Number((0.5 + value * 3.5).toFixed(1))} px`;
-}
-
-function readParam(param: ParamDef, value: number) {
-  if (param.group === 'lines' && param.key === 'width') return linePx(value);
-  if (param.key === 'indexEvery') return boldEvery(value);
-  return param.integer ? String(value) : value.toFixed(2);
-}
 
 const PATHS: { id: CameraMotion; label: string; glyph: GlyphName }[] = [
   { id: 'still', label: 'Still', glyph: 'still' },
@@ -421,8 +404,6 @@ function useLivePose(pg: Playground, moving: boolean) {
   }, [pg.instance, moving]);
   return moving ? pose : null;
 }
-
-const ordinal = (n: number) => `${n}${n % 10 === 1 && n !== 11 ? 'st' : n % 10 === 2 && n !== 12 ? 'nd' : n % 10 === 3 && n !== 13 ? 'rd' : 'th'}`;
 
 /** The live picture at the top of a settings tab, drawn from that tab's values. */
 function GroupPreview({ pg, group, dim }: { pg: Playground; group: GroupName; dim: boolean }) {
@@ -564,15 +545,11 @@ function ParamTune({ pg, group, region }: { pg: Playground; group: GroupName; re
             {own.map((p) => {
               const value = valueOf(p);
               return (
-                <SliderRow
+                <ParamRow
                   key={p.key}
-                  label={SHORT_LABEL[p.key] ?? p.label}
-                  name={p.label}
-                  icon={p.key as GlyphName}
-                  art={p.key as TrackKind}
-                  hint={off(p) ? 'The map place sets the terrain, so this has no effect until you clear it.' : p.description}
-                  value={value} min={p.min} max={p.max} step={p.step} shown={readParam(p, value)}
-                  valueText={p.group === 'lines' && p.key === 'width' ? linePx(value) : p.key === 'indexEvery' ? boldEvery(value) : undefined}
+                  param={p}
+                  value={value}
+                  hint={off(p) ? 'The map place sets the terrain, so this has no effect until you clear it.' : undefined}
                   disabled={off(p)}
                   onChange={(n) => { tuned(p.group, p.key); pg.change({ [p.group]: { [p.key]: n } }); }}
                 />
