@@ -285,6 +285,8 @@ A change to another place sets that place's look again, except for the values in
 
 `LOCATIONS` from `topographic/locations` lists each place with its `id`, `name`, `bbox`, `aspect` and `defaults`.
 `loadLocation(id)` returns a place's grid, with `minMeters` and `maxMeters` for its lowest and highest point.
+`decodeGrid16(bytes)` reads a grid saved in the same format, a square 16-bit greyscale PNG with north at the top, and returns `{ samples, size }` with heights from 0 to 1.
+The playground serves its catalog places this way.
 
 ### Any area: `fetchLocation`
 

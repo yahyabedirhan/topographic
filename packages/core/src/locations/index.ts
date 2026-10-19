@@ -7,3 +7,4 @@ export {
   LIMITS as AREA_LIMITS, limitProblem as areaProblem, limitMessage as areaProblemMessage, spanOf as areaSpan, smooth as smoothGrid,
   type BBox, type LimitProblem as AreaProblem, type Span as AreaSpan, type ReliefMode, type SmoothLevel,
 } from './pipeline.js';
+export { decodeGrid16, type Grid16 } from './png.js';
