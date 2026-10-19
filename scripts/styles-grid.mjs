@@ -3,12 +3,12 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join } from 'node:path';
 
-export const SHOWCASE = { lines: { opacity: 0.85, width: 0.4 }, layout: { anchor: 1, fade: 0 }, theme: { mode: 'dark', ink: '#9fb0cc' } };
+export const SHOWCASE = { lines: { opacity: 0.85, width: 0.4 }, layout: { anchor: 1, fade: 0 }, theme: { mode: 'dark', ink: '#9fb0cc', paper: '#0b0b0d' } };
 
 export const TILES = [
-  { preset: 'Drifting lobes' }, { preset: 'Granite' }, { preset: 'Five petals' }, { preset: 'Seed pod' },
-  { preset: 'Gentle summit' }, { preset: 'Long ridge' }, { preset: 'Dunes' }, { preset: 'Survey map' },
-  { preset: 'Terraces' }, { preset: 'Rocky' },
+  { shape: 'drifting-lobes' }, { shape: 'granite' }, { shape: 'five-petals' }, { shape: 'seed-pod' },
+  { shape: 'gentle-summit' }, { shape: 'long-ridge' }, { shape: 'dunes' }, { look: 'survey-map' },
+  { look: 'terraces' }, { look: 'rocky' },
   { name: 'Twin peaks', settings: { shape: 'drifting-lobes', seed: 7, terrain: { peaks: 2, spread: 1 } } },
   { name: 'Fine lines', settings: { shape: 'drifting-lobes', seed: 21, lines: { count: 48 } } },
   { name: 'Scree', settings: { shape: 'granite', seed: 3, terrain: { roughness: 0.6 } } },
@@ -33,10 +33,11 @@ try {
   await page.waitForFunction(() => window.ready);
   await page.evaluate(async ({ tiles, show }) => {
     const resolved = tiles.map((t) => {
-      if (!t.preset) return { ...t, note: `${t.settings.shape} · seed ${t.settings.seed}` };
-      const p = window.lib.PRESETS.find((x) => x.name === t.preset);
-      if (!p) throw new Error(`unknown preset ${t.preset}`);
-      return { name: p.name, settings: p.settings };
+      if (t.shape) return { name: window.lib.findShape(t.shape).name, settings: { shape: t.shape } };
+      if (!t.look) return { ...t, note: `${t.settings.shape} · seed ${t.settings.seed}` };
+      const look = window.lib.findLook(t.look);
+      if (!look) throw new Error(`unknown look ${t.look}`);
+      return { name: look.name, note: look.id, settings: { look: look.id } };
     }).map((t) => ({ ...t, settings: { ...t.settings, ...Object.fromEntries(Object.entries(show).map(([k, v]) => [k, { ...t.settings[k], ...v }])) } }));
     await window.renderGrid(resolved, { w: 930, h: 600 });
   }, { tiles: TILES, show: SHOWCASE });

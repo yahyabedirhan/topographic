@@ -33,7 +33,7 @@ const ISTANBUL = 's=gentle-summit&seed=67&lc=36&lw=0&lo=0.9&ix=4&fd=0.15&m=dark&
 // The Istanbul look without its place and camera: set_region gives each place its own view.
 const PLACE_BASE = 's=gentle-summit&seed=67&lc=36&lw=0&lo=0.9&ix=4&fd=0.15&m=dark';
 const PLACES = ['istanbul', 'cyprus', 'matterhorn', 'geirangerfjord', 'grand-canyon', 'yosemite', 'torres-del-paine', 'fuji', 'everest', 'kilimanjaro'];
-// Looks from the dock (LOOKS in looks.ts), by slug. The 3D tiles show looks in 3D.
+// Looks from the dock (LOOKS in packages/core/src/looks.ts), by id. The 3D tiles show looks in 3D.
 const LOOKS_2D = ['survey-ridge', 'rose-pod', 'sea-dunes', 'stepped-petals', 'stone-grain', 'centred-lobes'];
 const LOOKS_3D = ['night-flower', 'terraces', 'rocky-spine'];
 // The hero is one large still of a look in 3D, drawn without the playground's controls.

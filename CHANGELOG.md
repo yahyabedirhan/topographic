@@ -19,6 +19,11 @@ It is a clean break: the old names are gone, with no deprecated aliases.
 - New `location` setting, element attribute and React prop. It takes a place id or a height grid. A place also sets the playground's look for it: its camera, elevation, `extent: 'block'`, the lines (`count: 36, width: 0, opacity: 0.9, indexEvery: 4`) and `layout.fade: 0.15`, under the values you set. It does not set `mode`. `setHeightfield()` still works.
 - Playground: the ten places load their built-in grids instead of the elevation tiles. `get_region` returns `builtIn` and `loadMs` in place of `fetchMs` and `shapeMs`.
 - Install lines in the READMEs no longer pin a version. Sizing and layering examples moved to the guide.
+- New `look` setting: a named, finished design by id, such as `look: 'survey-map'`. It is the attribute `look` on `<topographic-view>`, the React prop `look` and the query key `look`. The other settings next to it override its values. An unknown look is ignored with one console warning. In `update()`, a look replaces the design and keeps the view settings.
+- `PRESETS` and `Preset` are now `LOOKS` and `Look`. Each look has an `id`. `findLook(id)` and the type `LookId` are new. The list joins the old presets and the playground's looks: 26 looks, listed in the guide's Looks section.
+- From the old presets, Survey map and Rocky are now the looks `survey-map` and `rocky`. Terraces is now the playground's Terraces look. The presets that were a shape with a few changes are gone; use `shape` for them.
+- Playground: the dock and the `look=` link key use the library's looks. Links made before 0.6.0 keep working, because the ids are the old `look=` values. The dock gains Survey map and Rocky.
+- Playground: `set_settings` takes `look`, and `list_shapes` returns the looks with their ids in place of the presets.
 
 | Old name | New name |
 |---|---|
@@ -39,6 +44,8 @@ It is a clean break: the old names are gone, with no deprecated aliases.
 | `Style` | `Shape` |
 | `StyleId` | `ShapeId` |
 | `DEFAULT_STYLE` | `DEFAULT_SHAPE` |
+| `PRESETS` | `LOOKS` |
+| `Preset` | `Look` |
 | WebMCP `list_styles` | `list_shapes` |
 
 ## 0.5.0

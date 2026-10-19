@@ -118,5 +118,15 @@
     "azimuth": 349.7,
     "elevation": 38,
     "radius": 1.92
+  },
+  "Survey map": {
+    "azimuth": 294.7,
+    "elevation": 34,
+    "radius": 2.3
+  },
+  "Rocky": {
+    "azimuth": 324.7,
+    "elevation": 34,
+    "radius": 1.92
   }
 }

@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type MutableRefObject, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import {
-  GROUPS, RADIUS_MAX, RADIUS_MIN, SHAPES, THEME_DEFAULTS, clampParam, mergeSettings, panBy, paramsIn, resolveMode, resolveSettings, rgbaToCss,
+  GROUPS, LOOKS, RADIUS_MAX, RADIUS_MIN, SHAPES, THEME_DEFAULTS, clampParam, mergeSettings, panBy, paramsIn, resolveMode, resolveSettings, rgbaToCss,
   type GroupName, type Heightfield, type ParamDef, type Settings, type SettingsInput, type Topography as Instance,
 } from 'topographic';
 import { Topography } from 'topographic-react';
@@ -9,7 +9,6 @@ import { bindPageUrlFlush, flushPageUrl, schedulePageUrl } from './page-history'
 import { registerTools } from './webmcp';
 import { configOf, readUrl } from './url';
 import { withQuery, writeSettings } from './share-url';
-import { LOOKS } from './looks';
 import { keepShape } from './shape';
 import { smoothGrid } from 'topographic/locations';
 import { track } from './analytics';
@@ -148,7 +147,7 @@ export function usePlayground(): Playground {
     change: (patch) => setSettings((s) => mergeSettings(s, patch)),
     replace: (next) => { cancelAnimationFrame(frame.current); setSettings(next); },
     // A look keeps the 3D view settings but always starts from its default camera pose; the motion stays.
-    applyLook: (i) => setSettings((s) => mergeSettings(resolveSettings(LOOKS[i].settings), {
+    applyLook: (i) => setSettings((s) => mergeSettings(resolveSettings({ look: LOOKS[i].id }), {
       mode: s.mode, elevation: s.elevation, extent: s.extent, detail: s.detail, quality: s.quality, camera: { motion: s.camera.motion },
     })),
   };

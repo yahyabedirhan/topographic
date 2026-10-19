@@ -1,14 +1,9 @@
-import { DEFAULT_SHAPE, PARAMS, fromQuery, mergeSettings, resolveSettings, type ParamDef, type Settings, type SettingsInput } from 'topographic';
-import { LOOKS, type Look } from './looks';
+import { DEFAULT_SHAPE, LOOKS, PARAMS, fromQuery, mergeSettings, resolveSettings, type ParamDef, type Settings, type SettingsInput } from 'topographic';
 
 const VIEW = ['m', 'ink', 'paper', 'mode', 'ex', 'ev', 'dl', 'ql', 'az', 'ce', 'rd', 'cm', 'px', 'pz', 'vx', 'vy', 'vz'] as const;
 
 /** Every query key the settings own. `s` is the shape. The region keys belong to region/url.ts. */
 export const SETTINGS_KEYS: readonly string[] = ['look', 's', 'seed', ...(PARAMS as readonly ParamDef[]).map((p) => p.short), ...VIEW];
-
-export const lookSlug = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-
-export const findLook = (slug: string | null): Look | undefined => slug ? LOOKS.find((l) => lookSlug(l.name) === slug) : undefined;
 
 /** The playground draws at the finest detail and the high budget unless the settings name their own. */
 export const PLAYGROUND_QUALITY = { detail: 1, quality: 'high' } as const satisfies SettingsInput;
@@ -52,15 +47,15 @@ export const HOME_QUERY = 'look=fine-granite&mode=3d';
 
 const same = (a: Settings, b: Settings) => !diff(a, b).length && a.theme.ink === b.theme.ink && a.theme.paper === b.theme.paper;
 
-/** The settings as the fewest query params: a diff against the shape defaults or against a look of the same shape. */
+/** The settings as the fewest query params: a diff against the shape defaults or against a library look of the same shape. */
 export function settingsParams(s: Settings): [string, string][] {
   if (same(decode(new URLSearchParams(HOME_QUERY)), s)) return [];
   const plain = diff(s, { ...playgroundSettings({ shape: s.shape }), shape: DEFAULT_SHAPE });
   let best = plain;
   for (const look of LOOKS) {
-    const base = playgroundSettings(look.settings);
+    const base = playgroundSettings({ look: look.id });
     if (base.shape !== s.shape) continue;
-    const entries: [string, string][] = [['look', lookSlug(look.name)], ...diff(s, base)];
+    const entries: [string, string][] = [['look', look.id], ...diff(s, base)];
     if (entries.length < best.length && same(decode(new URLSearchParams(entries)), s)) best = entries;
   }
   // An empty query means the home view, so other settings always name their shape.
@@ -72,14 +67,13 @@ export function readSettings(search: string): Settings {
   return decode(SETTINGS_KEYS.some((key) => q.has(key)) ? q : new URLSearchParams(HOME_QUERY));
 }
 
+/** `look=` is a library look by id, as links made before 0.6.0 also wrote it. The other params override it. */
 function decode(q: URLSearchParams): Settings {
-  const look = findLook(q.get('look'));
-  const base = playgroundSettings(look ? look.settings : { shape: q.get('s') ?? undefined });
   for (const key of ['ink', 'paper']) {
     const v = q.get(key);
     if (v) q.set(key, colourIn(v));
   }
-  return mergeSettings(base, fromQuery(q.toString()));
+  return playgroundSettings(fromQuery(q.toString()));
 }
 
 /** A query string that keeps commas readable. */
