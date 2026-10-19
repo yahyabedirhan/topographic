@@ -205,7 +205,7 @@ export const SECTIONS: DocSection[] = [
   {
     id: 'instance', title: 'The instance', nav: 'Instance',
     lede: 'What createTopography returns.',
-    body: '<p><code>createTopography</code> returns the instance. The component hands it to <code>onReady</code>, and the element keeps it as <code>element.topography</code><sup class="fn"></sup></p>',
+    body: '<p><code>createTopography</code> returns the instance. The component hands it to <code>onReady</code>, and the element keeps it as <code>element.topographic</code><sup class="fn"></sup></p>',
     notes: ['A third argument takes renderer options, such as <code>maxPixelRatio</code>. You rarely need them.'],
     members: true,
   },
@@ -387,7 +387,7 @@ export const RECORD_OPTIONS: [string, string, string][] = [
 
 export const WEBMCP_TOOLS: [string, string][] = [
   ['identify_agent', 'The agent gives a name and a purpose from fixed lists, so analytics count it apart from people.'],
-  ['list_shapes', 'Lists the base shapes and presets, with ids and descriptions.'],
+  ['list_shapes', 'Lists the base shapes and the looks, with ids and descriptions.'],
   ['get_settings', 'The current settings, the shortest config JSON and the tier drawing now.'],
   ['set_settings', 'Applies some settings and reports values moved into range.'],
   ['randomize', 'A new random seed, and with <code>{ shape: true }</code> a random shape.'],
@@ -408,7 +408,7 @@ export const FALLBACKS: [string, string, string][] = [
 ];
 
 export const LIMITS: [string, string][] = [
-  ['Real places', '<code>fetchLocation()</code> takes areas up to 300 km across and needs the network the first time a place loads. Heights are resampled to a 256 × 256 grid, so small details smooth out.'],
+  ['Real places', '<code>fetchLocation()</code> takes areas up to 300 km across and downloads elevation tiles, so it needs the network. Heights are resampled to a 256 × 256 grid, so small details smooth out.'],
   ['Video', `<code>record()</code> draws the 3D view with a moving camera, for 0.5 to 12 seconds, through the browser's ${ext(WEBCODECS, 'WebCodecs')} encoder. WebM works where the browser can encode VP8. For 2D or longer, join PNG frames from <code>snapshot({ frame })</code>.`],
   ['Image size', 'The largest snapshot is the GPU\'s renderbuffer limit, usually 8192 or 16384 px.'],
   ['A browser and WebGL', `It draws on the GPU in a browser. There is no Node renderer; a server can drive ${ext(HEADLESS, 'headless Chrome')}. Without WebGL you get the paper colour.`],
@@ -470,8 +470,8 @@ import { fetchLocation } from 'topographic/locations';
 const topography = createTopography(el, { location: 'everest' });
 
 // any area on Earth, by its corners in degrees
-const field = await fetchLocation({ west: 6.47, south: 61.93, east: 7.63, north: 62.28 });
-topography.setHeightfield(field);`,
+const grid = await fetchLocation({ west: 6.47, south: 61.93, east: 7.63, north: 62.28 });
+topography.update({ location: grid });`,
   },
   layout: {
     js: 'topography.update({ layout: { anchor: 1, fade: 0 } });',
@@ -507,7 +507,7 @@ const clip = await topography.record({ seconds: 6, fps: 30, motion: 'orbit', for
 <script type="module">
   const map = document.querySelector('topographic-view');
   const png = await map.snapshot({ width: 1920 });
-  const clip = await map.topography.record({ seconds: 6, format: 'webm' });
+  const clip = await map.topographic.record({ seconds: 6, format: 'webm' });
 </script>`,
   },
   heightfields: {
@@ -525,7 +525,7 @@ topography.setHeightfield(null); // back to generated land`,
     react: '<Topography mode="3d" onReady={(t) => t?.setHeightfield({ samples, size: 256, aspect: 1.25 })} />',
     html: `<script type="module">
   const map = document.querySelector('topographic-view');
-  map.topography.setHeightfield({ samples, size: 256, aspect: 1.25 });
+  map.topographic.setHeightfield({ samples, size: 256, aspect: 1.25 });
 </script>`,
   },
   react: {
@@ -554,7 +554,7 @@ export function Panel() {
   const map = document.querySelector('topographic-view');
   map.setAttribute('camera-motion', 'orbit');  // applies right away
   map.removeAttribute('peaks');                // back to the default
-  map.topography;                              // the instance
+  map.topographic;                             // the instance
 </script>`,
   },
   pageCss: {

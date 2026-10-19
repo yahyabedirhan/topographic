@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CODE, LOOK_GALLERY, LOOK_NAMES, lookId } from './content';
+import { CODE, LOOK_GALLERY, LOOK_NAMES, SECTIONS, lookId } from './content';
 
 describe('docs content', () => {
   it('names only looks the library has, in snippets and in the gallery', () => {
@@ -12,4 +12,8 @@ describe('docs content', () => {
     for (const l of LOOK_GALLERY) expect(l.shot).toMatch(new RegExp(`^look-${lookId(l.name)}-[23]d$`));
   });
 
+  it('shows no API that ships after 0.6.0', () => {
+    const text = JSON.stringify({ CODE, SECTIONS });
+    for (const later of ['heightfield()', 'exportHeightmap', 'PRESETS', 'element.topography<', 'map.topography', 'topography.setHeightfield(field)']) expect(text, later).not.toContain(later);
+  });
 });
