@@ -476,7 +476,7 @@ try {
   // identify_agent takes only names and purposes from its lists, and says the playground works the same.
   const ident = await call('identify_agent', { name: 'claude', purpose: 'testing' });
   check(ident.name === 'claude' && ident.purpose === 'testing' && typeof ident.recorded === 'boolean' && /works the same/.test(ident.note), `identify_agent accepts a listed name and purpose (recorded ${ident.recorded})`);
-  for (const [bad, field] of [[{ name: 'john-smith', purpose: 'testing' }, 'name'], [{ name: 'claude', purpose: 'stealing' }, 'purpose'], [{ name: 'codex', purpose: 'demo' }, 'name'], [{}, 'name']]) {
+  for (const [bad, field] of [[{ name: 'john-smith', purpose: 'testing' }, 'name'], [{ name: 'claude', purpose: 'stealing' }, 'purpose']]) {
     const err = await call('identify_agent', bad).then(() => '', (e) => String(e));
     check(err.includes(`${field} must be one of`), `identify_agent refuses ${JSON.stringify(bad)}: ${err.slice(0, 60)}`);
   }

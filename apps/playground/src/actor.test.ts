@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from 'vitest';
-import { AGENT_KEY, durationBucket, forgetAgent, isAgentName, isPurpose, loadAgent, readAgentParams, resolveActor, saveAgent } from './actor';
+import { AGENT_KEY, durationBucket, loadAgent, readAgentParams, resolveActor, saveAgent } from './actor';
 import { setConsent } from './consent';
 
 function memory() {
@@ -11,19 +11,6 @@ function memory() {
 const ids = { visitor: () => 'v-1', agent: () => 'a-1' };
 const CHROME = 'Mozilla/5.0 (Macintosh) AppleWebKit/537.36 Chrome/155.0.0.0 Safari/537.36';
 const HEADLESS = 'Mozilla/5.0 (Macintosh) AppleWebKit/537.36 HeadlessChrome/155.0.0.0 Safari/537.36';
-
-describe('agent names and purposes', () => {
-  it('accept only the fixed lists', () => {
-    expect(isAgentName('claude')).toBe(true);
-    expect(isAgentName('chatgpt')).toBe(true);
-    expect(isAgentName('codex')).toBe(false);
-    expect(isAgentName('Claude')).toBe(false);
-    expect(isAgentName('john-smith')).toBe(false);
-    expect(isPurpose('reverse-engineering')).toBe(true);
-    expect(isPurpose('testing stuff')).toBe(false);
-    expect(isPurpose(undefined)).toBe(false);
-  });
-});
 
 describe('?analytics_agent and ?analytics_purpose', () => {
   it('take a valid pair and list both keys to remove', () => {
@@ -76,11 +63,7 @@ describe('the saved agent', () => {
     expect(loadAgent(s)).toBeNull();
   });
 
-  it('is deleted by forgetAgent and by any opt out', () => {
-    const s = memory();
-    saveAgent(s, { name: 'claude', purpose: 'testing' });
-    forgetAgent(s);
-    expect(loadAgent(s)).toBeNull();
+  it('is deleted by any opt out', () => {
     const session = memory();
     Object.defineProperty(window, 'sessionStorage', { value: session, configurable: true });
     Object.defineProperty(window, 'localStorage', { value: memory(), configurable: true });

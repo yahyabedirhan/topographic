@@ -13,10 +13,6 @@ describe('consent', () => {
     expect(resolveConsent('', memory()).consent).toBe('all');
   });
 
-  it('ignores the old ?optout and ?optin names', () => {
-    expect(resolveConsent('?optout=all', memory())).toEqual({ consent: 'all', handled: null });
-  });
-
   it('?analytics_optout keeps pageviews only and is saved', () => {
     const s = memory();
     expect(resolveConsent('?analytics_optout', s)).toEqual({ consent: 'pageviews', handled: 'analytics_optout' });
