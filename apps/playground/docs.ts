@@ -192,21 +192,19 @@ Examples:
 
 ### Keys
 
-| Key | Meaning |
-| --- | --- |
-| \`s\` | style |
-| \`seed\` | seed |
-${PARAMS.map((p) => `| \`${p.short}\` | ${p.label.toLowerCase()} |`).join('\n')}
-| \`m\` | theme: light, dark or auto |
-| \`ink\`, \`paper\` | colours, as hex without \`#\` |
-| \`mode\` | \`3d\`; 2D is the default |
-| \`ex\` | extent: only \`block\` is written, endless is the default |
-| \`ev\` | elevation |
-| \`dl\` | detail |
-| \`ql\` | quality: only \`low\`, \`medium\` or \`high\` is written, auto is the default |
-| \`az\`, \`ce\`, \`rd\` | camera azimuth, elevation and radius |
-| \`cm\` | camera motion |
-| \`px\`, \`pz\` | pan, written only when off centre |
+- \`s\`: style
+- \`seed\`: seed
+${PARAMS.map((p) => `- \`${p.short}\`: ${p.label.toLowerCase()}`).join('\n')}
+- \`m\`: theme, light, dark or auto
+- \`ink\`, \`paper\`: colours, as hex without \`#\`
+- \`mode\`: \`3d\`; 2D is the default
+- \`ex\`: extent; only \`block\` is written, endless is the default
+- \`ev\`: elevation
+- \`dl\`: detail
+- \`ql\`: quality; only \`low\`, \`medium\` or \`high\` is written, auto is the default
+- \`az\`, \`ce\`, \`rd\`: camera azimuth, elevation and radius
+- \`cm\`: camera motion
+- \`px\`, \`pz\`: pan, written only when off centre
 
 The library's default camera is not written: azimuth 349.7, elevation 33.6, radius 1.92. The page updates the URL a few times a second at most, and again when a drag or pinch ends.
 
