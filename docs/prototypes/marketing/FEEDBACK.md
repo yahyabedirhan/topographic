@@ -456,3 +456,12 @@ On a place to reach the maintainer, with a screenshot of the About page's "Hi, I
 >
 > This will be a friendly area, from my language, from my voice and tone, to talk to other people.
 > If you have anything to share you can find me in these places.
+
+On the sidebar:
+
+> Also make sure that "Share feedback" is on the left sidebar and is visible as well.
+
+On the icon in the footer's License column:
+
+> This icon here doesn't look consistent with the other ones.
+> Maybe you can show this: "yahyapak.dev" after the Apache 2.0 [and] privacy, and this one without an icon.

@@ -14,7 +14,7 @@ export const GROUPS = [
   { name: 'Output', ids: ['export', 'heightfields', 'heightmaps'] },
   { name: 'API', ids: ['instance', 'react', 'element', 'page'] },
   { name: 'Care', ids: ['performance', 'accessibility', 'agents'] },
-  { name: 'Last', ids: ['limits', 'questions', 'feedback'] },
+  { name: 'Last', ids: ['limits', 'questions'] },
 ];
 
 export const SECTIONS = [
