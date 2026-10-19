@@ -37,7 +37,7 @@ export const SECTIONS = [
     id: 'first', title: 'First terrain', nav: 'First terrain',
     lede: 'An element and a few settings. Everything else is one more setting.',
     body: `<p>Give topographic an element and some settings. It adds a canvas that fills the element and starts drawing.<sup class="fn"></sup> Every setting on this page goes into this same call, onto the React component, or onto the element as an attribute.<sup class="fn"></sup></p>`,
-    notes: ['The canvas fills its element, so the element needs a height. <a href="#page">In your page</a> shows the CSS.'],
+    notes: ['The canvas fills its element, so the element needs a height. <a href="#page">Sizing and layering</a> shows the CSS.'],
     code: 'first',
     live: { style: 'long-ridge', mode: '3d', theme: { mode: 'dark' } },
   },
@@ -180,7 +180,7 @@ export const SECTIONS = [
     live: { style: 'long-ridge', lines: { count: 36 }, terrain: { peaks: 2 }, theme: { mode: 'dark' } },
   },
   {
-    id: 'page', title: 'In your page', nav: 'In your page',
+    id: 'page', title: 'Sizing and layering', nav: 'Sizing and layering',
     lede: 'Sizing, content on top, CSS variables and transparent paper.',
     body: `<p>The canvas fills its element and the element is <code>display: block</code>, so the element sets the size. To put the terrain behind content, position it under the content; with React, your content sits on top for you.</p>
 <p>Colours can come from CSS. <code>--topographic-ink</code> and <code>--topographic-paper</code> are read when no colour setting is passed. With transparent paper your own background shows through. If you change a variable later, call <code>update({ theme: {} })</code> to read it again.<sup class="fn"></sup></p>`,
