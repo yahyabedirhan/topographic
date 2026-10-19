@@ -8,7 +8,7 @@ import { Braces, Check, CodeXml, Component, Copy, Download, Image as ImageIcon, 
 import { PARAMS, cameraPose, type CameraMotion, type ParamDef, type SnapshotRegion } from 'topographic';
 import { INSTALL } from './content';
 import { embedCode } from './embed';
-import { PNG_SIZES, cropRegion, downloadPng, type PngSize } from './png';
+import { PNG_SIZES, cropRegion, downloadPng, videoFileName, type PngSize } from './png';
 import { shareUrl } from './url';
 import { type Playground } from './shared';
 import { Glyph, Tabs, Tip, useWidth } from './parts';
@@ -173,8 +173,9 @@ function useViewPicture(pg: Playground, width: number, height: number, motion?: 
 
 const n1 = (v: number) => Math.round(v * 10) / 10;
 
-function PngBlock({ pg, size, setSize, crops, setCrops }: {
+function PngBlock({ pg, place, size, setSize, crops, setCrops }: {
   pg: Playground;
+  place: string | null;
   size: CropId;
   setSize: (id: CropId) => void;
   crops: Crops;
@@ -240,7 +241,7 @@ function PngBlock({ pg, size, setSize, crops, setCrops }: {
     const width = size === 'screen' ? Math.round(viewW * 2) : sizeOf(size).width;
     const height = size === 'screen' ? Math.round(viewH * 2) : sizeOf(size).height;
     try {
-      await downloadPng(t, sizeOf(size) as PngSize, size === 'screen' ? null : cropRegion(aspect, sizeOf(size).width, sizeOf(size).height, crops[size]));
+      await downloadPng(t, sizeOf(size) as PngSize, size === 'screen' ? null : cropRegion(aspect, sizeOf(size).width, sizeOf(size).height, crops[size]), place);
       track('export_image_downloaded', {
         variant: size, format: 'png', width, height, style: String(pg.settings.style), theme: pg.mode, mode: pg.settings.mode,
         duration_ms: Math.round(performance.now() - t0),
@@ -325,7 +326,7 @@ function PngBlock({ pg, size, setSize, crops, setCrops }: {
 
 // ---------------------------------------------------------------- Video
 
-function VideoBlock({ pg }: { pg: Playground }) {
+function VideoBlock({ pg, place }: { pg: Playground; place: string | null }) {
   const [path, setPath] = useState<CameraMotion>('orbit');
   const [time, setTime] = useState(0.3);
   const [busy, setBusy] = useState<'mp4' | 'webm' | ''>('');
@@ -358,7 +359,7 @@ function VideoBlock({ pg }: { pg: Playground }) {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `topographic-${path}.${blob.type.includes('webm') ? 'webm' : 'mp4'}`;
+      a.download = videoFileName(path, blob.type.includes('webm') ? 'webm' : 'mp4', place);
       a.click();
       window.setTimeout(() => URL.revokeObjectURL(url), 5000);
     } catch (error) {
@@ -498,8 +499,10 @@ function CodeBlock({ pg, format }: { pg: Playground; format: 'react' | 'html' | 
   );
 }
 
-export function ExportMenu({ pg, open, onOpenChange, clusterRef }: {
+export function ExportMenu({ pg, place, open, onOpenChange, clusterRef }: {
   pg: Playground;
+  /** The name of the named place drawn now, for file names, or null. */
+  place: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   clusterRef: RefObject<HTMLDivElement | null>;
@@ -527,8 +530,8 @@ export function ExportMenu({ pg, open, onOpenChange, clusterRef }: {
           <Popover.Popup className="pt-pop pt-glass pt-export" aria-label="Export" initialFocus={false}>
             <Tabs items={FORMATS} value={format} onChange={(f) => { if (f !== format) track('export_tab_changed', { from: format, to: f, from_ms: Math.round(performance.now() - tabSince.current) }); tabSince.current = performance.now(); setFormat(f); }} label="Export format" />
             {format === 'link' && <LinkBlock pg={pg} />}
-            {format === 'png' && <PngBlock pg={pg} size={size} setSize={setSize} crops={crops} setCrops={setCrops} />}
-            {format === 'video' && <VideoBlock pg={pg} />}
+            {format === 'png' && <PngBlock pg={pg} place={place} size={size} setSize={setSize} crops={crops} setCrops={setCrops} />}
+            {format === 'video' && <VideoBlock pg={pg} place={place} />}
             {format === 'react' && <CodeBlock pg={pg} format="react" />}
             {format === 'html' && <CodeBlock pg={pg} format="html" />}
             {format === 'json' && <CodeBlock pg={pg} format="json" />}
