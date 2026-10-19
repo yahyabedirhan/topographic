@@ -2,7 +2,7 @@
 // the section's next note belongs, and the notes sit in the margin. Ranges and defaults come from the library itself,
 // so the tables cannot drift from the code.
 import {
-  CAMERA_MOTIONS, DEFAULT_CAMERA, DEFAULT_DETAIL, DEFAULT_ELEVATION, DEFAULT_EXTENT, PARAMS, QUALITY_TIERS, RADIUS_MAX, RADIUS_MIN,
+  CAMERA_MOTIONS, CAMERA_SPEED_MAX, DEFAULT_CAMERA, DEFAULT_DETAIL, DEFAULT_ELEVATION, DEFAULT_EXTENT, PARAMS, QUALITY_TIERS, RADIUS_MAX, RADIUS_MIN,
   LOOKS, SHAPES, THEME_DEFAULTS, ZOOM_MAX, ZOOM_MIN, findLook, type LookId, type SettingsInput,
 } from 'topographic';
 import { TAGLINE } from '../content';
@@ -319,6 +319,7 @@ export const CAMERA_ROWS: Row[] = [
   { key: 'camera.elevation', attr: 'camera-elevation', range: '2–80, degrees', def: String(C.elevation), what: 'The angle above the horizon. Never below the terrain.' },
   { key: 'camera.radius', attr: 'radius', range: r(RADIUS_MIN, RADIUS_MAX), def: String(C.radius), what: 'The distance from the centre of the terrain.' },
   { key: 'camera.motion', attr: 'camera-motion', range: CAMERA_MOTIONS.join(', '), def: C.motion, what: 'A path for the camera. The land keeps its own motion.' },
+  { key: 'camera.speed', attr: 'camera-speed', range: r(0, CAMERA_SPEED_MAX), def: String(C.speed), what: 'How fast the camera moves along its path. 1 is the path\'s own pace; 0 holds it.' },
   { key: 'camera.panX, panZ', attr: 'pan-x, pan-z', range: '−6–6', def: '0', what: 'The point the camera looks at, east and south of the centre. It stays over the terrain.' },
   { key: 'view2d.x, y', attr: 'view-x, view-y', range: '−6–6', def: '0', what: 'The 2D map\'s own pan, in screen heights. 3D ignores it.' },
   { key: 'view2d.zoom', attr: 'view-zoom', range: r(ZOOM_MIN, ZOOM_MAX), def: '1', what: 'The 2D map\'s zoom, up to eight times closer.' },

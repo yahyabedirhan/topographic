@@ -1,6 +1,6 @@
 import { DEFAULT_SHAPE, LOOKS, PARAMS, fromQuery, mergeSettings, resolveSettings, type ParamDef, type Settings, type SettingsInput } from 'topographic';
 
-const VIEW = ['m', 'ink', 'paper', 'mode', 'ex', 'ev', 'dl', 'ql', 'az', 'ce', 'rd', 'cm', 'px', 'pz', 'vx', 'vy', 'vz'] as const;
+const VIEW = ['m', 'ink', 'paper', 'mode', 'ex', 'ev', 'dl', 'ql', 'az', 'ce', 'rd', 'cm', 'cs', 'px', 'pz', 'vx', 'vy', 'vz'] as const;
 
 /** Every query key the settings own. `s` is the shape. The region keys belong to region/url.ts. */
 export const SETTINGS_KEYS: readonly string[] = ['look', 's', 'seed', ...(PARAMS as readonly ParamDef[]).map((p) => p.short), ...VIEW];
@@ -34,6 +34,7 @@ function diff(s: Settings, base: Settings): [string, string][] {
   put('ce', s.camera.elevation, base.camera.elevation);
   put('rd', s.camera.radius, base.camera.radius);
   put('cm', s.camera.motion, base.camera.motion);
+  put('cs', s.camera.speed, base.camera.speed);
   put('px', s.camera.panX, base.camera.panX);
   put('pz', s.camera.panZ, base.camera.panZ);
   put('vx', s.view2d.x, base.view2d.x);
@@ -43,10 +44,10 @@ function diff(s: Settings, base: Settings): [string, string][] {
 }
 
 /** What a bare playground URL opens: the built-in Istanbul map terrain, as map-looks.ts decodes it. */
-export const HOME_QUERY = 's=gentle-summit&seed=67&lc=36&lw=0&lo=0.9&ix=4&fd=0.15&m=dark&paper=0b0b0d&mode=3d&ex=block&ev=0.12&az=341.6&ce=45.3&rd=1.15&px=-0.005&pz=-0.013&place=istanbul';
+export const HOME_QUERY = 's=gentle-summit&seed=67&lc=36&lw=0&lo=0.9&ix=4&fd=0.15&m=dark&paper=0b0b0d&mode=3d&ex=block&ev=0.12&az=341.6&ce=45.3&rd=1.15&cm=orbit&cs=0.25&px=-0.005&pz=-0.013&place=istanbul';
 
 /** The settings of a link with a region and no settings keys, which links wrote while a bare URL was fine granite. */
-const REGION_ONLY_QUERY = 'look=fine-granite&mode=3d';
+export const REGION_ONLY_QUERY = 'look=fine-granite&mode=3d';
 
 /** The query keys region/url.ts owns. */
 const REGION_KEYS = ['region', 'place'];

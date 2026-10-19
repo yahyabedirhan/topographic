@@ -4,7 +4,7 @@ import { findPlace, loadCatalog } from './places';
 import { findMapLook, MAP_LOOKS } from './map-looks';
 
 /** The reference query for the built-in Istanbul. */
-const ISTANBUL_URL = '?s=gentle-summit&seed=67&lc=36&lw=0&lo=0.9&ix=4&fd=0.15&m=dark&paper=0b0b0d&mode=3d&ex=block&ev=0.12&az=341.6&ce=45.3&rd=1.15&px=-0.005&pz=-0.013&place=istanbul';
+const ISTANBUL_URL = '?s=gentle-summit&seed=67&lc=36&lw=0&lo=0.9&ix=4&fd=0.15&m=dark&paper=0b0b0d&mode=3d&ex=block&ev=0.12&az=341.6&ce=45.3&rd=1.15&cm=orbit&cs=0.25&px=-0.005&pz=-0.013&place=istanbul';
 
 describe('built-in map terrains', () => {
   it('decodes Istanbul to exactly the settings of its reference query, camera and pan included', () => {

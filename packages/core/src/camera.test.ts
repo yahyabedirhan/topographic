@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CAMERA_TARGET, blockLift, cameraPose, cameraTarget, clampPan, eyePosition, panBy, terrainHalfSize, viewProjection, viewShift, type Pose } from './camera.js';
+import { CAMERA_TARGET, blockLift, cameraPose, pathPose, cameraTarget, clampPan, eyePosition, panBy, terrainHalfSize, viewProjection, viewShift, type Pose } from './camera.js';
 import { DEFAULT_CAMERA } from './settings.js';
 
 function project(pose: Pose, aspect: number, point: readonly [number, number, number], shift?: [number, number]): [number, number, number] {
@@ -35,6 +35,11 @@ describe('camera', () => {
     expect(pose.azimuth).toBeCloseTo(DEFAULT_CAMERA.azimuth + 42);
     expect(pose.elevation).toBe(DEFAULT_CAMERA.elevation);
     expect(pose.radius).toBe(DEFAULT_CAMERA.radius);
+  });
+  it('moves along the path at the camera speed, and holds at speed 0', () => {
+    expect(cameraPose({ ...DEFAULT_CAMERA, motion: 'orbit', speed: 0.25 }, 12).azimuth).toBeCloseTo(DEFAULT_CAMERA.azimuth + 42);
+    expect(cameraPose({ ...DEFAULT_CAMERA, motion: 'drone', speed: 0.5 }, 6)).toEqual(pathPose({ ...DEFAULT_CAMERA, motion: 'drone' }, 3));
+    expect(cameraPose({ ...DEFAULT_CAMERA, motion: 'orbit', speed: 0 }, 60).azimuth).toBe(DEFAULT_CAMERA.azimuth);
   });
 });
 

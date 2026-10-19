@@ -32,9 +32,14 @@ function clampElevation(v: number): number {
   return Math.min(80, Math.max(2, v));
 }
 
-/** Where the camera sits at `seconds` along its path. Elevation stays above the horizon. */
+/** Where the camera sits `seconds` after it starts, at the camera's speed. Elevation stays above the horizon. */
 export function cameraPose(camera: CameraSettings, seconds: number): Pose {
-  const t = Number.isFinite(seconds) ? seconds : 0;
+  return pathPose(camera, seconds * (camera.speed ?? 1));
+}
+
+/** Where the camera sits at `t` along its path at the path's own pace, whatever the camera's speed. */
+export function pathPose(camera: CameraSettings, t: number): Pose {
+  if (!Number.isFinite(t)) t = 0;
   switch (camera.motion) {
     case 'orbit':
       return withPan({ azimuth: camera.azimuth + t * 14, elevation: camera.elevation, radius: camera.radius }, camera);

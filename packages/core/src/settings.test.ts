@@ -101,7 +101,7 @@ describe('view settings', () => {
     expect(s.mode).toBe('2d');
     expect(s.extent).toBe('endless');
     expect(s.elevation).toBe(0.62);
-    expect(s.camera).toEqual({ azimuth: 349.7, elevation: 33.6, radius: 1.92, motion: 'still', panX: 0, panZ: 0 });
+    expect(s.camera).toEqual({ azimuth: 349.7, elevation: 33.6, radius: 1.92, motion: 'still', speed: 1, panX: 0, panZ: 0 });
     expect(meshResolution(0)).toBe(32);
     expect(meshResolution(s.detail)).toBe(96);
     expect(meshResolution(1)).toBe(160);
@@ -143,6 +143,18 @@ describe('view settings', () => {
     const attrs = toAttributes(s);
     expect(attrs).toMatchObject({ mode: '3d', extent: 'block', 'camera-motion': 'orbit', azimuth: '12', 'pan-x': '0.25' });
     expect(resolveSettings(fromAttributes((n) => attrs[n] ?? null))).toEqual(s);
+  });
+
+  it('keeps the camera speed between 0 and 3 and writes it only when it is not 1', () => {
+    expect(resolveSettings({ camera: { speed: 0.25 } }).camera.speed).toBe(0.25);
+    expect(resolveSettings({ camera: { speed: 9 } }).camera.speed).toBe(3);
+    expect(resolveSettings({ camera: { speed: -1 } }).camera.speed).toBe(0);
+    const s = resolveSettings({ mode: '3d', camera: { motion: 'orbit', speed: 0.25 } });
+    expect(toQuery(s)).toBe('s=drifting-lobes&mode=3d&cm=orbit&cs=0.25');
+    expect(resolveSettings(fromQuery(toQuery(s)))).toEqual(s);
+    expect(toAttributes(s)).toMatchObject({ 'camera-speed': '0.25' });
+    expect(resolveSettings(fromAttributes((n) => (n === 'camera-speed' ? '0.5' : null))).camera.speed).toBe(0.5);
+    expect(toQuery(resolveSettings({ mode: '3d' }))).not.toContain('cs=');
   });
 });
 

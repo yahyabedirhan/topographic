@@ -7,7 +7,7 @@ export { SHAPES, DEFAULT_SHAPE, findShape, type Shape, type ShapeId } from './sh
 export { LOOKS, findLook, type Look, type LookId } from './looks.js';
 export {
   defaultSettings, resolveSettings, mergeSettings, toUniforms, fromAttributes, toAttributes, toQuery, fromQuery,
-  meshResolution, terrainSegments, CAMERA_MOTIONS, DEFAULT_CAMERA, DEFAULT_EXTENT, DEFAULT_DETAIL, DEFAULT_ELEVATION, DEFAULT_VIEW2D, RADIUS_MIN, RADIUS_MAX, ZOOM_MIN, ZOOM_MAX,
+  meshResolution, terrainSegments, CAMERA_MOTIONS, CAMERA_SPEED_MAX, DEFAULT_CAMERA, DEFAULT_EXTENT, DEFAULT_DETAIL, DEFAULT_ELEVATION, DEFAULT_VIEW2D, RADIUS_MIN, RADIUS_MAX, ZOOM_MIN, ZOOM_MAX,
   type Settings, type SettingsInput, type ThemeSettings, type ThemeMode,
   type RenderMode, type TerrainExtent, type CameraMotion, type CameraSettings,
 } from './settings.js';
