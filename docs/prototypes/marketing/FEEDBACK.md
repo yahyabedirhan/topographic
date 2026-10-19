@@ -18,33 +18,183 @@ Direction given before round 1:
 - Build a docs page at `/docs` at the level of detail of `skills.wheresryan.sh/anatomy`, in dark mode, linked next to About at the top left of the playground.
 - Update the GitHub repository description.
 
-Feedback, 2026-10-19:
+Feedback, 2026-10-19.
+The maintainer's words, kept near verbatim and grouped by board.
+Only grammar and voice-transcription slips are fixed; fixes of a misheard word are marked in square brackets.
+The screenshots the maintainer attached show the playground's Tune popover (the Lines and Terrain tabs) and the Export popover (the Link tab).
 
-- **Rules for every surface:**
-  - Treat real places as a first-class feature, beside generated shapes.
-  - Use real terrains in visuals, such as Everest, the Grand Canyon and Yosemite Valley.
-  - Show motion in primary views and stills in secondary views. Grids stay mostly still. The docs page may move everywhere.
-  - Do not promote the seven base shapes as the whole range: shapes are unlimited.
-  - Write like an Apple launch: short, confident, plain technical words. Leave "no dependencies" and lists of uses out of the first line; uses belong in the docs.
-  - Starting line to iterate on: "Topographic terrain rendered with WebGL. Generate a land or turn a real place into a topographic terrain."
-- `positioning`: unclear what surface it is for. No pick.
-- `api-naming`: drop `landform`. Choose between `shape` and `land`.
-- `docs-page`: **A**, with changes:
-  - The playground's wordmark font as the brand.
-  - Playground, GitHub, npm and yahyapak.dev as icon links in the top-left area, as on the playground; drop the duplicate icons in the header.
-  - Keep the section illustrations and the body.
-  - Use the playground's visual inputs (Tune popover sliders and icons). They drive the live figure and update the code block, ready to copy.
-  - Real places as a first-class section.
-- `readme-header`: **A**, with the install line moved below the image.
-- `github-repo`: **A**, with the topics kept, real terrains in the social preview, motion where possible, and the new line.
-- `playground-install`: **A**, with changes:
-  - The button sits in the top-right corner, in a glass container the size of the other buttons.
-  - The popover follows the Export popover's style: a visual preview, then two parts, with an agent (the skill) and by hand (npm). No tabs.
-- `npm-page`: **A** as the base, with changes:
-  - A moving real-terrain hero.
-  - Real places first, then generated shapes, then 2D and 3D.
-  - Code beside its result, one pair after another, instead of tables or accordions.
-  - New variants to show.
-- `site-page`: **A**, with small icons on the Playground, Docs and npm links.
-- `social-card`: all layouts are fine. Use the new copy and real terrains, drop the use keywords, and show code with the result its settings give.
-- Archive the variants not picked.
+### positioning
+
+> First of all for the positioning, I couldn't understand what this position is about.
+> Is it for the homepage of the playground, the homepage of this website?
+> Are you just moving playground to under /playground and showing this as kind of a landing page?
+> I couldn't understand that.
+> It'll be great if you can explain it.
+
+### api-naming
+
+> Now continuing with the API names, I didn't like the landform.
+> Let's eliminate that.
+> Shape might be handy.
+> Land also could be useful but I think shape is a little bit easier to understand.
+> I'm in between shape and [land] here.
+> Maybe you can help me out: which one will work better and what are the trade-offs?
+
+### docs-page: variant A
+
+> Docs page: definitely prototype A is the best and I will give you a couple of pieces of feedback.
+> Note them down so that you can use them.
+
+1. Brand font.
+   > At the top-left corner, the topographic name: I want you to use the font that we are using on the website currently (https://topographic.yahyapak.dev/).
+   > I want you to use it as branding for this topographic website and application.
+2. Links in the top-left area.
+   > Other than that, I think those Playground, GitHub, and npm links look good.
+   > Since we already have GitHub maybe you can add the GitHub icon next to it.
+   > You can also add the npm icon but since we have them already at the top of the page, let's eliminate one of them.
+   >
+   > I want you to use that top-left area.
+   > As I scroll down the left sidebar stays as is.
+   > Let's move those GitHub and npm icons to the top-left area.
+   > Think of it as a similar area to the top left of the current website, where you also link to my personal website.
+   >
+   > You will have links to the playground, GitHub, npm, and my personal website.
+   > Make them cohesive and artistic to show them in the top-left corner, similar to how we have them on the existing websites.
+3. What to keep.
+   > Other than that I really like that small illustration when you go down to the sections.
+   > I think that's really nice.
+   > Other than that I think the body content of the documentation content looks really nice.
+4. The playground's inputs, interactive, with live code.
+   > One piece of feedback I can give you, actually, is to use these inputs that we develop for the playground (for example, for things like roughness, terracing, line count, and line width): the same icons and the same inputs that are kind of more visual to show what changes when you play around with it.
+   > Use them in the docs page as well and make sure that they are actually interactive.
+   > When you play around with it something is actually changing on the page.
+   >
+   > And maybe for example, when you play around with it, the code block that shows this example is actually updated so that people can play around with it, copy it, and then use it directly.
+   > This is a very good experience.
+5. Real places as a first-class feature.
+   > Other than that I really like those terrain options.
+   > The thing that maybe we can update is that we don't mention real places too much.
+   > I think that's a really powerful feature.
+   >
+   > For all of these marketing contents, don't think of these real places as some kind of side feature.
+   > I think it's really something that gets attention from people so treat it as a first-level feature, a first-level citizen.
+   > Also go with the random shapes and how they work as well.
+   >
+   > But other than this I think this docs page, the variant A, looks really nice.
+
+### readme-header: variant A
+
+> I'm moving forward with the README header and I think the best one here is variant A but don't add this `npm install topographic` at the location where it is right now.
+> Since we already have these npm badges, move it below the image, okay?
+> Currently it doesn't look good here.
+>
+> Other than that let's move on with variant A for the README header.
+
+### github-repo: variant A
+
+> I'm moving forward with the GitHub repository.
+> Here I like these tags that you added.
+> I like the social preview but I think for these types of previews maybe let's use real terrains.
+> For example Everest, the Grand Canyon, or Yosemite Valley are really nice examples that people know about and will be really good.
+> I really like that moving image, similar to the GIFs.
+> Instead of showing a still image, showing something moving is always something that takes more attention.
+
+The content writing, about GitHub description A ("Topographic terrain in 2D and 3D, rendered with WebGL. Generate land or load a real place, then put it on a website, render it to video or bring it into a game. No dependencies; works in plain HTML and React."):
+
+> Instead of this something like this would work better.
+> That's because I don't want you to try to explain 2D and 3D too much like this.
+> And use a little bit simpler technical language.
+> Things like "no dependencies" are something of a side effect or extra bonus.
+> Don't focus on these types of things.
+>
+> And I think we should be a little bit more careful about how they can use this and for what purpose.
+> I think that is something that should be in the documentation rather than in this first explanation of what this is about.
+> Let's try to be more professional, like something that Apple would use in their launch videos, so that the writing itself is something that is impressive, okay?
+>
+> You can start with this as a starting point and you can improve and iterate on it:
+>
+> "Topographic terrain rendered with WebGL. Generate a land or turn a real place into a topographic terrain."
+>
+> So I think other than that if I need to pick a variant for the GitHub repo, I will pick A.
+
+### playground-install: variant A
+
+> Now I'm continuing with the playground install entry.
+> For this one variant A is the best one but I want you to change the position of it.
+> Instead of putting it on the left of the top-right corner elements, put the Install in the top-right corner and make the glass container size the same as the existing buttons there.
+>
+> And for the content of it I want you to do something similar to what we have in the share popup.
+> There should always be something visual while showing these installation commands, etc.
+> Not just a wall of text.
+>
+> We already have good material in our export popup.
+> Follow that convention, follow that style for both [code preview] and code view, and the installation things as well.
+>
+> And since export is a little bit crowded, this installation will give users easier access to get started.
+> For that one providing two options, with an agent or by hand, is a nice approach.
+> Instead of showing it in two tabs, just simply show a preview area with [a visual] and then provide two parts in this pop-up, not two tabs.
+> It'll just show the `npx` skill or directly install it with `npm` so it'll just show these commands.
+>
+> I want you to use this as a starting point and show me what it would look like with new prototypes.
+> And for this one and for the other ones, can you archive the prototypes that I'm not interested in anymore?
+
+### npm-page: variant A as the base, new prototypes
+
+> Now I'm continuing with the npm pages.
+> For this one I think the first one is really good because it starts with this high-level image but I would like to use something from real-world terrains.
+> I would like to show it's moving instead of a still image.
+> And after that I don't want you to promote these seven landforms too much because we have infinitely many landforms, not here but everywhere.
+> Don't focus on these seven landforms too much, okay?
+>
+> And make the real places first, citizen class, to promote them.
+> After that you can also have separate sections for these randomized terrains and 2D and 3D modes as well.
+>
+> For the layout and how this looks, I think I like variant A the most.
+> I don't want these Markdown tables too much at the beginning.
+> Actually it might be helpful to show the code and its result one by one with the correct parameters, similar to the docs page: something here that'll show you which code gives you which result side by side.
+> That'll be really great.
+>
+> For example variant C shows that animated image at the top.
+> That is nice but I don't want these accordion menus to hide and show the items.
+> Instead I want to show a side-by-side view of what code results in what.
+>
+> Amidst all of this feedback I want you to provide me with new prototypes for this npm page.
+>
+> Make sure to not [ignore] my feedback.
+> Try to recreate it with all the feedback I give about real places and also moving animated views instead of still images.
+
+Motion, for the READMEs and npm pages:
+
+> For a grid view, for example, if you're going to show different images similar to those seven landforms, I don't want too many moving images [running] side by side at the same time, right?
+> Try to not overuse those moving images.
+> Instead try to respect the attention of the user: the primary views will be moving and the secondary views could be still.
+> This applies to the READMEs and npm pages but for the docs page you can, by default, make everything moving not still.
+
+### site-page: variant A
+
+> Now I'm continuing with the personal website.
+> I think Variant A looks really nice.
+> What we can improve here is that we can add small icons, similar to the GitHub icon.
+> For example for the Playground, Docs, and npm, let's add those icons next to that clickable text so that instead of multiple separate clickable texts there are some small visuals in it.
+
+### social-card: all layouts
+
+> Other than that, for the social cards, I think all of them are looking good except the actual content writing part.
+> Follow the content writing part with the example I showed you.
+>
+> Also try to visualize more real-world terrains instead of those randomized terrains here as well and drop the keywords like websites, demos, videos, games.
+> Drop these and you can maybe focus more on the code-and-result connection, the way that you do `npm install topographic` and that landform.
+> Try to showcase a little bit more of the parameters and what impact those parameters will have on the output.
+
+### Closing
+
+> I think we are done with the feedback.
+> If you have any questions or think that any of these things are inconsistent, you can ask a few questions.
+> Show me a table format with which variants I picked and which ones you will move forward with using the show-me skill.
+> Show me the progress of how you will move forward, okay?
+
+### Feedback on the feedback log
+
+> While writing my feedback stick to it as verbatim as possible.
+> Do not rewrite my sentences so all agents see the actual feedback that I gave.
+> You can additionally add more structural form to it and also you can maybe fix any grammar issues or any voice transcription errors.
