@@ -31,7 +31,7 @@ const topography = createTopography(el, { shape: 'dunes', lines: { count: 30 } }
 - **Theme**: resolves `ink` and `paper` from settings, then CSS variables (`--topographic-ink`, `--topographic-paper`), then light/dark defaults.
 - **`<topographic-view>`**: a custom element. Attributes become Settings, and it holds one Renderer.
 - **React `<Topography>`** and **`useTopography`**: props become Settings, and they hold one Renderer.
-- **Playground**: a React app. Its state is Settings, mirrored in the URL. Export uses `snapshot`, `record` and the embed serializer. The place picker turns a map region into a heightfield and hands it to `setHeightfield`.
+- **Playground**: a React app. Its state is Settings, mirrored in the URL. Export uses `snapshot`, `record` and the embed serializer. The place picker turns a map region into a heightfield and hands it to `setHeightfield`. A built-in place's grid comes from the library. A catalog place's grid is a static 16-bit PNG in `public/places/`, made by `scripts/places.mjs` with the library's pipeline and decoded with `decodeGrid16`; if the file fails, the worker reads the elevation tiles with `fetchLocation`. Any other region always reads the tiles.
 
 Flow: wrapper → Settings (via the params table) → Renderer → uniforms → shader.
 
@@ -58,7 +58,8 @@ apps/playground/src/
   looks.ts               the looks in the dock
   url.ts  embed.ts  png.ts  content.ts   URL state, embed code, PNG download, package names
   agent-tools.ts  webmcp.ts   WebMCP tools
-  region/                the place picker: map (MapLibre, lazy), tile worker, pipeline, region tools
+  region/                the place picker: map (MapLibre, lazy), tile worker, pipeline, region tools,
+                         and the place catalog (catalog.json, loaded when the Map opens) with its search
 ```
 `params.ts` is the single source of truth. Types, element attributes, React props, playground sliders and docs are all derived from it.
 

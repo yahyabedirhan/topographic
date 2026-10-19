@@ -78,6 +78,7 @@ Ten places are built in.
 </table>
 
 In the [playground](https://topographic.yahyapak.dev/), open **Map**, frame any other area and click **Apply**.
+Its Map menu also holds about 100 more places to search, listed in [docs/places.md](docs/places.md).
 **Export** then gives you the code for it.
 
 ## Generated shapes

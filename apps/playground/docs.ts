@@ -4,10 +4,14 @@ import { AREA_LIMITS, LOCATIONS } from 'topographic/locations';
 import { INSTALL, TAGLINE } from './src/content';
 import { TOOL_DEFS } from './src/agent-tools';
 import { AGENT_NAMES, PURPOSES } from './src/actor';
-import { PLACES } from './src/region/places';
+import { PLACES, catalogPlaces, type CatalogRow } from './src/region/places';
+import CATALOG_ROWS from './src/region/catalog.json';
 import { REGION_TOOL_DEFS } from './src/region/tools';
 import { DOCS_META } from './src/docs-page/copy';
 import { HOME_QUERY } from './src/share-url';
+
+/** The Map menu's place catalog: the ten built-in places and the playground's own. */
+const CATALOG = catalogPlaces(CATALOG_ROWS as unknown as CatalogRow[]);
 
 export const SITE_URL = 'https://topographic.yahyapak.dev/';
 export const WEBMCP_SPEC = 'https://github.com/webmachinelearning/webmcp/blob/d0e4e0e0f039358cc9d93f90074116622bfebd53/index.bs';
@@ -213,6 +217,7 @@ Behaviour:
 ${LOCATIONS.map((l) => `  - \`${l.id}\`: ${l.name}, west ${l.bbox.west}, south ${l.bbox.south}, east ${l.bbox.east}, north ${l.bbox.north}`).join('\n')}
 - \`loadLocation(id) => Promise<{ samples, size, aspect, minMeters, maxMeters, zoom }>\`: a built-in place's 256 × 256 grid. Each place is its own dynamic import of 35 to 150 KB (25 to 115 KB compressed), so a page downloads only the places it uses. The \`location\` setting calls it for you.
 - \`fetchLocation({ west, south, east, north }, { relief?, smooth?, tiles?, signal? }) => Promise<{ samples, size, aspect, minMeters, maxMeters, zoom, tiles }>\`: downloads Terrarium elevation tiles (AWS Open Data) for any area and makes the same 256 × 256 grid as the playground. The shorter side must be at least ${AREA_LIMITS.minSideM / 1000} km, the longer side at most ${AREA_LIMITS.maxSideM / 1000} km, and the sides within ${AREA_LIMITS.maxAspect}:1. \`relief\` is \`dramatic\` (default) or \`measured\`; \`smooth\` is \`light\`, \`medium\` (default) or \`strong\`; \`tiles\` is a Terrarium URL template with \`{z}\`, \`{x}\` and \`{y}\`. Pass the result as \`location\`.
+- \`decodeGrid16(bytes) => Promise<{ samples, size }>\`: reads a grid saved as a square 16-bit greyscale PNG, north at the top, the format of the built-in places.
 - \`areaProblem(bbox)\` returns \`'order' | 'small' | 'large' | 'aspect' | null\`, and \`areaSpan(bbox)\` the size in metres.
 
 ## Helpers
@@ -276,7 +281,7 @@ The library's default camera is not written: azimuth 349.7, elevation 33.6, radi
 ## Real places
 
 - **A box:** \`?region=west,south,east,north\`, or JSON \`{"bbox":[west,south,east,north]}\`.
-- **A named place:** ${PLACES.map((p) => `\`place=${p.id}\``).join(', ')}.
+- **A named place:** ${PLACES.map((p) => `\`place=${p.id}\``).join(', ')}, or one of the Map menu's other places: ${CATALOG.filter((p) => p.grid).map((p) => `\`${p.id}\` (${p.name})`).join(', ')}.
 - **With settings:** place params combine with the others, such as \`?look=night-lobes&lc=40&place=istanbul\`.
 
 While the heights load, the page sets \`data-loading=terrain\` and hides the default terrain, and \`get_region\` returns \`loading: true\` with the message \`Loading terrain\`.
