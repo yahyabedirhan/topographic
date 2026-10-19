@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>topographic docs · B live split</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=EB+Garamond:ital,wght@1,400;1,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="docs-base.css">
+<style>
+/* PROTOTYPE docs-page/B: one sticky live terrain on the right that changes as each section scrolls in. */
+.wrap{display:grid;grid-template-columns:minmax(0,640px) minmax(0,1fr)}
+.prose{padding:0 56px 30vh 64px;position:relative;z-index:1}
+.stage-col{position:relative}
+.stage{position:sticky;top:0;height:100vh;overflow:hidden;background:#0b0b0d}
+.stage #view{position:absolute;inset:0;transition:opacity .35s ease}
+.stage.swap #view{opacity:.15}
+.stage .place{position:absolute;z-index:1;left:50%;top:46%;width:min(76%,820px);aspect-ratio:16/10;transform:translate(-50%,-50%) scale(.96);border-radius:16px;background:#0b0b0d center/cover no-repeat;box-shadow:0 0 0 1px var(--line-2),0 40px 120px -20px rgba(0,0,0,.9);opacity:0;transition:opacity .5s ease,transform .6s cubic-bezier(.2,.8,.2,1);pointer-events:none}
+.stage .place.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.stage .place span{position:absolute;left:14px;bottom:12px;font:500 12px/1 var(--sans);color:var(--fg);padding:6px 9px;border-radius:999px;background:rgba(11,11,13,.6)}
+.stage::before{content:'';position:absolute;inset:0 auto 0 0;width:120px;z-index:2;background:linear-gradient(90deg,#0b0b0d,rgba(11,11,13,0));pointer-events:none}
+.hud{position:absolute;z-index:3;left:40px;right:28px;pointer-events:none}
+.hud.top{top:26px;display:flex;align-items:baseline;gap:12px}
+.hud .num{font:italic 400 34px/1 var(--serif);color:var(--fg)}
+.hud .ttl{font:500 14px/1 var(--sans);color:var(--fg)}
+.hud .sub{font:400 12.5px/1.2 var(--sans);color:var(--mut);margin-left:auto;max-width:48%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stage::after{content:'';position:absolute;inset:0 0 auto 0;height:120px;z-index:2;background:linear-gradient(rgba(11,11,13,.7),rgba(11,11,13,0));pointer-events:none}
+.hud.bot{bottom:26px;display:flex;align-items:flex-end;justify-content:space-between;gap:16px}
+.readout{pointer-events:auto;max-width:min(560px,100%);padding:12px 16px;border-radius:12px;background:rgba(11,11,13,.62);backdrop-filter:blur(14px) saturate(1.3);-webkit-backdrop-filter:blur(14px) saturate(1.3);box-shadow:inset 0 0 0 1px var(--line-2);font:400 12px/1.65 var(--mono);color:var(--text);white-space:pre;overflow:hidden}
+.readout .tag{display:block;font:500 10.5px/1 var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin-bottom:8px}
+.stats{font:400 11.5px/1.4 var(--mono);color:var(--mut);text-align:right;white-space:pre}
+.ticks{position:absolute;z-index:3;right:14px;top:50%;transform:translateY(-50%);display:grid;gap:7px}
+.ticks a{display:block;width:12px;height:2px;border-radius:2px;background:rgba(255,255,255,.18);transition:width .3s,background .3s}
+.ticks a.on{width:22px;background:var(--fg)}
+/* prose */
+.top{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:18px;height:62px;margin:0 -56px 0 -64px;padding:0 56px 0 64px;background:linear-gradient(#0b0b0d 70%,rgba(11,11,13,0))}
+.top .wm{font:600 15px/1 var(--sans);color:var(--fg);text-decoration:none;display:flex;align-items:center;gap:9px}
+.top .wm img{width:22px;height:22px;border-radius:5px}
+.top .toplinks{position:fixed;z-index:6;top:22px;right:30px;font-size:12.5px;gap:4px 16px;flex-wrap:nowrap;white-space:nowrap}
+.top .toplinks a{color:#b9b8b3}
+.hero{min-height:calc(100vh - 62px);display:grid;align-content:center;gap:22px;padding-bottom:60px}
+.hero h1{font:500 46px/1.06 var(--sans);letter-spacing:-.025em;color:var(--fg)}
+.hero h1 .i{font-size:1.12em;font-weight:400}
+.hero p{font-size:17px;line-height:1.55;color:var(--text);max-width:500px}
+.hero .cta{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.hero .btn{display:inline-flex;align-items:center;height:40px;padding:0 16px;border-radius:999px;background:var(--fg);color:var(--bg);font:500 14px/1 var(--sans);text-decoration:none}
+.hero .note{font-size:12.5px;color:var(--mut)}
+.hero .code.one{min-width:260px}
+.scroll-hint{font:400 12.5px/1 var(--sans);color:var(--mut);display:flex;gap:8px;align-items:center}
+.scroll-hint i{display:inline-block;width:1px;height:22px;background:linear-gradient(var(--mut),transparent)}
+.step{min-height:88vh;padding:14vh 0 8vh;border-top:1px solid var(--line)}
+.step:first-of-type{border-top:0}
+.step .k{display:flex;align-items:center;gap:10px;font:500 12px/1 var(--sans);color:var(--mut);letter-spacing:.02em;margin-bottom:16px}
+.step .k b{font:italic 400 17px/1 var(--serif);color:var(--fg)}
+.step h2{font:500 30px/1.12 var(--sans);letter-spacing:-.02em;color:var(--fg);margin-bottom:14px}
+.step h2 .i{font-weight:400}
+.step p{margin:0 0 14px}
+.step>.code,.step .code+.code,.step .try,.step details.more,.step .tbl-wrap,.step .fns,.step .limits,.step .faq,.step .places{margin-top:22px}
+.fns{display:grid;gap:6px;font-size:12.5px;line-height:1.5;color:var(--mut);padding-top:12px;border-top:1px dashed var(--line-2)}
+.fns p{margin:0;padding-left:16px;position:relative}
+.fns p span{position:absolute;left:0;color:var(--faint);font-size:10.5px;top:1px}
+sup.fn{font:500 10px/0 var(--sans);vertical-align:super}
+sup.fn a{color:var(--mut);text-decoration:none}
+.try{display:grid;gap:12px;padding:16px;border-radius:12px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line)}
+.try .lbl{font:500 11.5px/1 var(--sans);color:var(--mut);letter-spacing:.02em;display:flex;align-items:center;gap:8px}
+.try .lbl::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px rgba(157,206,192,.15)}
+.try .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 20px}
+.try .btns{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.try .act{font:500 12.5px/1 var(--sans);color:var(--bg);background:var(--fg);padding:9px 13px;border-radius:999px}
+.try .act:disabled{opacity:.5}
+.try .out{display:flex;gap:8px;flex-wrap:wrap}
+.try .out img,.try .out video{height:96px;border-radius:6px;box-shadow:inset 0 0 0 1px var(--line)}
+.try .msg{font-size:12.5px;color:var(--mut)}
+details.more{border-radius:12px;box-shadow:inset 0 0 0 1px var(--line)}
+details.more summary{cursor:pointer;list-style:none;padding:12px 16px;font:500 13px/1 var(--sans);color:var(--fg);display:flex;justify-content:space-between}
+details.more summary::after{content:'+';color:var(--mut)}
+details.more[open] summary::after{content:'–'}
+details.more summary::-webkit-details-marker{display:none}
+details.more>div{padding:0 16px 14px;display:grid;gap:22px}
+.places{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.places button{display:grid;gap:6px;text-align:left;font:500 11.5px/1.25 var(--sans);color:var(--mut)}
+.places img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;box-shadow:inset 0 0 0 1px var(--line);opacity:.75;transition:opacity .2s,box-shadow .2s}
+.places button:hover img,.places button[aria-pressed=true] img{opacity:1;box-shadow:0 0 0 1.5px var(--fg)}
+.places button[aria-pressed=true]{color:var(--fg)}
+.limits{border-top:1px solid var(--line)}
+.limits>div{padding:12px 0;border-bottom:1px solid var(--line)}
+.limits dt{font:500 14px/1.4 var(--sans);color:var(--fg);margin-bottom:3px}
+.limits dd{font-size:14px;line-height:1.55}
+.faq{border-top:1px solid var(--line)}
+.faq details{border-bottom:1px solid var(--line)}
+.faq summary{cursor:pointer;list-style:none;padding:12px 24px 12px 0;font:500 14.5px/1.4 var(--sans);color:var(--fg);position:relative}
+.faq summary::after{content:'+';position:absolute;right:2px;top:11px;color:var(--mut)}
+.faq details[open] summary::after{content:'–'}
+.faq summary::-webkit-details-marker{display:none}
+.faq p{padding:0 0 14px;font-size:14px}
+.foot{padding:40px 0 0;font-size:12.5px;color:var(--mut);display:grid;gap:8px}
+@media (max-width:1100px){.wrap{grid-template-columns:minmax(0,520px) minmax(0,1fr)}.prose{padding:0 40px 30vh 40px}.top{margin:0 -40px;padding:0 40px}.hero h1{font-size:38px}.places{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:820px){
+  .wrap{grid-template-columns:minmax(0,1fr)}
+  .prose{min-width:0}
+  .stage-col{grid-row:1;position:sticky;top:0;z-index:4;height:40vh}
+  .stage{height:40vh;position:relative;border-bottom:1px solid var(--line)}
+  .stage::before{display:none}
+  .hud{left:16px;right:16px}.hud.top{top:12px}.hud .num{font-size:24px}.hud .sub{display:none}
+  .hud.bot{bottom:10px}.readout{font-size:10.5px;padding:8px 10px;max-height:76px;overflow:auto}.readout .tag{display:none}.stats{display:none}
+  .ticks{display:none}
+  .prose{padding:0 16px 30vh}
+  .top{position:relative;margin:0 -16px;padding:0 16px;height:54px;background:none}
+  .top .toplinks{display:none}
+  .hero{min-height:auto;padding:12px 0 40px}
+  .hero h1{font-size:32px}
+  .step{min-height:auto;padding:48px 0 40px}
+  .step h2{font-size:24px}
+  .try .grid{grid-template-columns:1fr}
+  .places{grid-template-columns:repeat(3,1fr)}
+}
+</style>
+</head>
+<body>
+<!-- PROTOTYPE docs-page/B. Never ships. Code shows the proposed 0.6.0 API; the stage runs the real 0.5.0 library. -->
+<div class="wrap">
+  <div class="prose" id="prose">
+    <header class="top">
+      <a class="wm" href="#"><img src="/assets/images/logo/topographic.png" alt="">topographic <span style="color:var(--mut);font-weight:400">docs</span></a>
+      <nav class="toplinks" id="links" aria-label="Project links"></nav>
+    </header>
+    <section class="hero" id="intro">
+      <h1>Real and made-up land, as <span class="i">contour lines</span>, in 2D and 3D.</h1>
+      <p>topographic is a small WebGL library for topographic terrain. Use it on a website, render it into a video, or draw the maps and screens of a game. Scroll: the terrain beside this text is the library, and it changes with every section.</p>
+      <div class="cta" id="cta"></div>
+      <span class="scroll-hint"><i></i>24 sections, one live view</span>
+    </section>
+    <div id="steps"></div>
+    <footer class="foot"><span>Apache 2.0, by Yahya Bedirhan Pak. Heights from Mapzen Terrain Tiles on AWS Open Data.</span><span class="toplinks" id="foot-links"></span></footer>
+  </div>
+  <div class="stage-col">
+    <div class="stage" id="stage">
+      <div id="view"></div>
+      <div class="place" id="place"><span>Playground screenshot</span></div>
+      <div class="hud top"><span class="num" id="hud-n">00</span><span class="ttl" id="hud-t">topographic</span></div>
+      <nav class="ticks" id="ticks" aria-label="Sections"></nav>
+      <div class="hud bot"><div class="readout" id="readout"></div><div class="stats" id="stats"></div></div>
+    </div>
+  </div>
+</div>
+<script type="module">
+import {
+  BADGE, STYLES, PRESETS, LOOK_SETTINGS, LOCATIONS, PARAMS, shot, linksHtml, live, vivid, fullSettings, wireCode, codeBlock, CODE,
+} from './docs-content.js';
+import { SECTIONS } from './docs-sections.js';
+import { extras, sectionCode, numberNotes, bodyWithMarkers, fieldFor } from './docs-parts.js';
+
+const $ = (s, r = document) => r.querySelector(s);
+$('#links').innerHTML = linksHtml();
+$('#foot-links').innerHTML = linksHtml();
+$('#cta').innerHTML = `<a class="btn" href="#install">Install</a>${codeBlock('npm install topographic', { lang: 'sh', one: true })}`;
+
+const numbers = numberNotes(SECTIONS);
+const pad = (i) => String(i + 1).padStart(2, '0');
+
+/* section-specific "try it" panels that act on the stage */
+const TRY = {
+  landforms: () => `<div class="try"><span class="lbl">On the stage</span><div class="chips" data-try="landform">${STYLES.map((s, i) => `<button class="chip" data-v="${s.id}" aria-pressed="${s.id === 'dunes'}">${s.id}</button>`).join('')}</div></div>`,
+  looks: () => `<div class="try"><span class="lbl">On the stage</span><div class="chips" data-try="look">${[...PRESETS.slice(7).map((p) => [p.name, p.name.toLowerCase().replace(/ /g, '-')]), ...Object.keys(LOOK_SETTINGS).filter((k) => k !== 'terraces').map((k) => [k.replace(/-/g, ' ').replace(/^./, (c) => c.toUpperCase()), k])].map(([n, k], i) => `<button class="chip" data-v="${k}" aria-pressed="${i === 0}">${n}</button>`).join('')}</div></div>`,
+  locations: () => `<div class="places" data-try="place">${LOCATIONS.map((p, i) => `<button data-v="${p.id}" aria-pressed="${i === 7}"><img src="${shot(p.shot)}" alt="" loading="lazy">${p.name}</button>`).join('')}</div><p style="font-size:12.5px;color:var(--mut);margin-top:12px">The stage shows the playground's screenshot of each place, because <code>location</code> is a 0.6.0 setting; the volcano behind it is a made-up heightfield.</p>`,
+  lines: () => sliders('lines', ['count', 'width', 'opacity', 'indexEvery']),
+  terrain: () => sliders('terrain', ['peaks', 'spread', 'roughness', 'terracing']),
+  motion: () => sliders('motion', ['speed', 'warp', 'sparkle']),
+  layout: () => sliders('layout', ['anchor', 'fade']),
+  theme: () => `<div class="try"><span class="lbl">On the stage</span><div class="chips" data-try="theme">${THEMES.map(([n], i) => `<button class="chip" data-v="${i}" aria-pressed="${i === 0}">${n}</button>`).join('')}</div></div>`,
+  modes: () => `<div class="try"><span class="lbl">On the stage</span><div class="chips" data-try="mode"><button class="chip" data-v="2d">2D</button><button class="chip" data-v="3d" aria-pressed="true">3D</button><span style="width:10px"></span><button class="chip" data-x="endless">endless</button><button class="chip" data-x="block" aria-pressed="true">block</button></div></div>`,
+  camera: () => `<div class="try"><span class="lbl">On the stage</span><div class="chips" data-try="motion">${['still', 'orbit', 'push', 'flyover', 'drone'].map((m) => `<button class="chip" data-v="${m}" aria-pressed="${m === 'flyover'}">${m}</button>`).join('')}</div></div>`,
+  export: () => `<div class="try"><span class="lbl">On the stage</span><div class="btns"><button class="act" data-act="png">snapshot() ×3</button><button class="act" data-act="video">record() 2 s</button><span class="msg" id="exp-msg"></span></div><div class="out" id="exp-out"></div></div>`,
+};
+const THEMES = [
+  ['Amber', { mode: 'dark', ink: '#e0b089', paper: '#16130f' }],
+  ['Night', { mode: 'dark', ink: '#a9c7e4', paper: '#10151c' }],
+  ['Dark default', { mode: 'dark' }],
+  ['Light default', { mode: 'light' }],
+  ['Plum on rose', { mode: 'light', ink: '#6b3050', paper: '#f6eef2' }],
+];
+function sliders(group, keys) {
+  return `<div class="try"><span class="lbl">On the stage</span><div class="grid">${keys.map((k) => {
+    const p = PARAMS.find((x) => x.group === group && x.key === k);
+    return `<label class="rng"><span>${p.label}</span><output></output><input type="range" data-g="${group}" data-k="${k}" min="${p.min}" max="${p.max}" step="${p.step}"></label>`;
+  }).join('')}</div></div>`;
+}
+
+$('#steps').innerHTML = SECTIONS.map((s, i) => {
+  const ns = numbers[s.id];
+  const ex = extras(s);
+  const big = s.limits || s.questions || s.members || s.tools;
+  return `<section class="step" id="${s.id}" data-i="${i}">
+    <div class="k"><b>${pad(i)}</b>${s.title}${s.badge ? BADGE : ''}</div>
+    <h2>${s.lede.replace(/^(\S+ \S+)/, '$1')}</h2>
+    ${bodyWithMarkers(s, ns)}
+    ${TRY[s.id]?.() ?? ''}
+    ${sectionCode(s)}
+    ${ex ? (big ? ex : `<details class="more"><summary>Every ${s.title.toLowerCase()} setting, with ranges</summary><div>${ex}</div></details>`) : ''}
+    ${s.notes.length ? `<div class="fns">${s.notes.map((n, j) => `<p id="fn-${ns[j]}"><span>${ns[j]}</span>${n}</p>`).join('')}</div>` : ''}
+  </section>`;
+}).join('');
+wireCode(document);
+$('#ticks').innerHTML = SECTIONS.map((s) => `<a href="#${s.id}" title="${s.title}" aria-label="${s.title}"></a>`).join('');
+
+/* the stage: one live view */
+const strip = ({ field, ...s }) => s;
+const view = live($('#view'), strip(SECTIONS[0].live));
+const stage = $('#stage');
+let currentId = '';
+let applied = {};
+
+/** Writes what the stage draws now as 0.6.0 code. */
+function showReadout(settings, extra = '') {
+  const s = { ...settings };
+  const lines = [];
+  const fmt = (v) => (typeof v === 'string' ? `'${v}'` : typeof v === 'object' ? `{ ${Object.entries(v).filter(([, x]) => x !== undefined).map(([k, x]) => `${k}: ${fmt(x)}`).join(', ')} }` : String(v));
+  for (const [k, v] of Object.entries(s)) {
+    if (v === undefined) continue;
+    lines.push(`  ${k === 'style' ? 'landform' : k}: ${fmt(v)},`);
+  }
+  $('#readout').innerHTML = `<span class="tag">What the stage draws</span>${extra || 'createTopography(el, {'}\n${lines.join('\n')}\n})`;
+}
+
+function enter(id) {
+  if (id === currentId) return;
+  currentId = id;
+  const i = SECTIONS.findIndex((s) => s.id === id);
+  const s = SECTIONS[i];
+  $('#hud-n').textContent = pad(i);
+  $('#hud-t').textContent = s.title;
+    for (const [j, a] of [...$('#ticks').children].entries()) a.classList.toggle('on', j === i);
+  $('#place').classList.toggle('on', id === 'locations');
+  apply(s.live);
+}
+function apply(settings, { fade = true } = {}) {
+  applied = strip(settings);
+  const run = () => {
+    view.setHeightfield(settings.field ? fieldFor(settings.field) : null);
+    view.update(fullSettings(vivid(applied)));
+    showReadout(applied);
+    syncSliders();
+    if (currentId === 'locations') pickPlace(document.querySelector('[data-try=place] [aria-pressed=true]')?.dataset.v ?? 'fuji');
+  };
+  if (!fade) return run();
+  stage.classList.add('swap');
+  setTimeout(() => { run(); stage.classList.remove('swap'); }, 200);
+}
+function patch(p) {
+  for (const [k, v] of Object.entries(p)) applied[k] = typeof v === 'object' && !Array.isArray(v) ? { ...(applied[k] ?? {}), ...v } : v;
+  view.update(p);
+  showReadout(applied);
+}
+function syncSliders() {
+  const cur = view.settings;
+  for (const input of document.querySelectorAll('input[data-g]')) {
+    const v = cur[input.dataset.g][input.dataset.k];
+    input.value = v;
+    input.previousElementSibling.textContent = v;
+  }
+}
+
+/* scroll: the step that crosses the middle of the screen drives the stage */
+const io = new IntersectionObserver((entries) => {
+  for (const e of entries) if (e.isIntersecting) enter(e.target.id);
+}, { rootMargin: '-45% 0px -50% 0px' });
+for (const el of document.querySelectorAll('.step')) io.observe(el);
+showReadout(strip(SECTIONS[0].live));
+$('#hud-n').textContent = '00';
+
+/* try panels */
+const LOOK_FROM_PRESET = Object.fromEntries(PRESETS.map((p) => [p.name.toLowerCase().replace(/ /g, '-'), p.settings]));
+function pickPlace(id) {
+  const p = LOCATIONS.find((x) => x.id === id);
+  $('#place').style.backgroundImage = `url(${shot(p.shot)})`;
+  $('#hud-t').textContent = `Real locations · ${p.name}`;
+  showReadout({ location: p.id, mode: '3d' });
+}
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-try] button');
+  if (b) {
+    const group = b.closest('[data-try]');
+    const kind = group.dataset.try;
+    const same = b.dataset.x ? '[data-x]' : '[data-v]';
+    for (const x of group.querySelectorAll(`button${same}`)) x.setAttribute('aria-pressed', String(x === b));
+    if (kind === 'landform') patch({ style: b.dataset.v });
+    if (kind === 'look') apply({ ...(LOOK_FROM_PRESET[b.dataset.v] ?? LOOK_SETTINGS[b.dataset.v]), theme: LOOK_SETTINGS[b.dataset.v]?.theme ?? { mode: 'dark' } });
+    if (kind === 'place') pickPlace(b.dataset.v);
+    if (kind === 'theme') patch({ theme: { ink: undefined, paper: undefined, ...THEMES[+b.dataset.v][1] } });
+    if (kind === 'mode') patch(b.dataset.x ? { extent: b.dataset.x } : { mode: b.dataset.v });
+    if (kind === 'motion') patch({ camera: { motion: b.dataset.v } });
+  }
+  const act = e.target.closest('[data-act]');
+  if (act) runExport(act);
+});
+document.addEventListener('input', (e) => {
+  const input = e.target.closest('input[data-g]');
+  if (!input) return;
+  input.previousElementSibling.textContent = input.value;
+  patch({ [input.dataset.g]: { [input.dataset.k]: +input.value } });
+});
+
+/* export, for real, from the stage */
+async function runExport(btn) {
+  const out = $('#exp-out');
+  const msg = $('#exp-msg');
+  btn.disabled = true;
+  try {
+    if (btn.dataset.act === 'png') {
+      msg.textContent = 'Drawing frames 0, 2000 and 4000…';
+      for (const frame of [0, 2000, 4000]) {
+        const b = await view.snapshot({ width: 320, height: 180, frame, motion: 'orbit' });
+        if (b) { const img = new Image(); img.src = URL.createObjectURL(b); img.alt = `frame ${frame}`; out.prepend(img); }
+      }
+      msg.textContent = 'Three PNGs, drawn while the stage kept moving.';
+    } else {
+      msg.textContent = 'Encoding 2 s at 24 fps…';
+      let blob;
+      try { blob = await view.record({ seconds: 2, width: 640, height: 360, format: 'mp4' }); } catch { blob = await view.record({ seconds: 2, width: 640, height: 360, format: 'webm' }); }
+      const v = document.createElement('video');
+      v.src = URL.createObjectURL(blob); v.muted = true; v.loop = true; v.autoplay = true; v.playsInline = true;
+      out.prepend(v);
+      msg.textContent = `${blob.type}, ${(blob.size / 1024).toFixed(0)} kB, encoded in this tab.`;
+    }
+  } catch (err) {
+    msg.textContent = `This browser could not do it: ${err.message.replace('[topographic] ', '')}`;
+  }
+  btn.disabled = false;
+}
+
+/* frame-rate readout, as the library reports it */
+setInterval(() => {
+  const st = view.stats;
+  if (st) $('#stats').textContent = `${view.settings.mode} · ${st.quality}${st.mesh ? ` · mesh ${st.mesh}²` : ''}\n${st.fps ? `${st.fps} fps` : ''}`;
+}, 500);
+</script>
+</body>
+</html>
