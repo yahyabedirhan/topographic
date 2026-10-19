@@ -159,7 +159,7 @@ A value outside its range is moved to the nearest limit. Whole-number settings a
 
 ### Three dimensions
 
-`mode` is `'2d'` or `'3d'`. 2D is the default. 3D shows the same contour lines as a landscape. With the same seed and settings, you get the same map in both modes. You can switch between them at any time.
+`mode` is `'2d'` or `'3d'`. 2D is the library default. The playground opens a bare URL in 3D, and a URL with settings in 2D unless it has `mode=3d`. 3D shows the same contour lines as a landscape. With the same seed and settings, you get the same map in both modes. You can switch between them at any time.
 
 | Setting | Attribute | Range | Default | What it does |
 |---|---|---|---|---|
@@ -411,6 +411,23 @@ The playground is a Cloudflare Worker with static assets. With Workers Builds, a
 ## WebMCP tools
 
 [WebMCP](https://github.com/webmachinelearning/webmcp) lets a web page give tools to AI agents in the browser. In browsers that support it, the playground registers these tools with `document.modelContext.registerTool()`. Without WebMCP, no tools are registered.
+
+Most headless and agent browsers have no native WebMCP yet. An agent there can still drive the playground:
+
+- With URL parameters. `llms.txt` on the playground lists every key, and the page applies them on load.
+- With a stub. Before the page loads, give it a `document.modelContext` whose `registerTool` keeps each tool. Then call a tool's `execute(input)`. In Playwright:
+
+  ```js
+  await page.addInitScript(() => {
+    window.__tools = {};
+    document.modelContext = { registerTool: (tool) => { window.__tools[tool.name] = tool; } };
+  });
+  await page.goto('https://topographic.yahyapak.dev/?analytics_agent=claude&analytics_purpose=exploring');
+  await page.waitForFunction(() => window.__tools?.get_settings);
+  await page.evaluate(() => window.__tools.set_settings.execute({ style: 'dunes', mode: '3d' }));
+  ```
+
+The `?analytics_agent=<name>&analytics_purpose=<purpose>` keys in that first URL are a polite request, not a rule. They tell the maintainer which agent visited and why, and change nothing else. [Analytics and error reports](#analytics-and-error-reports) lists the names and purposes, and `?analytics_optout=all` sends nothing.
 
 | Tool | What it does |
 |---|---|

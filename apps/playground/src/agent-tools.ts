@@ -24,7 +24,7 @@ export const SETTINGS_SCHEMA = {
         paper: { type: 'string', description: "CSS colour of the background, or 'transparent'." },
       },
     },
-    mode: { type: 'string', enum: ['2d', '3d'], description: '2d is the map. 3d is the same map as a terrain. 2d is the default.' },
+    mode: { type: 'string', enum: ['2d', '3d'], description: '2d is the map. 3d is the same map as a terrain. The library defaults to 2d; the playground opens a bare URL in 3d.' },
     elevation: { type: 'number', minimum: 0, maximum: 1, description: '3D height. 0 is flat like the map; higher values make the terrain taller, with a rounded crest.' },
     extent: { type: 'string', enum: ['block', 'endless'], description: 'block is a finite tabletop with cut sides. endless continues past the view. The playground defaults to endless.' },
     detail: { type: 'number', minimum: 0, maximum: 1, description: '3D mesh resolution. 0 is coarsest, 1 is finest.' },
