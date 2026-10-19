@@ -1,5 +1,42 @@
 # Changelog
 
+## 0.6.0 (unreleased)
+
+This release renames the public API.
+It is a clean break: the old names are gone, with no deprecated aliases.
+
+- The core function `createTopographicBackground` is now `createTopography`, and its instance type `TopographicBackground` is now `Topography`.
+- The web component `<topographic-bg>` is now `<topographic-map>`, and its class `TopographicBackgroundElement` is now `TopographyElement`.
+- The React component `TopographicBackground` is now `Topography`, and the hook `useTopographicBackground` is now `useTopography`.
+- The React types are now `TopographyProps`, `TopographySettingsProps` and `TopographyRef`. `topographic-react` also exports the core instance type as `TopographyInstance`.
+- The land shape setting `style` is now `landform`: in settings, as the element attribute (was `style-name`) and as the React prop (was `styleName`). The React `style` prop is now only React's CSS prop.
+- The data exports `STYLES`, `findStyle`, `Style`, `StyleId` and `DEFAULT_STYLE` are now `LANDFORMS`, `findLandform`, `Landform`, `LandformId` and `DEFAULT_LANDFORM`.
+- `toQuery` writes the landform as `lf=`. `fromQuery` and the playground still read the old `s=` key, so links made before 0.6.0 keep working.
+- Playground: the WebMCP tool `list_styles` is now `list_landforms`, and `randomize` takes `landform: true`. `set_settings` takes `landform`, and still takes the old `style` key for this release.
+- Install lines in the READMEs no longer pin a version. Sizing and layering examples moved to the guide.
+
+| Old name | New name |
+|---|---|
+| `createTopographicBackground` | `createTopography` |
+| `TopographicBackground` (core instance type) | `Topography` |
+| `<topographic-bg>` | `<topographic-map>` |
+| `TopographicBackgroundElement` | `TopographyElement` |
+| `TopographicBackground` (React component) | `Topography` |
+| `useTopographicBackground` | `useTopography` |
+| `TopographicBackgroundProps` | `TopographyProps` |
+| `TopographicBackgroundSettingsProps` | `TopographySettingsProps` |
+| `TopographicBackgroundRef` | `TopographyRef` |
+| `style` setting | `landform` |
+| `style-name` attribute | `landform` |
+| `styleName` React prop | `landform` |
+| `s=` query key | `lf=` (`s=` is still read) |
+| `STYLES` | `LANDFORMS` |
+| `findStyle` | `findLandform` |
+| `Style` | `Landform` |
+| `StyleId` | `LandformId` |
+| `DEFAULT_STYLE` | `DEFAULT_LANDFORM` |
+| WebMCP `list_styles` | `list_landforms` |
+
 ## 0.5.0
 
 - `view2d` setting: `{ x, y, zoom }` gives the 2D map its own pan and zoom, from 1 to 8. Attributes `view-x`, `view-y` and `view-zoom`; query keys `vx`, `vy` and `vz`. The React component takes `view2d` as a prop. 3D ignores it, and existing 2D views do not change.
