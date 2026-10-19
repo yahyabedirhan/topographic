@@ -10,13 +10,14 @@
 <link rel="stylesheet" href="docs-base.css">
 <style>
 /* PROTOTYPE docs-page/A, round 2: the anatomy layout in dark. Nav with the playground's wordmark, one narrow column, a margin for notes. */
-:root{--col:560px;--nav:184px;--mar:224px;--g1:72px;--g2:48px;
+:root{--col:560px;--nav:250px;--mar:224px;--g1:72px;--g2:48px;
   /* the playground's tokens, for its Tune inputs (apps/playground/src/style.css) */
   --paper:#0b0b0d;--seg-on:color-mix(in srgb,var(--fg) 15%,transparent);--seg-shadow:inset 0 0 0 .5px rgba(255,255,255,.06),0 1px 2px rgba(0,0,0,.25)}
 html{scroll-behavior:smooth;scroll-padding-top:40px}
 /* no lone last words: body text wraps prettily, headings and ledes balance, and a footnote marker stays with its word */
 main p,main li,main dd,main td,.sn,.inst-hint{text-wrap:pretty}
 h1,h2,.lede,.sub{text-wrap:balance}
+h1.title{text-wrap:nowrap}
 .nw{white-space:nowrap}
 .page{display:grid;grid-template-columns:var(--nav) var(--col) var(--mar);column-gap:var(--g1);justify-content:center;padding:0 24px}
 .page>main{grid-column:2;min-width:0;padding:52px 0 160px}
@@ -32,10 +33,17 @@ h1,h2,.lede,.sub{text-wrap:balance}
 .brand{display:grid;gap:12px;justify-items:start}
 .wordmark{font:600 17px/1 Literata,Georgia,serif;letter-spacing:-.01em;color:var(--fg);text-decoration:none;transition:opacity .15s}
 .wordmark:hover{opacity:.82}
-.blinks{list-style:none;display:grid;grid-template-columns:auto auto;gap:8px 16px;justify-content:start}
+/* the links read as one quiet row with dots, like the playground's "yahyapak.dev · About"; ?links=icons shows the icon grid */
+.nav .blinks,.blinks{list-style:none;display:flex;flex-wrap:wrap;row-gap:6px}
+.nav .blinks{flex-wrap:nowrap;white-space:nowrap}
+.blinks li+li::before{content:'·';margin:0 6px;color:var(--faint);font:400 12px/1 var(--sans)}
+.blinks svg{display:none}
+.icons .nav .blinks,.icons .blinks{display:grid;grid-template-columns:auto auto;gap:8px 16px;justify-content:start}
+.icons .blinks li+li::before{content:none}
+.icons .blinks svg{display:block}
 .blinks a{display:inline-flex;align-items:center;gap:7px;font:400 12px/1 var(--sans);color:var(--mut);text-decoration:none;transition:color .15s}
 .blinks a:hover,.blinks a:focus-visible{color:var(--fg)}
-.blinks svg{width:13px;height:13px;flex:none;opacity:.9}
+.icons .blinks svg{width:13px;height:13px;flex:none;opacity:.9}
 .blinks a .ext{width:9px;height:9px;opacity:0;transition:opacity .15s;margin-left:-2px}
 .blinks a:hover .ext{opacity:.6}
 .ring{position:absolute;left:-44px;top:0;width:34px;height:24px;pointer-events:none;transition:transform .5s cubic-bezier(.2,.8,.2,1);color:var(--fg)}
@@ -45,20 +53,20 @@ h1,h2,.lede,.sub{text-wrap:balance}
 .ring.moving svg{animation:ring .5s ease}
 @keyframes ring{40%{transform:rotate(-14deg) scale(1.12)}}
 /* opening */
-.head{display:flex;align-items:center;gap:10px;font:400 13px/1.3 var(--sans);color:var(--mut)}
+.head{display:none}
+.ver{font:400 11px/1 var(--mono);color:var(--faint)}
 .head .mlinks{display:none}
-.title{margin-top:26px;font:600 31px/1.14 var(--sans);letter-spacing:-.022em;color:var(--fg);text-wrap:balance}
+.title{margin-top:0;white-space:nowrap;font:600 31px/1.14 var(--sans);letter-spacing:-.022em;color:var(--fg);text-wrap:balance}
 .sub{margin-top:12px;font:400 18px/1.45 var(--sans);letter-spacing:-.01em;color:var(--text);text-wrap:balance}
 .strip{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:28px 0 14px;padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
 .strip a{display:block;border-radius:8px;overflow:hidden;aspect-ratio:16/10;box-shadow:inset 0 0 0 1px var(--line);opacity:.82;transition:opacity .2s,transform .3s}
 .strip a:hover{opacity:1;transform:translateY(-2px)}
 .strip img{width:100%;height:100%;object-fit:cover}
-.meta{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:13.5px;color:var(--mut)}
-.meta a{color:var(--mut)}
-.meta i{font-style:normal;color:var(--faint)}
 main p{margin:0 0 14px;color:var(--text)}
 main p b{color:var(--fg)}
-.intro{margin-top:36px}
+.intro{margin-top:28px}
+#fig-hero{margin-top:22px}
+#fig-hero .stage{height:400px}
 /* sections */
 .sec{position:relative;padding-top:64px}
 .sec-h{display:flex;align-items:center;gap:14px;margin-bottom:18px;font:600 18px/1.1 var(--serif);letter-spacing:-.01em;color:var(--fg)}
@@ -76,7 +84,9 @@ sup.fn a{color:var(--mut);text-decoration:none}
 .mar{position:absolute;left:calc(100% + var(--g1));top:0;width:var(--mar);height:100%}
 .sn{position:absolute;left:0;width:100%;font:400 12.5px/1.5 var(--sans);color:var(--mut);padding-left:18px}
 .sn .k{position:absolute;left:0;top:1px;font-size:10.5px;color:var(--faint)}
-.sn code{font-size:11px;white-space:normal}
+.sn code{font-size:11px}
+/* inline code never breaks across lines */
+main :not(pre)>code{white-space:nowrap}
 .sn.flash{color:var(--fg);transition:color .6s}
 /* figures */
 .fig{position:relative;margin:0}
@@ -129,8 +139,29 @@ sup.fn a{color:var(--mut);text-decoration:none}
 .shapes button{font:400 11.5px/1 var(--sans);color:var(--mut);padding:6px 8px;border-radius:7px;background:color-mix(in srgb,var(--fg) 6%,transparent)}
 .shapes button:hover{color:var(--fg)}
 .shapes button[aria-pressed=true]{color:var(--fg);background:var(--seg-on);box-shadow:var(--seg-shadow)}
-.newland{display:inline-flex;align-items:center;gap:7px;margin:6px 0 2px;font:500 12.5px/1 var(--sans);color:var(--bg);background:var(--fg);padding:8px 13px 8px 11px;border-radius:999px;transition:transform .15s}
-.newland:active{transform:scale(.97)}
+/* the playground's glass cluster and icon buttons (style.css .pt-glass, .pt-cluster, .pt-ibtn, .pt-mode-tag, .pt-swatch) */
+.pt-glass{background:color-mix(in srgb,var(--paper) 50%,transparent);box-shadow:inset 0 0 0 .5px var(--line-2),inset 0 1px 0 rgba(255,255,255,.08),0 18px 50px -24px rgba(0,0,0,.65);backdrop-filter:blur(22px) saturate(1.5);-webkit-backdrop-filter:blur(22px) saturate(1.5)}
+.pt-cluster{display:flex;align-items:center;gap:2px;padding:6px;border-radius:999px;overflow:visible}
+.stage-tools{position:absolute;top:12px;right:12px;z-index:2}
+.pt-ibtn{width:36px;height:36px;padding:0;border-radius:50%;display:grid;place-items:center;color:var(--fg);line-height:0;transition:background .15s}
+.pt-ibtn svg{display:block}
+.pt-ibtn:hover{background:color-mix(in srgb,var(--fg) 8%,transparent)}
+.pt-ibtn:active{transform:scale(.96)}
+.pt-ibtn.pt-mode{position:relative}
+.pt-mode-tag{position:absolute;top:-1px;right:-5px;padding:2px 3px;border-radius:999px;font:600 9px/1 var(--sans);font-variant-numeric:tabular-nums;letter-spacing:.02em;color:var(--paper);background:var(--fg);box-shadow:0 0 0 1.5px color-mix(in srgb,var(--paper) 85%,transparent);pointer-events:none}
+.swatch-tools{padding:8px 10px}
+.stage-tools.lone .pt-ibtn{width:34px;height:34px;background:color-mix(in srgb,var(--paper) 55%,transparent);box-shadow:inset 0 0 0 .5px var(--line-2);backdrop-filter:blur(14px) saturate(1.4);-webkit-backdrop-filter:blur(14px) saturate(1.4)}
+.stage-tools.lone .pt-ibtn:hover{background:color-mix(in srgb,var(--paper) 40%,color-mix(in srgb,var(--fg) 14%,transparent))}
+.pt-swatches{display:flex;flex-wrap:wrap;gap:7px}
+.pt-swatch{width:20px;height:20px;padding:0;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.pt-swatch.is-on{box-shadow:0 0 0 2px var(--paper),0 0 0 3.5px var(--fg)}
+/* code blocks: no file name or title bar, just the code and a quiet copy button in the top-right corner */
+.code-file{display:none}
+.code-head:not(:has(.code-tabs)){position:absolute;top:6px;right:6px;z-index:1;min-height:0;padding:0;border:0}
+.code .copy{opacity:.55;transition:opacity .15s}
+.code:hover .copy,.code .copy:focus-visible,.code .copy.done{opacity:1}
+.code:has(.code-head:not(:has(.code-tabs))) pre{padding-right:44px}
+.code.mini pre{padding:10px 14px 12px;font-size:11.5px;line-height:1.65}
 .livecode .code{transition:box-shadow .5s}
 .livecode.flash .code{animation:codeflash .7s ease}
 @keyframes codeflash{0%{box-shadow:inset 0 0 0 1px rgba(169,199,228,.45)}100%{box-shadow:inset 0 0 0 1px var(--line)}}
@@ -175,9 +206,6 @@ sup.fn a{color:var(--mut);text-decoration:none}
 .plist .any .box{display:grid;place-items:center;aspect-ratio:16/10;border-radius:8px;box-shadow:inset 0 0 0 1px var(--line-2);background:repeating-linear-gradient(135deg,transparent 0 6px,rgba(255,255,255,.025) 6px 7px);color:var(--mut)}
 .plist .any .box svg{width:22px;height:22px}
 /* tabs over a figure */
-.tabs{display:flex;flex-wrap:wrap;gap:4px;margin:22px 0 10px}
-.tabs button{font:500 13px/1 var(--sans);color:var(--mut);padding:8px 11px;border-radius:8px}
-.tabs button[aria-selected=true]{color:var(--fg);background:rgba(255,255,255,.07)}
 .checker{background:conic-gradient(#1a1a1f 25%,#121216 0 50%,#1a1a1f 0 75%,#121216 0) 0 0/22px 22px}
 .pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .pair figure{margin:0;position:relative}
@@ -216,9 +244,10 @@ sup.fn a{color:var(--mut);text-decoration:none}
   .sn{position:static!important;width:auto}
   .ctl{position:static;width:auto;margin-top:14px;grid-template-columns:1fr 1fr;gap:12px 18px}
   .ctl .hint,.ctl .read,.ctl .row{grid-column:1/-1}
-  .head{flex-wrap:wrap;row-gap:12px}
+  .head{display:flex;flex-wrap:wrap;row-gap:12px;margin-bottom:20px}
+  h1.title{white-space:normal;text-wrap:balance}
   .head .mlinks{display:flex;flex-basis:100%}
-  .head .mlinks .blinks{display:flex;flex-wrap:wrap;gap:8px 16px}
+  .icons .head .mlinks .blinks{display:flex;flex-wrap:wrap;gap:8px 16px}
   .mbar{display:flex;position:fixed;z-index:10;left:0;right:0;top:0;height:52px;align-items:center;gap:12px;padding:0 16px;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
   .mbar .wordmark{font-size:16px}
   .mbar select{margin-left:auto;max-width:56%;font:500 13px/1 var(--sans);color:var(--fg);background:var(--card);border:0;border-radius:8px;padding:8px 10px;box-shadow:inset 0 0 0 1px var(--line-2)}
@@ -243,31 +272,22 @@ sup.fn a{color:var(--mut);text-decoration:none}
 <div class="mbar"><a class="wordmark" href="#top">topographic</a><select id="mnav" aria-label="Jump to section"></select></div>
 <div class="page">
   <nav class="nav" aria-label="Docs">
-    <div class="brand"><a class="wordmark" href="#top">topographic</a><div data-links></div></div>
+    <div class="brand"><a class="wordmark" href="#top">topographic</a><div data-links></div><span class="ver">0.6.0</span></div>
     <div class="secs" id="secs">
       <div class="ring" id="ring" aria-hidden="true"><svg viewBox="0 0 34 24"><path d="M3 12c0-6 7-9.5 14.5-9.5S31 6 31 12s-6.5 9.5-14 9.5S3 18 3 12z"/><path d="M8 12.2c0-3.7 4.3-6 9-6s8.6 2.3 8.6 5.8-4 6-8.8 6S8 15.9 8 12.2z"/><path d="M13 12.3c0-1.6 1.9-2.6 4-2.6s3.7 1 3.7 2.5-1.7 2.6-3.8 2.6-3.9-1-3.9-2.5z"/></svg></div>
       <ul id="navlist"></ul>
     </div>
   </nav>
   <main id="top">
-    <div class="head"><span>Documentation</span><span style="color:var(--faint)">·</span><span>Version 0.6.0</span><div class="mlinks" data-links></div></div>
+    <div class="head"><div class="mlinks" data-links></div></div>
     <h1 class="title">Topographic terrain, rendered live with WebGL.</h1>
     <p class="sub">Generate a land. Or turn a real place into one.</p>
-    <div class="strip" id="strip"></div>
-    <div class="meta"><a href="#locations">Real places</a><i>·</i><a href="#landforms">Generated shapes</a><i>·</i><a href="#modes">2D and 3D</a><i>·</i><a href="#heightmaps">Heightmaps</a><i>·</i><a href="#install">Install ↓</a></div>
-    <div class="intro">
-      <p>Not a picture of land. <span class="i">The land itself</span>, drawn as contour lines that move, from real elevation data or from a seed. The same settings draw the same terrain on every screen.</p>
-      <p>Every figure on this page is the library running live. Every input rewrites the code under it, ready to copy.</p>
-    </div>
-    <figure class="fig" id="fig-hero" style="margin-top:30px">
+    <figure class="fig" id="fig-hero">
       <div class="stage tall loading" id="hero"></div>
-      <div class="ctl">
-        <span class="hint">Real heights. The camera orbits on its own.</span>
-        <div class="row"><button class="chip" data-hero="2d">2D</button><button class="chip" data-hero="3d" aria-pressed="true">3D</button></div>
-        <span class="read" id="hero-read">azimuth —</span>
-      </div>
+      <div class="ctl"><figure class="code mini" id="hero-code"><div class="code-head"><button class="copy" aria-label="Copy code"></button></div><pre data-lang="react"><code></code></pre></figure></div>
       <figcaption class="cap">Everest and the Khumbu, <code>location="everest"</code>.</figcaption>
     </figure>
+    <div class="intro"><p id="open1"></p><p id="open2"></p></div>
     <div id="content"></div>
     <p class="coda">topographic runs wherever JavaScript runs. Put it in a page, a film, a game, a print, or something nobody has made yet.</p>
     <footer class="foot">
@@ -279,12 +299,12 @@ sup.fn a{color:var(--mut);text-decoration:none}
 <script type="module">
 import {
   BADGE, CODE, LOOK_GALLERY, LOCATIONS, INSTALL_WAYS, LIGHT, DARK, STYLES, shot, linksHtml, stills, wireCode, codeBlock,
-  PLAYGROUND, REPO, NPM, SHAPE_KEY, resolveSettings, fullSettings, vivid,
+  PLAYGROUND, REPO, NPM, SHAPE_KEY, resolveSettings, fullSettings, vivid, highlight,
 } from './docs-content.js';
 import { RADIUS_MIN, RADIUS_MAX } from '/packages/core/dist/index.js';
 import { SECTIONS, GROUPS, byId } from './docs-sections.js';
 import { extras, sectionCode, numberNotes, bodyWithMarkers, fieldFor } from './docs-parts.js';
-import { glyph, paramRow, sliderRow, segRow, tunePanel, codeFor, asProps, liveCode, lazyLive, merge, liveCount } from './docs-tune.js';
+import { cluster, modeToggle, toolButton, glyph, paramRow, sliderRow, segRow, tunePanel, codeFor, asProps, liveCode, lazyLive, merge, liveCount } from './docs-tune.js';
 import { loadPlace } from '../places.js';
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -293,6 +313,7 @@ $('#foot-links').innerHTML = linksHtml();
 
 /* the brand links: Playground, GitHub, npm and yahyapak.dev, once each */
 const SITE = 'https://yahyapak.dev/projects/topographic';
+const COPY_SVG = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="5.5" y="5.5" width="8" height="8" rx="1.6"/><path d="M10.5 3.5v-.4A1.6 1.6 0 0 0 8.9 1.5H3.1A1.6 1.6 0 0 0 1.5 3.1v5.8a1.6 1.6 0 0 0 1.6 1.6h.4"/></svg>';
 const ICONS = {
   playground: glyph('count', 13, 1.6),
   github: '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>',
@@ -301,13 +322,24 @@ const ICONS = {
 };
 const EXT = '<svg class="ext" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M3 2h5v5M8 2 2.5 7.5"/></svg>';
 const BRAND_LINKS = [['playground', 'Playground', PLAYGROUND], ['github', 'GitHub', REPO], ['npm', 'npm', NPM], ['site', 'yahyapak.dev', SITE]];
+if (new URLSearchParams(location.search).get('links') === 'icons') document.body.classList.add('icons');
 for (const host of document.querySelectorAll('[data-links]')) {
   host.innerHTML = `<ul class="blinks">${BRAND_LINKS.map(([k, t, u]) => `<li><a href="${u}" target="_blank" rel="noreferrer">${ICONS[k]}${t}${EXT}</a></li>`).join('')}</ul>`;
 }
 
-/* header strip: real places first */
-$('#strip').innerHTML = ['everest', 'grand-canyon', 'yosemite', 'matterhorn', 'fuji']
-  .map((id) => `<a href="#locations" data-goto="${id}"><img src="${shot(`place-${id}`)}" alt="" loading="lazy"></a>`).join('');
+/* the two opening paragraphs belong to the writing desk: its draft first, then the shared defaults */
+(async () => {
+  const { OPENING } = await import('../opening.js').catch(() => ({ OPENING: {} }));
+  let draft = {};
+  try { draft = await (await fetch('/__copy-draft')).json(); } catch { /* no desk running */ }
+  for (const k of ['open1', 'open2']) {
+    const el = document.getElementById(k);
+    el.textContent = draft[k] || OPENING[k] || '';
+    delete el.dataset.nw;
+  }
+  noWidows($('.intro'));
+  placeNotes();
+})();
 
 /* sections */
 const numbers = numberNotes(SECTIONS);
@@ -320,12 +352,10 @@ const res = (inner, cap) => `<figure class="res">${inner}<figcaption>${cap}</fig
 const FIGS = {
   install: () => `${res(`<div class="ph short" style="background-image:url(${shot('place-istanbul')})"></div>`, 'After install, <code>&lt;Topography location="istanbul" /&gt;</code> draws Istanbul.')}<div class="inst">
     <div><div class="inst-t">${LU('<path d="M9.94 14.06 4 20M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9Z"/>')}${INSTALL_WAYS.agent.label}</div>
-      ${codeBlock(INSTALL_WAYS.agent.cmd, { lang: 'sh', one: true })}
-      <p class="inst-hint">${INSTALL_WAYS.agent.hint}</p></div>
+      ${codeBlock(INSTALL_WAYS.agent.cmd, { lang: 'sh', one: true })}</div>
     <div><div class="inst-t">${LU('<path d="M18 11V6a2 2 0 0 0-4 0v1M14 10V4a2 2 0 0 0-4 0v2M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>')}${INSTALL_WAYS.npm.label}</div>
       ${codeBlock(INSTALL_WAYS.npm.cmd, { lang: 'sh', one: true })}
-      ${codeBlock(INSTALL_WAYS.npm.react, { lang: 'sh', one: true })}
-      <p class="inst-hint">${INSTALL_WAYS.npm.hint}</p></div>
+      ${codeBlock(INSTALL_WAYS.npm.react, { lang: 'sh', one: true })}</div>
   </div>`,
   locations: () => `${liveFig('place', { cls: 'tall loading' })}
     <div class="plist" id="plist">${PLACES.map((p) => `<button type="button" data-place="${p.id}" aria-pressed="false"><img src="${shot(p.shot)}" alt="" loading="lazy"><b>${p.name}</b><code>${p.id}</code></button>`).join('')}
@@ -333,7 +363,7 @@ const FIGS = {
     ${codeBlock(CODE.locations.js, { file: 'main.js' })}`,
   first: () => `<figure class="fig"><div class="stage short" id="f-first"></div><figcaption class="cap">All three snippets draw this long ridge in 3D.</figcaption></figure>`,
   export: () => res('<div class="two"><div class="ph" id="ex-0"></div><div class="ph" id="ex-1"></div></div>', 'Two snapshots of one orbit, at frame 0 and frame 4000.'),
-  react: () => res('<div class="ph" id="r-react"><div class="over">Children are drawn on top</div></div>', 'The Hero component draws granite with a heading on top.'),
+  react: () => res('<div class="ph" id="r-react"><div class="over">Your content on top</div></div>', 'The Hero component draws granite with your content on top.'),
   element: () => res('<div class="ph" id="r-element"></div>', 'The element above draws a long ridge with two peaks.'),
   page: () => res('<div class="ph" id="r-page"><div class="over">Your page</div></div>', 'Dunes behind a section, with the content on top.'),
   performance: () => res('<div class="ph short" id="r-perf"></div>', 'Granite in 3D at the low tier, with lines that stay sharp.'),
@@ -350,7 +380,7 @@ const FIGS = {
   terrain: () => liveFig('terrain', { cls: 'short' }),
   motion: () => liveFig('motion', { cls: 'short' }),
   layout: () => `<div class="pair"><figure><div class="ph" id="lay-0"><div class="mock"><b>Your heading</b><i></i></div></div><figcaption>With <code>anchor: 1, fade: 0</code> the lines cross the text.</figcaption></figure><figure><div class="ph" id="lay-1"><div class="mock"><b>Your heading</b><i></i></div></div><figcaption>With <code>anchor: 0, fade: 0.9</code> the text stays clear.</figcaption></figure></div>`,
-  theme: () => `<div class="tabs" role="tablist" id="theme-tabs"></div><figure class="fig"><div class="stage short" id="f-theme"></div><figcaption class="cap" id="cap-theme"></figcaption></figure><div class="livecode" id="theme-code"></div>`,
+  theme: () => `<figure class="fig"><div class="stage short" id="f-theme"></div><figcaption class="cap" id="cap-theme"></figcaption></figure><div class="livecode" id="theme-code"></div>`,
   modes: () => liveFig('modes'),
   camera: () => liveFig('camera'),
   heightfields: () => `<figure class="fig"><div class="stage short" id="f-hf" style="background:#0b0b0d center/cover"></div><figcaption class="cap">A made-up volcano, drawn with <code>setHeightfield()</code>.</figcaption></figure>`,
@@ -429,10 +459,9 @@ document.addEventListener('click', (e) => {
 const relayout = () => requestAnimationFrame(placeNotes);
 
 /* helpers */
-/** Real places on this page: brighter ink and slightly heavier lines than the playground's quiet default, and an orbit. */
-const PLACE_LOOK = { theme: { mode: 'dark', ink: '#c6d2e4' }, lines: { width: 0.16 }, camera: { motion: 'orbit' } };
+/** Real places on this page: the playground's fine lines in a brighter ink, at full strength, with an orbit. */
+const PLACE_LOOK = { theme: { mode: 'dark', ink: '#c9d6ea' }, lines: { width: 0, opacity: 1 }, motion: { sparkle: 0.25 }, camera: { motion: 'orbit' } };
 const strip = ({ field, place, ...s }) => s;
-const hint = (id, text) => { $(`#c-${id}`).insertAdjacentHTML('afterbegin', `<span class="hint">${text}</span>`); };
 const SHAPE = SHAPE_KEY;
 /**
  * A figure whose inputs drive the live view and rewrite the code under it. The code names exactly the settings
@@ -458,16 +487,26 @@ loadPlace('everest').then(({ field, defaults }) => {
   heroView = lazyLive($('#hero'), merge(defaults, PLACE_LOOK), { field });
   $('#hero').classList.remove('loading');
 });
-for (const b of document.querySelectorAll('[data-hero]')) {
-  b.onclick = () => {
-    heroView?.update({ mode: b.dataset.hero });
-    for (const x of document.querySelectorAll('[data-hero]')) x.setAttribute('aria-pressed', String(x === b));
+cluster($('#hero'), modeToggle(true, (mode) => heroView?.update({ mode })));
+/* The React that draws the hero, with the camera's angles ticking as it orbits. Copy takes the values of that moment. */
+{
+  const host = $('#hero-code');
+  host.querySelector('.copy').innerHTML = COPY_SVG;
+  const pre = host.querySelector('code');
+  let last = '';
+  const tick = () => {
+    requestAnimationFrame(tick);
+    const p = heroView?.pose;
+    const three = heroView?.settings.mode !== '2d';
+    const az = p ? (((p.azimuth % 360) + 360) % 360).toFixed(1) : '341.8';
+    const el = p ? p.elevation.toFixed(1) : '40.0';
+    const code = three
+      ? `<Topography\n  location="everest"\n  mode="3d"\n  camera={{\n    azimuth: ${az},\n    elevation: ${el},\n  }}\n/>`
+      : '<Topography\n  location="everest"\n  mode="2d"\n/>';
+    if (code !== last) { last = code; pre.innerHTML = highlight(code, 'js'); }
   };
+  tick();
 }
-setInterval(() => {
-  const p = heroView?.pose;
-  if (p) $('#hero-read').textContent = heroView.settings.mode === '3d' ? `pose.azimuth  ${p.azimuth.toFixed(1)}°\npose.elevation ${p.elevation.toFixed(1)}°` : 'mode: \'2d\'\nthe flat map';
-}, 250);
 
 /* real places: the list picks the live place, and the code names it. Until someone picks, three famous places take turns. */
 {
@@ -478,7 +517,6 @@ setInterval(() => {
   let touring = true;
   const TOUR = ['grand-canyon', 'yosemite', 'everest'];
   let step = 0;
-  hint('place', 'Pick a place below. Until you do, the Grand Canyon, Yosemite Valley and Everest take turns.');
   const show = async (id) => {
     want = id;
     for (const b of document.querySelectorAll('[data-place]')) b.setAttribute('aria-pressed', String(b.dataset.place === id));
@@ -514,6 +552,7 @@ setInterval(() => {
 /* generated shapes: a base shape, a seed and the terrain settings; New land rolls all of them */
 {
   let shapeRow;
+  let rollLand;
   let seedRow;
   const tr = {};
   const pick = (v) => { for (const b of shapeRow.querySelectorAll('button')) b.setAttribute('aria-pressed', String(b.dataset.v === v)); };
@@ -527,10 +566,7 @@ setInterval(() => {
       shapeRow.onclick = (e) => { const b = e.target.closest('button'); if (!b) return; pick(b.dataset.v); set({ style: b.dataset.v }); };
       seedRow = sliderRow({ label: 'Seed', icon: 'seed', art: 'variant', min: 0, max: 9999, step: 1, value: s.seed, fmt: String, hint: 'One variation of the shape. The library takes 0 to 999999.' }, (v) => set({ seed: v }));
       for (const k of ['peaks', 'spread', 'roughness', 'sharpness']) tr[k] = paramRow('terrain', k, s.terrain[k], (v) => set({ terrain: { [k]: v } }));
-      const roll = document.createElement('div');
-      roll.className = 'wide';
-      roll.innerHTML = `<button type="button" class="newland">${glyph('seed', 14, 1.8)}New land</button>`;
-      roll.onclick = () => {
+      rollLand = () => {
         const r = (a, b, st = 0.01) => +(a + Math.round((Math.random() * (b - a)) / st) * st).toFixed(2);
         const next = {
           style: STYLES[Math.floor(Math.random() * STYLES.length)].id, seed: Math.floor(Math.random() * 10000),
@@ -541,10 +577,10 @@ setInterval(() => {
         for (const k of Object.keys(next.terrain)) tr[k].set(next.terrain[k]);
         set(next);
       };
-      return [['Land', [shapeRow, seedRow, ...Object.values(tr), roll]]];
+      return [['Land', [shapeRow, seedRow, ...Object.values(tr)]]];
     },
   });
-  hint('shape', 'Roll new land, or pick a shape and scrub the seed. The code under the inputs is always what you see.');
+  cluster($('#f-shape'), toolButton('dices', 'New land', () => rollLand(), 'pt-ibtn newland'));
 }
 
 /* lines */
@@ -553,7 +589,6 @@ tuned('lines', strip(byId.lines.live), {
   keys: [SHAPE, 'seed', 'lines', 'theme'],
   sections: (set, s) => [['Lines', rows('lines', ['count', 'width', 'opacity', 'indexEvery'], s, set)]],
 });
-hint('lines', 'The playground\'s own inputs. Each track draws what its setting does.');
 
 /* terrain */
 tuned('terrain', strip(byId.terrain.live), {
@@ -561,7 +596,6 @@ tuned('terrain', strip(byId.terrain.live), {
   keys: [SHAPE, 'terrain', 'layout', 'theme'],
   sections: (set, s) => [['Shape', rows('terrain', ['peaks', 'spread', 'sharpness', 'variant'], s, set)], ['Surface', rows('terrain', ['roughness', 'terracing'], s, set)]],
 });
-hint('terrain', 'Summits, spread, sharpness and the surface. Terracing groups the lines into steps.');
 
 /* motion */
 tuned('motion', strip(byId.motion.live), {
@@ -569,7 +603,6 @@ tuned('motion', strip(byId.motion.live), {
   keys: [SHAPE, 'seed', 'motion', 'lines', 'theme'],
   sections: (set, s) => [['Motion', rows('motion', ['speed', 'warp', 'sparkle'], s, set)]],
 });
-hint('motion', 'Speed 0 holds one frame and stops the loop.');
 
 /* 2D and 3D */
 tuned('modes', strip(byId.modes.live), {
@@ -582,7 +615,6 @@ tuned('modes', strip(byId.modes.live), {
     sliderRow({ label: 'Detail', icon: 'detail', art: 'count', min: 0, max: 1, step: 0.01, value: s.detail, fmt: (v) => `${Math.round(32 + v * 128)}²` }, (v) => set({ detail: v })),
   ]]],
 });
-hint('modes', 'One seed, two views. Change the mode, the extent and how tall the land stands.');
 
 /* camera */
 let cameraView;
@@ -598,7 +630,6 @@ let cameraView;
     ]]],
   });
   cameraView = f.view;
-  hint('camera', 'Pick a path, or Still and set the angles yourself.');
   const read = document.createElement('span');
   read.className = 'read';
   $('#c-camera').append(read);
@@ -617,14 +648,20 @@ let cameraView;
   ];
   const stage = $('#f-theme');
   const t = lazyLive(stage, strip(byId.theme.live));
-  const tabs = $('#theme-tabs');
-  tabs.innerHTML = THEMES.map(([n], i) => `<button role="tab" aria-selected="${i === 0}" data-i="${i}">${n}</button>`).join('');
+  // The playground's colour swatches (style.css .pt-swatch), one per theme, in a glass cluster on the figure.
+  const tabs = document.createElement('div');
+  tabs.className = 'pt-swatches';
+  tabs.setAttribute('role', 'group');
+  tabs.setAttribute('aria-label', 'Theme');
+  const sw = (th) => { const ink = th.ink ?? (th.mode === 'light' ? LIGHT.ink : DARK.ink); const paper = th.paper ?? (th.mode === 'light' ? LIGHT.paper : DARK.paper); return paper === 'transparent' ? `radial-gradient(circle,${ink} 0 34%,transparent 38%),repeating-conic-gradient(#888 0 25%,#ddd 0 50%) 0 0/8px 8px` : `radial-gradient(circle,${ink} 0 34%,${paper} 38%)`; };
+  tabs.innerHTML = THEMES.map(([n, th], i) => `<button type="button" class="pt-swatch" data-i="${i}" title="${n}" aria-label="${n}" style="background:${sw(th)}"></button>`).join('');
+  cluster(stage, tabs).classList.add('swatch-tools');
   const write = liveCode($('#theme-code'), 'theme');
   const pick = (i) => {
     const th = THEMES[i][1];
     t.update({ theme: { ink: undefined, paper: undefined, ...th } });
     stage.classList.toggle('checker', th.paper === 'transparent');
-    for (const b of tabs.children) b.setAttribute('aria-selected', String(+b.dataset.i === i));
+    for (const b of tabs.children) { b.classList.toggle('is-on', +b.dataset.i === i); b.setAttribute('aria-pressed', String(+b.dataset.i === i)); }
     write(codeFor({ theme: th }));
     $('#cap-theme').innerHTML = th.paper === 'transparent' ? 'With transparent paper the page shows through.' : `The ${THEMES[i][0].toLowerCase()} theme.`;
     relayout();

@@ -28,15 +28,15 @@ export const SECTIONS = [
   {
     id: 'install', title: 'Install', nav: 'Install',
     lede: 'One command for your agent, or one for npm.',
-    body: `<p><a href="https://www.npmjs.com/package/topographic" target="_blank" rel="noreferrer"><code>topographic</code></a> holds the JavaScript API and the HTML element. <a href="https://www.npmjs.com/package/topographic-react" target="_blank" rel="noreferrer"><code>topographic-react</code></a> adds the React component and the hook.<sup class="fn"></sup></p>`,
-    notes: ['Both packages are marked side-effect free, except <code>topographic/element</code>, which registers the element when you import it.'],
+    body: `<p><a href="https://www.npmjs.com/package/topographic" target="_blank" rel="noreferrer"><code>topographic</code></a> holds the JavaScript API and the HTML element. <a href="https://www.npmjs.com/package/topographic-react" target="_blank" rel="noreferrer"><code>topographic-react</code></a> adds the React component.<sup class="fn"></sup></p>`,
+    notes: ['Importing <code>topographic/element</code> registers the element. Nothing else runs on import.'],
     code: 'install',
     live: { style: 'gentle-summit', lines: { count: 26 }, theme: { mode: 'dark' } },
   },
   {
     id: 'first', title: 'First terrain', nav: 'First terrain',
     lede: 'An element and a few settings. Everything else is one more setting.',
-    body: `<p>Give topographic an element and some settings. It adds a canvas that fills the element and starts drawing.<sup class="fn"></sup> Every setting on this page goes into this same call, onto the component as a prop, or onto the element as an attribute.<sup class="fn"></sup></p>`,
+    body: `<p>Give topographic an element and some settings. It adds a canvas that fills the element and starts drawing.<sup class="fn"></sup> Every setting on this page goes into this same call, onto the React component, or onto the element as an attribute.<sup class="fn"></sup></p>`,
     notes: ['The canvas fills its element, so the element needs a height. <a href="#page">In your page</a> shows the CSS.'],
     code: 'first',
     live: { style: 'long-ridge', mode: '3d', theme: { mode: 'dark' } },
@@ -164,10 +164,10 @@ export const SECTIONS = [
   },
   {
     id: 'react', title: 'React', nav: 'React',
-    lede: 'A component and a hook, safe for server rendering.',
-    body: `<p><code>&lt;Topography&gt;</code> takes every setting on this page as a prop of the same name, plus <code>options</code> and <code>onReady</code>. Children are drawn on top.</p>
+    lede: 'One component for React, safe to render on the server.',
+    body: `<p><code>&lt;Topography&gt;</code> takes every setting on this page under the same name, plus <code>options</code> and <code>onReady</code>. Your content sits on top of the terrain.</p>
 <p>Each group updates only when its values change, so a new object with the same values does nothing. A change to <code>options</code> makes a new renderer; every other change updates in place.<sup class="fn"></sup></p>`,
-    notes: ['The package starts with <code>\'use client\'</code>. On the server it renders an empty <code>div</code>, and the canvas appears after hydration.'],
+    notes: ['On the server the component draws an empty box. The terrain appears once the page runs in the browser.'],
     code: 'react',
     live: { style: 'granite', seed: 191, lines: { count: 54, width: 0.1, opacity: 0.62 }, theme: { mode: 'dark', ink: '#d7d2c8' } },
   },
@@ -182,7 +182,7 @@ export const SECTIONS = [
   {
     id: 'page', title: 'In your page', nav: 'In your page',
     lede: 'Sizing, content on top, CSS variables and transparent paper.',
-    body: `<p>The canvas fills its element and the element is <code>display: block</code>, so the element sets the size. To put the terrain behind content, position it under the content; with React, children are drawn on top for you.</p>
+    body: `<p>The canvas fills its element and the element is <code>display: block</code>, so the element sets the size. To put the terrain behind content, position it under the content; with React, your content sits on top for you.</p>
 <p>Colours can come from CSS. <code>--topographic-ink</code> and <code>--topographic-paper</code> are read when no colour setting is passed. With transparent paper your own background shows through. If you change a variable later, call <code>update({ theme: {} })</code> to read it again.<sup class="fn"></sup></p>`,
     notes: ['The canvas is <code>aria-hidden</code>. Put real content on top, and say in text what the terrain shows if it carries meaning.'],
     code: 'page',

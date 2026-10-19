@@ -14,6 +14,54 @@ export const P = (g, k) => PARAMS.find((p) => p.group === g && p.key === k);
 export const glyph = (name, size = 15, stroke = 1.75) =>
   `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${GLYPHS[name]}</svg>`;
 
+/** The playground's lucide icons (lucide-react 0.545.0, ISC), as the cluster draws them at 18 px. */
+export const LUCIDE = {
+  box: '<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>',
+  map: '<path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/>',
+  dices: '<rect width="12" height="12" x="2" y="10" rx="2" ry="2"/><path d="m17.92 14 3.5-3.5a2.24 2.24 0 0 0 0-3l-5-4.92a2.24 2.24 0 0 0-3 0L10 6"/><path d="M6 18h.01"/><path d="M10 14h.01"/><path d="M15 6h.01"/><path d="M18 9h.01"/>',
+};
+export const lucide = (name, size = 18) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${LUCIDE[name]}</svg>`;
+
+/** A glass cluster over a figure's top-right corner, as in the playground (ui.tsx Cluster). */
+export function cluster(stage, ...buttons) {
+  const box = document.createElement('div');
+  // A lone button drops the big glass ring and carries a compact glass fill of its own.
+  const lone = buttons.length === 1 && buttons[0].tagName === 'BUTTON';
+  box.className = lone ? 'stage-tools lone' : 'pt-cluster pt-glass stage-tools';
+  box.append(...buttons);
+  stage.closest('.fig, .ph, figure')?.append(box);
+  return box;
+}
+
+/** The playground's 2D/3D toggle (ui.tsx ModeToggle), without its badge: a map or a box. */
+export function modeToggle(on, onChange) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'pt-ibtn pt-mode';
+  const draw = () => {
+    // Icon only on the docs page: a cube for 3D, a folded map for 2D. The label names the mode.
+    b.innerHTML = lucide(on ? 'box' : 'map');
+    b.setAttribute('aria-label', on ? 'Switch to 2D' : 'Switch to 3D');
+    b.title = on ? 'Switch to 2D' : 'Switch to 3D';
+    b.setAttribute('aria-pressed', String(on));
+  };
+  b.onclick = () => { on = !on; draw(); onChange(on ? '3d' : '2d'); };
+  draw();
+  return b;
+}
+
+/** A round tool button with a glyph, like the playground's Shuffle (button.pt-tool). */
+export function toolButton(icon, label, onClick, cls = 'pt-ibtn') {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = cls;
+  b.innerHTML = lucide(icon);
+  b.title = label;
+  b.setAttribute('aria-label', label);
+  b.onclick = onClick;
+  return b;
+}
+
 /* ---------------------------------------------------------------- inputs, as in the playground's Tune popover */
 
 const trackSvg = (art, w) => `<svg width="${w}" height="24" viewBox="0 0 ${w} 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${trackArt(art, w)}</svg>`;

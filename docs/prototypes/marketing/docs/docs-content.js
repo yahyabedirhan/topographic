@@ -18,8 +18,8 @@ export const LIGHT = { ink: hex(THEME_DEFAULTS.light.ink), paper: hex(THEME_DEFA
 
 /** The two ways in, named once (decision D9 is open). */
 export const INSTALL_WAYS = {
-  agent: { label: 'Agent skill', cmd: 'npx skills add yahyabedirhan/topographic', hint: 'Your coding agent installs topographic and writes the code.' },
-  npm: { label: 'npm package', cmd: 'npm install topographic', react: 'npm install topographic topographic-react', hint: 'The second line adds React.' },
+  agent: { label: 'Agent skill', cmd: 'npx skills add yahyabedirhan/topographic' },
+  npm: { label: 'npm package', cmd: 'npm install topographic', react: 'npm install topographic topographic-react' },
 };
 
 /** Per-item version badges are gone (round 2): the page shows its version once, in the header. */
@@ -405,7 +405,7 @@ export const LIMITS = [
 export const QUESTIONS = [
   ['Is it only for backgrounds?', 'No. It runs wherever JavaScript runs, and draws whatever land you give it. A background is one thing you can make with it.'],
   ['Does the same input give the same picture?', 'Yes. The same settings, seed and frame give the same image on every screen, in 2D and in 3D.'],
-  ['Does it work with Next.js and server rendering?', 'Yes. topographic-react starts with \'use client\' and renders an empty div on the server; the canvas appears after hydration. topographic/element registers only where customElements exists.'],
+  ['Does it work with Next.js and server rendering?', 'Yes. On the server the component draws an empty box, and the terrain appears once the page runs in the browser. The element registers itself only in a browser.'],
   ['How big is it?', 'The whole core package, element and video encoder included, is about 25 kB gzipped. It has no dependencies.'],
   ['Can I use my own elevation data?', 'Yes. Any square grid of heights from 0 to 1 goes into setHeightfield(), with the area\'s width over height as aspect.'],
   ['Why is nothing showing?', 'The terrain fills its element, so the element needs a size. Give it a height, or position: fixed; inset: 0.'],
@@ -605,7 +605,7 @@ topography.setHeightfield(null); // back to generated land`,
 export function Hero() {
   return (
     <Topography shape="granite" terrain={{ roughness: 0.3 }}>
-      <h1>Children are drawn on top</h1>
+      <h1>Your content on top</h1>
     </Topography>
   );
 }
