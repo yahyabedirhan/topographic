@@ -634,3 +634,16 @@ The maintainer's review of every item outside the docs page, kept near verbatim 
 > 1. You do your own remaining work.
 > 2. Let me review everything.
 > 3. You release and publish everything.
+
+### The playground's Export popup
+
+On "Tinted values come from Tune. Change them there and this updates.":
+
+> And I also have this one in my current playground site on the export popup.
+> I want you to remove this text as well, including "your work."
+
+### Before release
+
+> Make sure that you finish everything on your side and I will just say, "I approve," and go for it.
+> Wait for me to give that signal to you.
+> And make sure that there are no big decisions left.
