@@ -94,6 +94,7 @@ export function useRegion(pg: Playground): RegionController {
     workerRef.current = null;
   }, []);
 
+  const places = useAllPlaces();
   const settingsRef = useRef(pg.settings);
   settingsRef.current = pg.settings;
   useLayoutEffect(() => {
@@ -101,7 +102,8 @@ export function useRegion(pg: Playground): RegionController {
     writeRegion(q, queryOf(bbox, placeId));
     schedulePageUrl(withQuery(location.pathname, writeSettings(q.toString(), settingsRef.current), location.hash));
     if (!stagePointerBusy()) flushPageUrl();
-  }, [bbox, placeId]);
+    // A catalog place's link names it alone once the catalog has loaded.
+  }, [bbox, placeId, places]);
 
   useEffect(() => {
     document.documentElement.dataset.region = status;
@@ -172,7 +174,6 @@ export function useRegion(pg: Playground): RegionController {
     return () => { stop = true; };
   }, [generation, pg]);
 
-  useAllPlaces();
   const name = findPlace(placeId)?.name ?? (bbox ? 'Area' : '');
   const pgRef = useRef(pg);
   pgRef.current = pg;
