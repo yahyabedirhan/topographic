@@ -43,16 +43,16 @@ export type PlaceGroup = (typeof PLACE_GROUPS)[number];
 
 /** What the place menu adds to each library location: its continent and a short note. */
 const MENU: Record<LocationId, { group: PlaceGroup; note: string }> = {
-  istanbul: { group: 'Europe', note: 'The Bosphorus and the Princes\' Islands' },
-  cyprus: { group: 'Europe', note: 'The whole island, Troodos to the Karpas' },
-  matterhorn: { group: 'Europe', note: 'The pyramid above Zermatt and its glaciers' },
-  geirangerfjord: { group: 'Europe', note: 'A deep fjord between sheer Norwegian walls' },
-  'grand-canyon': { group: 'North America', note: 'From the South Rim across to the North Rim' },
-  yosemite: { group: 'North America', note: 'Half Dome, El Capitan and the valley floor' },
-  'torres-del-paine': { group: 'South America', note: 'Granite towers over Patagonian lakes' },
-  fuji: { group: 'Asia', note: 'The cone and the Fuji Five Lakes' },
-  everest: { group: 'Asia', note: 'The roof of the world above the Khumbu valley' },
-  kilimanjaro: { group: 'Africa', note: 'Africa\'s highest peak over the plains' },
+  istanbul: { group: 'Europe', note: 'Turkey · The city on the Bosphorus' },
+  cyprus: { group: 'Europe', note: 'The whole island, mountains to coast' },
+  matterhorn: { group: 'Europe', note: 'Switzerland · The famous pyramid peak' },
+  geirangerfjord: { group: 'Europe', note: 'Norway · A deep fjord with steep walls' },
+  'grand-canyon': { group: 'North America', note: 'United States · A vast desert canyon' },
+  yosemite: { group: 'North America', note: 'United States · A granite valley' },
+  'torres-del-paine': { group: 'South America', note: 'Chile · Granite towers and glacial lakes' },
+  fuji: { group: 'Asia', note: 'Japan · The famous volcano cone' },
+  everest: { group: 'Asia', note: 'Nepal / China · The world\'s highest peak' },
+  kilimanjaro: { group: 'Africa', note: 'Tanzania · Africa\'s highest peak' },
 };
 
 /** The map terrain view with a camera angle and an elevation of its own. */

@@ -9,7 +9,8 @@ describe('place search', () => {
   it('ignores case, accents and apostrophes', () => {
     expect(ids('reunion')).toContain('reunion');
     expect(ids('RÉUNION')).toContain('reunion');
-    expect(ids('el chalten')).toContain('fitz-roy');
+    expect(ids('patagonia')).toContain('fitz-roy');
+    expect(ids('galapagos')).toContain('galapagos');
     expect(fold('Kauaʻi')).toBe('kauai');
     expect(fold('Ålesund Øresund')).toBe('alesund oresund');
   });
