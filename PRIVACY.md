@@ -74,11 +74,11 @@ Sentry receives crash reports: the error message and stack trace, browser and OS
 
 ## Never collected
 
-- Cookies or fingerprints. Local storage only holds the opt out choice and the random visitor id; session storage holds an agent's id for one tab.
-- What an agent types or receives through the tools.
-- IP addresses, names, emails or accounts.
-- Typed text, colours, hex values, coordinates of custom areas, or the settings in a link.
-- Exported images or videos.
-- Session recordings, heatmaps or automatic click capture.
+- The playground never sets cookies and never fingerprints your browser.
+- It never stores your IP address, and never collects your name, email or any account.
+- It never collects text you type, colours, hex values, the coordinates of your own areas, or the settings in a link.
+- It never collects the images or videos you export.
+- It never records sessions, heatmaps or clicks on its own.
+- It never collects what an agent types into the playground's tools or receives from them.
 
 Analytics are processed by PostHog in the EU, and error reports by Sentry. A build without `VITE_POSTHOG_KEY` or `VITE_SENTRY_DSN` contains neither client.

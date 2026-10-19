@@ -134,12 +134,12 @@ export function About({ home }: { home: string }) {
       <section aria-labelledby="pv-never">
         <h3 id="pv-never">Never collected</h3>
         <ul>
-          <li>Cookies or fingerprints. Local storage only holds your opt out choice and the random visitor id; session storage holds an agent's id for one tab.</li>
-          <li>What an agent types or receives through the tools.</li>
-          <li>Your IP address, name, email or any account.</li>
-          <li>Text you type, colours, hex values, coordinates of your own areas, or the settings in a link.</li>
-          <li>Images or videos you export.</li>
-          <li>Session recordings, heatmaps or automatic click capture.</li>
+          <li>The playground never sets cookies and never fingerprints your browser.</li>
+          <li>It never stores your IP address, and never collects your name, email or any account.</li>
+          <li>It never collects text you type, colours, hex values, the coordinates of your own areas, or the settings in a link.</li>
+          <li>It never collects the images or videos you export.</li>
+          <li>It never records sessions, heatmaps or clicks on its own.</li>
+          <li>It never collects what an agent types into the playground's tools or receives from them.</li>
         </ul>
         <p>Analytics are processed by PostHog in the EU, and error reports by Sentry.</p>
       </section>
