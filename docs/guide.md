@@ -386,11 +386,18 @@ Each client loads in its own chunk when the page is idle after the first paint.
   - `performance_sample`, once about 20 seconds into a visible visit: median and 10th-percentile fps, refresh rate, quality tier, viewport, device pixel ratio, GPU renderer, device memory, browser, OS, long frames, context losses and time to first frame.
   - `low_performance_prompt_shown` (fps, view, detail and budget levels) and `low_performance_prompt_clicked`, from the low performance prompt.
   - `analytics_opted_out`, once, from the Opt out button.
+  - `agent_tool_called`, after each WebMCP tool call (see below).
 
-  Every event carries fixed super properties: `site`, `app`, `app_version`, `viewport_class`, `is_mobile`, `platform`, `os` and `initial_view_mode`, and `visitor_id`: a random UUID that `visitor.ts` saves in local storage under `topographic:visitor`, so one browser's visits can be counted together across days. PostHog's distinct id stays the server's daily hash. Either opt out deletes the visitor id and stops sending it. Properties never hold free text, colours or the query string.
+  Every event carries fixed super properties: `site`, `app`, `app_version`, `viewport_class`, `is_mobile`, `platform`, `os` and `initial_view_mode`, plus the actor properties from `actor.ts`:
+  - `actor`: `human` or `agent`.
+  - A person's events carry `visitor_id`: a random UUID that `visitor.ts` saves in local storage under `topographic:visitor`, so one browser's visits can be counted together across days.
+  - An agent's events carry `agent_id` instead, a random UUID in that tab's session storage under `topographic:agent`, with `agent_name` and `purpose` when the agent identified itself (the `identify_agent` tool, or `?analytics_agent=<name>&analytics_purpose=<purpose>` on the first load), and `automation` (`headless` or `visible`) in a WebDriver browser. Names and purposes come only from the fixed lists in `actor.ts`; any other value is refused.
+  - `agent_tool_called` is sent by the page after every WebMCP tool call, with the tool name, whether it worked and a duration range. It never carries the tool's input, output or error message.
+
+  PostHog's distinct id stays the server's daily hash. posthog-js starts with `__preview_capture_bot_pageviews`, so WebDriver browsers are sent instead of dropped; their pageviews arrive as `$bot_pageview`. Either opt out deletes the visitor id and the tab's agent id and stops sending them. Properties never hold free text, colours or the query string.
 - **Sentry** reports errors only, with no tracing or replay and no user data, cookies, headers or query string. It reports error-boundary crashes and lost WebGL contexts, tagged with the quality tier and GPU. A small buffer keeps errors from before it loads, and one page sends at most 10 reports.
 
-Visitors can opt out with `?optout` (pageviews only, no error reports), `?optout=all` (nothing; neither client loads) or `?optin`, or with the button on `/about#analytics`. The choice is kept in local storage under `topographic:analytics`, per browser. [PRIVACY.md](../PRIVACY.md) and the Analytics section of `/about` list every event; `privacy-content.ts` is typed against the event map, and a test checks that PRIVACY.md names every event.
+Visitors can opt out with `?analytics_optout` (pageviews only, no error reports), `?analytics_optout=all` (nothing; neither client loads) or `?analytics_optin`, or with the button on `/about#analytics`. The choice is kept in local storage under `topographic:analytics`, per browser. [PRIVACY.md](../PRIVACY.md) and the Analytics section of `/about` list every event; `privacy-content.ts` is typed against the event map, and a test checks that PRIVACY.md names every event.
 
 The playground is a Cloudflare Worker with static assets. With Workers Builds, add these as build variables (the Worker's Settings, then Build, then Variables and secrets). Vite reads them while building, so set them before the deploy that should use them.
 
@@ -407,6 +414,7 @@ The playground is a Cloudflare Worker with static assets. With Workers Builds, a
 
 | Tool | What it does |
 |---|---|
+| `identify_agent` | Optional. The agent gives its `name` and a `purpose`, both from fixed lists, so analytics count it apart from people. Any other value is an error. |
 | `list_styles` | Lists the styles and presets, with their ids and descriptions. |
 | `get_settings` | Returns the current settings, the shortest config JSON, and the graphics tier that is drawing (`quality`, `fps`, `frameMs`, `mesh`). |
 | `set_settings` | Applies some settings. Reports values that were moved into range and keys that were ignored. |

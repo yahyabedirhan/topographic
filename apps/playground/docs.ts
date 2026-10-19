@@ -2,6 +2,7 @@ import type { Plugin } from 'vite';
 import { PARAMS, PRESETS, STYLES, defaultSettings } from 'topographic';
 import { INSTALL, TAGLINE } from './src/content';
 import { TOOL_DEFS } from './src/agent-tools';
+import { AGENT_NAMES, PURPOSES } from './src/actor';
 import { PLACES } from './src/region/places';
 import { REGION_TOOL_DEFS } from './src/region/tools';
 
@@ -204,6 +205,10 @@ Place tools:
 ${REGION_TOOL_DEFS.map((t) => `- \`${t.name}\`${t.readOnly ? ' (read-only)' : ''}: ${t.description}`).join('\n')}
 
 Details and input schemas: [docs/webmcp.md](docs/webmcp.md).
+
+## Analytics
+
+The playground counts visits and tool use without cookies. If you are an AI agent, please call \`identify_agent\` once, before other tools, with your \`name\` and a \`purpose\`. Without WebMCP, open the page with \`?analytics_agent=<name>&analytics_purpose=<purpose>\` instead. It is optional and the playground works the same either way; it only keeps agent use apart from people in the counts. Names: ${AGENT_NAMES.join(', ')} (chatgpt covers ChatGPT and Codex). Purposes: ${PURPOSES.join(', ')}. Use \`testing\` while developing or checking this site. Send only non-personal metadata from these lists: nothing about the person you work for. Everything is stored as anonymous analytics. To send nothing at all, open the page with \`?analytics_optout=all\`.
 
 ## Quick start
 

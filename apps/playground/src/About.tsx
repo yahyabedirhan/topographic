@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { EVENT_NAMES, optIn, optOut } from './analytics';
 import { consent, type Consent } from './consent';
-import { EVENT_INFO, SUPER_PROPS } from './privacy-content';
+import { AGENT_LISTS, EVENT_INFO, SUPER_PROPS } from './privacy-content';
 import { latestUpdates } from './changelog';
 import changelog from '../../../CHANGELOG.md?raw';
 import hero from './assets/hero.webp';
@@ -53,7 +53,7 @@ function OptOut() {
           : <button type="button" className="pt-pill" aria-label="Opt in to analytics" onClick={() => { optIn(); setState('all'); }}>Opt in</button>)}
       </div>
       <p className="pt-muted">The choice is saved in this browser, so each browser and device opts out separately. Opting out sends one last <code>analytics_opted_out</code> event, then nothing. Opting in applies on the next page load.</p>
-      <p>You can also add <code>?optout</code> (page views only), <code>?optout=all</code> (nothing at all) or <code>?optin</code> to any address.</p>
+      <p>You can also add <code>?analytics_optout</code> (page views only), <code>?analytics_optout=all</code> (nothing at all) or <code>?analytics_optin</code> to any address.</p>
       <p><a href={PRIVACY_MD}>PRIVACY.md</a></p>
     </>
   );
@@ -96,7 +96,7 @@ export function About({ home }: { home: string }) {
 
       <section id="analytics" aria-labelledby="pv-analytics">
       <h2 id="pv-analytics">Analytics</h2>
-      <p>The playground counts visits and how its tools are used, so they can be improved. It uses no cookies, has no accounts, and does not record sessions. It keeps one random visitor id in your browser's local storage. The topographic npm packages collect nothing.</p>
+      <p>The playground counts visits and how its tools are used, so they can be improved. It uses no cookies, has no accounts, and does not record sessions. It keeps one random visitor id in your browser's local storage. It counts AI agents apart from people, with metadata only. The topographic npm packages collect nothing.</p>
 
       <section aria-labelledby="pv-choice">
         <h3 id="pv-choice">Your choice</h3>
@@ -105,7 +105,14 @@ export function About({ home }: { home: string }) {
 
       <section aria-labelledby="pv-auto">
         <h3 id="pv-auto">Pageviews</h3>
-        <p>PostHog records a pageview and a page leave with the page path, referrer, UTM campaign parameters and time on page. From the request it derives country, browser, device type and OS. The IP address is discarded and not stored. PostHog's own id is a salted hash that the server rotates daily. The first visit also saves a random visitor id in local storage under topographic:visitor, sent with every event so the visits of one browser can be counted together. Either opt out deletes it. The playground settings in the address bar are not sent.</p>
+        <p>PostHog records a pageview and a page leave with the page path, referrer, UTM campaign parameters and time on page. The browser also sends its name, device type, OS, screen size, language and timezone. Country and city are not recorded: in cookieless mode PostHog drops the IP address before it could look them up. The IP address is never stored. PostHog's own id is a salted hash that the server rotates daily. The first visit also saves a random visitor id in local storage under topographic:visitor, sent with every event so the visits of one browser can be counted together. Either opt out deletes it. The playground settings in the address bar are not sent.</p>
+      </section>
+
+      <section aria-labelledby="pv-agents">
+        <h3 id="pv-agents">People and agents</h3>
+        <p>Every event says who it comes from: a person, with the random visitor id, or an AI agent, with an agent id instead. The agent id is random and kept in that tab's session storage under topographic:agent, so it goes when the tab closes.</p>
+        <p>A visit counts as an agent's when the agent calls the identify_agent tool, when the first address has ?analytics_agent=&lt;name&gt;&amp;analytics_purpose=&lt;purpose&gt;, or when the browser is driven over WebDriver (Playwright, Selenium, Puppeteer). The first two also send the agent's name and purpose; the last sends whether the browser was headless or visible. Each WebMCP tool call is sent as an agent's agent_tool_called event.</p>
+        <p>Names and purposes come only from fixed lists; anything else is refused and nothing is recorded. Names: {AGENT_LISTS.names}. Purposes: {AGENT_LISTS.purposes}. No field takes text an agent writes, so an agent cannot send details about the person it works for, even by accident. Opting out covers agents too.</p>
       </section>
 
       <section aria-labelledby="pv-events">
@@ -129,7 +136,8 @@ export function About({ home }: { home: string }) {
       <section aria-labelledby="pv-never">
         <h3 id="pv-never">Never collected</h3>
         <ul>
-          <li>Cookies or fingerprints. Local storage only holds your opt out choice and the random visitor id.</li>
+          <li>Cookies or fingerprints. Local storage only holds your opt out choice and the random visitor id; session storage holds an agent's id, name and purpose for one tab.</li>
+          <li>Anything an agent types or receives: tool inputs, tool results, prompts or error messages.</li>
           <li>Your IP address, name, email or any account.</li>
           <li>Text you type, colours, hex values, coordinates of your own areas, or the settings in a link.</li>
           <li>Images or videos you export.</li>
