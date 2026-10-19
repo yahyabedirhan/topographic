@@ -5,7 +5,7 @@
 // and the script copies both out of localStorage.
 //
 //   npm run build:packages
-//   CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" node scripts/map-look-assets.mjs
+//   CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" node scripts/map-look-assets.mjs [id ...]
 //
 // The elevation and map tiles come from the network.
 import { chromium } from 'playwright-core';
@@ -31,7 +31,9 @@ try {
   const { resolveSettings } = await server.ssrLoadModule('topographic');
   const looks = MAP_LOOKS.map((l) => ({ id: l.id, name: l.name, query: writeSettings('', resolveSettings(l.settings)) }));
 
-  for (const look of looks) {
+  // Ids on the command line draw only those looks.
+  const only = process.argv.slice(2);
+  for (const look of looks.filter((l) => !only.length || only.includes(l.id))) {
     // A fresh profile, so the saved list starts empty.
     const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
     const p = await ctx.newPage();
@@ -42,7 +44,7 @@ try {
     await place.locator('.pt-map-host canvas').waitFor({ timeout: 30000 });
     await place.locator('.pt-map-badge').click();
     // A click while the menu is still opening is lost, and the map stays on Istanbul.
-    const item = p.getByRole('menuitem', { name: new RegExp(`^${look.name}`) });
+    const item = p.getByRole('option', { name: new RegExp(`^${look.name}`) });
     await item.waitFor();
     await p.waitForTimeout(800);
     await item.click();

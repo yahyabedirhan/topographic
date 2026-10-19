@@ -1,6 +1,6 @@
 import type { ToolDef } from '../agent-tools';
 import { areaProblem as limitProblem, areaProblemMessage as limitMessage, type BBox } from 'topographic/locations';
-import { PLACES, findPlace } from './places';
+import { PLACES, allPlaces, findPlace } from './places';
 import { queryText } from '../share-url';
 import { parseBBox, writeRegion } from './url';
 
@@ -51,7 +51,7 @@ export function regionUpdate(input: Record<string, unknown>): RegionUpdate | str
   let placeId: string | null = null;
   if (typeof input.place === 'string' && input.place) {
     const place = findPlace(input.place);
-    if (!place) return `Unknown place "${input.place}". Known places: ${PLACES.map((p) => p.id).join(', ')}.`;
+    if (!place) return `Unknown place "${input.place}". Known places: ${allPlaces().map((p) => p.id).join(', ')}.`;
     if (!bbox) {
       bbox = place.bbox;
       placeId = place.id;
@@ -69,7 +69,7 @@ const SET_SCHEMA = {
   type: 'object',
   additionalProperties: false,
   properties: {
-    place: { type: 'string', enum: PLACES.map((p) => p.id), description: 'Named example. Ignored when a bbox is also given.' },
+    place: { type: 'string', description: 'A place id from the Map menu\'s catalog, such as istanbul or fitz-roy. Ignored when a bbox is also given.' },
     west: { type: 'number', description: 'West edge, degrees.' },
     south: { type: 'number', description: 'South edge, degrees.' },
     east: { type: 'number', description: 'East edge, degrees.' },
@@ -85,7 +85,7 @@ export const REGION_TOOL_DEFS: ToolDef[] = [
     name: 'set_region',
     title: 'Set region',
     readOnly: false,
-    description: `Sets the map region that becomes the terrain. Give place (${PLACES.map((p) => p.id).join(', ')}) or a bbox in degrees. The same values are written to the page URL as ?place= for a named place, or ?region= for a box. Like Apply in the Map popover, it switches to 3D with the map terrain view: 36 lines, width 0, opacity 0.9, an index line every 4, a block at elevation 0.12, and the camera at azimuth 341.8, elevation 39.3, radius 1.32. Every place but Istanbul brings its own camera angle and elevation.`,
+    description: `Sets the map region that becomes the terrain. Give place, an id from the Map menu's catalog of about 100 places (the ten built-in ones are ${PLACES.map((p) => p.id).join(', ')}; an unknown id returns the full list), or a bbox in degrees. The same values are written to the page URL as ?place= for a named place, or ?region= for a box. Like Apply in the Map popover, it switches to 3D with the map terrain view: 36 lines, width 0, opacity 0.9, an index line every 4, a block at elevation 0.12, and the camera at azimuth 341.8, elevation 39.3, radius 1.32. Every place but Istanbul and the cities brings its own camera angle and elevation.`,
     inputSchema: SET_SCHEMA,
   },
   {

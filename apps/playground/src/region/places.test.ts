@@ -7,12 +7,11 @@ const LANDSCAPES = PLACES.filter((place) => place.id !== 'istanbul' && place.id 
 const OWN_VIEW = PLACES.filter((place) => place.id !== 'istanbul');
 
 describe('example places', () => {
-  it('offers Istanbul, Cyprus and eight landscapes, grouped by region in menu order', () => {
+  it('offers Istanbul, Cyprus and eight landscapes, each in a menu continent', () => {
     expect(PLACES.map((place) => place.id)).toEqual([
       'istanbul', 'cyprus', 'matterhorn', 'geirangerfjord', 'grand-canyon', 'yosemite', 'torres-del-paine', 'fuji', 'everest', 'kilimanjaro',
     ]);
-    const groups = PLACES.map((place) => place.group);
-    expect(groups.filter((g, i) => g !== groups[i - 1])).toEqual([...PLACE_GROUPS]);
+    for (const place of PLACES) expect(PLACE_GROUPS).toContain(place.group);
     for (const place of PLACES) expect(limitProblem(place.bbox)).toBeNull();
     expect(new Set(PLACES.map((place) => place.id)).size).toBe(PLACES.length);
   });

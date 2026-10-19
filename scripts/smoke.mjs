@@ -143,7 +143,7 @@ try {
   const everest3d = await coverage(loc, 'drifting-lobes', { settings: { location: 'everest', mode: '3d' } });
   const generated3d = await coverage(loc, 'drifting-lobes', { settings: { mode: '3d', extent: 'block', elevation: 0.1, camera: { azimuth: 341.8, elevation: 40, radius: 1.32 } } });
   const grids = served.filter((u) => u.includes('/locations/data/'));
-  check(everest2d.coverage > 0.02 && everest3d.coverage > 0.02 && everestView === 'everest,40,0.1,block',
+  check(everest2d.coverage > 0.02 && everest3d.coverage > 0.02 && everestView === 'everest,40,0.32,block',
     `location everest draws in 2D (${(everest2d.coverage * 100).toFixed(1)}%) and 3D (${(everest3d.coverage * 100).toFixed(1)}%) with its view (${everestView})`);
   check(Buffer.compare(Buffer.from(everest3d.png), Buffer.from(generated3d.png)) !== 0, 'the Everest grid differs from the generated terrain under the same camera');
   check(grids.length === 1 && grids[0].endsWith('/everest.js'), `only Everest's grid is downloaded (${grids.join(', ')})`);

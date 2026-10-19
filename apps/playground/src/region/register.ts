@@ -1,5 +1,6 @@
 import { getModelContext, runTracked } from '../webmcp';
 import type { BBox } from 'topographic/locations';
+import { findPlace, loadCatalog } from './places';
 import { REGION_TOOL_DEFS, regionQuery, regionUpdate, type RegionToolState } from './tools';
 
 export interface RegionAgent extends RegionToolState {
@@ -50,7 +51,9 @@ export function registerRegionTools(get: () => RegionAgent): () => void {
       get().clear();
       return { cleared: true };
     },
-    set_region: (input) => {
+    set_region: async (input) => {
+      // A catalog id needs the catalog, which loads the first time it is asked for.
+      if (typeof input?.place === 'string' && !findPlace(input.place)) await loadCatalog().catch(() => {});
       const agent = get();
       const next = regionUpdate(input ?? {});
       if (typeof next === 'string') throw new Error(next);
