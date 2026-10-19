@@ -248,3 +248,19 @@ On labels such as "Everest & the Khumbu" and `location="everest"` on the locatio
 > https://yahyapak.dev/projects/topographic
 
 The reference style is `.diagram figcaption` in the personal website's `src/style.css`: 13 px, the muted colour, 10 px under the image.
+
+On the websites, videos and games categories at the top of the docs page:
+
+> I didn't like the websites, videos, and games categories at the top of the documentation.
+> Maybe you can mention them at the end of the documentation.
+> I don't want to try to suppress people's creativity about how to use this package.
+> I don't want them to show a couple of fields that they can use, but that undermines the capability of this library.
+> It's not just about websites, videos, and games.
+> It's everywhere JavaScript is.
+> Don't try to categorize it like that, okay?
+>
+> In the future maybe we can have a more different showcase area where we can show examples of how it's used in websites, how it's used in videos, and how it's used in games.
+> For that one we need to invest heavily in these types of real examples but right now I don't want to do it.
+> I want to focus on building this marketing content and releasing it.
+
+This applies to every surface: no use categories anywhere. The showcase is a later idea, kept as MARK-3 in Notion.
