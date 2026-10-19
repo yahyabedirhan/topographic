@@ -453,7 +453,7 @@ function highlightLine(line: string, key: number): ReactNode[] {
   return parts;
 }
 
-function CodeView({ code }: { code: string }) {
+export function CodeView({ code }: { code: string }) {
   const rows = code.split('\n').map((line, n) => {
     const nodes = highlightLine(line, n);
     return [<span key={`n${n}`} className="pt-ln" aria-hidden="true">{n + 1}</span>, <span key={`l${n}`} className="pt-lc">{nodes.length ? nodes : ' '}</span>];

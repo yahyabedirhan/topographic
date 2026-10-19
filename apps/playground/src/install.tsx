@@ -1,16 +1,15 @@
-import { useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Button } from '@base-ui-components/react/button';
 import { Popover } from '@base-ui-components/react/popover';
 import { Tooltip } from '@base-ui-components/react/tooltip';
-import { ArrowUpRight, CodeXml, Package, Sparkles } from 'lucide-react';
+import { Check, CodeXml, Link as LinkIcon, Package, Share, Sparkles } from 'lucide-react';
 import { findShape } from 'topographic';
 import { INSTALL, SKILL_INSTALL } from './content';
-import { embedCode } from './embed';
 import { LOOKS } from './looks';
 import { shareUrl } from './url';
 import { type Playground } from './shared';
 import { Tip } from './parts';
-import { CopyAction, CopyIcon, useViewPicture } from './exporting';
+import { CodeView, CopyAction, CopyIcon, useViewPicture } from './exporting';
 import { track } from './analytics';
 import type { RegionController } from './region/useRegion';
 
@@ -40,7 +39,7 @@ function Part({ icon, title, children }: { icon: ReactNode; title: string; child
   );
 }
 
-/** A command with its copy: the primary pill, or a quiet icon for a second line. */
+/** A command with its copy: the bright pill for the main one, or a quiet icon. */
 function Command({ text, quiet = false, onCopy }: { text: string; quiet?: boolean; onCopy: () => void }) {
   return (
     <div className="pt-install">
@@ -49,6 +48,22 @@ function Command({ text, quiet = false, onCopy }: { text: string; quiet?: boolea
       {quiet ? <CopyIcon text={text} label="Copy command" onCopy={onCopy} /> : <CopyAction text={text} onCopy={onCopy} />}
     </div>
   );
+}
+
+const q = (v: string) => `'${v}'`;
+
+/** The view as one short call: the place or the shape, then the mode, the lines and, in 3D, the camera angle. */
+export function sceneCode(pg: Playground, region: Pick<RegionController, 'placeId' | 'bbox'>): string {
+  const s = pg.settings;
+  const rows = region.bbox && region.placeId ? [`location: ${q(region.placeId)},`] : [`shape: ${q(s.shape)},`, `seed: ${s.seed},`];
+  rows.push(`mode: ${q(s.mode)},`, `lines: { count: ${s.lines.count}, indexEvery: ${s.lines.indexEvery} },`);
+  if (s.mode === '3d') rows.push(`camera: { azimuth: ${n1(s.camera.azimuth)}, elevation: ${n1(s.camera.elevation)} },`);
+  return `createTopography(el, {\n${rows.map((r) => `  ${r}`).join('\n')}\n});`;
+}
+
+/** A quiet text action in the footer row. */
+function FootAction({ icon, label, onClick }: { icon: ReactNode; label: string; onClick: () => void }) {
+  return <Button className="pt-install-foot-action" onClick={onClick}>{icon}<span>{label}</span></Button>;
 }
 
 /**
@@ -86,8 +101,18 @@ export function InstallMenu({ pg, region, open, onOpenChange, onOpenExport }: {
 
 function InstallBody({ pg, region, onOpenExport }: { pg: Playground; region: RegionController; onOpenExport: () => void }) {
   const src = useViewPicture(pg, 456, 148);
-  const code = embedCode(pg.settings, 'react');
+  const code = sceneCode(pg, region);
   const url = shareUrl(pg.settings);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const timer = useRef(0);
+  useEffect(() => () => window.clearTimeout(timer.current), []);
+  const copyLink = () => {
+    navigator.clipboard.writeText(url).catch(() => {});
+    track('install_copied', { target: 'link' });
+    setLinkCopied(true);
+    window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(() => setLinkCopied(false), 1600);
+  };
   return (
     <div className="pt-export-block">
       <figure className="pt-link-shot">
@@ -103,17 +128,18 @@ function InstallBody({ pg, region, onOpenExport }: { pg: Playground; region: Reg
         <Command text={SKILL_INSTALL} onCopy={() => track('install_copied', { target: 'skill' })} />
       </Part>
       <Part icon={<Package size={13} strokeWidth={1.75} />} title="npm package">
-        <Command text={INSTALL.npm} onCopy={() => track('install_copied', { target: 'npm' })} />
+        <Command text={INSTALL.npm} quiet onCopy={() => track('install_copied', { target: 'npm' })} />
         <Command text={INSTALL.react} quiet onCopy={() => track('install_copied', { target: 'npm_react' })} />
+        <div className="pt-install-code">
+          <CodeView code={code} />
+          <CopyIcon text={code} label="Copy this code" onCopy={() => track('install_copied', { target: 'code' })} />
+        </div>
+        <div className="pt-install-foot">
+          <FootAction icon={linkCopied ? <Check size={13} strokeWidth={2.25} /> : <LinkIcon size={13} strokeWidth={1.75} />} label={linkCopied ? 'Copied' : 'Copy link'} onClick={copyLink} />
+          <span className="pt-install-dot" aria-hidden="true">·</span>
+          <FootAction icon={<Share size={13} strokeWidth={1.75} />} label="Export" onClick={onOpenExport} />
+        </div>
       </Part>
-      <div className="pt-install-scene">
-        <CopyAction text={code} label="Copy code" quiet onCopy={() => track('install_copied', { target: 'code' })} />
-        <CopyAction text={url} label="Copy link" quiet onCopy={() => track('install_copied', { target: 'link' })} />
-        <Button className="pt-action pt-action-quiet pt-copy" onClick={onOpenExport}>
-          <span className="pt-copy-ico"><ArrowUpRight size={14} strokeWidth={1.75} /></span>
-          <span>Export</span>
-        </Button>
-      </div>
     </div>
   );
 }
