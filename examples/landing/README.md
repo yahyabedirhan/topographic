@@ -12,5 +12,5 @@ The background is Everest in 3D with an orbiting camera.
 
 ## Notes
 
-The terrain is one `<Topography>` element in `src/App.jsx`.
+The terrain is one `<Topography>` element (Everest, 3D, endless plane) in `src/App.jsx`.
 Change `location`, `mode` or `camera` there to try other places and camera paths.

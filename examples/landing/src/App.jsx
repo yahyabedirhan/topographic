@@ -12,6 +12,7 @@ export default function App() {
       <Topography
         location="everest"
         mode="3d"
+        extent="endless"
         camera={{ motion: 'orbit' }}
         theme={{ mode: 'dark' }}
         style={{ position: 'fixed', inset: 0, zIndex: -1 }}
