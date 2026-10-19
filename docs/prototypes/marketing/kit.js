@@ -2,34 +2,53 @@
 // syntax highlighter, npm-style badges and a copy-to-clipboard wiring. Lives outside boards/ because
 // app.js loads every file in boards/ as a board.
 
+import { SHAPE_KEY, ELEMENT_TAG } from './names.js';
+
+/** The public names shown in code, decided by the maintainer. names.js holds the two that may still change. */
+export const NAMES = { shape: SHAPE_KEY, tag: ELEMENT_TAG, create: 'createTopography', component: 'Topography' };
+const SHAPE = SHAPE_KEY;
+const TAG = ELEMENT_TAG;
+
 /** The first working code, in the proposed 0.6.0 names. Library props only: no className, no CSS sizing. */
 export const SNIP = {
   js: `import { createTopography } from 'topographic';
 
-const topography = createTopography(el, { landform: 'long-ridge' });`,
+const topography = createTopography(el, { ${SHAPE}: 'long-ridge' });`,
   react: `import { Topography } from 'topographic-react';
 
-<Topography landform="long-ridge" />`,
+<Topography ${SHAPE}="long-ridge" />`,
   html: `<script type="module">import 'topographic/element';</script>
 
-<topographic-map landform="dunes"></topographic-map>`,
-  place: `<Topography location="fuji" mode="3d" />`,
+<${TAG} ${SHAPE}="dunes"></${TAG}>`,
+  place: `<Topography location="everest" />`,
+  placeJs: `createTopography(el, { location: 'everest' });`,
   look: `<Topography look="survey-map" />`,
 };
-export const INSTALL_FOR = {
-  js: 'npm install topographic',
-  react: 'npm install topographic topographic-react',
-  html: 'npm install topographic',
-};
+/** How a real place is drawn on the boards: the playground's dark paper with a bright, cool ink, orbiting. */
+export const PLACE_LOOK = { theme: { mode: 'dark', ink: '#cfd8ea', paper: '#0b0b0d' }, lines: { opacity: 1 }, camera: { motion: 'orbit' } };
 
 /** Proposed copy, kept in one place so every board says the same thing. */
 export const COPY = {
-  tagline: 'Topographic terrain in 2D and 3D, for websites, videos and games.',
-  taglineShort: 'Topographic terrain in 2D and 3D',
-  sub: 'Generate land or load a real place. Put it on a website, render it to video, or bring it into your game.',
+  // Round 2: candidates for the one line, from the maintainer's starting line. Each has the line itself
+  // (GitHub About, npm description, README), a short headline for cards and a sub line under it.
+  lines: [
+    { id: 'L1', name: 'The starting line, tightened', line: 'Topographic terrain, rendered with WebGL. Generate a land, or turn a real place into contour lines.', head: 'Topographic terrain, rendered with WebGL.', sub: 'Generate a land, or turn a real place into contour lines.' },
+    { id: 'L2', name: 'Real place first', line: 'Turn a real place into topographic terrain, or generate a land of your own. Rendered live with WebGL.', head: 'Any place, in contour lines.', sub: 'Or a land of your own. Rendered live with WebGL.' },
+    { id: 'L3', name: 'Two beats, then the category', line: 'Real places. Generated lands. Topographic terrain, rendered live with WebGL.', head: 'Real places. Generated lands.', sub: 'Topographic terrain, rendered live with WebGL.' },
+    { id: 'L4', name: 'Verb first', line: 'Render topographic terrain with WebGL. Start from a real place, or generate a land that never existed.', head: 'Terrain, in contour lines.', sub: 'From a real place, or a land that never existed.' },
+    { id: 'L5', name: 'Shortest', line: 'Topographic terrain with WebGL, from real places or generated lands.', head: 'Topographic terrain with WebGL.', sub: 'From real places or generated lands.' },
+  ],
+  pick: 'L1',
+  get the() { return this.lines.find((l) => l.id === this.pick); },
+  get line() { return this.the.line; },
+  // Round 1 fields, kept for archived variants. Uses are never framed as categories (round 2 feedback),
+  // so they now read from the picked line.
+  get tagline() { return this.the.line; },
+  get taglineShort() { return this.the.head.replace(/\.$/, ''); },
+  get sub() { return this.the.sub; },
   // GitHub About descriptions, one per github-repo variant (each ≤ 350 characters)
-  ghA: 'Topographic terrain in 2D and 3D, rendered with WebGL. Generate land or load a real place, then put it on a website, render it to video or bring it into a game. No dependencies; works in plain HTML and React.',
-  ghB: 'Contour maps and 3D terrain for websites, videos and games. Procedural landforms or real elevation data, drawn with WebGL. Web component, React component, PNG and video export, zero dependencies.',
+  ghA: 'Topographic terrain in 2D and 3D, rendered with WebGL. Generate land or load a real place. Works in plain HTML and React.',
+  ghB: 'Contour maps and 3D terrain, drawn with WebGL. Real elevation data or generated shapes. Web component, React component, PNG and video export.',
   ghC: 'WebGL topographic terrain: animated contour lines in 2D and 3D, procedural or from real elevation data.',
   topics: ['topography', 'topographic-map', 'contour-lines', 'terrain', 'terrain-generation', 'procedural-generation',
     'heightmap', 'elevation-data', 'dem', 'cartography', 'webgl', 'webgl2', 'shaders', '3d', 'generative-art',
@@ -37,15 +56,15 @@ export const COPY = {
   // npm descriptions: three strategies, one per npm-page variant
   npm: {
     A: {
-      core: 'Topographic terrain in 2D and 3D with WebGL: animated contour lines, procedural landforms and real elevation data, for websites, videos and games. No dependencies.',
+      core: 'Topographic terrain in 2D and 3D with WebGL: animated contour lines, generated shapes and real elevation data.',
       react: 'React component for topographic: 2D contour maps and 3D terrain with WebGL, from procedural landforms or real elevation data.',
     },
     B: {
-      core: 'Contour lines and 3D terrain in WebGL. Procedural landforms or real heightmaps, frame-exact PNG and video export, a web component and zero dependencies.',
+      core: 'Contour lines and 3D terrain in WebGL. Procedural landforms or real heightmaps, frame-exact PNG and video export and a web component.',
       react: '<Topography /> for React: contour lines and 3D terrain in WebGL, procedural or from real heightmaps, with PNG and video export.',
     },
     C: {
-      core: 'Draw topographic maps and 3D terrain in the browser, then put them on a page, record them to video or export frames. WebGL, no dependencies.',
+      core: 'Draw topographic maps and 3D terrain from real places or generated shapes, then export frames or video. WebGL.',
       react: 'Draw topographic maps and 3D terrain in React with one component, then record them to video or export frames.',
     },
   },
