@@ -528,7 +528,7 @@ The playground (`apps/playground`) is the project's live demo page.
   - Apply switches to 3D and uses the map terrain view: 36 lines at 0.5 px and 0.9 opacity, every fourth line bold, a block at elevation 0.12, and a closer camera.
   - Each place keeps that view but has its own camera angle and elevation. This puts its main feature in the middle, with the skyline above it.
   - Apply also saves the terrain in the dock, after the built-in map terrains. Its name is the place's name, or Area.
-  - The dock starts with a built-in Istanbul map terrain for everyone. Like a look, it does not keep your changes. A click on it always brings back its own settings, camera and pan.
+  - The dock starts with eleven built-in map terrains for everyone: Istanbul, Grand Canyon, Geirangerfjord, Yosemite Valley, Mount Fuji, Matterhorn & Zermatt, Torres del Paine, Everest, Kilimanjaro, Machu Picchu, and Naples & Vesuvius. The last two are catalog places and load their grids from `/places/<id>.png`. Each one is like a look: it does not keep your changes, and a click on it always brings back its own settings, camera and pan.
   - When a saved item is active, your changes to it are kept, including camera moves. A click on it brings back the view you left it in.
   - A built-in look does not keep your changes. A click on it always brings back its own camera. A plain shape uses the playground camera.
   - **Clear** goes back to the generated terrain. It also brings back the lines, camera, extent and elevation you had before.

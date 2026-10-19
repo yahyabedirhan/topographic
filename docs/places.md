@@ -34,7 +34,6 @@ Sizes are the box's width and height.
 | Place | Country | What it is | Kind | Size | Id |
 |---|---|---|---|---|---|
 | Istanbul (built in) | Turkey | The city on the Bosphorus | city | 101 × 64 km | `istanbul` |
-| Cyprus (built in) | Cyprus | The whole island, mountains to coast | island | 261 × 166 km | `cyprus` |
 | Matterhorn & Zermatt (built in) | Switzerland | The famous pyramid peak | mountain | 40 × 26 km | `matterhorn` |
 | Geirangerfjord (built in) | Norway | A deep fjord with steep walls | fjord | 60 × 39 km | `geirangerfjord` |
 | Mont Blanc | France / Italy | The Alps' highest peak | mountain | 42 × 28 km | `mont-blanc` |
@@ -43,6 +42,7 @@ Sizes are the box's width and height.
 | Naples & Vesuvius | Italy | A bay city under a volcano | city | 54 × 36 km | `naples-vesuvius` |
 | Grossglockner | Austria | The country's highest peak | glacier | 33 × 22 km | `grossglockner` |
 | Triglav & the Julian Alps | Slovenia | The country's highest peak | mountain | 36 × 24 km | `triglav` |
+| Cyprus (built in) | Cyprus | The whole island, mountains to coast | island | 261 × 166 km | `cyprus` |
 | High Tatras | Slovakia / Poland | A sharp granite range | mountain | 42 × 28 km | `high-tatras` |
 | Bay of Kotor | Montenegro | A bay deep in the mountains | coast | 33 × 24 km | `bay-of-kotor` |
 | Santorini | Greece | A flooded volcano crater | crater | 22 × 18 km | `santorini` |

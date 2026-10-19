@@ -73,7 +73,7 @@ try {
     const nav = b.locator('nav[data-looks]');
     const first = nav.locator('.pt-thumb').first();
     const builtIns = await nav.locator('.pt-saved[data-builtin] .pt-thumb').evaluateAll((els) => els.map((el) => el.getAttribute('aria-label')?.replace(/ map$/, '')));
-    const WANT = ['Istanbul', 'Grand Canyon', 'Geirangerfjord', 'Yosemite Valley', 'Mount Fuji', 'Matterhorn & Zermatt', 'Torres del Paine', 'Everest', 'Kilimanjaro', 'Cyprus'];
+    const WANT = ['Istanbul', 'Grand Canyon', 'Geirangerfjord', 'Yosemite Valley', 'Mount Fuji', 'Matterhorn & Zermatt', 'Torres del Paine', 'Everest', 'Kilimanjaro', 'Machu Picchu', 'Naples & Vesuvius'];
     check(await first.getAttribute('aria-label') === 'Istanbul map' && builtIns.join() === WANT.join()
       && await nav.getByRole('button', { name: /^Delete / }).count() === 0 && await nav.getAttribute('data-saved') === '0', `a fresh profile shows the ten built-in places first in the dock, Istanbul first, with no delete (${builtIns.join()})`);
     const OWNER = { place: 'istanbul', s: 'gentle-summit', seed: '67', lc: '36', ix: '4', m: 'dark', mode: '3d', ex: 'block', ev: '0.12', az: '341.6', ce: '45.3', rd: '1.15', px: '-0.005', pz: '-0.013' };
@@ -293,7 +293,7 @@ try {
   await badge.click(); await p.getByRole('option').first().waitFor();
   await p.waitForFunction(() => document.querySelectorAll('.pt-place-menu [role="option"]').length > 100, null, { timeout: 10000 }).catch(() => {});
   const items = (await p.getByRole('option').allInnerTexts()).map((t) => t.split('\n')[0]);
-  check(items.length > 100 && items.slice(0, 4).join() === 'Istanbul,Cyprus,Matterhorn & Zermatt,Geirangerfjord' && items.includes('Kilimanjaro'), `the badge opens the place menu with the catalog (${items.length} places)`);
+  check(items.length > 100 && items.slice(0, 4).join() === 'Istanbul,Matterhorn & Zermatt,Geirangerfjord,Mont Blanc' && items.indexOf('Cyprus') === 9 && items.includes('Kilimanjaro'), `the badge opens the place menu with the catalog (${items.length} places)`);
   const labels = await p.locator('.pt-menu-label').allInnerTexts();
   check(labels.map((t) => t.toLowerCase()).join() === 'europe,middle east,africa,asia,oceania,north america,south america,antarctica,arctic', `the place menu groups places by continent (${labels.join()})`);
   // Search: typing goes to the field, accents do not matter, and Enter picks the first result.

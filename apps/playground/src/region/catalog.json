@@ -1,6 +1,5 @@
 [
   {"id":"istanbul","builtIn":true,"country":"Turkey","continent":"Europe","kind":"city"},
-  {"id":"cyprus","builtIn":true,"country":"Cyprus","continent":"Europe","kind":"island"},
   {"id":"matterhorn","builtIn":true,"country":"Switzerland","continent":"Europe","kind":"mountain"},
   {"id":"geirangerfjord","builtIn":true,"country":"Norway","continent":"Europe","kind":"fjord"},
   {"id":"mont-blanc","name":"Mont Blanc","description":"France / Italy · The Alps' highest peak","country":"France / Italy","continent":"Europe","kind":"mountain","bbox":{"west":6.629,"south":45.743,"east":7.171,"north":45.997},"minMeters":513.8,"maxMeters":4780.9,"zoom":12},
@@ -9,6 +8,7 @@
   {"id":"naples-vesuvius","name":"Naples & Vesuvius","description":"Italy · A bay city under a volcano","country":"Italy","continent":"Europe","kind":"city","bbox":{"west":13.98,"south":40.617,"east":14.62,"north":40.943},"minMeters":0,"maxMeters":1378.4,"zoom":11},
   {"id":"grossglockner","name":"Grossglockner","description":"Austria · The country's highest peak","country":"Austria","continent":"Europe","kind":"glacier","bbox":{"west":12.502,"south":46.98,"east":12.938,"north":47.18},"minMeters":924.4,"maxMeters":3746,"zoom":12},
   {"id":"triglav","name":"Triglav & the Julian Alps","description":"Slovenia · The country's highest peak","country":"Slovenia","continent":"Europe","kind":"mountain","bbox":{"west":13.606,"south":46.251,"east":14.074,"north":46.469},"minMeters":417.4,"maxMeters":2748.5,"zoom":12},
+  {"id":"cyprus","builtIn":true,"country":"Cyprus","continent":"Europe","kind":"island"},
   {"id":"high-tatras","name":"High Tatras","description":"Slovakia / Poland · A sharp granite range","country":"Slovakia / Poland","continent":"Europe","kind":"mountain","bbox":{"west":19.781,"south":49.053,"east":20.359,"north":49.307},"minMeters":641.3,"maxMeters":2598.9,"zoom":12},
   {"id":"bay-of-kotor","name":"Bay of Kotor","description":"Montenegro · A bay deep in the mountains","country":"Montenegro","continent":"Europe","kind":"coast","bbox":{"west":18.499,"south":42.361,"east":18.901,"north":42.579},"minMeters":0,"maxMeters":1862.2,"zoom":12},
   {"id":"santorini","name":"Santorini","description":"Greece · A flooded volcano crater","country":"Greece","continent":"Europe","kind":"crater","bbox":{"west":25.277,"south":36.329,"east":25.523,"north":36.491},"minMeters":0,"maxMeters":525,"zoom":13},

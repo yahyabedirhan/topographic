@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { playgroundSettings, readSettings, writeSettings } from '../share-url';
-import { findPlace } from './places';
+import { findPlace, loadCatalog } from './places';
 import { findMapLook, MAP_LOOKS } from './map-looks';
 
 /** The reference query for the built-in Istanbul. */
@@ -27,7 +27,8 @@ describe('built-in map terrains', () => {
     expect(playgroundSettings(findMapLook(id)!.settings)).toEqual(readSettings(url));
   });
 
-  it('uses each place\'s own box and name, with unique ids', () => {
+  it('uses each place\'s own box and name, with unique ids', async () => {
+    await loadCatalog();
     for (const look of MAP_LOOKS) {
       expect(look.bbox).toEqual(findPlace(look.placeId)!.bbox);
       expect(look.name).toBe(findPlace(look.placeId)!.name);
