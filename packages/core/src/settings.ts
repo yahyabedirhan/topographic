@@ -242,7 +242,7 @@ export function toUniforms(s: Settings, into?: Float32Array): ParamUniforms {
   return out;
 }
 
-/** Reads settings from string attributes (as on <topographic-bg>). Unknown attributes are ignored. */
+/** Reads settings from string attributes (as on <topographic-map>). Unknown attributes are ignored. */
 export function fromAttributes(get: (name: string) => string | null): SettingsInput {
   const input: Record<string, unknown> = {};
   const style = get('style-name'); if (style) input.style = style;

@@ -69,7 +69,7 @@ export interface RecordOptions {
   motion?: CameraMotion;
 }
 
-export interface TopographicBackground {
+export interface Topography {
   /** Merges, clamps and applies new settings; only changed uniforms are sent to the GPU. */
   update(patch: SettingsInput): void;
   /** Renders one frame off-screen and returns a PNG. The live canvas is not resized. */
@@ -107,7 +107,7 @@ const DEFAULTS: Required<Omit<RendererOptions, 'forceWebGL1' | 'benchmark'>> = {
 const TEXT_COLUMN_HALF_WIDTH_PX = 300;
 const QUAD = new Float32Array([-1, -1, 3, -1, -1, 3]);
 
-export function createTopographicBackground(el: HTMLElement, input: SettingsInput = {}, options: RendererOptions = {}): TopographicBackground {
+export function createTopography(el: HTMLElement, input: SettingsInput = {}, options: RendererOptions = {}): Topography {
   const opts = { ...DEFAULTS, ...options };
   const doc = el.ownerDocument;
   const view = doc.defaultView ?? window;
