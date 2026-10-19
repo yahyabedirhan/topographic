@@ -236,3 +236,15 @@ On the "0.6.0" badges:
 
 > And I didn't like these versioning tags everywhere.
 > Instead just show the version somewhere in a global manner so that we don't have them everywhere around.
+
+On labels such as "Everest & the Khumbu" and `location="everest"` on the location visuals:
+
+> Think of these as captions for the images, like we had somewhere, using these captions properly.
+> I think it was on my website.
+> Let me take a look at it.
+> Yes for example there are captions under the diagrams that are related to that diagram or the image.
+> I want to use that caption style when you explain these visuals in the documentation.
+>
+> https://yahyapak.dev/projects/topographic
+
+The reference style is `.diagram figcaption` in the personal website's `src/style.css`: 13 px, the muted colour, 10 px under the image.
