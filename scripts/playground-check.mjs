@@ -613,7 +613,20 @@ try {
 
   const plain = await browser.newPage(); watch(plain);
   await plain.goto(base); await plain.waitForSelector('.pt-stage canvas'); await settle(plain);
-  check(await plain.evaluate(() => !('modelContext' in document) && !('modelContext' in navigator)) && await plain.locator('.pt-cluster button').count() === 4, 'no WebMCP: page works, nothing registered');
+  check(await plain.evaluate(() => !('modelContext' in document) && !('modelContext' in navigator)) && await plain.locator('.pt-cluster button').count() === 5, 'no WebMCP: page works, nothing registered');
+
+  // Install: its own circle at the far right, the two parts, one bright Copy, and a shortcut to Export.
+  await plain.getByRole('button', { name: 'Install', exact: true }).click();
+  const installPop = plain.locator('.pt-install-pop');
+  await installPop.waitFor();
+  const installText = await installPop.innerText();
+  check(installText.includes('npx skills add yahyabedirhan/topographic') && installText.includes('npm install topographic topographic-react')
+    && installText.includes('createTopography(el, {') && await installPop.locator('.pt-action.pt-copy').count() === 1,
+    'Install shows the skill, the npm lines and the code, with one bright Copy');
+  if (shots) await installPop.screenshot({ path: join(shots, 'install.png') });
+  await installPop.getByRole('button', { name: 'Export', exact: true }).click();
+  await plain.locator('.pt-export').waitFor();
+  check(await installPop.count() === 0, 'Install\'s Export opens the Export panel');
   await plain.close();
 
   check(errors.length === 0, `no page errors${errors.length ? ': ' + errors.join(' | ') : ''}`);
