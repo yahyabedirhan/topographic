@@ -296,6 +296,7 @@ export function PlacePanel({ region, onApply, appliedName, appearance }: {
         )}
         <PlaceMenu
           label={`${candidate ? name : 'Go to a place'}${candidate && !problem ? `, ${size(candidate)}` : ''}. Choose a place`}
+          selectedId={placeId}
           onPick={flyTo}
           trigger={<>
             <MapPin size={13} strokeWidth={1.9} aria-hidden="true" />

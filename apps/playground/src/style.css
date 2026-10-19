@@ -292,7 +292,13 @@ button.pt-map-badge:hover{background:color-mix(in srgb,var(--paper) 80%,transpar
 .pt-menu-search input::placeholder{color:var(--mut)}
 .pt-menu-search input:focus-visible{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--fg) 22%,transparent)}
 .pt-menu-search input::-webkit-search-cancel-button{display:none}
-.pt-menu-list{min-height:0;overflow-y:auto;overscroll-behavior:contain}
+.pt-menu-list{position:relative;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+/* Each continent heading stays at the top of the list while its places scroll under it; the next one pushes it up. */
+/* A long list reads better on a solid surface than on glass, and the headings share that surface so rows never show through. */
+.pt-place-menu{--menu-surface:color-mix(in srgb,var(--paper) 95%,var(--fg));background:var(--menu-surface);backdrop-filter:none;-webkit-backdrop-filter:none}
+.pt-place-menu .pt-menu-label{position:sticky;top:0;z-index:1;background:var(--menu-surface)}
+.pt-place-menu .pt-menu-item{position:relative;padding-right:28px}
+.pt-menu-check{position:absolute;right:9px;top:calc(50% - 7px);color:var(--fg)}
 .pt-menu-empty{padding:10px 8px 8px;color:var(--mut);font-size:12px}
 /* The credit: a quiet © that opens into a small glass label. */
 .pt-credit{position:absolute;z-index:3;top:10px;right:10px;display:flex;flex-direction:row-reverse;align-items:flex-start;gap:4px;max-width:calc(100% - 20px);padding:2px;border-radius:12px;color:var(--mut);font:10.5px/1.45 var(--sans)}

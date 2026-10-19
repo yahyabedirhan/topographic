@@ -378,12 +378,26 @@ try {
   await apply.click(); await settle(p, 600);
   await badge.click(); await p.getByRole('option').first().waitFor();
   await settle(p, 300);
-  // The menu holds jump-to-city actions only: no check mark and no highlighted row on a mouse open.
-  const marks = await p.locator('.pt-menu-item svg').count();
-  const lit = await p.locator('.pt-menu-item[data-highlighted]').count();
+  // The framed place shows as selected, with a check, as the first row under its continent heading.
+  const selectedAtTop = () => p.evaluate(() => {
+    const listEl = document.querySelector('.pt-place-menu [role="listbox"]');
+    const row = listEl?.querySelector('[role="option"][aria-selected="true"]');
+    if (!listEl || !row) return null;
+    const heading = row.closest('.pt-menu-group').querySelector('.pt-menu-label');
+    const gap = row.getBoundingClientRect().top - heading.getBoundingClientRect().bottom;
+    return { name: row.querySelector('b').textContent, checks: listEl.querySelectorAll('.pt-menu-check').length, gap: Math.round(gap), active: row.hasAttribute('data-highlighted') };
+  });
+  const sel = await selectedAtTop();
   check(await p.evaluate(() => document.activeElement?.getAttribute('aria-label')) === 'Search places', 'the place menu opens with its search field focused');
+  check(sel?.name === 'Matterhorn & Zermatt' && sel.checks === 1 && sel.active && Math.abs(sel.gap) <= 1, `the place menu shows the framed place as selected and active (${JSON.stringify(sel)})`);
+  // A place far down the list: reopening shows it at the top.
+  await p.keyboard.type('cotopaxi'); await settle(p, 200); await p.keyboard.press('Enter');
+  await badge.filter({ hasText: 'Cotopaxi' }).waitFor({ timeout: 10000 }).catch(() => {}); await settle(p, 900);
+  await badge.click(); await p.getByRole('option').first().waitFor(); await settle(p, 300);
+  const thor = await selectedAtTop();
+  const scrolled = await p.locator('.pt-place-menu [role="listbox"]').evaluate((el) => el.scrollTop);
+  check(thor?.name === 'Cotopaxi' && Math.abs(thor.gap) <= 1 && scrolled > 500, `reopening shows the selected place at the top (${JSON.stringify(thor)}, scrollTop ${scrolled})`);
   await p.keyboard.press('Escape'); await settle(p);
-  check(marks === 0 && lit === 0, `the place menu shows no selected state (${marks} marks, ${lit} highlighted)`);
   check(q(p).get('place') === 'matterhorn' && await savedCount() === 3
     && await dockNav.locator('.pt-saved:not([data-builtin]) .pt-thumb').first().getAttribute('aria-label') === 'Matterhorn & Zermatt map', `Apply on a city writes its name and saves it (?${q(p)})`);
   await clearBtn.click(); await settle(p, 400);
