@@ -1,4 +1,4 @@
-import { mergeSettings, PRESETS, STYLES, type Settings, type SettingsInput, type TopographicBackground } from 'topographic';
+import { LOOKS, mergeSettings, SHAPES, type Settings, type SettingsInput, type Topography } from 'topographic';
 import { INSTALL } from './content';
 import { embedCode, type EmbedFormat } from './embed';
 import { TOOL_DEFS } from './agent-tools';
@@ -6,6 +6,7 @@ import { renderPng } from './png';
 import { configOf } from './url';
 import { AGENT_CHOICES, identifyAgent, trackToolCall } from './analytics';
 import { isAgentName, isPurpose } from './actor';
+import { applySettingsInput } from './settings-tool';
 
 /** Runs a WebMCP tool and sends `agent_tool_called` with its name, whether it worked and how long it took. */
 export async function runTracked<T>(tool: string, fn: () => T | Promise<T>): Promise<T> {
@@ -18,7 +19,23 @@ export async function runTracked<T>(tool: string, fn: () => T | Promise<T>): Pro
 export interface PageBridge {
   getSettings(): Settings;
   setSettings(s: Settings): void;
-  instance(): TopographicBackground | null;
+  instance(): Topography | null;
+}
+
+/**
+ * The bridge the tools use. A change is stored and sent to the canvas before the tool returns, so a
+ * `get_settings` call right after `set_settings` reads it. React renders it on its next pass.
+ */
+export function pageBridge(state: { current: Settings }, render: (s: Settings) => void, instance: () => Topography | null): PageBridge {
+  return {
+    getSettings: () => state.current,
+    setSettings: (next) => {
+      state.current = next;
+      instance()?.update(next);
+      render(next);
+    },
+    instance,
+  };
 }
 
 interface ModelContextLike {
@@ -35,30 +52,6 @@ const blobToDataUrl = (b: Blob) => new Promise<string>((resolve, reject) => {
   const r = new FileReader(); r.onload = () => resolve(String(r.result)); r.onerror = () => reject(r.error); r.readAsDataURL(b);
 });
 
-const TOP_KEYS = ['style', 'seed', 'theme', 'lines', 'terrain', 'motion', 'layout', 'mode', 'elevation', 'extent', 'detail', 'quality', 'camera', 'view2d'];
-
-function adjustments(input: Record<string, unknown>, out: Settings): string[] {
-  const notes: string[] = [];
-  if (typeof input.style === 'string' && input.style !== out.style) notes.push(`unknown style "${input.style}", kept "${out.style}"`);
-  if (typeof input.mode === 'string' && input.mode !== out.mode) notes.push(`mode: ${JSON.stringify(input.mode)} adjusted to ${out.mode}`);
-  if (typeof input.extent === 'string' && input.extent !== out.extent) notes.push(`extent: ${JSON.stringify(input.extent)} adjusted to ${out.extent}`);
-  if (typeof input.elevation === 'number' && input.elevation !== out.elevation) notes.push(`elevation: ${input.elevation} adjusted to ${out.elevation}`);
-      if (typeof input.detail === 'number' && input.detail !== out.detail) notes.push(`detail: ${input.detail} adjusted to ${out.detail}`);
-  if (typeof input.quality === 'string' && input.quality !== out.quality) notes.push(`quality: ${JSON.stringify(input.quality)} adjusted to ${out.quality}`);
-  for (const [g, v] of Object.entries(input)) {
-    if (!TOP_KEYS.includes(g)) { notes.push(`ignored unknown key "${g}"`); continue; }
-    if (v && typeof v === 'object' && g !== 'theme') {
-      const gotGroup = out[g as 'lines'] as Record<string, unknown>;
-      for (const [k, n] of Object.entries(v as Record<string, unknown>)) {
-        const got = gotGroup[k];
-        if (got === undefined) notes.push(`ignored unknown key "${g}.${k}"`);
-        else if (got !== n) notes.push(`${g}.${k}: ${JSON.stringify(n)} adjusted to ${JSON.stringify(got)}`);
-      }
-    }
-  }
-  return notes;
-}
-
 export function registerTools(page: PageBridge): () => void {
   const mc = getModelContext();
   if (!mc) return () => {};
@@ -74,9 +67,9 @@ export function registerTools(page: PageBridge): () => void {
         note: recorded ? 'Thank you. Only analytics changed; the playground works the same.' : 'Analytics are off in this browser, so nothing was recorded. The playground works the same.',
       };
     },
-    list_styles: () => ({
-      styles: STYLES.map(({ id, name, description }) => ({ id, name, description })),
-      presets: PRESETS.map((p) => ({ name: p.name, settings: p.settings })),
+    list_shapes: () => ({
+      shapes: SHAPES.map(({ id, name, description }) => ({ id, name, description })),
+      looks: LOOKS.map(({ id, name, settings }) => ({ id, name, settings })),
     }),
     get_settings: () => {
       const settings = page.getSettings();
@@ -89,13 +82,17 @@ export function registerTools(page: PageBridge): () => void {
     },
     set_settings: (input) => {
       if (!input || typeof input !== 'object') throw new Error('expected a settings object');
-      const next = mergeSettings(page.getSettings(), input as SettingsInput);
+      // `style` is the name before 0.6.0, accepted for one release.
+      const { style, ...rest } = input as Record<string, unknown>;
+      const patch = style !== undefined && rest.shape === undefined ? { ...rest, shape: style } : rest;
+      const { next, adjustments } = applySettingsInput(page.getSettings(), patch);
       page.setSettings(next);
-      return { config: configOf(next), adjustments: adjustments(input, next) };
+      const renamed = style !== undefined ? ['style is now named shape; use shape'] : [];
+      return { config: configOf(next), adjustments: [...renamed, ...adjustments] };
     },
     randomize: (input) => {
       const patch: SettingsInput = { seed: Math.floor(Math.random() * 999999) + 1 };
-      if (input?.style) patch.style = STYLES[Math.floor(Math.random() * STYLES.length)].id;
+      if (input?.shape) patch.shape = SHAPES[Math.floor(Math.random() * SHAPES.length)].id;
       const next = mergeSettings(page.getSettings(), patch);
       page.setSettings(next);
       return { config: configOf(next) };

@@ -26,4 +26,26 @@ function debugEndpoint(): Plugin {
   };
 }
 
-export default defineConfig({ plugins: [react(), docsPlugin(), debugEndpoint()], base: process.env.BASE_PATH || '/', define: { __APP_VERSION__: JSON.stringify(version) } });
+/**
+ * Writes the page again as about.html, so /about is a real file. A request that matches no file
+ * and is not a browser navigation gets a 404 from worker/index.js, so curl and fetch need it there.
+ */
+function aboutPage(): Plugin {
+  return {
+    name: 'about-page',
+    enforce: 'post',
+    apply: 'build',
+    generateBundle(_, bundle) {
+      const page = bundle['index.html'];
+      if (page?.type === 'asset') this.emitFile({ type: 'asset', fileName: 'about.html', source: page.source });
+    },
+  };
+}
+
+// The region worker is a module worker. ES output lets it split each built-in location into its own chunk.
+export default defineConfig({
+  plugins: [react(), docsPlugin(), debugEndpoint(), aboutPage()],
+  base: process.env.BASE_PATH || '/',
+  define: { __APP_VERSION__: JSON.stringify(version) },
+  worker: { format: 'es' },
+});

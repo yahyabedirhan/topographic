@@ -14,21 +14,21 @@ export function embedCode(s: Settings, format: EmbedFormat): string {
     const attrs = Object.entries(toAttributes(s)).map(([k, v]) => `  ${k}="${v}"`).join('\n');
     return `<script type="module">import '${PACKAGE}/element';</script>
 
-<topographic-bg
+<topographic-view
 ${attrs}
   style="position:fixed;inset:0;z-index:-1"
-></topographic-bg>`;
+></topographic-view>`;
   }
   if (format === 'vanilla') {
-    return `import { createTopographicBackground } from '${PACKAGE}';
+    return `import { createTopography } from '${PACKAGE}';
 
-const topographic = createTopographicBackground(document.querySelector('#background'), ${literal(config).replace(/\n/g, '\n')});`;
+const topography = createTopography(document.querySelector('#background'), ${literal(config).replace(/\n/g, '\n')});`;
   }
-  const { style, ...rest } = config;
-  const props = [`styleName="${style}"`, ...Object.entries(rest).map(([k, v]) => typeof v === 'string' ? `${k}="${v}"` : `${k}={${typeof v === 'object' ? literal(v).replace(/\n\s*/g, ' ') : v}}`)];
-  return `import { TopographicBackground } from '${REACT_PACKAGE}';
+  const { shape, ...rest } = config;
+  const props = [`shape="${shape}"`, ...Object.entries(rest).map(([k, v]) => typeof v === 'string' ? `${k}="${v}"` : `${k}={${typeof v === 'object' ? literal(v).replace(/\n\s*/g, ' ') : v}}`)];
+  return `import { Topography } from '${REACT_PACKAGE}';
 
-<TopographicBackground
+<Topography
   ${props.join('\n  ')}
   style={{ position: 'fixed', inset: 0, zIndex: -1 }}
 />`;

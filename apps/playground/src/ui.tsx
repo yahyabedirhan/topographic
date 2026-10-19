@@ -2,7 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useSta
 import { Popover } from '@base-ui-components/react/popover';
 import { Toggle } from '@base-ui-components/react/toggle';
 import { Tooltip } from '@base-ui-components/react/tooltip';
-import { Box, ChevronRight, Dices, Earth, Frame, Map, Moon, Mountain, SlidersHorizontal, Spline, Sun, TriangleAlert, Wind, X } from 'lucide-react';
+import { Box, ChevronLeft, ChevronRight, Dices, Earth, Frame, Map, Moon, Mountain, SlidersHorizontal, Spline, Sun, TriangleAlert, Wind, X } from 'lucide-react';
 import { MapButton } from './region/controls';
 import { MAP_LOOKS } from './region/map-looks';
 import { Minimap } from './region/Minimap';
@@ -10,15 +10,15 @@ import type { RegionController } from './region/useRegion';
 import type { SavedTerrain } from './saved';
 import { ignoredWithPlace } from './shape';
 import type { Terrains } from './terrains';
+import { InstallMenu } from './install';
 import {
-  DEFAULT_CAMERA, DEFAULT_DETAIL, DEFAULT_ELEVATION, DEFAULT_EXTENT, GROUPS, RADIUS_MAX, RADIUS_MIN, paramsIn, resolveMode,
+  DEFAULT_CAMERA, DEFAULT_DETAIL, LOOKS, DEFAULT_ELEVATION, DEFAULT_EXTENT, GROUPS, RADIUS_MAX, RADIUS_MIN, paramsIn, resolveMode,
   type QualityName,
   type CameraMotion, type GroupName, type ParamDef, type TerrainExtent,
 } from 'topographic';
-import { LOOK_CAMERAS, LOOKS } from './looks';
 import { PLAYGROUND_QUALITY } from './share-url';
-import { OffNote, Preview, Section, SegRow, SliderRow, Tabs, Tip, type TabItem } from './parts';
-import { contourArt, flowArt, layoutArt, rigArt, terrainArt, type GlyphName, type TrackKind } from './track-art';
+import { OffNote, ParamRow, Preview, Section, SegRow, SliderRow, Tabs, Tip, linePx, ordinal, type TabItem } from './parts';
+import { contourArt, flowArt, layoutArt, rigArt, terrainArt, type GlyphName } from './track-art';
 import {
   Backdrop, ColorPicker, GROUP_LABELS, INK_SWATCHES, PAPER_SWATCHES, Wordmark, currentColour, rollColour, useLookThumbs,
   type Playground,
@@ -129,11 +129,12 @@ export function Readout({ pg }: { pg: Playground }) {
   return <div className="pt-fps" data-tier={stats.quality} aria-live="polite">{`${stats.fps} fps · ${stats.frameMs.toFixed(1)} ms · ${stats.mesh}² · ${stats.quality}`}</div>;
 }
 
-export function Cluster({ pg, place, tune, exporting, clusterRef }: {
+export function Cluster({ pg, place, tune, share, clusterRef }: {
   pg: Playground;
   place?: ReactNode;
   tune: ReactNode;
-  exporting: ReactNode;
+  /** Export and Install, after a thin separator. */
+  share?: ReactNode;
   clusterRef?: Ref<HTMLDivElement>;
 }) {
   return (
@@ -141,7 +142,7 @@ export function Cluster({ pg, place, tune, exporting, clusterRef }: {
       {place}
       <ModeToggle pg={pg} />
       {tune}
-      {exporting}
+      {share ? <><span className="pt-cluster-sep" aria-hidden="true" />{share}</> : null}
     </div>
   );
 }
@@ -322,6 +323,11 @@ export function Dock({ pg, terrains, onOpenMap }: { pg: Playground; terrains: Te
             </button>
           ))}
         </div>
+          {scroll.overflow && scroll.left > 4 ? (
+            <button type="button" className="pt-scroll-more is-back" aria-label="Earlier terrains" onClick={() => scroller.current?.scrollBy({ left: -(thumb + GAP), behavior: 'smooth' })}>
+              <ChevronLeft size={16} strokeWidth={1.75} />
+            </button>
+          ) : null}
           {scroll.overflow && scroll.left < scroll.max - 4 ? (
             <button type="button" className="pt-scroll-more" aria-label="More terrains" onClick={() => scroller.current?.scrollBy({ left: thumb + GAP, behavior: 'smooth' })}>
               <ChevronRight size={16} strokeWidth={1.75} />
@@ -350,30 +356,13 @@ const TUNE_TABS: TabItem<TuneTab>[] = [
   { id: 'view', label: '3D', icon: Box },
 ];
 
-/** Labels that need to fit the 80px label column. The slider keeps the full name. */
-const SHORT_LABEL: Partial<Record<string, string>> = { indexEvery: 'Bold lines' };
-
-/** Every Nth line drawn bolder, read as "1 in N". */
-const boldEvery = (v: number) => (Math.round(v) < 1 ? 'Off' : `1 in ${Math.round(v)}`);
-
 /** Groups with more than four rows split into sections; the rest keep one, named after the group. */
 const SECTIONS: Partial<Record<GroupName, { title: string; keys: string[] }[]>> = {
   terrain: [
-    { title: 'Shape', keys: ['peaks', 'spread', 'sharpness', 'variant'] },
+    { title: 'Form', keys: ['peaks', 'spread', 'sharpness', 'variant'] },
     { title: 'Surface', keys: ['roughness', 'terracing'] },
   ],
 };
-
-/** Line width is stored 0–1 but drawn as a 0.5–4 px stroke (the core's toUniform), so it reads in pixels. */
-export function linePx(value: number): string {
-  return `${Number((0.5 + value * 3.5).toFixed(1))} px`;
-}
-
-function readParam(param: ParamDef, value: number) {
-  if (param.group === 'lines' && param.key === 'width') return linePx(value);
-  if (param.key === 'indexEvery') return boldEvery(value);
-  return param.integer ? String(value) : value.toFixed(2);
-}
 
 const PATHS: { id: CameraMotion; label: string; glyph: GlyphName }[] = [
   { id: 'still', label: 'Still', glyph: 'still' },
@@ -422,8 +411,6 @@ function useLivePose(pg: Playground, moving: boolean) {
   return moving ? pose : null;
 }
 
-const ordinal = (n: number) => `${n}${n % 10 === 1 && n !== 11 ? 'st' : n % 10 === 2 && n !== 12 ? 'nd' : n % 10 === 3 && n !== 13 ? 'rd' : 'th'}`;
-
 /** The live picture at the top of a settings tab, drawn from that tab's values. */
 function GroupPreview({ pg, group, dim }: { pg: Playground; group: GroupName; dim: boolean }) {
   const s = pg.settings;
@@ -434,7 +421,7 @@ function GroupPreview({ pg, group, dim }: { pg: Playground; group: GroupName; di
     return <Preview height={92} caption={caption} label={caption} art={(w) => contourArt(L, w, 92, w * 0.7, 54, 230)} />;
   }
   if (group === 'terrain') {
-    const caption = dim ? 'Shape from the map' : `${s.terrain.peaks} ${s.terrain.peaks === 1 ? 'peak' : 'peaks'}`;
+    const caption = dim ? 'Terrain from the map' : `${s.terrain.peaks} ${s.terrain.peaks === 1 ? 'peak' : 'peaks'}`;
     return <Preview height={92} dim={dim} caption={caption} label={`Terrain profile: ${caption}`} art={(w) => terrainArt(s.terrain, w, 82, 16)} />;
   }
   if (group === 'motion') {
@@ -468,7 +455,7 @@ function ViewTune({ pg }: { pg: Playground }) {
   // Scene, camera and quality only show in 3D.
   const off = s.mode !== '3d';
   // The camera's default is the active look's camera, or the library's default camera without a look.
-  const home = (pg.lookIndex >= 0 && LOOK_CAMERAS[LOOKS[pg.lookIndex].name]) || DEFAULT_CAMERA;
+  const home = (pg.lookIndex >= 0 && LOOKS[pg.lookIndex].settings.camera) || DEFAULT_CAMERA;
   const cameraChanged = (Object.keys(home) as (keyof typeof home)[]).some((k) => s.camera[k] !== home[k])
     || s.camera.motion !== DEFAULT_CAMERA.motion || s.camera.panX !== 0 || s.camera.panZ !== 0;
   const pose = useLivePose(pg, !off && s.camera.motion !== 'still');
@@ -548,7 +535,7 @@ function ParamTune({ pg, group, region }: { pg: Playground; group: GroupName; re
   const off = (p: ParamDef) => Boolean(region.bbox) && ignoredWithPlace(p);
   return (
     <>
-      {params.some(off) && <OffNote text={`Shape comes from the map: ${region.name}.`} action="Clear map" onAction={region.clear} />}
+      {params.some(off) && <OffNote text={`Terrain comes from the map: ${region.name}.`} action="Clear map" onAction={region.clear} />}
       <GroupPreview pg={pg} group={group} dim={params.every(off)} />
       {sections.map((sec) => {
         const own = sec.keys.map((k) => params.find((p) => p.key === k)).filter((p): p is ParamDef => Boolean(p));
@@ -564,15 +551,11 @@ function ParamTune({ pg, group, region }: { pg: Playground; group: GroupName; re
             {own.map((p) => {
               const value = valueOf(p);
               return (
-                <SliderRow
+                <ParamRow
                   key={p.key}
-                  label={SHORT_LABEL[p.key] ?? p.label}
-                  name={p.label}
-                  icon={p.key as GlyphName}
-                  art={p.key as TrackKind}
-                  hint={off(p) ? 'The map place sets the shape, so this has no effect until you clear it.' : p.description}
-                  value={value} min={p.min} max={p.max} step={p.step} shown={readParam(p, value)}
-                  valueText={p.group === 'lines' && p.key === 'width' ? linePx(value) : p.key === 'indexEvery' ? boldEvery(value) : undefined}
+                  param={p}
+                  value={value}
+                  hint={off(p) ? 'The map place sets the terrain, so this has no effect until you clear it.' : undefined}
                   disabled={off(p)}
                   onChange={(n) => { tuned(p.group, p.key); pg.change({ [p.group]: { [p.key]: n } }); }}
                 />
@@ -676,13 +659,14 @@ function LowPerformancePrompt({ pg, loading }: { pg: Playground; loading: boolea
   );
 }
 
-export function Shell({ pg, terrains, place, tune, exporting, clusterRef, onOpenMap, children }: {
+export function Shell({ pg, terrains, place, tune, install, clusterRef, onOpenMap, children }: {
   pg: Playground;
   terrains: Terrains;
   onOpenMap?: () => void;
   place?: ReactNode;
   tune: ReactNode;
-  exporting: ReactNode;
+  /** Export and Install, the cluster's second group. */
+  install?: ReactNode;
   clusterRef?: Ref<HTMLDivElement>;
   children?: ReactNode;
 }) {
@@ -693,7 +677,7 @@ export function Shell({ pg, terrains, place, tune, exporting, clusterRef, onOpen
       <GlRecovery pg={pg} />
       <Wordmark />
       <div className="pt-top">
-        <Cluster pg={pg} place={place} tune={tune} exporting={exporting} clusterRef={clusterRef} />
+        <Cluster pg={pg} place={place} tune={tune} share={install} clusterRef={clusterRef} />
       </div>
       <LowPerformancePrompt pg={pg} loading={terrains.region.status === 'loading'} />
       {children}
@@ -710,9 +694,9 @@ export function useDismiss(close: () => void) {
   }, [close]);
 }
 
-type PopName = 'place' | 'tune' | 'export';
+type PopName = 'place' | 'tune' | 'export' | 'install';
 
-const PANEL: Record<PopName, PanelName> = { place: 'map', tune: 'tune', export: 'export' };
+const PANEL: Record<PopName, PanelName> = { place: 'map', tune: 'tune', export: 'export', install: 'install' };
 
 /** Sends `panel_opened` when a cluster popover opens and `panel_closed` with how long it stayed open. */
 function usePanelTiming(open: PopName | null) {
@@ -785,7 +769,12 @@ export function GlassFrame({ pg, terrains, tune, exporting }: {
           </ClusterPositioner>
         </Popover.Root>
       )}
-      exporting={exporting(open === 'export', openChange('export'), clusterRef)}
+      install={(
+        <InstallMenu
+          pg={pg} region={region} open={open === 'install'} onOpenChange={openChange('install')} onOpenExport={() => setOpen('export')}
+          anchor={clusterRef} exporting={exporting(open === 'export', openChange('export'), clusterRef)}
+        />
+      )}
     />
   );
 }

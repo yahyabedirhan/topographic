@@ -1,4 +1,4 @@
-import type { SnapshotRegion, TopographicBackground } from 'topographic';
+import type { SnapshotRegion, Topography } from 'topographic';
 
 export const PNG_SIZES = [
   { id: 'screen', label: 'Screen ×2', width: 0, height: 0 },
@@ -14,7 +14,7 @@ export type PngSize = (typeof PNG_SIZES)[number];
  * A PNG of the background. With a region, only that slice of the view, drawn at full detail; without one,
  * a size other than the window's shape lays the view out again at that shape.
  */
-export async function renderPng(t: TopographicBackground, width?: number, height?: number, region?: SnapshotRegion): Promise<Blob> {
+export async function renderPng(t: Topography, width?: number, height?: number, region?: SnapshotRegion): Promise<Blob> {
   if (region) return t.snapshot({ width: width || undefined, height: height || undefined, region });
   const w = width || t.canvas.clientWidth * 2;
   const h = height || (width ? Math.round((width * t.canvas.clientHeight) / t.canvas.clientWidth) : t.canvas.clientHeight * 2);
@@ -38,11 +38,27 @@ export function cropRegion(viewAspect: number, width: number, height: number, at
   return { x: 0, y: (1 - h) * a, width: 1, height: h };
 }
 
-export async function downloadPng(t: TopographicBackground, size: PngSize, region?: SnapshotRegion | null): Promise<void> {
+/** A place name as a file name part: "Matterhorn & Zermatt" is "matterhorn-and-zermatt". */
+const fileSlug = (name: string) => name.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+  .replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+/** The PNG file name: the place when a named place is set, otherwise the shape and the seed. */
+export function pngFileName(s: { shape: string; seed: number }, place?: string | null): string {
+  const named = place ? fileSlug(place) : '';
+  return named ? `topographic-${named}.png` : `topographic-${s.shape}-${s.seed}.png`;
+}
+
+/** The video file name: the place, when a named place is set, and the camera motion. */
+export function videoFileName(motion: string, ext: 'mp4' | 'webm', place?: string | null): string {
+  const named = place ? fileSlug(place) : '';
+  return named ? `topographic-${named}-${motion}.${ext}` : `topographic-${motion}.${ext}`;
+}
+
+export async function downloadPng(t: Topography, size: PngSize, region?: SnapshotRegion | null, place?: string | null): Promise<void> {
   const blob = await renderPng(t, size.width, size.height, region ?? undefined);
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `topographic-${t.settings.style}-${t.settings.seed}.png`;
+  a.download = pngFileName(t.settings, place);
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }

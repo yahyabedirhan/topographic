@@ -1,14 +1,9 @@
-import { DEFAULT_STYLE, PARAMS, fromQuery, mergeSettings, resolveSettings, type ParamDef, type Settings, type SettingsInput } from 'topographic';
-import { LOOKS, type Look } from './looks';
+import { DEFAULT_SHAPE, LOOKS, PARAMS, fromQuery, mergeSettings, resolveSettings, type ParamDef, type Settings, type SettingsInput } from 'topographic';
 
 const VIEW = ['m', 'ink', 'paper', 'mode', 'ex', 'ev', 'dl', 'ql', 'az', 'ce', 'rd', 'cm', 'px', 'pz', 'vx', 'vy', 'vz'] as const;
 
-/** Every query key the settings own. The region keys belong to region/url.ts. */
+/** Every query key the settings own. `s` is the shape. The region keys belong to region/url.ts. */
 export const SETTINGS_KEYS: readonly string[] = ['look', 's', 'seed', ...(PARAMS as readonly ParamDef[]).map((p) => p.short), ...VIEW];
-
-export const lookSlug = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-
-export const findLook = (slug: string | null): Look | undefined => slug ? LOOKS.find((l) => lookSlug(l.name) === slug) : undefined;
 
 /** The playground draws at the finest detail and the high budget unless the settings name their own. */
 export const PLAYGROUND_QUALITY = { detail: 1, quality: 'high' } as const satisfies SettingsInput;
@@ -24,7 +19,7 @@ const colourIn = (c: string) => HEX.test(`#${c}`) ? `#${c}` : c;
 function diff(s: Settings, base: Settings): [string, string][] {
   const out: [string, string][] = [];
   const put = (key: string, a: unknown, b: unknown) => { if (a !== b) out.push([key, String(a)]); };
-  put('s', s.style, base.style);
+  put('s', s.shape, base.shape);
   put('seed', s.seed, base.seed);
   for (const p of PARAMS as readonly ParamDef[]) put(p.short, (s[p.group] as Record<string, number>)[p.key], (base[p.group] as Record<string, number>)[p.key]);
   put('m', s.theme.mode, base.theme.mode);
@@ -52,19 +47,19 @@ export const HOME_QUERY = 'look=fine-granite&mode=3d';
 
 const same = (a: Settings, b: Settings) => !diff(a, b).length && a.theme.ink === b.theme.ink && a.theme.paper === b.theme.paper;
 
-/** The settings as the fewest query params: a diff against the style defaults or against a look of the same style. */
+/** The settings as the fewest query params: a diff against the shape defaults or against a library look of the same shape. */
 export function settingsParams(s: Settings): [string, string][] {
   if (same(decode(new URLSearchParams(HOME_QUERY)), s)) return [];
-  const plain = diff(s, { ...playgroundSettings({ style: s.style }), style: DEFAULT_STYLE });
+  const plain = diff(s, { ...playgroundSettings({ shape: s.shape }), shape: DEFAULT_SHAPE });
   let best = plain;
   for (const look of LOOKS) {
-    const base = playgroundSettings(look.settings);
-    if (base.style !== s.style) continue;
-    const entries: [string, string][] = [['look', lookSlug(look.name)], ...diff(s, base)];
+    const base = playgroundSettings({ look: look.id });
+    if (base.shape !== s.shape) continue;
+    const entries: [string, string][] = [['look', look.id], ...diff(s, base)];
     if (entries.length < best.length && same(decode(new URLSearchParams(entries)), s)) best = entries;
   }
-  // An empty query means the home view, so other settings always name their style.
-  return best.length ? best : [['s', s.style]];
+  // An empty query means the home view, so other settings always name their shape.
+  return best.length ? best : [['s', s.shape]];
 }
 
 export function readSettings(search: string): Settings {
@@ -72,14 +67,13 @@ export function readSettings(search: string): Settings {
   return decode(SETTINGS_KEYS.some((key) => q.has(key)) ? q : new URLSearchParams(HOME_QUERY));
 }
 
+/** `look=` is a library look by id, as links made before 0.6.0 also wrote it. The other params override it. */
 function decode(q: URLSearchParams): Settings {
-  const look = findLook(q.get('look'));
-  const base = playgroundSettings(look ? look.settings : { style: q.get('s') ?? undefined });
   for (const key of ['ink', 'paper']) {
     const v = q.get(key);
     if (v) q.set(key, colourIn(v));
   }
-  return mergeSettings(base, fromQuery(q.toString()));
+  return playgroundSettings(fromQuery(q.toString()));
 }
 
 /** A query string that keeps commas readable. */

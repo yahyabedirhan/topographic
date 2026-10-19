@@ -8,6 +8,7 @@ import { detectTier, readDeviceSignals, stepTier, tierFor, type TierId } from '.
 import { createTerrainPass } from './terrain3d.js';
 import { snapshotFrame, type SnapshotRegion } from './snapshot.js';
 import { encodeVideo } from './video.js';
+import { findLocation, loadLocation } from './locations/builtin.js';
 
 export interface RendererOptions {
   /** Highest device pixel ratio to render at. Lines are anti-aliased in the shader, so 2 is plenty. */
@@ -69,14 +70,17 @@ export interface RecordOptions {
   motion?: CameraMotion;
 }
 
-export interface TopographicBackground {
+export interface Topography {
   /** Merges, clamps and applies new settings; only changed uniforms are sent to the GPU. */
   update(patch: SettingsInput): void;
   /** Renders one frame off-screen and returns a PNG. The live canvas is not resized. */
   snapshot(opts?: SnapshotOptions): Promise<Blob>;
   /** Renders a 3D clip with a moving camera. The live canvas is not resized. */
   record(opts?: RecordOptions): Promise<Blob>;
-  /** Use a real elevation grid for the contours, or null for the procedural style. */
+  /**
+   * Use a real elevation grid for the contours, or null for the procedural shape. The grid stays until
+   * the `location` setting changes.
+   */
   setHeightfield(field: Heightfield | null): void;
   /**
    * Stops drawing while another WebGL view (a map, a snapshot batch) needs the GPU.
@@ -107,7 +111,7 @@ const DEFAULTS: Required<Omit<RendererOptions, 'forceWebGL1' | 'benchmark'>> = {
 const TEXT_COLUMN_HALF_WIDTH_PX = 300;
 const QUAD = new Float32Array([-1, -1, 3, -1, -1, 3]);
 
-export function createTopographicBackground(el: HTMLElement, input: SettingsInput = {}, options: RendererOptions = {}): TopographicBackground {
+export function createTopography(el: HTMLElement, input: SettingsInput = {}, options: RendererOptions = {}): Topography {
   const opts = { ...DEFAULTS, ...options };
   const doc = el.ownerDocument;
   const view = doc.defaultView ?? window;
@@ -123,6 +127,10 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
   let heightVersion = 0;
   let heightTex: WebGLTexture | null = null;
   let uploadedVersion = -1;
+  /** The location setting the drawn grid comes from, and the load of a built-in one. */
+  let shownLocation: Settings['location'] = null;
+  let locationLoad: Promise<void> | null = null;
+  let locationToken = 0;
   let quadBuffer: WebGLBuffer | null = null;
   let statFps = 0;
   let statFrame = 0;
@@ -522,8 +530,36 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
     }
   }
 
+  function showField(field: Heightfield | null): void {
+    heightField = field;
+    heightVersion += 1;
+    draw();
+    schedule();
+  }
+
+  /** Follows the location setting: a grid shows at once, a built-in id loads its own file first. */
+  function syncLocation(): void {
+    const next = settings.location;
+    if (next === shownLocation) return;
+    shownLocation = next;
+    const token = ++locationToken;
+    locationLoad = null;
+    if (next === null || typeof next !== 'string') { showField(next); return; }
+    // Flat ground draws only the paper while the grid loads, rather than the generated terrain.
+    showField({ samples: new Float32Array(4), size: 2, aspect: findLocation(next)?.aspect ?? 1 });
+    locationLoad = loadLocation(next).then(
+      (field) => { if (token === locationToken && status !== 'destroyed') showField(field); },
+      (error: unknown) => {
+        if (token !== locationToken || status === 'destroyed') return;
+        console.warn(`[topographic] location "${next}" could not be loaded`, error);
+        showField(null);
+      },
+    ).finally(() => { if (token === locationToken) locationLoad = null; });
+  }
+
   resize();
   schedule();
+  syncLocation();
 
   return {
     get settings() { return settings; },
@@ -550,13 +586,14 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
       if (patch.quality !== undefined) resize();
       else draw();
       schedule();
+      syncLocation();
     },
     setHeightfield(field) {
       if (status === 'destroyed') return;
-      heightField = field;
-      heightVersion += 1;
-      draw();
-      schedule();
+      // A built-in location still loading must not replace this grid when it arrives.
+      locationToken += 1;
+      locationLoad = null;
+      showField(field);
     },
     hold(paused) {
       if (status === 'destroyed' || held === paused) return;
@@ -579,6 +616,7 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
       if (settings.mode === '3d') draw();
     },
     async snapshot(o = {}) {
+      if (locationLoad) await locationLoad;
       if (!gl || !program || (status !== 'webgl2' && status !== 'webgl1')) throw new Error('[topographic] snapshot needs WebGL');
       const f = snapshotFrame(canvas.width, canvas.height, o);
       const w = f.width;
@@ -614,6 +652,7 @@ export function createTopographicBackground(el: HTMLElement, input: SettingsInpu
       return new Promise<Blob>((resolve, reject) => out.toBlob((b) => (b ? resolve(b) : reject(new Error('[topographic] PNG encoding failed'))), 'image/png'));
     },
     async record(o = {}) {
+      if (locationLoad) await locationLoad;
       if (!gl || !program || (status !== 'webgl2' && status !== 'webgl1')) throw new Error('[topographic] video needs WebGL');
       const fps = Math.min(60, Math.max(1, Math.round(o.fps ?? 24)));
       const seconds = Math.min(12, Math.max(0.5, o.seconds ?? 4));

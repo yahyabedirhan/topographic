@@ -29,11 +29,11 @@ const missing = ['cwebp'].filter((tool) => {
 if (missing.length) throw new Error(`${missing.join(', ')} not on the PATH`);
 
 // The built-in Istanbul map terrain, first in the dock (ISTANBUL_SETTINGS in region/map-looks.ts).
-const ISTANBUL = 's=gentle-summit&seed=67&lc=36&lw=0&lo=0.9&ix=4&fd=0.15&m=dark&mode=3d&ex=block&ev=0.12&az=353.3&ce=45.1&rd=1.15&px=0.043&pz=-0.075&place=istanbul';
+const ISTANBUL = 's=gentle-summit&seed=67&lc=36&lw=0&lo=0.9&ix=4&fd=0.15&m=dark&mode=3d&ex=block&ev=0.12&az=341.6&ce=45.3&rd=1.15&px=-0.005&pz=-0.013&place=istanbul';
 // The Istanbul look without its place and camera: set_region gives each place its own view.
 const PLACE_BASE = 's=gentle-summit&seed=67&lc=36&lw=0&lo=0.9&ix=4&fd=0.15&m=dark';
 const PLACES = ['istanbul', 'cyprus', 'matterhorn', 'geirangerfjord', 'grand-canyon', 'yosemite', 'torres-del-paine', 'fuji', 'everest', 'kilimanjaro'];
-// Looks from the dock (LOOKS in looks.ts), by slug. The 3D tiles show looks in 3D.
+// Looks from the dock (LOOKS in packages/core/src/looks.ts), by id. The 3D tiles show looks in 3D.
 const LOOKS_2D = ['survey-ridge', 'rose-pod', 'sea-dunes', 'stepped-petals', 'stone-grain', 'centred-lobes'];
 const LOOKS_3D = ['night-flower', 'terraces', 'rocky-spine'];
 // The hero is one large still of a look in 3D, drawn without the playground's controls.

@@ -1,7 +1,7 @@
-import { STYLES } from '../styles.js';
+import { SHAPES } from '../shapes.js';
 import { COMMON } from './common.glsl.js';
 
-const STYLE_DEFINES = STYLES.map((s) => `#define STYLE_${s.id.toUpperCase().replace(/-/g, '_')} ${s.index}`).join('\n');
+const STYLE_DEFINES = SHAPES.map((s) => `#define STYLE_${s.id.toUpperCase().replace(/-/g, '_')} ${s.index}`).join('\n');
 
 export const CONTOUR_FIELD = /* glsl */ `
 ${STYLE_DEFINES}
@@ -105,7 +105,9 @@ vec4 contourPaint(int s, vec2 p, vec2 screen){
   float l=(1.-smoothstep(px*fw*.5, px*fw*.5+fw, .5-dd))*(1.+.15*isIx);
   float beads=shaped
     ? smoothstep(.75,1.,sin(ang*40.+t*8.*float(s+1)))*l*uParams[4]
-    : smoothstep(.75,1.,sin((p.x+p.y)*60.+t*8.))*l*uParams[4];
+    // On a heightfield each contour gets its own phase. With one shared phase every line lit up where it
+    // crossed the same diagonal crest, and steep, dense slopes showed those crests as stripes.
+    : smoothstep(.75,1.,sin((p.x+p.y)*60.+t*8.+6.2832*hash(vec2(idx,17.))*uHasHeight))*l*uParams[4];
   float m=shaped ? colMask(screen)*smoothstep(2.2,.1,r)*a : colMask(screen);
   float lineAmp=(l*.75+beads*.7)*uParams[2]*m;
   vec4 ink=paint(c,lineAmp);

@@ -1,4 +1,4 @@
-import { GROUPS, PARAMS, STYLES } from 'topographic';
+import { GROUPS, LOOKS, PARAMS, SHAPES } from 'topographic';
 import { AGENT_NAMES, PURPOSES } from './actor';
 
 const groupSchema = (g: string) => ({
@@ -13,7 +13,9 @@ export const SETTINGS_SCHEMA = {
   type: 'object',
   additionalProperties: false,
   properties: {
-    style: { type: 'string', enum: STYLES.map((s) => s.id), description: 'Terrain style.' },
+    look: { type: 'string', enum: LOOKS.map((l) => l.id), description: 'A named design from list_shapes. It sets the shape, seed, lines, terrain, motion, layout, colours and camera pose, and keeps the view. The other keys in the same call override its values.' },
+    shape: { type: 'string', enum: SHAPES.map((s) => s.id), description: 'The land shape of the procedural terrain.' },
+    style: { type: 'string', enum: SHAPES.map((s) => s.id), description: 'Old name of shape, accepted until the next release. Use shape.' },
     seed: { type: 'integer', minimum: 0, maximum: 999999, description: 'Same seed, same terrain. 0 is the original look.' },
     ...Object.fromEntries(GROUPS.map((g) => [g, groupSchema(g)])),
     theme: {
@@ -24,7 +26,7 @@ export const SETTINGS_SCHEMA = {
         paper: { type: 'string', description: "CSS colour of the background, or 'transparent'." },
       },
     },
-    mode: { type: 'string', enum: ['2d', '3d'], description: '2d is the map. 3d is the same map as a terrain. 2d is the default.' },
+    mode: { type: 'string', enum: ['2d', '3d'], description: '2d is the map. 3d is the same map as a terrain. The library defaults to 2d; the playground opens a bare URL in 3d.' },
     elevation: { type: 'number', minimum: 0, maximum: 1, description: '3D height. 0 is flat like the map; higher values make the terrain taller, with a rounded crest.' },
     extent: { type: 'string', enum: ['block', 'endless'], description: 'block is a finite tabletop with cut sides. endless continues past the view. The playground defaults to endless.' },
     detail: { type: 'number', minimum: 0, maximum: 1, description: '3D mesh resolution. 0 is coarsest, 1 is finest.' },
@@ -61,18 +63,18 @@ export const TOOL_DEFS: ToolDef[] = [
       name: { type: 'string', enum: AGENT_NAMES, description: 'Your agent or harness. chatgpt covers ChatGPT and Codex. Use other when yours is not listed.' },
       purpose: { type: 'string', enum: PURPOSES, description: PURPOSE_HELP },
     } } },
-  { name: 'list_styles', title: 'List styles', readOnly: true,
-    description: 'Lists the terrain styles and the presets, with ids, names and descriptions.',
+  { name: 'list_shapes', title: 'List shapes', readOnly: true,
+    description: 'Lists the shapes, with ids, names and descriptions, and the looks, with ids, names and settings. Pass a look id to set_settings as look.',
     inputSchema: { type: 'object', properties: {} } },
   { name: 'get_settings', title: 'Get settings', readOnly: true,
     description: 'Returns the current settings: the full resolved object, the minimal config JSON (only non-default values), and the graphics tier actually drawing (quality, fps, frameMs, mesh).',
     inputSchema: { type: 'object', properties: {} } },
   { name: 'set_settings', title: 'Set settings', readOnly: false,
-    description: 'Changes the background. Takes a partial settings object; values are merged into the current settings, clamped to their ranges, and applied live. Returns the resulting config and any adjustments made.',
+    description: 'Changes the background. Takes a partial settings object; values are merged into the current settings, clamped to their ranges, and applied live. A new theme.mode clears the earlier ink and paper unless you give them in the same call, as the page\'s theme button does. Returns the resulting config and any adjustments made.',
     inputSchema: SETTINGS_SCHEMA },
   { name: 'randomize', title: 'Randomize', readOnly: false,
-    description: 'Picks a new random seed. With style: true, also picks a random style.',
-    inputSchema: { type: 'object', properties: { style: { type: 'boolean', description: 'Also randomize the style.' } } } },
+    description: 'Picks a new random seed. With shape: true, also picks a random shape.',
+    inputSchema: { type: 'object', properties: { shape: { type: 'boolean', description: 'Also randomize the shape.' } } } },
   { name: 'take_screenshot', title: 'Take screenshot', readOnly: true,
     description: 'Renders the current background to a PNG and returns it as a data URL. Defaults to 1200 px wide at the screen aspect ratio. With region, only that slice of the current view, at full detail (for example a phone-shaped strip).',
     inputSchema: { type: 'object', properties: {

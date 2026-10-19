@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { playgroundSettings, readSettings, writeSettings } from '../share-url';
-import { findPlace } from './places';
+import { findPlace, loadCatalog } from './places';
 import { findMapLook, MAP_LOOKS } from './map-looks';
 
 /** The reference query for the built-in Istanbul. */
@@ -20,14 +20,15 @@ describe('built-in map terrains', () => {
   });
 
   it.each([
-    ['geirangerfjord', '?look=rose-pod&lc=36&lw=0&lo=0.9&ix=4&ink=a8c7f0&paper=0b0b0d&mode=3d&ex=block&ev=0.16&az=341.8&ce=35&rd=1.32&px=0.033&pz=-0.049&place=geirangerfjord'],
-    ['fuji', '?look=rose-pod&lc=36&lw=0&lo=0.9&ix=4&ink=9fbecc&paper=0b0b0d&mode=3d&ex=block&ev=0.24&az=341.8&ce=30&rd=1.32&px=0.033&pz=-0.049&place=fuji'],
-    ['yosemite', '?look=rose-pod&lc=36&lw=0&lo=0.9&ix=4&ink=a8eff0&paper=0b0b0d&mode=3d&ex=block&ev=0.16&az=341.8&ce=35&rd=1.32&px=0.033&pz=-0.049&place=yosemite'],
+    ['geirangerfjord', '?look=rose-pod&lc=36&lw=0&lo=0.9&ix=4&ink=a8c7f0&paper=0b0b0d&mode=3d&ex=block&ev=0.16&az=341.8&ce=35&rd=1.32&px=0.003&pz=0.05&place=geirangerfjord'],
+    ['fuji', '?look=rose-pod&lc=36&lw=0&lo=0.9&ix=4&ink=9fbecc&paper=0b0b0d&mode=3d&ex=block&ev=0.24&az=341.8&ce=30&rd=1.32&px=0.003&pz=0.05&place=fuji'],
+    ['yosemite', '?look=rose-pod&lc=36&lw=0&lo=0.9&ix=4&ink=a8eff0&paper=0b0b0d&mode=3d&ex=block&ev=0.16&az=341.8&ce=35&rd=1.32&px=0.003&pz=0.05&place=yosemite'],
   ])('decodes %s to exactly the settings of its reference query', (id, url) => {
     expect(playgroundSettings(findMapLook(id)!.settings)).toEqual(readSettings(url));
   });
 
-  it('uses each place\'s own box and name, with unique ids', () => {
+  it('uses each place\'s own box and name, with unique ids', async () => {
+    await loadCatalog();
     for (const look of MAP_LOOKS) {
       expect(look.bbox).toEqual(findPlace(look.placeId)!.bbox);
       expect(look.name).toBe(findPlace(look.placeId)!.name);

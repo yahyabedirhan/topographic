@@ -1,0 +1,135 @@
+'use client';
+import { forwardRef, useEffect, useRef, useState, type HTMLAttributes, type MutableRefObject } from 'react';
+import { createTopography, type RendererOptions, type SettingsInput, type Topography as TopographyInstance } from 'topographic';
+
+export interface TopographySettingsProps {
+  /** A built-in look by id, e.g. 'survey-map'. The other props override its values. */
+  look?: string;
+  /** Shape id, e.g. 'dunes'. `style` stays React's inline CSS prop. */
+  shape?: string;
+  /** A built-in location id such as 'everest', or a height grid from fetchLocation(). Compared by identity. */
+  location?: SettingsInput['location'];
+  seed?: number;
+  lines?: SettingsInput['lines'];
+  terrain?: SettingsInput['terrain'];
+  motion?: SettingsInput['motion'];
+  layout?: SettingsInput['layout'];
+  theme?: SettingsInput['theme'];
+  /** '2d' is the map. '3d' is the same map as a terrain. */
+  mode?: SettingsInput['mode'];
+  elevation?: number;
+  extent?: SettingsInput['extent'];
+  detail?: number;
+  /** auto follows the device. low, medium and high stay put. */
+  quality?: SettingsInput['quality'];
+  camera?: SettingsInput['camera'];
+  /** The 2D map's own pan and zoom. 3D ignores it. */
+  view2d?: SettingsInput['view2d'];
+}
+
+export interface TopographyRef<T extends HTMLElement = HTMLDivElement> extends MutableRefObject<T | null> {
+  /** The live instance while mounted (for snapshot, or imperative updates). */
+  topographic: TopographyInstance | null;
+}
+
+const key = (v: unknown) => (v === undefined ? '' : JSON.stringify(v));
+
+function useByValue<T>(value: T): T {
+  const [kept, setKept] = useState(value);
+  if (key(kept) === key(value)) return kept;
+  setKept(value);
+  return value;
+}
+
+/** Attaches a topographic to the element you put the returned ref on. */
+export function useTopography<T extends HTMLElement = HTMLDivElement>(
+  settings: TopographySettingsProps = {},
+  options?: RendererOptions,
+): TopographyRef<T> {
+  const [ref] = useState<TopographyRef<T>>(() => ({ current: null, topographic: null }));
+  const latest = useRef(settings);
+  latest.current = settings;
+  const stableOptions = useByValue(options);
+
+  useEffect(() => {
+    if (!ref.current) return;
+    const t = createTopography(ref.current, latest.current, stableOptions);
+    ref.topographic = t;
+    return () => { t.destroy(); ref.topographic = null; };
+  }, [ref, stableOptions]);
+
+  const { look, shape, location, seed, mode, elevation, extent, detail, quality } = settings;
+  const lines = useByValue(settings.lines);
+  const terrain = useByValue(settings.terrain);
+  const motion = useByValue(settings.motion);
+  const layout = useByValue(settings.layout);
+  const theme = useByValue(settings.theme);
+  const camera = useByValue(settings.camera);
+  const view2d = useByValue(settings.view2d);
+  // A new look replaces the design, so the other props apply again on top of it.
+  useEffect(() => { if (look !== undefined) ref.topographic?.update({ ...latest.current, look }); }, [ref, look]);
+  useEffect(() => { if (shape !== undefined) ref.topographic?.update({ shape }); }, [ref, shape]);
+  // A height grid is large, so it is compared by identity rather than by value. The props a place
+  // sets go with it, so a new location's look never replaces the ones you set.
+  useEffect(() => {
+    if (location === undefined) return;
+    const { camera: c, elevation: e, extent: x, lines: l, layout: y } = latest.current;
+    ref.topographic?.update({
+      location,
+      ...(c ? { camera: c } : {}), ...(e !== undefined ? { elevation: e } : {}), ...(x !== undefined ? { extent: x } : {}),
+      ...(l ? { lines: l } : {}), ...(y ? { layout: y } : {}),
+    });
+  }, [ref, location]);
+  useEffect(() => { if (seed !== undefined) ref.topographic?.update({ seed }); }, [ref, seed]);
+  useEffect(() => { if (lines) ref.topographic?.update({ lines }); }, [ref, lines]);
+  useEffect(() => { if (terrain) ref.topographic?.update({ terrain }); }, [ref, terrain]);
+  useEffect(() => { if (motion) ref.topographic?.update({ motion }); }, [ref, motion]);
+  useEffect(() => { if (layout) ref.topographic?.update({ layout }); }, [ref, layout]);
+  useEffect(() => { if (theme) ref.topographic?.update({ theme }); }, [ref, theme]);
+  useEffect(() => { if (mode !== undefined) ref.topographic?.update({ mode }); }, [ref, mode]);
+  useEffect(() => { if (elevation !== undefined) ref.topographic?.update({ elevation }); }, [ref, elevation]);
+  useEffect(() => { if (extent !== undefined) ref.topographic?.update({ extent }); }, [ref, extent]);
+  useEffect(() => { if (detail !== undefined) ref.topographic?.update({ detail }); }, [ref, detail]);
+  useEffect(() => { if (quality !== undefined) ref.topographic?.update({ quality }); }, [ref, quality]);
+  useEffect(() => { if (camera) ref.topographic?.update({ camera }); }, [ref, camera]);
+  useEffect(() => { if (view2d) ref.topographic?.update({ view2d }); }, [ref, view2d]);
+
+  return ref;
+}
+
+export interface TopographyProps extends TopographySettingsProps, Omit<HTMLAttributes<HTMLDivElement>, 'children'> {
+  /** Renderer options (pixel budget, WebGL1). Changing them recreates the renderer. */
+  options?: RendererOptions;
+  /** Called with the instance after mount, and with null on unmount. */
+  onReady?: (topographic: TopographyInstance | null) => void;
+  children?: React.ReactNode;
+}
+
+/** A <div> with a topographic background. Size it like any div; children render on top. */
+export const Topography = forwardRef<HTMLDivElement, TopographyProps>(function Topography(
+  { look, shape, location, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera, view2d, options, onReady, style, children, ...div },
+  forwarded,
+) {
+  const ref = useTopography<HTMLDivElement>({ look, shape, location, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera, view2d }, options);
+  const stableOptions = useByValue(options);
+  const ready = useRef(onReady);
+  ready.current = onReady;
+  useEffect(() => {
+    ready.current?.(ref.topographic);
+    return () => ready.current?.(null);
+  }, [ref, stableOptions]);
+
+  return (
+    <div
+      {...div}
+      style={{ position: 'relative', ...style }}
+      ref={(node) => {
+        ref.current = node;
+        if (typeof forwarded === 'function') forwarded(node);
+        else if (forwarded) forwarded.current = node;
+      }}
+    >
+      {children !== undefined && <div style={{ position: 'absolute', inset: 0 }}>{children}</div>}
+    </div>
+  );
+});

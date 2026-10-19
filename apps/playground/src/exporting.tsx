@@ -8,7 +8,7 @@ import { Braces, Check, CodeXml, Component, Copy, Download, Image as ImageIcon, 
 import { PARAMS, cameraPose, type CameraMotion, type ParamDef, type SnapshotRegion } from 'topographic';
 import { INSTALL } from './content';
 import { embedCode } from './embed';
-import { PNG_SIZES, cropRegion, downloadPng, type PngSize } from './png';
+import { PNG_SIZES, cropRegion, downloadPng, videoFileName, type PngSize } from './png';
 import { shareUrl } from './url';
 import { type Playground } from './shared';
 import { Glyph, Tabs, Tip, useWidth } from './parts';
@@ -49,7 +49,7 @@ function useCopied(): [boolean, (text: string) => void] {
 }
 
 /** A compact copy action: a copy glyph and its label, then a check and "Copied". */
-function CopyAction({ text, label = 'Copy', quiet = false, onCopy }: { text: string; label?: string; quiet?: boolean; onCopy?: () => void }) {
+export function CopyAction({ text, label = 'Copy', quiet = false, onCopy }: { text: string; label?: string; quiet?: boolean; onCopy?: () => void }) {
   const [copied, copy] = useCopied();
   return (
     <Button className={`pt-action pt-copy${quiet ? ' pt-action-quiet' : ''}${copied ? ' is-done' : ''}`} onClick={() => { onCopy?.(); copy(text); }}>
@@ -62,7 +62,7 @@ function CopyAction({ text, label = 'Copy', quiet = false, onCopy }: { text: str
 }
 
 /** An icon-only copy button, for a line that has its own copy next to a bigger one. */
-function CopyIcon({ text, label, onCopy }: { text: string; label: string; onCopy?: () => void }) {
+export function CopyIcon({ text, label, onCopy }: { text: string; label: string; onCopy?: () => void }) {
   const [copied, copy] = useCopied();
   return (
     <Tooltip.Root>
@@ -77,7 +77,7 @@ function CopyIcon({ text, label, onCopy }: { text: string; label: string; onCopy
 // ---------------------------------------------------------------- Link
 
 const VIEW_NAMES: Record<string, [string, GlyphName]> = {
-  look: ['Look', 'look'], s: ['Style', 'style'], seed: ['Seed', 'seed'], m: ['Theme', 'theme'], ink: ['Ink colour', 'ink'], paper: ['Paper colour', 'paper'],
+  look: ['Look', 'look'], s: ['Shape', 'style'], seed: ['Seed', 'seed'], m: ['Theme', 'theme'], ink: ['Ink colour', 'ink'], paper: ['Paper colour', 'paper'],
   mode: ['2D or 3D', 'mode'], ex: ['Extent', 'extent'], ev: ['Elevation', 'elevation'], dl: ['Detail', 'detail'], az: ['Azimuth', 'azimuth'],
   ce: ['Camera angle', 'angle'], rd: ['Camera distance', 'distance'], cm: ['Camera motion', 'camMotion'], place: ['Map place', 'place'], region: ['Map area', 'place'],
 };
@@ -142,7 +142,7 @@ export type Crops = Record<CropId, number>;
 const CENTRED: Crops = { screen: 0.5, phone: 0.5, '1080p': 0.5 };
 
 /** A picture of the view as it is now, redrawn after the settings settle. */
-function useViewPicture(pg: Playground, width: number, height: number, motion?: CameraMotion, time = 0) {
+export function useViewPicture(pg: Playground, width: number, height: number, motion?: CameraMotion, time = 0) {
   const [src, setSrc] = useState('');
   const current = useRef('');
   const busy = useRef(false);
@@ -173,8 +173,9 @@ function useViewPicture(pg: Playground, width: number, height: number, motion?: 
 
 const n1 = (v: number) => Math.round(v * 10) / 10;
 
-function PngBlock({ pg, size, setSize, crops, setCrops }: {
+function PngBlock({ pg, place, size, setSize, crops, setCrops }: {
   pg: Playground;
+  place: string | null;
   size: CropId;
   setSize: (id: CropId) => void;
   crops: Crops;
@@ -240,9 +241,9 @@ function PngBlock({ pg, size, setSize, crops, setCrops }: {
     const width = size === 'screen' ? Math.round(viewW * 2) : sizeOf(size).width;
     const height = size === 'screen' ? Math.round(viewH * 2) : sizeOf(size).height;
     try {
-      await downloadPng(t, sizeOf(size) as PngSize, size === 'screen' ? null : cropRegion(aspect, sizeOf(size).width, sizeOf(size).height, crops[size]));
+      await downloadPng(t, sizeOf(size) as PngSize, size === 'screen' ? null : cropRegion(aspect, sizeOf(size).width, sizeOf(size).height, crops[size]), place);
       track('export_image_downloaded', {
-        variant: size, format: 'png', width, height, style: String(pg.settings.style), theme: pg.mode, mode: pg.settings.mode,
+        variant: size, format: 'png', width, height, style: String(pg.settings.shape), theme: pg.mode, mode: pg.settings.mode,
         duration_ms: Math.round(performance.now() - t0),
       });
     } catch (error) {
@@ -325,7 +326,7 @@ function PngBlock({ pg, size, setSize, crops, setCrops }: {
 
 // ---------------------------------------------------------------- Video
 
-function VideoBlock({ pg }: { pg: Playground }) {
+function VideoBlock({ pg, place }: { pg: Playground; place: string | null }) {
   const [path, setPath] = useState<CameraMotion>('orbit');
   const [time, setTime] = useState(0.3);
   const [busy, setBusy] = useState<'mp4' | 'webm' | ''>('');
@@ -358,7 +359,7 @@ function VideoBlock({ pg }: { pg: Playground }) {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `topographic-${path}.${blob.type.includes('webm') ? 'webm' : 'mp4'}`;
+      a.download = videoFileName(path, blob.type.includes('webm') ? 'webm' : 'mp4', place);
       a.click();
       window.setTimeout(() => URL.revokeObjectURL(url), 5000);
     } catch (error) {
@@ -430,12 +431,11 @@ const TOKEN = /<\/?[A-Za-z][\w:-]*|\/?>|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:
 /** Lines that are the same for every background: their values are not settings. */
 const BOILERPLATE = /position|^\s*import\b|<script/;
 
-/** One line of code, coloured, with the setting values tinted as pills. Returns the nodes and whether it tinted any. */
-function highlightLine(line: string, key: number): [ReactNode[], boolean] {
+/** One line of code, coloured, with the setting values tinted as pills. */
+function highlightLine(line: string, key: number): ReactNode[] {
   const parts: ReactNode[] = [];
   let last = 0;
   let i = 0;
-  let tinted = false;
   const plain = BOILERPLATE.test(line);
   for (const m of line.matchAll(TOKEN)) {
     const index = m.index ?? 0;
@@ -447,28 +447,19 @@ function highlightLine(line: string, key: number): [ReactNode[], boolean] {
     // A JSON key is a string followed by a colon; every other string or number on a settings line is a value.
     const isKey = str && /^\s*:/.test(line.slice(index + v.length));
     const pill = !plain && (str || num) && !isKey;
-    if (pill) tinted = true;
     parts.push(<span key={`${key}-${i++}`} className={pill ? `${cls} pt-vpill${num ? ' is-num' : ''}` : cls}>{v}</span>);
     last = index + v.length;
   }
   if (last < line.length) parts.push(line.slice(last));
-  return [parts, tinted];
+  return parts;
 }
 
-function CodeView({ code }: { code: string }) {
-  const lines = code.split('\n');
-  let tinted = false;
-  const rows = lines.map((line, n) => {
-    const [nodes, t] = highlightLine(line, n);
-    tinted ||= t;
+export function CodeView({ code }: { code: string }) {
+  const rows = code.split('\n').map((line, n) => {
+    const nodes = highlightLine(line, n);
     return [<span key={`n${n}`} className="pt-ln" aria-hidden="true">{n + 1}</span>, <span key={`l${n}`} className="pt-lc">{nodes.length ? nodes : ' '}</span>];
   });
-  return (
-    <>
-      <pre className="pt-code" tabIndex={0}><code>{rows}</code></pre>
-      {tinted ? <p className="pt-hint pt-hint-small">Tinted values come from Tune. Change them there and this updates.</p> : null}
-    </>
-  );
+  return <pre className="pt-code" tabIndex={0}><code>{rows}</code></pre>;
 }
 
 function CodeBlock({ pg, format }: { pg: Playground; format: 'react' | 'html' | 'json' }) {
@@ -478,7 +469,7 @@ function CodeBlock({ pg, format }: { pg: Playground; format: 'react' | 'html' | 
   const hint = format === 'react'
     ? 'Install the packages, then place this component on the page.'
     : format === 'html'
-      ? 'Add the element script, then place this background on the page.'
+      ? 'Add the element script, then place this element on the page.'
       : 'The settings as data.';
   return (
     <div className="pt-export-block">
@@ -498,8 +489,10 @@ function CodeBlock({ pg, format }: { pg: Playground; format: 'react' | 'html' | 
   );
 }
 
-export function ExportMenu({ pg, open, onOpenChange, clusterRef }: {
+export function ExportMenu({ pg, place, open, onOpenChange, clusterRef }: {
   pg: Playground;
+  /** The name of the named place drawn now, for file names, or null. */
+  place: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   clusterRef: RefObject<HTMLDivElement | null>;
@@ -527,8 +520,8 @@ export function ExportMenu({ pg, open, onOpenChange, clusterRef }: {
           <Popover.Popup className="pt-pop pt-glass pt-export" aria-label="Export" initialFocus={false}>
             <Tabs items={FORMATS} value={format} onChange={(f) => { if (f !== format) track('export_tab_changed', { from: format, to: f, from_ms: Math.round(performance.now() - tabSince.current) }); tabSince.current = performance.now(); setFormat(f); }} label="Export format" />
             {format === 'link' && <LinkBlock pg={pg} />}
-            {format === 'png' && <PngBlock pg={pg} size={size} setSize={setSize} crops={crops} setCrops={setCrops} />}
-            {format === 'video' && <VideoBlock pg={pg} />}
+            {format === 'png' && <PngBlock pg={pg} place={place} size={size} setSize={setSize} crops={crops} setCrops={setCrops} />}
+            {format === 'video' && <VideoBlock pg={pg} place={place} />}
             {format === 'react' && <CodeBlock pg={pg} format="react" />}
             {format === 'html' && <CodeBlock pg={pg} format="html" />}
             {format === 'json' && <CodeBlock pg={pg} format="json" />}

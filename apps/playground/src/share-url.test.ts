@@ -1,29 +1,50 @@
 import { describe, expect, it } from 'vitest';
-import { mergeSettings, type Settings } from 'topographic';
-import { LOOKS } from './looks';
+import { LOOKS, mergeSettings, resolveSettings, type Settings } from 'topographic';
 import cameras from './looks.cameras.json';
-import { findLook, HOME_QUERY, lookSlug, playgroundSettings, readSettings, settingsParams, writeSettings } from './share-url';
+import { HOME_QUERY, playgroundSettings, readSettings, settingsParams, writeSettings } from './share-url';
 
 const query = (s: Settings) => new URLSearchParams(settingsParams(s)).toString();
 const roundTrip = (s: Settings) => expect(readSettings(writeSettings('', s))).toEqual(s);
-const nightLobes = playgroundSettings(findLook('night-lobes')!.settings);
+const nightLobes = playgroundSettings({ look: 'night-lobes' });
 
 describe('share url', () => {
-  it('gives every look a unique slug', () => {
-    expect(lookSlug('Night lobes')).toBe('night-lobes');
-    const slugs = LOOKS.map((l) => lookSlug(l.name));
-    expect(new Set(slugs).size).toBe(LOOKS.length);
-    for (const look of LOOKS) roundTrip(playgroundSettings(look.settings));
+  it('writes every library look by its id and reads it back', () => {
+    for (const look of LOOKS) {
+      const s = playgroundSettings({ look: look.id });
+      expect(query(s)).toBe(`look=${look.id}`);
+      roundTrip(s);
+    }
   });
 
-  it('writes nothing for the home view, and names the style otherwise', () => {
+  it('opens the looks of links made before 0.6.0', () => {
+    const links: Record<string, string> = { 'night-lobes': 'Night lobes', 'fine-granite': 'Fine granite', 'rocky-spine': 'Rocky spine', 'centred-lobes': 'Centred lobes' };
+    for (const [id, name] of Object.entries(links)) {
+      expect(LOOKS.find((l) => l.id === id)?.name).toBe(name);
+      expect(readSettings(`look=${id}&mode=3d`)).toEqual(mergeSettings(playgroundSettings({ look: id }), { mode: '3d' }));
+    }
+  });
+
+  it('gives look=survey-map the library look, with the other params over it', () => {
+    expect(readSettings('look=survey-map')).toEqual(mergeSettings(resolveSettings({ look: 'survey-map' }), { detail: 1, quality: 'high' }));
+    const s = readSettings('look=survey-map&lc=20&ink=ff0000');
+    expect(s.lines).toMatchObject({ count: 20, indexEvery: 5, opacity: 0.55 });
+    expect(s.theme.ink).toBe('#ff0000');
+    expect(query(s)).toBe('look=survey-map&lc=20&ink=ff0000');
+  });
+
+  it('writes nothing for the home view, and names the shape otherwise', () => {
     const home = readSettings('');
     expect(home).toEqual(readSettings(HOME_QUERY));
     expect(query(home)).toBe('');
     expect(query(playgroundSettings())).toBe('s=drifting-lobes');
     roundTrip(playgroundSettings());
-    expect(query(playgroundSettings({ style: 'dunes' }))).toBe('s=dunes');
-    roundTrip(playgroundSettings({ style: 'dunes' }));
+    expect(query(playgroundSettings({ shape: 'dunes' }))).toBe('s=dunes');
+    roundTrip(playgroundSettings({ shape: 'dunes' }));
+  });
+
+  it('reads the shape from s=, as links made before 0.6.0 do', () => {
+    expect(readSettings('s=dunes&seed=4').shape).toBe('dunes');
+    expect(query(readSettings('s=dunes&seed=4'))).toBe('s=dunes&seed=4');
   });
 
   it('writes a look by name', () => {
@@ -49,7 +70,7 @@ describe('share url', () => {
     roundTrip(s);
     expect(query(mergeSettings(s, { camera: { panX: 0, panZ: 0 } }))).toBe('look=night-lobes&mode=3d');
     // A look always comes back centred.
-    expect(playgroundSettings(findLook('night-lobes')!.settings).camera).toMatchObject({ panX: 0, panZ: 0 });
+    expect(playgroundSettings({ look: 'night-lobes' }).camera).toMatchObject({ panX: 0, panZ: 0 });
   });
 
   it('treats endless as the default and writes block', () => {
@@ -72,9 +93,9 @@ describe('share url', () => {
   it('gives every look its own camera and writes nothing for it', () => {
     expect(Object.keys(cameras).sort()).toEqual(LOOKS.map((l) => l.name).sort());
     for (const look of LOOKS) {
-      const s = mergeSettings(playgroundSettings(look.settings), { mode: '3d' });
+      const s = mergeSettings(playgroundSettings({ look: look.id }), { mode: '3d' });
       expect(s.camera).toMatchObject((cameras as Record<string, object>)[look.name]);
-      expect(query(s)).toBe(`look=${lookSlug(look.name)}&mode=3d` === HOME_QUERY ? '' : `look=${lookSlug(look.name)}&mode=3d`);
+      expect(query(s)).toBe(`look=${look.id}&mode=3d` === HOME_QUERY ? '' : `look=${look.id}&mode=3d`);
       roundTrip(s);
     }
     const moved = mergeSettings(nightLobes, { mode: '3d', camera: { azimuth: 12 } });
@@ -82,13 +103,13 @@ describe('share url', () => {
   });
 
   it('writes colours without # and reads them back', () => {
-    const s = playgroundSettings({ style: 'gentle-summit', seed: 4, theme: { mode: 'dark', ink: '#9fb0cc', paper: '#0b0b0d' } });
+    const s = playgroundSettings({ shape: 'gentle-summit', seed: 4, theme: { mode: 'dark', ink: '#9fb0cc', paper: '#0b0b0d' } });
     expect(query(s)).toBe('s=gentle-summit&seed=4&m=dark&ink=9fb0cc&paper=0b0b0d');
     roundTrip(s);
     expect(readSettings('ink=fff&paper=transparent').theme).toMatchObject({ ink: '#fff', paper: 'transparent' });
   });
 
-  it('falls back to the style defaults when a look loses its colours', () => {
+  it('falls back to the shape defaults when a look loses its colours', () => {
     const s = { ...nightLobes, theme: { mode: 'auto' as const } };
     expect(query(s)).not.toContain('look=');
     roundTrip(s);

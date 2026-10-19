@@ -4,6 +4,7 @@ import { Toggle } from '@base-ui-components/react/toggle';
 import { ToggleGroup } from '@base-ui-components/react/toggle-group';
 import { Tooltip } from '@base-ui-components/react/tooltip';
 import { RotateCcw, type LucideIcon } from 'lucide-react';
+import type { ParamDef } from 'topographic';
 import { GLYPHS, trackArt, type GlyphName, type TrackKind } from './track-art';
 
 // The building blocks every popover shares: a tab bar, sections and one row grid.
@@ -160,6 +161,50 @@ export function SliderRow({ label, name, hint, icon, art, value, min, max, step,
       </Slider.Root>
       <output>{shown}</output>
     </div>
+  );
+}
+
+/** Labels that need to fit the 80px label column. The slider keeps the full name. */
+const SHORT_LABEL: Partial<Record<string, string>> = { indexEvery: 'Bold lines' };
+
+/** Every Nth line drawn bolder, read as "1 in N". */
+export const boldEvery = (v: number) => (Math.round(v) < 1 ? 'Off' : `1 in ${Math.round(v)}`);
+
+export const ordinal = (n: number) => `${n}${n % 10 === 1 && n !== 11 ? 'st' : n % 10 === 2 && n !== 12 ? 'nd' : n % 10 === 3 && n !== 13 ? 'rd' : 'th'}`;
+
+/** Line width is stored 0–1 but drawn as a 0.5–4 px stroke (the core's toUniform), so it reads in pixels. */
+export function linePx(value: number): string {
+  return `${Number((0.5 + value * 3.5).toFixed(1))} px`;
+}
+
+/** A parameter's value as the Tune rows show it. */
+export function readParam(param: ParamDef, value: number): string {
+  if (param.group === 'lines' && param.key === 'width') return linePx(value);
+  if (param.key === 'indexEvery') return boldEvery(value);
+  return param.integer ? String(value) : value.toFixed(2);
+}
+
+/** One of the library's numeric parameters as a Tune row: its glyph, short label, telling track and value text. */
+export function ParamRow({ param: p, value, hint, disabled, onChange }: {
+  param: ParamDef;
+  value: number;
+  /** Replaces the parameter's own description as the label's tooltip. */
+  hint?: string;
+  disabled?: boolean;
+  onChange: (n: number) => void;
+}) {
+  return (
+    <SliderRow
+      label={SHORT_LABEL[p.key] ?? p.label}
+      name={p.label}
+      icon={p.key as GlyphName}
+      art={p.key as TrackKind}
+      hint={hint ?? p.description}
+      value={value} min={p.min} max={p.max} step={p.step} shown={readParam(p, value)}
+      valueText={p.group === 'lines' && p.key === 'width' ? linePx(value) : p.key === 'indexEvery' ? boldEvery(value) : undefined}
+      disabled={disabled}
+      onChange={onChange}
+    />
   );
 }
 

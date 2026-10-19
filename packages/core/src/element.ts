@@ -1,20 +1,20 @@
 import { PARAMS } from './params.js';
-import { createTopographicBackground, type TopographicBackground, type SnapshotOptions } from './renderer.js';
+import { createTopography, type Topography, type SnapshotOptions } from './renderer.js';
 import { fromAttributes, resolveSettings, type SettingsInput } from './settings.js';
 
 export const ELEMENT_ATTRIBUTES: readonly string[] = [
-  'style-name', 'seed', 'theme', 'ink', 'paper', 'mode', 'elevation', 'extent', 'detail', 'quality',
+  'look', 'shape', 'location', 'seed', 'theme', 'ink', 'paper', 'mode', 'elevation', 'extent', 'detail', 'quality',
   'azimuth', 'camera-elevation', 'radius', 'camera-motion', 'pan-x', 'pan-z', 'view-x', 'view-y', 'view-zoom', ...PARAMS.map((p) => p.attr),
 ];
 
 const Base = (typeof HTMLElement !== 'undefined' ? HTMLElement : class {}) as typeof HTMLElement;
 
-export class TopographicBackgroundElement extends Base {
+export class TopographyElement extends Base {
   static observedAttributes = ELEMENT_ATTRIBUTES;
-  #topographic: TopographicBackground | null = null;
+  #topographic: Topography | null = null;
 
   /** The underlying instance, once connected. */
-  get topographic(): TopographicBackground | null { return this.#topographic; }
+  get topographic(): Topography | null { return this.#topographic; }
 
   #read(): SettingsInput {
     return fromAttributes((n) => this.getAttribute(n));
@@ -23,7 +23,7 @@ export class TopographicBackgroundElement extends Base {
   connectedCallback(): void {
     if (this.#topographic) return;
     if (getComputedStyle(this).display === 'inline') this.style.display = 'block';
-    this.#topographic = createTopographicBackground(this, this.#read());
+    this.#topographic = createTopography(this, this.#read());
   }
 
   disconnectedCallback(): void {
@@ -31,10 +31,12 @@ export class TopographicBackgroundElement extends Base {
     this.#topographic = null;
   }
 
-  attributeChangedCallback(): void {
+  attributeChangedCallback(name: string): void {
     if (!this.#topographic) return;
-    const full = resolveSettings(this.#read());
-    this.#topographic.update({ ...full, theme: { ink: undefined, paper: undefined, ...full.theme } });
+    const { location, ...full } = resolveSettings(this.#read());
+    // Without the attribute, a grid passed with update({ location }) stays.
+    const keep = name !== 'location' && !this.hasAttribute('location');
+    this.#topographic.update({ ...full, ...(keep ? {} : { location }), theme: { ink: undefined, paper: undefined, ...full.theme } });
   }
 
   snapshot(opts?: SnapshotOptions): Promise<Blob> {
@@ -43,10 +45,10 @@ export class TopographicBackgroundElement extends Base {
   }
 }
 
-if (typeof customElements !== 'undefined' && !customElements.get('topographic-bg')) {
-  customElements.define('topographic-bg', TopographicBackgroundElement);
+if (typeof customElements !== 'undefined' && !customElements.get('topographic-view')) {
+  customElements.define('topographic-view', TopographyElement);
 }
 
 declare global {
-  interface HTMLElementTagNameMap { 'topographic-bg': TopographicBackgroundElement }
+  interface HTMLElementTagNameMap { 'topographic-view': TopographyElement }
 }

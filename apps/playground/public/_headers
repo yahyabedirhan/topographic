@@ -7,13 +7,29 @@
   Cache-Control: public, max-age=0, must-revalidate
 /index.html
   Cache-Control: public, max-age=0, must-revalidate
+/docs
+  Cache-Control: public, max-age=0, must-revalidate
+/docs.html
+  Cache-Control: public, max-age=0, must-revalidate
 /llms.txt
   Cache-Control: public, max-age=0, must-revalidate
   Content-Type: text/plain; charset=utf-8
 /llms-full.txt
   Cache-Control: public, max-age=0, must-revalidate
   Content-Type: text/plain; charset=utf-8
-/og-a.png
+/robots.txt
+  Cache-Control: public, max-age=0, must-revalidate
+  Content-Type: text/plain; charset=utf-8
+/sitemap.xml
+  Cache-Control: public, max-age=0, must-revalidate
+/og.png
+  Cache-Control: public, max-age=86400
+/og-docs.png
+  Cache-Control: public, max-age=86400
+/readme/*
+  Cache-Control: public, max-age=86400
+# The catalog places' height grids. scripts/places.mjs writes them again only when a box changes.
+/places/*
   Cache-Control: public, max-age=86400
 
 /*

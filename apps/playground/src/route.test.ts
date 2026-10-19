@@ -9,6 +9,17 @@ describe('resolveRoute', () => {
     expect(resolveRoute('/about/', '', '')).toEqual({ page: 'about' });
   });
 
+  it('serves the docs page at /docs, with or without a slash, and from docs.html', () => {
+    expect(resolveRoute('/docs', '', '')).toEqual({ page: 'docs' });
+    expect(resolveRoute('/docs/', '', '#install')).toEqual({ page: 'docs' });
+    expect(resolveRoute('/docs.html', '', '')).toEqual({ page: 'docs' });
+    expect(resolveRoute('/topographic/docs', '', '', '/topographic/')).toEqual({ page: 'docs' });
+  });
+
+  it('leaves the plain-text docs to the host: an unknown page under /docs goes home', () => {
+    expect(resolveRoute('/docs/nope', '', '')).toEqual({ page: 'redirect', to: '/' });
+  });
+
   it('sends unknown paths, including /privacy, home with the query kept', () => {
     expect(resolveRoute('/privacy', '', '')).toEqual({ page: 'redirect', to: '/' });
     expect(resolveRoute('/nope/deep', '?analytics_optout=all', '')).toEqual({ page: 'redirect', to: '/?analytics_optout=all' });

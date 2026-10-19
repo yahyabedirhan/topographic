@@ -1,5 +1,60 @@
 # Changelog
 
+## 0.6.0 (2026-10-19)
+
+This release renames the public API.
+It is a clean break: the old names are gone, with no deprecated aliases.
+
+- The core function `createTopographicBackground` is now `createTopography`, and its instance type `TopographicBackground` is now `Topography`.
+- The web component `<topographic-bg>` is now `<topographic-view>`, and its class `TopographicBackgroundElement` is now `TopographyElement`.
+- The React component `TopographicBackground` is now `Topography`, and the hook `useTopographicBackground` is now `useTopography`.
+- The React types are now `TopographyProps`, `TopographySettingsProps` and `TopographyRef`. `topographic-react` also exports the core instance type as `TopographyInstance`.
+- The land shape setting `style` is now `shape`: in settings, as the element attribute (was `style-name`) and as the React prop (was `styleName`). The React `style` prop is now only React's CSS prop.
+- The data exports `STYLES`, `findStyle`, `Style`, `StyleId` and `DEFAULT_STYLE` are now `SHAPES`, `findShape`, `Shape`, `ShapeId` and `DEFAULT_SHAPE`.
+- The query key `s=` stays, and now names the shape. Links made before 0.6.0 keep working.
+- Playground: the WebMCP tool `list_styles` is now `list_shapes`, and `randomize` takes `shape: true`. `set_settings` takes `shape`, and still takes the old `style` key for this release. Terrains saved with a `style` key load with that value as `shape`.
+- Playground: the Tune › Terrain section with peaks, spread, sharpness and variant is now titled Form.
+- New entry point `topographic/locations` with the ten playground places as built-in height grids: `istanbul`, `cyprus`, `matterhorn`, `geirangerfjord`, `grand-canyon`, `yosemite`, `torres-del-paine`, `fuji`, `everest` and `kilimanjaro`. Each place loads on its own, so a page downloads only the places it uses. `LOCATIONS` lists them, and `loadLocation(id)` returns a grid.
+- New `decodeGrid16(bytes)` in `topographic/locations` reads a height grid saved as a square 16-bit greyscale PNG, the format of the built-in places.
+- New `fetchLocation({ west, south, east, north })` makes a height grid for any area up to 300 km wide, with the playground's own elevation pipeline, which moved into the library.
+- New `location` setting, element attribute and React prop. It takes a place id or a height grid. A place also sets the playground's look for it: its camera, elevation, `extent: 'block'`, the lines (`count: 36, width: 0, opacity: 0.9, indexEvery: 4`) and `layout.fade: 0.15`, under the values you set. It does not set `mode`. `setHeightfield()` still works.
+- Playground: the Map menu holds 108 places, grouped by continent, with a search field; the 98 beyond the built-in ten load pre-rendered grids from `/places/<id>.png` and fall back to the elevation tiles. `docs/places.md` lists them. The dock's built-in map terrains swap Cyprus for Machu Picchu and Naples & Vesuvius.
+- Playground: the ten places load their built-in grids instead of the elevation tiles. `get_region` returns `builtIn` and `loadMs` in place of `fetchMs` and `shapeMs`.
+- Install lines in the READMEs no longer pin a version. Sizing and layering examples moved to the guide.
+- New `look` setting: a named, finished design by id, such as `look: 'survey-map'`. It is the attribute `look` on `<topographic-view>`, the React prop `look` and the query key `look`. The other settings next to it override its values. An unknown look is ignored with one console warning. In `update()`, a look replaces the design and keeps the view settings.
+- `PRESETS` and `Preset` are now `LOOKS` and `Look`. Each look has an `id`. `findLook(id)` and the type `LookId` are new. The list joins the old presets and the playground's looks: 26 looks, listed in the guide's Looks section.
+- From the old presets, Survey map and Rocky are now the looks `survey-map` and `rocky`. Terraces is now the playground's Terraces look. The presets that were a shape with a few changes are gone; use `shape` for them.
+- Playground: the dock and the `look=` link key use the library's looks. Links made before 0.6.0 keep working, because the ids are the old `look=` values. The dock gains Survey map and Rocky.
+- Playground: `set_settings` takes `look`, and `list_shapes` returns the looks with their ids in place of the presets.
+- New package descriptions and keywords: "Topographic terrain rendered with WebGL. Generate a land or turn a real place into a topographic terrain." The words background and animated-background are gone.
+- New READMEs for the project and both packages: real places first, then generated shapes, then 2D and 3D, with each code example beside the picture it draws. Limits have their own section.
+- Playground: **Install**, a new button in its own circle at the top right. It shows a preview of the view and its main settings, the agent skill and npm install lines, this view's code, and its link with a shortcut to Export.
+- Playground: new share images, `og.png` and `og-docs.png`, with a real place, the headline and the code that draws it. The page title and description use the new line.
+- Playground: Export no longer shows the hint about tinted values under the code, and the HTML hint says element instead of background.
+
+| Old name | New name |
+|---|---|
+| `createTopographicBackground` | `createTopography` |
+| `TopographicBackground` (core instance type) | `Topography` |
+| `<topographic-bg>` | `<topographic-view>` |
+| `TopographicBackgroundElement` | `TopographyElement` |
+| `TopographicBackground` (React component) | `Topography` |
+| `useTopographicBackground` | `useTopography` |
+| `TopographicBackgroundProps` | `TopographyProps` |
+| `TopographicBackgroundSettingsProps` | `TopographySettingsProps` |
+| `TopographicBackgroundRef` | `TopographyRef` |
+| `style` setting | `shape` |
+| `style-name` attribute | `shape` |
+| `styleName` React prop | `shape` |
+| `STYLES` | `SHAPES` |
+| `findStyle` | `findShape` |
+| `Style` | `Shape` |
+| `StyleId` | `ShapeId` |
+| `DEFAULT_STYLE` | `DEFAULT_SHAPE` |
+| `PRESETS` | `LOOKS` |
+| `Preset` | `Look` |
+| WebMCP `list_styles` | `list_shapes` |
+
 ## 0.5.0
 
 - `view2d` setting: `{ x, y, zoom }` gives the 2D map its own pan and zoom, from 1 to 8. Attributes `view-x`, `view-y` and `view-zoom`; query keys `vx`, `vy` and `vz`. The React component takes `view2d` as a prop. 3D ignores it, and existing 2D views do not change.

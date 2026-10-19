@@ -4,11 +4,11 @@ import { DEFAULT_ELEVATION, resolveSettings, type Heightfield, type Settings } f
 import { flushPageUrl, schedulePageUrl } from '../page-history';
 import { withQuery, writeSettings } from '../share-url';
 import { stagePointerBusy, type Playground } from '../shared';
-import { limitMessage, limitProblem, spanOf, type BBox, type ReliefMode, type SmoothLevel, type Span } from './pipeline';
-import { beforePlace, findPlace, restoredKeys, terrainDefaults, type BeforePlace } from './places';
+import { areaProblem as limitProblem, areaProblemMessage as limitMessage, areaSpan as spanOf, type AreaSpan as Span, type BBox, type ReliefMode, type SmoothLevel } from 'topographic/locations';
+import { beforePlace, findPlace, isBuiltInPlace, loadCatalog, restoredKeys, sameBox, terrainDefaults, useAllPlaces, type BeforePlace } from './places';
 import { registerRegionTools } from './register';
 import { readRegion, writeRegion, type RegionQuery } from './url';
-import type { BuildErr, BuildOk } from './worker';
+import type { BuildErr, BuildOk, StaticGrid } from './build';
 
 export interface RegionInfo {
   minM: number;
@@ -16,8 +16,9 @@ export interface RegionInfo {
   reliefM: number;
   zoom: number;
   tiles: number;
-  fetchMs: number;
-  shapeMs: number;
+  /** Whether the grid came with the library rather than from the elevation tiles. */
+  builtIn: boolean;
+  loadMs: number;
   span: Span;
 }
 
@@ -39,26 +40,37 @@ export interface RegionController {
 }
 
 /** Every place uses the same height treatment; the 3D Elevation slider is the only height control. */
-const RELIEF: ReliefMode = 'dramatic';
-const SMOOTH: SmoothLevel = 'medium';
+export const RELIEF: ReliefMode = 'dramatic';
+export const SMOOTH: SmoothLevel = 'medium';
+
+/** A catalog place's grid file, while the box is still the place's own. Built-in places and other boxes have none. */
+export async function staticGrid(placeId: string | null, bbox: BBox): Promise<StaticGrid | undefined> {
+  if (!placeId || isBuiltInPlace(placeId)) return undefined;
+  const place = (await loadCatalog().catch(() => [])).find((p) => p.id === placeId);
+  if (!place?.grid || !sameBox(place.bbox, bbox)) return undefined;
+  const url = new URL(`${import.meta.env.BASE_URL}places/${place.id}.png`, location.href).href;
+  return { url, ...place.grid };
+}
 
 function queryOf(bbox: BBox | null, placeId: string | null): RegionQuery {
   return { bbox, place: placeId };
 }
 
-/** Without a remembered state (a place opened from a link), Clear returns to the library defaults for the style. */
-function generatedView(style: string): BeforePlace {
-  const d = resolveSettings({ style });
+/** Without a remembered state (a place opened from a link), Clear returns to the library defaults for the shape. */
+function generatedView(shape: string): BeforePlace {
+  const d = resolveSettings({ shape });
   return { lines: d.lines, camera: d.camera, extent: d.extent, elevation: d.elevation ?? DEFAULT_ELEVATION };
 }
 
 export function useRegion(pg: Playground): RegionController {
   const initial = readRegion(location.search);
   const initialProblem = initial.bbox ? limitProblem(initial.bbox) : null;
+  // A link that names a catalog place carries no box; the box comes with the catalog.
+  const [catalogLink] = useState(() => (initial.place && !initial.bbox && !isBuiltInPlace(initial.place) ? initial.place : null));
   const [bbox, setBbox] = useState<BBox | null>(initialProblem ? null : initial.bbox);
   const [placeId, setPlaceId] = useState<string | null>(initial.place);
   const [status, setStatus] = useState<RegionController['status']>(() => {
-    const next = initialProblem ? 'error' : initial.bbox ? 'loading' : 'idle';
+    const next = initialProblem ? 'error' : initial.bbox || catalogLink ? 'loading' : 'idle';
     if (typeof document !== 'undefined') document.documentElement.dataset.region = next;
     return next;
   });
@@ -82,6 +94,7 @@ export function useRegion(pg: Playground): RegionController {
     workerRef.current = null;
   }, []);
 
+  const places = useAllPlaces();
   const settingsRef = useRef(pg.settings);
   settingsRef.current = pg.settings;
   useLayoutEffect(() => {
@@ -89,7 +102,8 @@ export function useRegion(pg: Playground): RegionController {
     writeRegion(q, queryOf(bbox, placeId));
     schedulePageUrl(withQuery(location.pathname, writeSettings(q.toString(), settingsRef.current), location.hash));
     if (!stagePointerBusy()) flushPageUrl();
-  }, [bbox, placeId]);
+    // A catalog place's link names it alone once the catalog has loaded.
+  }, [bbox, placeId, places]);
 
   useEffect(() => {
     document.documentElement.dataset.region = status;
@@ -126,8 +140,8 @@ export function useRegion(pg: Playground): RegionController {
         reliefM: event.data.reliefM,
         zoom: event.data.zoom,
         tiles: event.data.tiles,
-        fetchMs: event.data.fetchMs,
-        shapeMs: event.data.shapeMs,
+        builtIn: event.data.builtIn,
+        loadMs: event.data.loadMs,
         span: spanOf(bbox),
       });
       setStatus('ready');
@@ -135,9 +149,14 @@ export function useRegion(pg: Playground): RegionController {
       setGeneration((n) => n + 1);
     };
     worker.addEventListener('message', onMessage);
-    const body = { id, bbox, relief: RELIEF, smooth: SMOOTH };
-    worker.postMessage(body);
-    return () => worker.removeEventListener('message', onMessage);
+    let live = true;
+    void staticGrid(placeId, bbox).then((grid) => {
+      if (live) worker.postMessage({ id, bbox, placeId, relief: RELIEF, smooth: SMOOTH, grid });
+    });
+    return () => {
+      live = false;
+      worker.removeEventListener('message', onMessage);
+    };
   }, [bbox, workerReady]);
 
   useEffect(() => {
@@ -160,6 +179,24 @@ export function useRegion(pg: Playground): RegionController {
   pgRef.current = pg;
   const bboxRef = useRef(bbox);
   bboxRef.current = bbox;
+  const placeRef = useRef(placeId);
+  placeRef.current = placeId;
+  // Opening a catalog place from a link: once the catalog arrives, its box loads as a link's box does.
+  useEffect(() => {
+    if (!catalogLink) return;
+    const done = (box: BBox | null) => {
+      if (bboxRef.current || placeRef.current !== catalogLink) return;
+      if (box) {
+        bboxRef.current = box;
+        setBbox(box);
+      } else {
+        setPlaceId(null);
+        setStatus('idle');
+      }
+    };
+    loadCatalog().then((places) => done(places.find((p) => p.id === catalogLink)?.bbox ?? null), () => done(null));
+  }, [catalogLink]);
+
   // The settings from before the first place, and the keys clear() restores from them.
   const before = useRef<{ settings: Settings; keys: Set<keyof Settings> } | null>(null);
   const showPlace = useCallback((next: BBox, id: string | null) => {
@@ -170,7 +207,7 @@ export function useRegion(pg: Playground): RegionController {
       return;
     }
     if (!bboxRef.current && before.current === null) before.current = { settings: settingsRef.current, keys: new Set() };
-    // A place with its own defaults (Cyprus sets the colours too) adds those keys to what Clear restores.
+    // A place with its own defaults adds those keys to what Clear restores.
     for (const key of restoredKeys(id)) before.current?.keys.add(key);
     bboxRef.current = next;
     setPlaceId(id);
@@ -193,7 +230,7 @@ export function useRegion(pg: Playground): RegionController {
     setStatus('idle');
     setGeneration((n) => n + 1);
     const back = before.current;
-    if (had) pgRef.current.change(back ? beforePlace(back.settings, [...back.keys]) : generatedView(settingsRef.current.style));
+    if (had) pgRef.current.change(back ? beforePlace(back.settings, [...back.keys]) : generatedView(settingsRef.current.shape));
     before.current = null;
   }, []);
   const agent: RegionController = {

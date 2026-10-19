@@ -17,7 +17,7 @@ export function App() {
         terrains={terrains}
         tune={<TuneStrip pg={pg} region={terrains.region} />}
         exporting={(open, onOpenChange, clusterRef) => (
-          <ExportMenu pg={pg} open={open} onOpenChange={onOpenChange} clusterRef={clusterRef} />
+          <ExportMenu pg={pg} place={terrains.region.bbox && terrains.region.placeId ? terrains.region.name : null} open={open} onOpenChange={onOpenChange} clusterRef={clusterRef} />
         )}
       />
     </Tooltip.Provider>
