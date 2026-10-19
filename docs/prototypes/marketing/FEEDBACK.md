@@ -295,3 +295,13 @@ On the "First terrain" section:
 
 > Here we are showing code but there is no visual so let's show as much visually for the areas where we show code as well.
 > Here is a really nice area.
+
+On "Any other area up to 300 km wide comes in by its corners":
+
+> Let's try not to show this constraint.
+> This is a constraint that can be overcome with technical decisions.
+> Do not document this constraint like this.
+> Maybe you can have a separate area, like limits, for these types of constraints.
+> All of these types of limitations and constraints: don't mix them up with the marketing language and give them a separate place to live.
+
+This applies to every surface: constraints live only in the docs' Limits section.
