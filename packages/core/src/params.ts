@@ -44,7 +44,7 @@ export const PARAMS = [
     toUniform: (v: number) => (v < 0.5 ? 1 + (0.5 - v) * 3 : 1 - (v - 0.5) * 1.2) },
   { group: 'terrain', key: 'terracing', label: 'Terracing', description: 'Groups lines into stepped bands.',
     min: 0, max: 1, step: 0.01, default: 0, attr: 'terracing', short: 'tr', slot: 12 },
-  { group: 'terrain', key: 'variant', label: 'Variant', description: 'A style-specific shape knob (for drifting lobes: three lobes to four).',
+  { group: 'terrain', key: 'variant', label: 'Variant', description: 'A landform-specific shape knob (for drifting lobes: three lobes to four).',
     min: 0, max: 1, step: 0.01, default: 0.5, attr: 'variant', short: 'va', slot: 6 },
   { group: 'motion', key: 'speed', label: 'Speed', description: 'Animation speed. 0 holds a still frame.',
     min: 0, max: 3, step: 0.05, default: 1, attr: 'speed', short: 'sd', slot: 3 },

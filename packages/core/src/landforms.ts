@@ -1,20 +1,20 @@
 import type { Settings } from './settings.js';
 
-/** A terrain shape. `index` selects the branch in the combined shader. */
-export interface Style {
-  id: StyleId;
+/** A land shape for the procedural terrain. `index` selects the branch in the combined shader. */
+export interface Landform {
+  id: LandformId;
   name: string;
   index: number;
   description: string;
-  /** Per-style starting values, applied before user settings. */
+  /** Per-landform starting values, applied before user settings. */
   defaults?: DeepPartialSettings;
 }
 
 export type DeepPartialSettings = { [K in keyof Settings]?: Settings[K] extends object ? Partial<Settings[K]> : Settings[K] };
 
-export type StyleId = 'drifting-lobes' | 'granite' | 'five-petals' | 'seed-pod' | 'gentle-summit' | 'long-ridge' | 'dunes';
+export type LandformId = 'drifting-lobes' | 'granite' | 'five-petals' | 'seed-pod' | 'gentle-summit' | 'long-ridge' | 'dunes';
 
-export const STYLES: readonly Style[] = [
+export const LANDFORMS: readonly Landform[] = [
   { id: 'drifting-lobes', name: 'Drifting lobes', index: 0, description: 'Three soft lobes drifting off to the side, morphing towards four.' },
   { id: 'granite', name: 'Granite', index: 1, description: 'Many small lumpy lobes with a stone-grain tint.' },
   { id: 'five-petals', name: 'Five petals', index: 3, description: 'A breathing five-petal summit.' },
@@ -24,8 +24,8 @@ export const STYLES: readonly Style[] = [
   { id: 'dunes', name: 'Dunes', index: 11, description: 'Long wind ripples with no summits.', defaults: { layout: { fade: 0.5 } } },
 ];
 
-export const DEFAULT_STYLE: StyleId = 'drifting-lobes';
+export const DEFAULT_LANDFORM: LandformId = 'drifting-lobes';
 
-export function findStyle(id: string): Style | undefined {
-  return STYLES.find((s) => s.id === id);
+export function findLandform(id: string): Landform | undefined {
+  return LANDFORMS.find((s) => s.id === id);
 }

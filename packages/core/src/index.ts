@@ -3,7 +3,7 @@ export { cameraPose, cameraTarget, clampPan, panBy, terrainHalfSize, viewShift, 
 export { snapshotFrame, type SnapshotRegion, type SnapshotFrame } from './snapshot.js';
 export { sampleGrid, type Heightfield } from './heightfield.js';
 export { PARAMS, GROUPS, paramsIn, clampParam, type ParamDef, type GroupName, type GroupValues } from './params.js';
-export { STYLES, DEFAULT_STYLE, findStyle, type Style, type StyleId } from './styles.js';
+export { LANDFORMS, DEFAULT_LANDFORM, findLandform, type Landform, type LandformId } from './landforms.js';
 export { PRESETS, type Preset } from './presets.js';
 export {
   defaultSettings, resolveSettings, mergeSettings, toUniforms, fromAttributes, toAttributes, toQuery, fromQuery,

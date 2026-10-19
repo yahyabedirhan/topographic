@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { PARAMS } from './params.js';
 import { PRESETS } from './presets.js';
-import { STYLES } from './styles.js';
+import { LANDFORMS } from './landforms.js';
 import { fromAttributes, fromQuery, mergeSettings, meshResolution, resetWarnings, resolveSettings, terrainSegments, toAttributes, toQuery, toUniforms } from './settings.js';
 
 afterEach(() => { resetWarnings(); vi.restoreAllMocks(); });
@@ -20,7 +20,7 @@ describe('params table', () => {
 describe('resolveSettings', () => {
   it('fills defaults', () => {
     const s = resolveSettings();
-    expect(s.style).toBe('drifting-lobes');
+    expect(s.landform).toBe('drifting-lobes');
     expect(s.lines.count).toBe(30);
     expect(s.theme.mode).toBe('auto');
   });
@@ -31,18 +31,18 @@ describe('resolveSettings', () => {
   it('replaces non-numbers with the default', () => {
     expect(resolveSettings({ lines: { count: Number.NaN } }).lines.count).toBe(30);
   });
-  it('falls back from an unknown style and warns once', () => {
+  it('falls back from an unknown landform and warns once', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    expect(resolveSettings({ style: 'volcano' }).style).toBe('drifting-lobes');
-    resolveSettings({ style: 'volcano' });
+    expect(resolveSettings({ landform: 'volcano' }).landform).toBe('drifting-lobes');
+    resolveSettings({ landform: 'volcano' });
     expect(warn).toHaveBeenCalledTimes(1);
   });
-  it('applies style defaults under user values', () => {
-    expect(resolveSettings({ style: 'dunes' }).layout.fade).toBe(0.5);
-    expect(resolveSettings({ style: 'dunes', layout: { fade: 0.9 } }).layout.fade).toBe(0.9);
+  it('applies landform defaults under user values', () => {
+    expect(resolveSettings({ landform: 'dunes' }).layout.fade).toBe(0.5);
+    expect(resolveSettings({ landform: 'dunes', layout: { fade: 0.9 } }).layout.fade).toBe(0.9);
   });
-  it('resolves every preset to its own style', () => {
-    for (const p of PRESETS) expect(resolveSettings(p.settings).style).toBe(p.settings.style);
+  it('resolves every preset to its own landform', () => {
+    for (const p of PRESETS) expect(resolveSettings(p.settings).landform).toBe(p.settings.landform);
   });
 });
 
@@ -82,14 +82,14 @@ describe('view settings', () => {
   });
   it('round-trips 3d settings through the query and attributes', () => {
     const s = resolveSettings({
-      style: 'gentle-summit', seed: 7, mode: '3d', elevation: 0.2, extent: 'block', detail: 0.15,
+      landform: 'gentle-summit', seed: 7, mode: '3d', elevation: 0.2, extent: 'block', detail: 0.15,
       camera: { azimuth: 12, elevation: 18, radius: 3, motion: 'orbit', panX: 0.25, panZ: -0.1234 },
     });
     expect(s.camera.panZ).toBe(-0.123);
     const q = toQuery(s);
     expect(q).toContain('px=0.25');
     expect(q).toContain('pz=-0.123');
-    expect(toQuery(resolveSettings({ mode: '3d' }))).toBe('s=drifting-lobes&mode=3d');
+    expect(toQuery(resolveSettings({ mode: '3d' }))).toBe('lf=drifting-lobes&mode=3d');
     expect(resolveSettings(fromQuery(q))).toEqual(s);
     const attrs = toAttributes(s);
     expect(attrs).toMatchObject({ mode: '3d', extent: 'block', 'camera-motion': 'orbit', azimuth: '12', 'pan-x': '0.25' });
@@ -108,30 +108,34 @@ describe('mergeSettings', () => {
 });
 
 describe('toUniforms', () => {
-  it('maps values into shader slots with the style index', () => {
-    const u = toUniforms(resolveSettings({ style: 'dunes', layout: { anchor: 1 } }));
+  it('maps values into shader slots with the landform index', () => {
+    const u = toUniforms(resolveSettings({ landform: 'dunes', layout: { anchor: 1 } }));
     expect(u.uStyle).toBe(11);
     expect(u.uParams[0]).toBe(30);
     expect(u.uParams[1]).toBeCloseTo(1.41);
     expect(u.uParams[10]).toBeCloseTo(1);
     expect(u.uCenter).toBe(1);
   });
-  it('uses the prototype style indices', () => {
-    expect(STYLES.map((s) => s.index)).toEqual([0, 1, 3, 4, 5, 7, 11]);
+  it('uses the prototype landform indices', () => {
+    expect(LANDFORMS.map((s) => s.index)).toEqual([0, 1, 3, 4, 5, 7, 11]);
   });
 });
 
 describe('serialisation', () => {
   it('round-trips through the URL query', () => {
-    const s = resolveSettings({ style: 'granite', seed: 42, lines: { count: 18 }, theme: { mode: 'dark', paper: 'transparent' } });
+    const s = resolveSettings({ landform: 'granite', seed: 42, lines: { count: 18 }, theme: { mode: 'dark', paper: 'transparent' } });
     const q = toQuery(s);
-    expect(q).toContain('s=granite');
+    expect(q).toContain('lf=granite');
     expect(resolveSettings(fromQuery(q))).toEqual(s);
   });
+  it('reads the old s= query key from links made before 0.6.0', () => {
+    expect(resolveSettings(fromQuery('s=dunes&seed=3')).landform).toBe('dunes');
+    expect(resolveSettings(fromQuery('lf=granite&s=dunes')).landform).toBe('granite');
+  });
   it('round-trips through element attributes', () => {
-    const s = resolveSettings({ style: 'seed-pod', terrain: { peaks: 3 }, motion: { speed: 0 } });
+    const s = resolveSettings({ landform: 'seed-pod', terrain: { peaks: 3 }, motion: { speed: 0 } });
     const attrs = toAttributes(s);
-    expect(attrs).toMatchObject({ 'style-name': 'seed-pod', peaks: '3', speed: '0' });
+    expect(attrs).toMatchObject({ landform: 'seed-pod', peaks: '3', speed: '0' });
     expect(resolveSettings(fromAttributes((n) => attrs[n] ?? null))).toEqual(s);
   });
 
