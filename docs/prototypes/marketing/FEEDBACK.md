@@ -390,3 +390,10 @@ On the mode button's "3D" badge:
 > Let's remove those 3D/2D labels on the top-right corner here in this example.
 > Instead just show the icon.
 > Otherwise the 3D text takes too much of my attention.
+
+On "Your coding agent installs topographic and writes the code." and "The second line adds React." in the install parts:
+
+> You can remove this.
+> This is an unnecessary explanation.
+
+Applied to the docs Install section and to install variants A1–A3 on the playground board.

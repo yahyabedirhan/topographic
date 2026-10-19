@@ -184,11 +184,9 @@ const ROUND2 = [
     note: 'Install is a glass circle of its own at the far top-right, the size of the cluster beside it (48px glass, 36px button). Its popover follows Export: a live preview of the scene with a label chip and the parameter chips under it, then two parts. The agent skill part is the skill install and one line on what happens next. The npm package part is the npm line, and the React line under it. No tabs. Every field is Export\'s mono field with its Copy pill.',
     render(stage) {
       mount2(stage, 'code', `${preview(148, 'This scene')}${chips()}
-        <div class="sec"><div class="sec-t">${LU(GLYPH.sparkles, 13)}${INSTALL_LABELS.agent}</div>${field(SKILL2)}
-          <div class="hint2">Then ask your agent for a terrain, such as this one. The skill installs the package and writes the code.</div></div>
+        <div class="sec"><div class="sec-t">${LU(GLYPH.sparkles, 13)}${INSTALL_LABELS.agent}</div>${field(SKILL2)}</div>
         <div class="sec"><div class="sec-t">${LU(GLYPH.hand, 13)}${INSTALL_LABELS.npm}</div>${field('npm install topographic')}
-          ${field('npm install topographic topographic-react', 'Copy', true)}
-          <div class="hint2">The second line is for React. Then add <code>&lt;Topography location="istanbul" /&gt;</code>.</div></div>`);
+          ${field('npm install topographic topographic-react', 'Copy', true)}</div>`);
     },
   },
   {
@@ -197,10 +195,9 @@ const ROUND2 = [
     note: 'Same corner and parts as A1, with a shorter preview and the scene\'s code in the npm package part, drawn as Export\'s code view: line numbers and tinted values, with Copy in the part\'s header. People see the exact settings that make what is on screen, and the install line above them. The longest popover of the three, still under the 720px cap.',
     render(stage) {
       mount2(stage, 'download', `${preview(108, 'This scene · Istanbul in 3D')}
-        <div class="sec"><div class="sec-t">${LU(GLYPH.sparkles, 13)}${INSTALL_LABELS.agent}</div>${field(SKILL2)}
-          <div class="hint2">Your agent learns topographic, then installs and writes the code when you ask for a terrain.</div></div>
+        <div class="sec"><div class="sec-t">${LU(GLYPH.sparkles, 13)}${INSTALL_LABELS.agent}</div>${field(SKILL2)}</div>
         <div class="sec"><div class="sec-t">${LU(GLYPH.hand, 13)}${INSTALL_LABELS.npm}</div>${field('npm install topographic topographic-react')}
-          <div class="head2"><span class="hint2">Then place this scene in your React app.</span><button class="pill2" data-copy="&lt;Topography location=&quot;istanbul&quot; mode=&quot;3d&quot; /&gt;">${LU(GLYPH.copy, 14)}Copy</button></div>
+          <div class="head2"><span class="hint2">This scene</span><button class="pill2" data-copy="&lt;Topography location=&quot;istanbul&quot; mode=&quot;3d&quot; /&gt;">${LU(GLYPH.copy, 14)}Copy</button></div>
           ${codeView()}</div>`);
     },
   },
@@ -210,8 +207,7 @@ const ROUND2 = [
     note: 'The quietest: a large live preview carries the visual, then one field per part and nothing else. The React line and the scene code stay in Export. Best if the popover should feel like a start button rather than a reference.',
     render(stage) {
       mount2(stage, 'terminal', `${preview(212, 'Istanbul · 3D · 36 lines')}
-        <div class="sec"><div class="sec-t">${LU(GLYPH.sparkles, 13)}${INSTALL_LABELS.agent}</div>${field(SKILL2)}
-          <div class="hint2">Installs the topographic skill. Then ask for any terrain in words.</div></div>
+        <div class="sec"><div class="sec-t">${LU(GLYPH.sparkles, 13)}${INSTALL_LABELS.agent}</div>${field(SKILL2)}</div>
         <div class="sec"><div class="sec-t">${LU(GLYPH.hand, 13)}${INSTALL_LABELS.npm}</div>${field('npm install topographic')}</div>`);
     },
   },
