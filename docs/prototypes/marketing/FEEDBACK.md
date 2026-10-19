@@ -423,3 +423,13 @@ A custom element needs a hyphen, so `<topography>` is not valid. After the optio
 > Okay let's make it a topographic view then.
 
 Decision: the element stays `<topographic-view>`.
+
+On the places gallery, where Cyprus is drawn from straight above:
+
+> In this area we have a really nice consistent view for all of these locations but Cyprus is kind of breaking it.
+> Instead of that let's actually make Cyprus use the same camera angles as well.
+> This also applies to the playground.
+> Do not try to customize it for Cyprus.
+> Use whatever we use for other places as well.
+>
+> And show Istanbul at the beginning of the list, okay?

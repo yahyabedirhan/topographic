@@ -367,7 +367,7 @@ for (const host of document.querySelectorAll('[data-links]')) {
 /* sections */
 const numbers = numberNotes(SECTIONS);
 const pad = (i) => String(i + 1).padStart(2, '0');
-const ORDER = ['everest', 'grand-canyon', 'yosemite', 'matterhorn', 'fuji', 'torres-del-paine', 'geirangerfjord', 'kilimanjaro', 'cyprus', 'istanbul'];
+const ORDER = ['istanbul', 'everest', 'grand-canyon', 'yosemite', 'matterhorn', 'fuji', 'torres-del-paine', 'geirangerfjord', 'kilimanjaro', 'cyprus'];
 const PLACES = ORDER.map((id) => LOCATIONS.find((p) => p.id === id));
 const liveFig = (id, { cls = '' } = {}) => `<figure class="fig"><div class="stage ${cls}" id="f-${id}"></div><div class="ctl" id="c-${id}"></div><figcaption class="cap" id="cap-${id}"></figcaption></figure><div id="t-${id}"></div><div class="livecode" id="code-${id}"></div>`;
 const LU = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;

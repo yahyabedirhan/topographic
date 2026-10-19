@@ -40,7 +40,8 @@ export function loadPlace(id) {
     getWorker().postMessage({ id: reqId, bbox: place.bbox, relief: RELIEF, smooth: SMOOTH });
   }).then((ok) => ({
     field: { samples: ok.samples, size: ok.size, aspect: ok.aspect },
-    defaults: structuredClone(terrainDefaults(id)),
+    // Every place uses the shared map camera; Cyprus's own look is dropped (the maintainer's call, also in the playground PR).
+    defaults: structuredClone(terrainDefaults(id === 'cyprus' ? null : id)),
     place,
     info: { minM: ok.minM, maxM: ok.maxM, reliefM: ok.reliefM, tiles: ok.tiles },
   }));
