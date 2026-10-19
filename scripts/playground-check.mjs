@@ -330,14 +330,14 @@ try {
   const tune = p.locator('.pt-pop:not(.pt-pop-wide):not(.pt-export)');
   await tune.getByRole('button', { name: 'Terrain', exact: true }).click(); await settle(p);
   const peaks = tune.getByRole('slider', { name: 'Peaks' });
-  check(await peaks.isDisabled() && await tune.getByRole('slider', { name: 'Terracing' }).isDisabled() && /Shape comes from the map/.test(await tune.innerText())
+  check(await peaks.isDisabled() && await tune.getByRole('slider', { name: 'Terracing' }).isDisabled() && /Terrain comes from the map/.test(await tune.innerText())
     && await tune.locator('.pt-sec-reset').count() === 0, 'with a place, Terrain sliders are disabled under a note');
   await tune.getByRole('button', { name: 'Motion', exact: true }).click(); await settle(p);
   check(await tune.getByRole('slider', { name: 'Warp' }).isDisabled() && await tune.getByRole('slider', { name: 'Speed' }).isEnabled() && await tune.getByRole('slider', { name: 'Sparkle' }).isEnabled(),
     'with a place, Warp is disabled and Speed and Sparkle still work');
   await tune.getByRole('button', { name: 'Terrain', exact: true }).click(); await settle(p);
   await tune.getByRole('button', { name: 'Clear map' }).click(); await settle(p, 400);
-  check(await peaks.isEnabled() && !/Shape comes from the map/.test(await tune.innerText()) && await pinDot() === 0 && q(p).get('region') === null, 'Clear map enables the Terrain sliders again');
+  check(await peaks.isEnabled() && !/Terrain comes from the map/.test(await tune.innerText()) && await pinDot() === 0 && q(p).get('region') === null, 'Clear map enables the Terrain sliders again');
   const restored = viewOf(p);
   check(VIEW_KEYS.filter((k) => k !== 'mode').every((k) => restored[k] === viewBefore[k]) && JSON.stringify({ ...(await cfg(p)), mode: undefined }) === JSON.stringify({ ...settingsBefore, mode: undefined }),
     `Clear restores the lines, camera, extent and elevation (?${q(p)})`);

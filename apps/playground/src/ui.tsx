@@ -359,7 +359,7 @@ const boldEvery = (v: number) => (Math.round(v) < 1 ? 'Off' : `1 in ${Math.round
 /** Groups with more than four rows split into sections; the rest keep one, named after the group. */
 const SECTIONS: Partial<Record<GroupName, { title: string; keys: string[] }[]>> = {
   terrain: [
-    { title: 'Shape', keys: ['peaks', 'spread', 'sharpness', 'variant'] },
+    { title: 'Form', keys: ['peaks', 'spread', 'sharpness', 'variant'] },
     { title: 'Surface', keys: ['roughness', 'terracing'] },
   ],
 };
@@ -434,7 +434,7 @@ function GroupPreview({ pg, group, dim }: { pg: Playground; group: GroupName; di
     return <Preview height={92} caption={caption} label={caption} art={(w) => contourArt(L, w, 92, w * 0.7, 54, 230)} />;
   }
   if (group === 'terrain') {
-    const caption = dim ? 'Shape from the map' : `${s.terrain.peaks} ${s.terrain.peaks === 1 ? 'peak' : 'peaks'}`;
+    const caption = dim ? 'Terrain from the map' : `${s.terrain.peaks} ${s.terrain.peaks === 1 ? 'peak' : 'peaks'}`;
     return <Preview height={92} dim={dim} caption={caption} label={`Terrain profile: ${caption}`} art={(w) => terrainArt(s.terrain, w, 82, 16)} />;
   }
   if (group === 'motion') {
@@ -548,7 +548,7 @@ function ParamTune({ pg, group, region }: { pg: Playground; group: GroupName; re
   const off = (p: ParamDef) => Boolean(region.bbox) && ignoredWithPlace(p);
   return (
     <>
-      {params.some(off) && <OffNote text={`Shape comes from the map: ${region.name}.`} action="Clear map" onAction={region.clear} />}
+      {params.some(off) && <OffNote text={`Terrain comes from the map: ${region.name}.`} action="Clear map" onAction={region.clear} />}
       <GroupPreview pg={pg} group={group} dim={params.every(off)} />
       {sections.map((sec) => {
         const own = sec.keys.map((k) => params.find((p) => p.key === k)).filter((p): p is ParamDef => Boolean(p));
@@ -570,7 +570,7 @@ function ParamTune({ pg, group, region }: { pg: Playground; group: GroupName; re
                   name={p.label}
                   icon={p.key as GlyphName}
                   art={p.key as TrackKind}
-                  hint={off(p) ? 'The map place sets the shape, so this has no effect until you clear it.' : p.description}
+                  hint={off(p) ? 'The map place sets the terrain, so this has no effect until you clear it.' : p.description}
                   value={value} min={p.min} max={p.max} step={p.step} shown={readParam(p, value)}
                   valueText={p.group === 'lines' && p.key === 'width' ? linePx(value) : p.key === 'indexEvery' ? boldEvery(value) : undefined}
                   disabled={off(p)}

@@ -365,7 +365,7 @@ The playground (`apps/playground`) is the project's live demo page.
   - The 3D tab holds the scene (extent and elevation), the camera (motion, azimuth, angle and distance), the detail level and the graphics budget (Auto, Low, Med or High).
   - The playground starts at High detail and High budget, unless the link or saved terrain names its own. If the frame rate stays below 30 fps, a **Low performance: reduce quality** button shows under the top right buttons. It sets Detail and Budget to medium. It shows once per browser session.
   - In 3D, the frame rate shows just above the dock, at its left edge, with the graphics tier that is actually drawing.
-  - When a map place is applied, the Terrain sliders and Motion's Warp are dimmed, because the place sets the shape. A note with **Clear map** is above them.
+  - When a map place is applied, the Terrain sliders and Motion's Warp are dimmed, because the place sets the terrain. A note with **Clear map** is above them.
 - **Export** gives you a link, a PNG, a 4 second 3D video as MP4 or WebM, and the code as React, HTML or JSON.
   - The link tab shows a labelled still of the terrain the link will open, then each of the link's parameters as a key and value.
   - The PNG tab shows the view with a frame for each size: 2× the window, a phone (1170 × 2532) or 1920 × 1080. If a size has a different shape from the window, it crops the view. Drag its frame, or use the arrow keys, to choose the part to keep. For example, choose which part of a wide view goes on a phone. The frame is centred each time Export opens. The image is exactly that part of the screen, at full detail.
