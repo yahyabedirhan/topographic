@@ -85,13 +85,15 @@ const FADE = 'linear-gradient(90deg,rgba(11,11,13,.95) 30%,rgba(11,11,13,.55) 52
  * The card text: the mark, the headline, the sub line, then the install line and the code that draws the
  * terrain behind it, as two steps in one block. No URL and no button.
  */
-const cardHtml = ({ x, w, code, install = 'npm install topographic', extra = '' }) => `<div class="col" style="left:${x}px;width:${w}px">
+const cardHtml = ({ x, w, y = 56, code, install = 'npm install topographic', extra = '' }) => `<div class="col" style="left:${x}px;width:${w}px;top:${y}px;bottom:${y}px">
   <div class="mark"><img src="${LOGO}" alt="">topographic${extra}</div>
   <div class="words"><h1>${HEAD}</h1><p class="sub">${SUB}</p></div>
   <pre><span class="step"><b>$</b> ${install}</span>${code}</pre></div>`;
+// X and other networks crop the card's sides and lay the domain over its bottom-left corner,
+// so the two og cards keep their words in a safe area 150px from the sides and 60px from the top and bottom.
 const CARDS = [
-  ['og.png', pub, 'everest', 1200, 630, cardHtml({ x: 72, w: 600, code: `<b>createTopography</b>(el, {\n  location: <i>'everest'</i>,\n  lines: { count: <u>44</u> },\n});` })],
-  ['og-docs.png', pub, 'grand-canyon', 1200, 630, cardHtml({ x: 72, w: 600, extra: '<small>docs</small>', install: 'npm install topographic topographic-react', code: `&lt;<b>Topography</b>\n  location=<i>"grand-canyon"</i>\n  mode=<i>"3d"</i>\n/&gt;` })],
+  ['og.png', pub, 'everest', 1200, 630, cardHtml({ x: 150, w: 560, y: 60, code: `<b>createTopography</b>(el, {\n  location: <i>'everest'</i>,\n  lines: { count: <u>44</u> },\n});` })],
+  ['og-docs.png', pub, 'grand-canyon', 1200, 630, cardHtml({ x: 150, w: 560, y: 60, extra: '<small>docs</small>', install: 'npm install topographic topographic-react', code: `&lt;<b>Topography</b>\n  location=<i>"grand-canyon"</i>\n  mode=<i>"3d"</i>\n/&gt;` })],
   ['github-preview.png', social, 'yosemite', 1280, 640, cardHtml({ x: 72, w: 640, code: `<b>createTopography</b>(el, {\n  location: <i>'yosemite'</i>,\n  lines: { count: <u>44</u> },\n});` })],
 ];
 /** The card terrains: the README look, moved right of the type by a pan. */
