@@ -3,7 +3,7 @@
 // Each variant has an id such as positioning/B, for feedback in chat.
 import { destroyLive } from './live.js';
 // Every file in boards/ is a board. ORDER puts the important ones first; the rest follow by name.
-const ORDER = ['positioning', 'api-naming', 'docs-page', 'readme-header', 'playground-install', 'npm-page', 'site-page', 'social-card'];
+const ORDER = ['positioning', 'api-naming', 'docs-page', 'readme-header', 'github-repo', 'playground-install', 'npm-page', 'site-page', 'social-card'];
 const modules = import.meta.glob('./boards/*.js', { eager: true });
 export const BOARDS = Object.values(modules).map((m) => m.default)
   .sort((a, b) => ((ORDER.indexOf(a.id) + 1 || 99) - (ORDER.indexOf(b.id) + 1 || 99)) || a.id.localeCompare(b.id));
