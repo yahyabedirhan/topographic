@@ -72,7 +72,7 @@ try {
     const first = nav.locator('.pt-thumb').first();
     check(await first.getAttribute('aria-label') === 'Istanbul map' && await nav.locator('.pt-saved[data-builtin]').count() === 4
       && await nav.getByRole('button', { name: /^Delete / }).count() === 0 && await nav.getAttribute('data-saved') === '0', 'a fresh profile shows the built-in Istanbul first in the dock, with no delete');
-    const OWNER = { place: 'istanbul', s: 'gentle-summit', seed: '67', lc: '36', ix: '4', m: 'dark', mode: '3d', ex: 'block', ev: '0.12', az: '353.3', ce: '45.1', rd: '1.15', px: '0.043', pz: '-0.075' };
+    const OWNER = { place: 'istanbul', s: 'gentle-summit', seed: '67', lc: '36', ix: '4', m: 'dark', mode: '3d', ex: 'block', ev: '0.12', az: '341.6', ce: '45.3', rd: '1.15', px: '-0.005', pz: '-0.013' };
     const matches = () => Object.entries(OWNER).every(([k, v]) => q(b).get(k) === v);
     await first.click(); await settle(b, 600);
     await b.waitForFunction(() => document.documentElement.dataset.region === 'ready', null, { timeout: 60000 }).catch(() => {});
