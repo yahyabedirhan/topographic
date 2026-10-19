@@ -62,7 +62,7 @@ export const ISTANBUL_SETTINGS = {
  * Every place but Istanbul shares the rose pod look on #0b0b0d paper, with its own ink, elevation and camera
  * angle, decoded from `?look=rose-pod&lc=36&lw=0&lo=0.9&ix=4&ink=…&paper=0b0b0d&mode=3d&ex=block&ev=…&az=341.8&ce=…&rd=1.32&px=0.033&pz=-0.049&place=…`.
  */
-function rosePod(ink: string, elevation: number, cameraElevation: number, azimuth = 341.8): SettingsInput {
+function rosePod(ink: string, elevation: number, cameraElevation: number, azimuth = 341.8, camera: SettingsInput['camera'] = {}): SettingsInput {
   return {
     shape: 'seed-pod',
     seed: 71,
@@ -74,7 +74,7 @@ function rosePod(ink: string, elevation: number, cameraElevation: number, azimut
     mode: '3d',
     elevation,
     extent: 'block',
-    camera: { azimuth, elevation: cameraElevation, radius: 1.32, motion: 'still', panX: 0.033, panZ: -0.049 },
+    camera: { azimuth, elevation: cameraElevation, radius: 1.32, motion: 'still', panX: 0.033, panZ: -0.049, ...camera },
   };
 }
 
@@ -89,15 +89,15 @@ export const MAP_LOOKS: readonly MapLook[] = [
   mapLook('istanbul', 'istanbul', ISTANBUL_SETTINGS, istanbulThumb, istanbulMinimap),
   // Each ink is a quiet tint of the land: dry stone, glacier ice, fjord water, red rock, granite and pine,
   // glacial lakes, volcanic ash, high snow and savanna.
-  mapLook('matterhorn', 'matterhorn', rosePod('#c4d7e8', 0.16, 35), matterhornThumb, matterhornMinimap),
-  mapLook('geirangerfjord', 'geirangerfjord', rosePod('#a8c7f0', 0.16, 35), geirangerfjordThumb, geirangerfjordMinimap),
   mapLook('grand-canyon', 'grand-canyon', rosePod('#dcb9a0', 0.08, 40, 10), grandCanyonThumb, grandCanyonMinimap),
+  mapLook('geirangerfjord', 'geirangerfjord', rosePod('#a8c7f0', 0.16, 35), geirangerfjordThumb, geirangerfjordMinimap),
   mapLook('yosemite', 'yosemite', rosePod('#a8eff0', 0.16, 35), yosemiteThumb, yosemiteMinimap),
-  mapLook('torres-del-paine', 'torres-del-paine', rosePod('#b3d6d0', 0.16, 35), torresDelPaineThumb, torresDelPaineMinimap),
   mapLook('fuji', 'fuji', rosePod('#9fbecc', 0.24, 30), fujiThumb, fujiMinimap),
+  mapLook('matterhorn', 'matterhorn', rosePod('#c4d7e8', 0.16, 35), matterhornThumb, matterhornMinimap),
+  mapLook('torres-del-paine', 'torres-del-paine', rosePod('#b3d6d0', 0.16, 35), torresDelPaineThumb, torresDelPaineMinimap),
   mapLook('everest', 'everest', rosePod('#d5e2ee', 0.1, 40), everestThumb, everestMinimap),
   mapLook('kilimanjaro', 'kilimanjaro', rosePod('#d4c39e', 0.24, 30), kilimanjaroThumb, kilimanjaroMinimap),
-  mapLook('cyprus', 'cyprus', rosePod('#d6cdb0', 0.1, 35), cyprusThumb, cyprusMinimap),
+  mapLook('cyprus', 'cyprus', rosePod('#d6cdb0', 0.1, 51.1, 0.1, { radius: 1.28, panX: -0.014, panZ: -0.01 }), cyprusThumb, cyprusMinimap),
 ];
 
 export function findMapLook(id: string | null): MapLook | undefined {
