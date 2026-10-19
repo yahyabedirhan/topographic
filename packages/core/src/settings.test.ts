@@ -150,3 +150,57 @@ describe('serialisation', () => {
   });
 });
 
+
+describe('location setting', () => {
+  const grid = { samples: new Float32Array(4), size: 2, aspect: 1.5 };
+
+  it('is the generated terrain by default', () => {
+    expect(resolveSettings().location).toBeNull();
+  });
+  it('takes a built-in id with its camera, elevation and block extent', () => {
+    const s = resolveSettings({ location: 'everest' });
+    expect(s.location).toBe('everest');
+    expect(s.camera).toMatchObject({ azimuth: 341.8, elevation: 40, radius: 1.32, motion: 'still' });
+    expect(s.elevation).toBe(0.1);
+    expect(s.extent).toBe('block');
+    expect(s.mode).toBe('2d');
+  });
+  it('keeps the values you set over the location\'s', () => {
+    const s = resolveSettings({ location: 'everest', mode: '3d', elevation: 0.3, camera: { azimuth: 90, motion: 'orbit' } });
+    expect(s.mode).toBe('3d');
+    expect(s.elevation).toBe(0.3);
+    expect(s.camera).toMatchObject({ azimuth: 90, elevation: 40, radius: 1.32, motion: 'orbit' });
+  });
+  it('takes a height grid as it is, without camera defaults', () => {
+    const s = resolveSettings({ location: grid });
+    expect(s.location).toBe(grid);
+    expect(s.camera).toEqual(resolveSettings().camera);
+  });
+  it('warns once and uses the generated terrain for an unknown id or a broken grid', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(resolveSettings({ location: 'atlantis' }).location).toBeNull();
+    resolveSettings({ location: 'atlantis' });
+    expect(resolveSettings({ location: { samples: new Float32Array(3), size: 2, aspect: 1 } }).location).toBeNull();
+    expect(warn).toHaveBeenCalledTimes(2);
+  });
+  it('applies a new location\'s view on update, and leaves the camera alone when the location stays', () => {
+    const start = resolveSettings({ location: 'everest' });
+    const moved = mergeSettings(start, { camera: { azimuth: 12 } });
+    expect(mergeSettings(moved, { location: 'everest' }).camera.azimuth).toBe(12);
+    const fuji = mergeSettings(moved, { location: 'fuji' });
+    expect(fuji.camera).toMatchObject({ azimuth: 341.8, elevation: 30 });
+    expect(fuji.elevation).toBe(0.24);
+    expect(mergeSettings(moved, { location: 'fuji', camera: { elevation: 50 } }).camera.elevation).toBe(50);
+    expect(mergeSettings(fuji, { location: null }).location).toBeNull();
+  });
+  it('shares a height grid between merges instead of copying it', () => {
+    const s = mergeSettings(resolveSettings({ location: grid }), { seed: 3 });
+    expect(s.location).toBe(grid);
+  });
+  it('reads and writes the location attribute', () => {
+    expect(fromAttributes((n) => (n === 'location' ? 'fuji' : null)).location).toBe('fuji');
+    expect(fromAttributes((n) => (n === 'location' ? '' : null)).location).toBeNull();
+    expect(toAttributes(resolveSettings({ location: 'fuji' })).location).toBe('fuji');
+    expect(toAttributes(resolveSettings({ location: grid })).location).toBeUndefined();
+  });
+});

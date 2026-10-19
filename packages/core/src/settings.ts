@@ -1,6 +1,8 @@
 import { GROUPS, PARAMS, clampParam, paramsIn, type GroupName, type GroupValues, type ParamDef } from './params.js';
 import { QUALITIES, type QualityName } from './quality.js';
 import { DEFAULT_SHAPE, findShape, type DeepPartialSettings, type ShapeId } from './shapes.js';
+import type { Heightfield } from './heightfield.js';
+import { findLocation, type LocationId } from './locations/builtin.js';
 
 export type ThemeMode = 'auto' | 'light' | 'dark';
 export interface ThemeSettings {
@@ -72,9 +74,18 @@ export interface Settings {
   quality: QualityName;
   camera: CameraSettings;
   view2d: View2dSettings;
+  /**
+   * A real place instead of the generated terrain: a built-in location id, or a height grid such as
+   * one from fetchLocation(). A built-in location also brings its camera, elevation and extent,
+   * under the values you set. null is the generated terrain.
+   */
+  location: LocationId | Heightfield | null;
 }
 
-export type SettingsInput = Omit<DeepPartialSettings, 'shape'> & { shape?: string };
+export type SettingsInput = Omit<DeepPartialSettings, 'shape' | 'location'> & {
+  shape?: string;
+  location?: LocationId | (string & {}) | Heightfield | null;
+};
 
 const warned = new Set<string>();
 export function resetWarnings(): void { warned.clear(); }
@@ -181,7 +192,36 @@ export function defaultSettings(): Settings {
     quality: 'auto',
     camera: { ...DEFAULT_CAMERA },
     view2d: { ...DEFAULT_VIEW2D },
+    location: null,
   };
+}
+
+function isHeightfield(v: unknown): v is Heightfield {
+  const f = v as Heightfield;
+  return typeof v === 'object' && v !== null && f.samples instanceof Float32Array && Number.isInteger(f.size) && f.size > 0
+    && f.samples.length === f.size * f.size;
+}
+
+function resolveLocation(location: SettingsInput['location']): Settings['location'] {
+  if (location === null || location === undefined || location === '') return null;
+  if (typeof location === 'string') {
+    if (findLocation(location)) return location as LocationId;
+    warnOnce(`unknown location "${location}", using the generated terrain`);
+    return null;
+  }
+  if (isHeightfield(location)) return location;
+  warnOnce('a location height grid needs samples, a Float32Array of size × size; using the generated terrain');
+  return null;
+}
+
+/** Sets the location and, for a new built-in one, its view before the input's own view values. */
+function applyLocation(into: Settings, input: SettingsInput): void {
+  if (input.location === undefined) return;
+  const next = resolveLocation(input.location);
+  if (next === into.location) return;
+  into.location = next;
+  const builtin = typeof next === 'string' ? findLocation(next) : undefined;
+  if (builtin) applyView(into, builtin.defaults);
 }
 
 function resolveShape(shape: string | undefined): ShapeId {
@@ -213,15 +253,18 @@ export function resolveSettings(input: SettingsInput = {}): Settings {
   out.shape = resolveShape(input.shape);
   applyGroups(out, findShape(out.shape)?.defaults as SettingsInput | undefined);
   applyGroups(out, input);
+  applyLocation(out, input);
   applyView(out, input);
   return out;
 }
 
 /** Merges a partial update into resolved settings. Changing the shape does not reset other values. */
 export function mergeSettings(current: Settings, patch: SettingsInput): Settings {
-  const out: Settings = structuredClone(current);
+  // A height grid is shared, not copied: it can be large, and the renderer only reads it.
+  const out: Settings = { ...structuredClone({ ...current, location: null }), location: current.location };
   if (patch.shape !== undefined) out.shape = resolveShape(patch.shape);
   applyGroups(out, patch);
+  applyLocation(out, patch);
   applyView(out, patch);
   return out;
 }
@@ -246,6 +289,7 @@ export function toUniforms(s: Settings, into?: Float32Array): ParamUniforms {
 export function fromAttributes(get: (name: string) => string | null): SettingsInput {
   const input: Record<string, unknown> = {};
   const shape = get('shape'); if (shape) input.shape = shape;
+  const location = get('location'); if (location !== null) input.location = location || null;
   const seed = get('seed'); if (seed !== null) input.seed = Number(seed);
   for (const def of PARAMS as readonly ParamDef[]) {
     const v = get(def.attr);
@@ -292,6 +336,7 @@ export function fromAttributes(get: (name: string) => string | null): SettingsIn
 export function toAttributes(s: Settings): Record<string, string> {
   const d = resolveSettings({ shape: s.shape });
   const out: Record<string, string> = { shape: s.shape };
+  if (typeof s.location === 'string') out.location = s.location;
   if (s.seed) out.seed = String(s.seed);
   for (const def of PARAMS as readonly ParamDef[]) {
     const v = (s[def.group] as Record<string, number>)[def.key];
