@@ -16,7 +16,7 @@ It is a clean break: the old names are gone, with no deprecated aliases.
 - Playground: the Tune › Terrain section with peaks, spread, sharpness and variant is now titled Form.
 - New entry point `topographic/locations` with the ten playground places as built-in height grids: `istanbul`, `cyprus`, `matterhorn`, `geirangerfjord`, `grand-canyon`, `yosemite`, `torres-del-paine`, `fuji`, `everest` and `kilimanjaro`. Each place loads on its own, so a page downloads only the places it uses. `LOCATIONS` lists them, and `loadLocation(id)` returns a grid.
 - New `fetchLocation({ west, south, east, north })` makes a height grid for any area up to 300 km wide, with the playground's own elevation pipeline, which moved into the library.
-- New `location` setting, element attribute and React prop. It takes a place id or a height grid. A place also sets its camera, elevation and `extent: 'block'`, under the values you set. `setHeightfield()` still works.
+- New `location` setting, element attribute and React prop. It takes a place id or a height grid. A place also sets the playground's look for it: its camera, elevation, `extent: 'block'`, the lines (`count: 36, width: 0, opacity: 0.9, indexEvery: 4`) and `layout.fade: 0.15`, under the values you set. It does not set `mode`. `setHeightfield()` still works.
 - Playground: the ten places load their built-in grids instead of the elevation tiles. `get_region` returns `builtIn` and `loadMs` in place of `fetchMs` and `shapeMs`.
 - Install lines in the READMEs no longer pin a version. Sizing and layering examples moved to the guide.
 

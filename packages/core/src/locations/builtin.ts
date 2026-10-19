@@ -6,12 +6,16 @@ export type LocationId =
   | 'istanbul' | 'cyprus' | 'matterhorn' | 'geirangerfjord' | 'grand-canyon'
   | 'yosemite' | 'torres-del-paine' | 'fuji' | 'everest' | 'kilimanjaro';
 
-/** The view a location sets unless you set it yourself. */
+/** The look a location sets unless you set it yourself: the playground's place view. */
 export interface LocationDefaults {
   camera: { azimuth: number; elevation: number; radius: number };
   /** How tall the 3D terrain is. */
   elevation: number;
   extent: 'block';
+  /** Fine, strong lines with a bold line every 4, as the playground draws a place. */
+  lines: { count: number; width: number; opacity: number; indexEvery: number };
+  /** A light centre fade, so the middle of the place stays clear. */
+  layout: { fade: number };
 }
 
 /** A built-in location. Its height grid loads with loadLocation() or the `location` setting. */
@@ -55,11 +59,16 @@ const LOADERS: Record<LocationId, () => Promise<LocationData>> = {
   kilimanjaro: () => import('./data/kilimanjaro.js'),
 };
 
-/** Every place shares one camera distance and extent; the angle and the height suit each landscape. */
+/**
+ * Every place shares one camera distance, extent, lines and centre fade; the angle and the height
+ * suit each landscape. The lines are the playground's map terrain lines, and the fade is its looks' base fade.
+ */
 const view = (azimuth: number, cameraElevation: number, elevation: number): LocationDefaults => ({
   camera: { azimuth, elevation: cameraElevation, radius: 1.32 },
   elevation,
   extent: 'block',
+  lines: { count: 36, width: 0, opacity: 0.9, indexEvery: 4 },
+  layout: { fade: 0.15 },
 });
 
 const place = (id: LocationId, name: string, bbox: BBox, defaults: LocationDefaults): LocationInfo => ({

@@ -17,12 +17,14 @@ describe('built-in locations', () => {
     expect(findLocation('atlantis')).toBeUndefined();
   });
 
-  it('gives every place the shared camera distance and block extent, Cyprus included', () => {
+  it('gives every place the playground\'s place look: camera distance, block extent, lines and a light fade, Cyprus included', () => {
     for (const l of LOCATIONS) {
       expect(l.defaults.camera.radius).toBe(1.32);
       expect(l.defaults.extent).toBe('block');
+      expect(l.defaults.lines).toEqual({ count: 36, width: 0, opacity: 0.9, indexEvery: 4 });
+      expect(l.defaults.layout).toEqual({ fade: 0.15 });
     }
-    expect(findLocation('cyprus')!.defaults).toEqual({ camera: { azimuth: 341.8, elevation: 35, radius: 1.32 }, elevation: 0.1, extent: 'block' });
+    expect(findLocation('cyprus')!.defaults).toMatchObject({ camera: { azimuth: 341.8, elevation: 35, radius: 1.32 }, elevation: 0.1, extent: 'block' });
     expect(findLocation('istanbul')!.defaults.camera).toEqual({ azimuth: 341.8, elevation: 39.3, radius: 1.32 });
   });
 

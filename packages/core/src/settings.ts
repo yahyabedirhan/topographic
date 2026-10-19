@@ -76,8 +76,8 @@ export interface Settings {
   view2d: View2dSettings;
   /**
    * A real place instead of the generated terrain: a built-in location id, or a height grid such as
-   * one from fetchLocation(). A built-in location also brings its camera, elevation and extent,
-   * under the values you set. null is the generated terrain.
+   * one from fetchLocation(). A built-in location also brings its camera, elevation, extent, lines
+   * and centre fade, under the values you set. null is the generated terrain.
    */
   location: LocationId | Heightfield | null;
 }
@@ -214,14 +214,16 @@ function resolveLocation(location: SettingsInput['location']): Settings['locatio
   return null;
 }
 
-/** Sets the location and, for a new built-in one, its view before the input's own view values. */
+/** Sets the location and, for a new built-in one, its look. Call it before the input's own values. */
 function applyLocation(into: Settings, input: SettingsInput): void {
   if (input.location === undefined) return;
   const next = resolveLocation(input.location);
   if (next === into.location) return;
   into.location = next;
   const builtin = typeof next === 'string' ? findLocation(next) : undefined;
-  if (builtin) applyView(into, builtin.defaults);
+  if (!builtin) return;
+  applyGroups(into, builtin.defaults);
+  applyView(into, builtin.defaults);
 }
 
 function resolveShape(shape: string | undefined): ShapeId {
@@ -252,8 +254,8 @@ export function resolveSettings(input: SettingsInput = {}): Settings {
   const out = defaultSettings();
   out.shape = resolveShape(input.shape);
   applyGroups(out, findShape(out.shape)?.defaults as SettingsInput | undefined);
-  applyGroups(out, input);
   applyLocation(out, input);
+  applyGroups(out, input);
   applyView(out, input);
   return out;
 }
@@ -263,8 +265,8 @@ export function mergeSettings(current: Settings, patch: SettingsInput): Settings
   // A height grid is shared, not copied: it can be large, and the renderer only reads it.
   const out: Settings = { ...structuredClone({ ...current, location: null }), location: current.location };
   if (patch.shape !== undefined) out.shape = resolveShape(patch.shape);
-  applyGroups(out, patch);
   applyLocation(out, patch);
+  applyGroups(out, patch);
   applyView(out, patch);
   return out;
 }

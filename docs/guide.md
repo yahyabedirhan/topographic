@@ -260,9 +260,22 @@ A place's file is 25 to 115 KB when the server compresses it.
 Until the file arrives, the view shows only the paper colour.
 `snapshot()` and `record()` wait for it.
 
-A built-in place also sets the camera angle and distance, the 3D `elevation` and `extent: 'block'`.
+A built-in place also sets the look the playground gives it.
+That is the camera angle and distance, the 3D `elevation`, `extent: 'block'`, the lines and a light centre fade:
+
+```js
+{
+  camera: { azimuth, elevation, radius: 1.32 },   // each place has its own angle
+  elevation,                                      // each place has its own height
+  extent: 'block',
+  lines: { count: 36, width: 0, opacity: 0.9, indexEvery: 4 },
+  layout: { fade: 0.15 },
+}
+```
+
+It does not set `mode`, so a place is a 2D map unless you set `mode: '3d'`.
 The values you set win over the place's own.
-A change to another place sets that place's view again, except for the values in the same update.
+A change to another place sets that place's look again, except for the values in the same update.
 
 `LOCATIONS` from `topographic/locations` lists each place with its `id`, `name`, `bbox`, `aspect` and `defaults`.
 `loadLocation(id)` returns a place's grid, with `minMeters` and `maxMeters` for its lowest and highest point.

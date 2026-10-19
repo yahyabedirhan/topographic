@@ -163,10 +163,14 @@ describe('location setting', () => {
     expect(s.camera).toMatchObject({ azimuth: 341.8, elevation: 40, radius: 1.32, motion: 'still' });
     expect(s.elevation).toBe(0.1);
     expect(s.extent).toBe('block');
+    expect(s.lines).toEqual({ count: 36, width: 0, opacity: 0.9, indexEvery: 4 });
+    expect(s.layout.fade).toBe(0.15);
     expect(s.mode).toBe('2d');
   });
   it('keeps the values you set over the location\'s', () => {
-    const s = resolveSettings({ location: 'everest', mode: '3d', elevation: 0.3, camera: { azimuth: 90, motion: 'orbit' } });
+    const s = resolveSettings({ location: 'everest', mode: '3d', elevation: 0.3, camera: { azimuth: 90, motion: 'orbit' }, lines: { count: 20 }, layout: { fade: 0.6 } });
+    expect(s.lines).toEqual({ count: 20, width: 0, opacity: 0.9, indexEvery: 4 });
+    expect(s.layout.fade).toBe(0.6);
     expect(s.mode).toBe('3d');
     expect(s.elevation).toBe(0.3);
     expect(s.camera).toMatchObject({ azimuth: 90, elevation: 40, radius: 1.32, motion: 'orbit' });
@@ -175,6 +179,7 @@ describe('location setting', () => {
     const s = resolveSettings({ location: grid });
     expect(s.location).toBe(grid);
     expect(s.camera).toEqual(resolveSettings().camera);
+    expect(s.lines).toEqual(resolveSettings().lines);
   });
   it('warns once and uses the generated terrain for an unknown id or a broken grid', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
@@ -191,6 +196,7 @@ describe('location setting', () => {
     expect(fuji.camera).toMatchObject({ azimuth: 341.8, elevation: 30 });
     expect(fuji.elevation).toBe(0.24);
     expect(mergeSettings(moved, { location: 'fuji', camera: { elevation: 50 } }).camera.elevation).toBe(50);
+    expect(mergeSettings(moved, { location: 'fuji', lines: { opacity: 0.5 } }).lines.opacity).toBe(0.5);
     expect(mergeSettings(fuji, { location: null }).location).toBeNull();
   });
   it('shares a height grid between merges instead of copying it', () => {

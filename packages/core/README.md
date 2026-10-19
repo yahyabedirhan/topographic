@@ -45,7 +45,7 @@ const png = await topography.snapshot({ width: 1920, height: 1080 });
 const clip = await topography.record({ seconds: 6, motion: 'orbit', format: 'mp4' });
 ```
 
-**Real places:** the `location` setting takes one of ten built-in places, such as `everest`, `fuji` or `istanbul`, and sets its camera. A page downloads only the places it uses. `fetchLocation()` makes the same kind of grid for any area up to 300 km wide.
+**Real places:** the `location` setting takes one of ten built-in places, such as `everest`, `fuji` or `istanbul`, and gives it the playground's camera and lines. A page downloads only the places it uses. `fetchLocation()` makes the same kind of grid for any area up to 300 km wide.
 
 ```js
 import { fetchLocation } from 'topographic/locations';

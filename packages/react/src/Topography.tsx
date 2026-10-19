@@ -65,12 +65,16 @@ export function useTopography<T extends HTMLElement = HTMLDivElement>(
   const camera = useByValue(settings.camera);
   const view2d = useByValue(settings.view2d);
   useEffect(() => { if (shape !== undefined) ref.topographic?.update({ shape }); }, [ref, shape]);
-  // A height grid is large, so it is compared by identity rather than by value. The view props go
-  // with it, so a new location's camera, elevation and extent never replace the ones you set.
+  // A height grid is large, so it is compared by identity rather than by value. The props a place
+  // sets go with it, so a new location's look never replaces the ones you set.
   useEffect(() => {
     if (location === undefined) return;
-    const { camera: c, elevation: e, extent: x } = latest.current;
-    ref.topographic?.update({ location, ...(c ? { camera: c } : {}), ...(e !== undefined ? { elevation: e } : {}), ...(x !== undefined ? { extent: x } : {}) });
+    const { camera: c, elevation: e, extent: x, lines: l, layout: y } = latest.current;
+    ref.topographic?.update({
+      location,
+      ...(c ? { camera: c } : {}), ...(e !== undefined ? { elevation: e } : {}), ...(x !== undefined ? { extent: x } : {}),
+      ...(l ? { lines: l } : {}), ...(y ? { layout: y } : {}),
+    });
   }, [ref, location]);
   useEffect(() => { if (seed !== undefined) ref.topographic?.update({ seed }); }, [ref, seed]);
   useEffect(() => { if (lines) ref.topographic?.update({ lines }); }, [ref, lines]);

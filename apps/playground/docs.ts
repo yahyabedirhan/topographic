@@ -55,7 +55,7 @@ ${rows.join('\n')}
 Other settings:
 
 - \`shape\` (attribute \`shape\`, React prop \`shape\`): one of the shapes below. Unknown shapes fall back to \`${defaultSettings().shape}\` with one console warning.
-- \`location\` (attribute \`location\`, React prop \`location\`): a real place instead of the generated terrain. A built-in id (${LOCATIONS.map((l) => `\`${l.id}\``).join(', ')}), or a height grid \`{ samples, size, aspect }\` such as one from \`fetchLocation()\`. A built-in id also sets \`camera.azimuth\`, \`camera.elevation\`, \`camera.radius\`, \`elevation\` and \`extent: 'block'\`, under the values you set. Default \`null\`, the generated terrain. Unknown ids fall back to \`null\` with one console warning. See [api.md](api.md).
+- \`location\` (attribute \`location\`, React prop \`location\`): a real place instead of the generated terrain. A built-in id (${LOCATIONS.map((l) => `\`${l.id}\``).join(', ')}), or a height grid \`{ samples, size, aspect }\` such as one from \`fetchLocation()\`. A built-in id also sets \`camera.azimuth\`, \`camera.elevation\`, \`camera.radius\`, \`elevation\`, \`extent: 'block'\`, \`lines\` (\`{ count: 36, width: 0, opacity: 0.9, indexEvery: 4 }\`) and \`layout.fade: 0.15\`, under the values you set. It does not set \`mode\`. Default \`null\`, the generated terrain. Unknown ids fall back to \`null\` with one console warning. See [api.md](api.md).
 - \`seed\` (attribute \`seed\`): integer 0 to 999999. The same seed gives the same terrain; 0 is the original look.
 - \`theme.mode\` (attribute \`theme\`): \`auto\` (follows the OS), \`light\` or \`dark\`.
 - \`theme.ink\` / \`theme.paper\` (attributes \`ink\`, \`paper\`): any CSS colour; paper may be \`transparent\`. Without them, the CSS variables \`--topographic-ink\` and \`--topographic-paper\` are used, then the mode defaults.
@@ -167,7 +167,7 @@ Behaviour:
 
 \`import { LOCATIONS, loadLocation, fetchLocation } from 'topographic/locations'\`.
 
-- \`LOCATIONS\`: the built-in places, each \`{ id, name, bbox, aspect, defaults }\`. \`defaults\` is \`{ camera: { azimuth, elevation, radius }, elevation, extent }\`.
+- \`LOCATIONS\`: the built-in places, each \`{ id, name, bbox, aspect, defaults }\`. \`defaults\` is \`{ camera: { azimuth, elevation, radius }, elevation, extent, lines, layout }\`.
 ${LOCATIONS.map((l) => `  - \`${l.id}\`: ${l.name}, west ${l.bbox.west}, south ${l.bbox.south}, east ${l.bbox.east}, north ${l.bbox.north}`).join('\n')}
 - \`loadLocation(id) => Promise<{ samples, size, aspect, minMeters, maxMeters, zoom }>\`: a built-in place's 256 × 256 grid. Each place is its own dynamic import of 35 to 150 KB (25 to 115 KB compressed), so a page downloads only the places it uses. The \`location\` setting calls it for you.
 - \`fetchLocation({ west, south, east, north }, { relief?, smooth?, tiles?, signal? }) => Promise<{ samples, size, aspect, minMeters, maxMeters, zoom, tiles }>\`: downloads Terrarium elevation tiles (AWS Open Data) for any area and makes the same 256 × 256 grid as the playground. The shorter side must be at least ${AREA_LIMITS.minSideM / 1000} km, the longer side at most ${AREA_LIMITS.maxSideM / 1000} km, and the sides within ${AREA_LIMITS.maxAspect}:1. \`relief\` is \`dramatic\` (default) or \`measured\`; \`smooth\` is \`light\`, \`medium\` (default) or \`strong\`; \`tiles\` is a Terrarium URL template with \`{z}\`, \`{x}\` and \`{y}\`. Pass the result as \`location\`.
