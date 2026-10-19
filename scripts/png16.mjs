@@ -1,4 +1,4 @@
-// PNG helpers for scripts/locations.mjs and its tests: a 16-bit greyscale encoder and an 8-bit decoder.
+// PNG helpers for scripts/locations.mjs, scripts/places.mjs and their tests: a 16-bit greyscale encoder and an 8-bit decoder.
 import { deflateSync, inflateSync } from 'node:zlib';
 
 const CRC = new Uint32Array(256).map((_, n) => {
