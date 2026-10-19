@@ -10,8 +10,6 @@ The install is done when step 5 shows the terrain in the running page.
 
 ## 2. Install them
 
-Use the package manager the lockfile names: `package-lock.json` is npm, `pnpm-lock.yaml` is pnpm, `yarn.lock` is yarn, `bun.lock` or `bun.lockb` is bun.
-
 ```sh
 npm install topographic                     # plain JavaScript, HTML or any framework
 npm install topographic topographic-react   # React
