@@ -6,7 +6,7 @@ import {
 import { TopographicBackground } from 'topographic-react';
 import { isWheelNotch, notchZoom, pan2d, twoFingerKind, wheelZoom, zoom2d } from './gestures';
 import { bindPageUrlFlush, flushPageUrl, schedulePageUrl } from './page-history';
-import { registerTools } from './webmcp';
+import { pageBridge, registerTools } from './webmcp';
 import { configOf, readUrl } from './url';
 import { withQuery, writeSettings } from './share-url';
 import { LOOKS } from './looks';
@@ -114,7 +114,7 @@ export function usePlayground(): Playground {
   useEffect(() => bindPageUrlFlush(), []);
   const latest = useRef(settings);
   latest.current = settings;
-  useEffect(() => registerTools({ getSettings: () => latest.current, setSettings, instance: () => instance.current }), []);
+  useEffect(() => registerTools(pageBridge(latest, setSettings, () => instance.current)), []);
   const frame = useRef(0);
   useEffect(() => () => cancelAnimationFrame(frame.current), []);
 

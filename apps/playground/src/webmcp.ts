@@ -21,6 +21,22 @@ export interface PageBridge {
   instance(): TopographicBackground | null;
 }
 
+/**
+ * The bridge the tools use. A change is stored and sent to the canvas before the tool returns, so a
+ * `get_settings` call right after `set_settings` reads it. React renders it on its next pass.
+ */
+export function pageBridge(state: { current: Settings }, render: (s: Settings) => void, instance: () => TopographicBackground | null): PageBridge {
+  return {
+    getSettings: () => state.current,
+    setSettings: (next) => {
+      state.current = next;
+      instance()?.update(next);
+      render(next);
+    },
+    instance,
+  };
+}
+
 interface ModelContextLike {
   registerTool(tool: object, options?: { signal?: AbortSignal }): Promise<unknown> | unknown;
 }
