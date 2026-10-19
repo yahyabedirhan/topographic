@@ -472,3 +472,11 @@ On "Hi, I'm Yahya." in Share feedback:
 > Start with this: "If you have any comments, feedback, or anything to report, you can contact me here. I'm Yahya, developer of this project, and you can check out my other work as well."
 > Something like this.
 > You can find a better [wording] for it.
+
+The wording the maintainer chose for Share feedback:
+
+> Hi, I'm Yahya, the developer of topographic.
+> I'd love [to] hear what you make, and what doesn't work.
+> If you have any comments, feedback or anything to report, you can contact me here:
+>
+> I think something like this will work.
