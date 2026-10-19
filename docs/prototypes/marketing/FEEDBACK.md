@@ -509,3 +509,8 @@ On the top-left links:
 > For this area make the playground lowercase and add: playground npm / GitHub [yahyapak.dev]
 >
 > What I mean here: put the playground and npm on the first line and put the GitHub and [yahyapak.dev] on the second line.
+
+On "The contour lines of a hiking map, alive in 2D and 3D.":
+
+> This is just a narrow point of what this is.
+> Let's not try to narrow it down to contour lines of a hiking map.

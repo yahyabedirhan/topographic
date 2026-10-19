@@ -20,7 +20,7 @@ export const GROUPS = [
 export const SECTIONS = [
   {
     id: 'what', title: 'What it is', nav: 'What it is',
-    lede: 'The contour lines of a hiking map, alive in 2D and 3D.',
+    lede: 'Real places and generated land, drawn live in 2D and 3D.',
     body: `<p>You describe land in a few settings, or name a real place, and topographic draws it as contour lines that move, flat like a map or lifted into a landscape under a camera. The same settings and seed draw the same land on every screen.<sup class="fn"></sup></p>`,
     notes: ['The whole core package, the element and the video encoder included, is about 25 kB gzipped.'],
     live: { ...GRANITE, mode: '3d', camera: { motion: 'orbit' } },
