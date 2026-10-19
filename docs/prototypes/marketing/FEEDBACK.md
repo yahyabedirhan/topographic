@@ -335,3 +335,7 @@ On the margin readout `pose.azimuth 545.0°` / `pose.elevation 40.0°` beside th
 
 > Here this is a really nice area where we can show a small code snippet in which these parameters are actually changing, preferably React.
 > This shows a real connection between code and the preview immediately when they open up this documentation page.
+
+On the link row "Real places · Generated shapes · 2D and 3D · Heightmaps · Install ↓" under the opening:
+
+> This link area is not necessary because we already have them in the left panel.
