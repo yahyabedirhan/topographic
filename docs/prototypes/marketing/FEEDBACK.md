@@ -283,3 +283,10 @@ On the serif sentence "The contour lines of a hiking map, alive in 2D and 3D.":
 On the Install section:
 
 > And in the install area also show the `npx [skills add]` install as well, similar to how we are planning that install experience in the playground.
+
+On the top-left links under the wordmark (Playground, GitHub, npm and yahyapak.dev, one per line):
+
+> These links are too close to each other.
+> Have a little bit more gap between them.
+> Maybe you can use a grid view, 2x2, and change the icon for the playground but actually the icon looks good.
+> Since they are too close to each other and everything is just lined up on a single line, I think you can make it look a little bit more [like] the top-left corner of the playground.
