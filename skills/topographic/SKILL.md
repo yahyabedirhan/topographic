@@ -1,6 +1,6 @@
 ---
 name: topographic
-description: "Topographic terrain with the topographic library: 2D contour maps and 3D landscapes, generated or from real elevation data, for websites and videos. Use when asked to install topographic, or to add, change or export a topographic map or terrain with it."
+description: "Topographic terrain with the topographic library: 2D contour maps and 3D landscapes, generated or from real elevation data, for websites, videos and games. Use when asked to install topographic, or to add, change or export a topographic map or terrain with it."
 ---
 
 # topographic
