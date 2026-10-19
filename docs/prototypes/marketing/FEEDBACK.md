@@ -376,3 +376,10 @@ On "Children are drawn on top":
 On a sidenote where the inline code `'use client'` breaks across two lines:
 
 > And here the new line breaks the `use client` directive and it's not looking good like this.
+
+On the first code block, titled `Everest.jsx`:
+
+> This is the first code block we show to the user.
+> We don't have to name this JavaScript file.
+> We don't have to show something like this.
+> Treat it as just a React block without this top bar but have this copy icon in the top-right corner of it.
