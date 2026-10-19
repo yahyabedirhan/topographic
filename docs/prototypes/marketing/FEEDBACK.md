@@ -320,3 +320,13 @@ On text such as "A named design: …":
 
 > Don't use this [colon] and item, item, style in the documentation.
 > I don't like this style.
+
+On the sidenote "Real heights. The camera orbits on its own.":
+
+> This explanation looks a bit unnecessary.
+
+On the 2D/3D switches, with a screenshot of the playground's top-right icon cluster (place, 2D/3D mode with its badge, Tune, Export):
+
+> And these 2D/3D option switches are nice as a functionality but let's use these types of icons for the controls.
+> Like we already have these in the playground.
+> I want you to consistently use this as a visual element library in the docs page as well.
