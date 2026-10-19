@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import * as core from 'topographic';
 import * as react from 'topographic-react';
+import * as locations from 'topographic/locations';
 import 'topographic/element';
 import { CODE, LOOK_GALLERY } from './content';
 
@@ -10,11 +11,10 @@ const snippets = Object.values(CODE).flatMap((s) => Object.values(s)).join('\n')
 /** The page must show only what the library really exports and does, so these checks read the library itself. */
 describe('docs snippets against the library', () => {
   it('import only names the packages export', () => {
-    const modules: Record<string, object> = { topographic: core, 'topographic-react': react };
+    const modules: Record<string, object> = { topographic: core, 'topographic-react': react, 'topographic/locations': locations };
     for (const m of snippets.matchAll(/import \{([^}]+)\} from '([\w/-]+)'/g)) {
       const mod = modules[m[2]];
-      // topographic/locations comes with the location setting (pull request 87); check it once this base has it.
-      if (!mod) { expect(m[2]).toBe('topographic/locations'); continue; }
+      expect(mod, m[2]).toBeDefined();
       for (const name of m[1].split(',').map((n) => n.trim())) expect(name in mod, `${name} from ${m[2]}`).toBe(true);
     }
   });
