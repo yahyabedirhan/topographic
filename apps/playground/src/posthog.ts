@@ -31,3 +31,8 @@ export function startPostHog(key: string, host: string, props: SuperProperties):
   posthog.register(props as unknown as Record<string, unknown>);
   return (event, p) => { posthog.capture(event, p); };
 }
+
+/** Stops sending the visitor id from this page, after an opt out. */
+export function dropVisitorId(): void {
+  posthog.unregister('visitor_id');
+}

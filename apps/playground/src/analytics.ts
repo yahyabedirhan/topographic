@@ -7,7 +7,8 @@
  */
 
 import { superProperties } from './device';
-import { consent, setConsent, type Consent } from './consent';
+import { consent, safeStore, setConsent, type Consent } from './consent';
+import { visitorId } from './visitor';
 
 export type ExportFormat = 'link' | 'png' | 'video' | 'react' | 'html' | 'json';
 export type PanelName = 'map' | 'tune' | 'export';
@@ -88,6 +89,8 @@ export interface SuperProperties {
   platform: 'mobile' | 'desktop';
   os: string;
   initial_view_mode: ViewMode;
+  /** The random id saved in this browser, sent only while the visitor has not opted out. */
+  visitor_id?: string;
 }
 
 /** Event names, for tests and for checks that the map stays the single source. */
@@ -163,11 +166,16 @@ function doNotTrack(): boolean {
 const KEY = import.meta.env.VITE_POSTHOG_KEY || undefined;
 const HOST = import.meta.env.VITE_POSTHOG_HOST || DEFAULT_HOST;
 
+let posthogLoaded = false;
+
 // With `?optout=all` saved, the client is never loaded.
 const tracker = createTracker(consent() === 'none' ? undefined : KEY, HOST, async (key, host) => {
   if (doNotTrack()) return null;
   const { startPostHog } = await import('./posthog');
-  return startPostHog(key, host, superProperties());
+  posthogLoaded = true;
+  const props = superProperties();
+  if (consent() === 'all') props.visitor_id = visitorId(safeStore());
+  return startPostHog(key, host, props);
 });
 
 /** Sends one event. Does nothing in a build without a key. */
@@ -191,6 +199,8 @@ export function optOut(to: 'pageviews' | 'none' = 'none'): void {
     if (to === 'none') tracker.stop();
   } else if (KEY && to === 'none') tracker.stop();
   setConsent(to);
+  // Pageviews only keeps PostHog running on this page, so it must stop sending the deleted id too.
+  if (posthogLoaded && to === 'pageviews') import('./posthog').then((m) => m.dropVisitorId()).catch(() => {});
 }
 
 /** Clears the saved choice. Analytics start again on the next page load. */
