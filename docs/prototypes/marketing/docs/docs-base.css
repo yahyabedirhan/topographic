@@ -1,0 +1,81 @@
+/* PROTOTYPE. Shared tokens and parts for the three docs page variants. Each variant brings its own layout. */
+:root{
+  --bg:#0b0b0d;--bg-2:#101013;--card:#131316;--card-2:#18181c;--code:#0f0f12;
+  --fg:#ecebe8;--text:#c9c8c3;--mut:#8b8a86;--faint:#5f5e5a;
+  --line:rgba(255,255,255,.075);--line-2:rgba(255,255,255,.12);
+  --accent:#a9c7e4;--warm:#d9a35b;--ok:#9dcec0;
+  --sans:Inter,-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+  --serif:'EB Garamond','Iowan Old Style',Georgia,serif;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  /* syntax */
+  --k:#7f7e7a;--s:#a9c7e4;--n:#e0b089;--t:#c9b6ea;--a:#9dcec0;--c:#5f5e5a;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--bg);-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--text);font:400 15px/1.62 var(--sans);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;font-feature-settings:'cv11','ss01'}
+a{color:var(--fg);text-decoration:underline;text-decoration-color:rgba(255,255,255,.22);text-underline-offset:3px;text-decoration-thickness:1px}
+a:hover{text-decoration-color:var(--fg)}
+b,strong{color:var(--fg);font-weight:500}
+em.i,.i{font-family:var(--serif);font-style:italic;font-size:1.12em;letter-spacing:-.005em;color:var(--fg)}
+.warm{color:var(--warm)}
+code{font:400 .86em/1.4 var(--mono);color:var(--fg);background:rgba(255,255,255,.06);padding:1px 5px;border-radius:5px;white-space:nowrap}
+pre code{background:none;padding:0;border-radius:0;white-space:pre;color:var(--text)}
+:focus-visible{outline:1.5px solid var(--fg);outline-offset:3px;border-radius:4px}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+img{display:block;max-width:100%}
+::selection{background:rgba(169,199,228,.28)}
+
+/* The 0.6.0 badge marks what only the proposed API has. */
+.badge{display:inline-flex;align-items:center;height:17px;padding:0 6px;border-radius:999px;font:500 10.5px/1 var(--mono);letter-spacing:.01em;color:var(--warm);box-shadow:inset 0 0 0 1px rgba(217,163,91,.38);vertical-align:2px;margin-left:6px;white-space:nowrap}
+
+/* Code blocks: a filename, a copy button, numbered-free lines. */
+.code{position:relative;border-radius:12px;background:var(--code);box-shadow:inset 0 0 0 1px var(--line);overflow:hidden}
+.code-head{display:flex;align-items:center;gap:4px;min-height:38px;padding:0 8px 0 16px;border-bottom:1px solid var(--line)}
+.code-file{font:400 12px/1 var(--mono);color:var(--mut);margin-right:auto}
+.code-tabs{display:flex;gap:2px;margin-right:auto;margin-left:-8px}
+.code-tab{font:500 12px/1 var(--sans);color:var(--mut);padding:7px 10px;border-radius:7px}
+.code-tab[aria-selected=true]{color:var(--fg);background:rgba(255,255,255,.07)}
+.code-tab:hover{color:var(--fg)}
+.copy{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:7px;color:var(--mut)}
+.copy:hover{color:var(--fg);background:rgba(255,255,255,.06)}
+.copy svg{width:14px;height:14px}
+.copy.done{color:var(--ok)}
+.code pre{margin:0;padding:14px 16px 16px;overflow-x:auto;font:400 12.5px/1.72 var(--mono);color:var(--text);tab-size:2;scrollbar-width:thin}
+.code.bare .code-head{display:none}
+.code.bare pre{padding:12px 16px}
+.code.one{display:flex;align-items:center}
+.code.one pre{flex:1;padding:12px 4px 12px 16px}
+.code.one .copy{margin-right:8px}
+.tk-k{color:var(--k)}.tk-s{color:var(--s)}.tk-n{color:var(--n)}.tk-t{color:var(--t)}.tk-a{color:var(--a)}.tk-c{color:var(--c);font-style:italic}.tk-p{color:var(--faint)}
+
+/* Tables. */
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px;line-height:1.5}
+.tbl th{font:500 11.5px/1.3 var(--sans);color:var(--mut);text-align:left;padding:0 12px 8px 0;border-bottom:1px solid var(--line-2);white-space:nowrap}
+.tbl td{padding:10px 12px 10px 0;border-bottom:1px solid var(--line);vertical-align:top;color:var(--text)}
+.tbl td:first-child{color:var(--fg)}
+.tbl td code{font-size:12px}
+.tbl .num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.tbl-wrap{overflow-x:auto;margin:0 -2px;padding:0 2px}
+
+/* Small range input in the house style. */
+.rng{display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 10px;font:500 12px/1.2 var(--sans);color:var(--mut)}
+.rng output{font:400 11.5px/1 var(--mono);color:var(--fg);font-variant-numeric:tabular-nums}
+.rng input{grid-column:1/-1;width:100%;height:18px;-webkit-appearance:none;appearance:none;background:transparent}
+.rng input::-webkit-slider-runnable-track{height:2px;background:var(--line-2);border-radius:2px}
+.rng input::-moz-range-track{height:2px;background:var(--line-2);border-radius:2px}
+.rng input::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:var(--fg);margin-top:-5px;box-shadow:0 0 0 3px var(--bg)}
+.rng input::-moz-range-thumb{width:12px;height:12px;border:0;border-radius:50%;background:var(--fg)}
+
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:500 12px/1 var(--sans);color:var(--mut);padding:7px 10px;border-radius:999px;box-shadow:inset 0 0 0 1px var(--line-2);white-space:nowrap}
+.chip:hover{color:var(--fg)}
+.chip[aria-pressed=true],.chip[aria-selected=true]{color:var(--bg);background:var(--fg);box-shadow:none}
+kbd{font:500 11px/1 var(--mono);color:var(--fg);background:rgba(255,255,255,.07);padding:3px 6px;border-radius:5px;box-shadow:inset 0 -1px 0 rgba(255,255,255,.06)}
+
+/* Header links shared by every variant. */
+.toplinks{display:flex;flex-wrap:wrap;gap:4px 14px;font:400 13px/1.3 var(--sans);color:var(--mut)}
+.toplinks a{color:var(--mut);text-decoration:none}
+.toplinks a:hover{color:var(--fg)}
+
+@media (prefers-reduced-motion:reduce){*{transition-duration:0s!important;animation:none!important;scroll-behavior:auto!important}}
