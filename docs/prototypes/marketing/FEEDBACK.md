@@ -290,3 +290,8 @@ On the top-left links under the wordmark (Playground, GitHub, npm and yahyapak.d
 > Have a little bit more gap between them.
 > Maybe you can use a grid view, 2x2, and change the icon for the playground but actually the icon looks good.
 > Since they are too close to each other and everything is just lined up on a single line, I think you can make it look a little bit more [like] the top-left corner of the playground.
+
+On the "First terrain" section:
+
+> Here we are showing code but there is no visual so let's show as much visually for the areas where we show code as well.
+> Here is a really nice area.
