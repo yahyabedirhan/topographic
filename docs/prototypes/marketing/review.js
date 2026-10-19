@@ -27,7 +27,7 @@ export const PLACES = [
 export const PULLS = [
   { title: 'Issues #78–#82', href: 'https://github.com/yahyabedirhan/topographic/issues?q=is%3Aissue+78..82', note: 'Next-release work behind the launch copy: heightmap export, glTF mesh, 2D and longer video, locations in the library, the look setting.', state: 'Open issues' },
   { title: 'topographic #77', href: 'https://github.com/yahyabedirhan/topographic/pull/77', note: 'Renames the public API: createTopography, Topography, useTopography, &lt;topographic-view&gt;, shape. The Tune popover section Shape becomes Form. Old ?s= links and saved terrains keep working. Typecheck, tests and build pass; two saved-camera smoke checks fail before and after the rename.', state: 'Draft, names and clean break decided' },
-  { title: 'topographic skill (in #77)', href: 'https://github.com/yahyabedirhan/topographic/tree/effort/topography-api/skills/topographic', note: 'A short entry point for agents: an install check, one example and a map of guide sections. references/install.md loads only for the first install. Install with npx skills add yahyabedirhan/topographic.', state: 'Draft, on the #77 branch' },
+  { title: 'topographic #83', href: 'https://github.com/yahyabedirhan/topographic/pull/83', note: 'The topographic agent skill, stacked on #77. Fresh agents installed and used it in plain Vite, Vite + React and Next.js; all three pass after one wording fix about sizing. Moves onto main when #77 merges.', state: 'Open, stacked on #77' },
   { title: 'personal-website #26', href: 'https://github.com/yahyabedirhan/personal-website/pull/26', note: 'Points the 8 old github.io playground links on the topographic page at topographic.yahyapak.dev. No copy changes.', state: 'Open, ready to merge' },
 ];
 
