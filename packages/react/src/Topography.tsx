@@ -1,10 +1,10 @@
 'use client';
 import { forwardRef, useEffect, useRef, useState, type HTMLAttributes, type MutableRefObject } from 'react';
-import { createTopographicBackground, type RendererOptions, type SettingsInput, type TopographicBackground as TopographicBackgroundInstance } from 'topographic';
+import { createTopography, type RendererOptions, type SettingsInput, type Topography as TopographyInstance } from 'topographic';
 
-export interface TopographicBackgroundSettingsProps {
-  /** Style id, e.g. 'dunes'. Named styleName because `style` is React's inline style prop. */
-  styleName?: string;
+export interface TopographySettingsProps {
+  /** Landform id, e.g. 'dunes'. `style` stays React's inline CSS prop. */
+  landform?: string;
   seed?: number;
   lines?: SettingsInput['lines'];
   terrain?: SettingsInput['terrain'];
@@ -23,9 +23,9 @@ export interface TopographicBackgroundSettingsProps {
   view2d?: SettingsInput['view2d'];
 }
 
-export interface TopographicBackgroundRef<T extends HTMLElement = HTMLDivElement> extends MutableRefObject<T | null> {
+export interface TopographyRef<T extends HTMLElement = HTMLDivElement> extends MutableRefObject<T | null> {
   /** The live instance while mounted (for snapshot, or imperative updates). */
-  topographic: TopographicBackgroundInstance | null;
+  topographic: TopographyInstance | null;
 }
 
 const key = (v: unknown) => (v === undefined ? '' : JSON.stringify(v));
@@ -38,24 +38,23 @@ function useByValue<T>(value: T): T {
 }
 
 /** Attaches a topographic to the element you put the returned ref on. */
-export function useTopographicBackground<T extends HTMLElement = HTMLDivElement>(
-  settings: TopographicBackgroundSettingsProps = {},
+export function useTopography<T extends HTMLElement = HTMLDivElement>(
+  settings: TopographySettingsProps = {},
   options?: RendererOptions,
-): TopographicBackgroundRef<T> {
-  const [ref] = useState<TopographicBackgroundRef<T>>(() => ({ current: null, topographic: null }));
+): TopographyRef<T> {
+  const [ref] = useState<TopographyRef<T>>(() => ({ current: null, topographic: null }));
   const latest = useRef(settings);
   latest.current = settings;
   const stableOptions = useByValue(options);
 
   useEffect(() => {
     if (!ref.current) return;
-    const { styleName, ...rest } = latest.current;
-    const t = createTopographicBackground(ref.current, { ...rest, style: styleName }, stableOptions);
+    const t = createTopography(ref.current, latest.current, stableOptions);
     ref.topographic = t;
     return () => { t.destroy(); ref.topographic = null; };
   }, [ref, stableOptions]);
 
-  const { styleName, seed, mode, elevation, extent, detail, quality } = settings;
+  const { landform, seed, mode, elevation, extent, detail, quality } = settings;
   const lines = useByValue(settings.lines);
   const terrain = useByValue(settings.terrain);
   const motion = useByValue(settings.motion);
@@ -63,7 +62,7 @@ export function useTopographicBackground<T extends HTMLElement = HTMLDivElement>
   const theme = useByValue(settings.theme);
   const camera = useByValue(settings.camera);
   const view2d = useByValue(settings.view2d);
-  useEffect(() => { if (styleName !== undefined) ref.topographic?.update({ style: styleName }); }, [ref, styleName]);
+  useEffect(() => { if (landform !== undefined) ref.topographic?.update({ landform }); }, [ref, landform]);
   useEffect(() => { if (seed !== undefined) ref.topographic?.update({ seed }); }, [ref, seed]);
   useEffect(() => { if (lines) ref.topographic?.update({ lines }); }, [ref, lines]);
   useEffect(() => { if (terrain) ref.topographic?.update({ terrain }); }, [ref, terrain]);
@@ -81,20 +80,20 @@ export function useTopographicBackground<T extends HTMLElement = HTMLDivElement>
   return ref;
 }
 
-export interface TopographicBackgroundProps extends TopographicBackgroundSettingsProps, Omit<HTMLAttributes<HTMLDivElement>, 'children'> {
+export interface TopographyProps extends TopographySettingsProps, Omit<HTMLAttributes<HTMLDivElement>, 'children'> {
   /** Renderer options (pixel budget, WebGL1). Changing them recreates the renderer. */
   options?: RendererOptions;
   /** Called with the instance after mount, and with null on unmount. */
-  onReady?: (topographic: TopographicBackgroundInstance | null) => void;
+  onReady?: (topographic: TopographyInstance | null) => void;
   children?: React.ReactNode;
 }
 
 /** A <div> with a topographic background. Size it like any div; children render on top. */
-export const TopographicBackground = forwardRef<HTMLDivElement, TopographicBackgroundProps>(function TopographicBackground(
-  { styleName, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera, view2d, options, onReady, style, children, ...div },
+export const Topography = forwardRef<HTMLDivElement, TopographyProps>(function Topography(
+  { landform, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera, view2d, options, onReady, style, children, ...div },
   forwarded,
 ) {
-  const ref = useTopographicBackground<HTMLDivElement>({ styleName, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera, view2d }, options);
+  const ref = useTopography<HTMLDivElement>({ landform, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera, view2d }, options);
   const stableOptions = useByValue(options);
   const ready = useRef(onReady);
   ready.current = onReady;
