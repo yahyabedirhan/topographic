@@ -2,11 +2,11 @@ import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } f
 import { Map as MapLibre, setWorkerUrl, type Map as MapMap } from 'maplibre-gl';
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { Menu } from '@base-ui-components/react/menu';
 import { Check, ChevronDown, MapPin, Mountain, Move } from 'lucide-react';
 import { areaProblem as limitProblem, areaProblemMessage as limitMessage, areaSpan as spanOf, type BBox } from 'topographic/locations';
 import { ELEVATION_CREDIT, mapStyle, type MapAppearance } from './basemap';
-import { findPlace, PLACE_GROUPS, PLACES, sameBox } from './places';
+import { allPlaces, findPlace, loadCatalog, PLACES, sameBox, useAllPlaces } from './places';
+import { PlaceMenu } from './PlaceMenu';
 import { clampTowards, containRect, fitRect, HANDLES, resizeRect, screenAspect, type Handle, type Rect } from './frame';
 import type { RegionController } from './useRegion';
 import { km } from './controls';
@@ -78,7 +78,7 @@ function paddingOf(host: HTMLElement, rect: Rect) {
 
 /** A city's name while the frame holds its preset box, otherwise "Area". */
 export function areaName(bbox: BBox | null): string {
-  return (bbox && PLACES.find((place) => sameBox(place.bbox, bbox))?.name) || 'Area';
+  return (bbox && allPlaces().find((place) => sameBox(place.bbox, bbox))?.name) || 'Area';
 }
 
 const size = (bbox: BBox) => {
@@ -108,7 +108,7 @@ function Credit() {
 /**
  * The Map popover's content. The map runs edge to edge; the frame on it can be resized by its corners
  * and edges, and panning or zooming moves the area under it. The badge at the top left names the
- * framed city (or "Area") and its size, and opens the city menu. The glass footer says what the
+ * framed place (or "Area") and its size, and opens the place menu. The glass footer says what the
  * terrain is now and holds Clear and Apply. Apply makes the framed area the terrain and a saved dock item.
  */
 export function PlacePanel({ region, onApply, appliedName, appearance }: {
@@ -119,6 +119,9 @@ export function PlacePanel({ region, onApply, appliedName, appearance }: {
   appliedName?: string;
   appearance: MapAppearance;
 }) {
+  const places = useAllPlaces();
+  // The Map is open: the place catalog loads now, so its places can be found and named.
+  useEffect(() => { void loadCatalog().catch(() => {}); }, []);
   const host = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapMap | null>(null);
   const [rect, setRect] = useState<Rect | null>(null);
@@ -242,7 +245,7 @@ export function PlacePanel({ region, onApply, appliedName, appearance }: {
   const problem = candidate ? limitProblem(candidate) : null;
   const applied = Boolean(region.bbox && candidate && sameBox(candidate, region.bbox));
   const name = areaName(candidate);
-  const placeId = PLACES.find((p) => candidate && sameBox(p.bbox, candidate))?.id ?? null;
+  const placeId = places.find((p) => candidate && sameBox(p.bbox, candidate))?.id ?? null;
   const flyTo = (id: string) => {
     const city = findPlace(id);
     if (!city) return;
@@ -291,31 +294,16 @@ export function PlacePanel({ region, onApply, appliedName, appearance }: {
             ))}
           </div>
         )}
-        <Menu.Root>
-          <Menu.Trigger className="pt-map-badge" aria-label={`${candidate ? name : 'Go to a place'}${candidate && !problem ? `, ${size(candidate)}` : ''}. Choose a place`}>
+        <PlaceMenu
+          label={`${candidate ? name : 'Go to a place'}${candidate && !problem ? `, ${size(candidate)}` : ''}. Choose a place`}
+          onPick={flyTo}
+          trigger={<>
             <MapPin size={13} strokeWidth={1.9} aria-hidden="true" />
             <b>{candidate ? name : 'Go to a place'}</b>
             {candidate && <span className={`pt-map-span${problem ? ' is-problem' : ''}`}>{problem ? limitMessage(problem) : size(candidate)}</span>}
             <ChevronDown size={13} strokeWidth={1.9} aria-hidden="true" className="pt-map-chev" />
-          </Menu.Trigger>
-          <Menu.Portal>
-            <Menu.Positioner side="bottom" align="start" sideOffset={6} className="pt-layer pt-layer-menu">
-              <Menu.Popup className="pt-menu pt-glass">
-                {PLACE_GROUPS.map((group) => (
-                  <Menu.Group key={group} className="pt-menu-group">
-                    <Menu.GroupLabel className="pt-menu-label">{group}</Menu.GroupLabel>
-                    {PLACES.filter((city) => city.group === group).map((city) => (
-                      <Menu.Item key={city.id} className="pt-menu-item" onClick={() => flyTo(city.id)}>
-                        <b>{city.name}</b>
-                        <small>{city.note}</small>
-                      </Menu.Item>
-                    ))}
-                  </Menu.Group>
-                ))}
-              </Menu.Popup>
-            </Menu.Positioner>
-          </Menu.Portal>
-        </Menu.Root>
+          </>}
+        />
         <Credit />
         <div className="pt-place-foot">
           <div className="pt-status">
