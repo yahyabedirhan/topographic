@@ -42,7 +42,7 @@ try {
     await place.locator('.pt-map-host canvas').waitFor({ timeout: 30000 });
     await place.locator('.pt-map-badge').click();
     // A click while the menu is still opening is lost, and the map stays on Istanbul.
-    const item = p.getByRole('menuitem', { name: new RegExp(`^${look.name}`) });
+    const item = p.getByRole('option', { name: new RegExp(`^${look.name}`) });
     await item.waitFor();
     await p.waitForTimeout(800);
     await item.click();

@@ -286,12 +286,26 @@ try {
   const badgeText = () => badge.innerText().then((t) => t.replace(/\s+/g, ' ').trim());
   const status = () => place.locator('.pt-place-foot .pt-status').innerText().then((t) => t.replace(/\s+/g, ' ').trim());
   check(/^Istanbul [\d.]+ × [\d.]+ km$/.test(await badgeText()) && /^Generated terrain/.test(await status()), `the badge names the framed city and the footer the terrain (${await badgeText()} | ${await status()})`);
-  await badge.click(); await p.getByRole('menuitem').first().waitFor();
-  const items = (await p.getByRole('menuitem').allInnerTexts()).map((t) => t.split('\n')[0]);
-  check(items.join() === 'Istanbul,Cyprus,Matterhorn & Zermatt,Geirangerfjord,Grand Canyon,Yosemite Valley,Torres del Paine,Mount Fuji,Everest & the Khumbu,Kilimanjaro', `the badge opens the place menu (${items.join()})`);
+  await badge.click(); await p.getByRole('option').first().waitFor();
+  await p.waitForFunction(() => document.querySelectorAll('.pt-place-menu [role="option"]').length > 100, null, { timeout: 10000 }).catch(() => {});
+  const items = (await p.getByRole('option').allInnerTexts()).map((t) => t.split('\n')[0]);
+  check(items.length > 100 && items.slice(0, 4).join() === 'Istanbul,Cyprus,Matterhorn & Zermatt,Geirangerfjord' && items.includes('Kilimanjaro'), `the badge opens the place menu with the catalog (${items.length} places)`);
   const labels = await p.locator('.pt-menu-label').allInnerTexts();
-  check(labels.map((t) => t.toLowerCase()).join() === 'europe & middle east,americas,asia,africa', `the place menu groups places by region (${labels.join()})`);
+  check(labels.map((t) => t.toLowerCase()).join() === 'europe,middle east,africa,asia,oceania,north america,south america,antarctica,arctic', `the place menu groups places by continent (${labels.join()})`);
+  // Search: typing goes to the field, accents do not matter, and Enter picks the first result.
+  await p.keyboard.type('reunion'); await settle(p, 200);
+  const found = (await p.getByRole('option').allInnerTexts()).map((t) => t.split('\n')[0]);
+  check(found.join() === 'Réunion' && (await p.locator('.pt-menu-label').allInnerTexts()).join().toLowerCase() === 'africa', `the place search ignores accents and hides empty groups (${found.join()})`);
+  await p.getByRole('combobox', { name: 'Search places' }).fill('atlantis'); await settle(p, 200);
+  check(await p.getByRole('option').count() === 0 && await p.locator('.pt-menu-empty').innerText() === 'No places', 'a search with no match shows No places');
   await p.keyboard.press('Escape'); await settle(p);
+  check(await place.isVisible() && await p.locator('.pt-place-menu').count() === 0, 'Escape closes the place menu and keeps the Map popover open');
+  await badge.click(); await p.getByRole('option').first().waitFor();
+  await p.keyboard.type('fitz roy'); await settle(p, 200); await p.keyboard.press('Enter');
+  await badge.filter({ hasText: 'Fitz Roy' }).waitFor({ timeout: 10000 }).catch(() => {});
+  check(/^Fitz Roy & Cerro Torre [\d.]+ × [\d.]+ km$/.test(await badgeText()), `Enter picks a catalog place and moves the map to it (${await badgeText()})`);
+  await badge.click(); await p.getByRole('option').first().waitFor();
+  await p.keyboard.type('istanbul'); await settle(p, 200); await p.keyboard.press('Enter'); await settle(p, 1200);
   check(await place.isVisible(), 'closing the place menu keeps the Map popover open');
   check(await apply.evaluate((el) => el.classList.contains('pt-action')) && await place.getByRole('button', { name: 'Generated' }).count() === 0, 'Apply is an action button and Generated is gone');
   await apply.click(); await settle(p, 600);
@@ -352,14 +366,15 @@ try {
   // A city: the segment moves the frame only; Apply saves it under its name.
   await p.getByRole('button', { name: 'Map', exact: true }).click(); await settle(p, 600);
   const placeSearch = q(p).toString();
-  await badge.click(); await p.getByRole('menuitem', { name: /^Matterhorn/ }).click(); await settle(p, 1200);
+  await badge.click(); await p.getByRole('option', { name: /^Matterhorn/ }).click(); await settle(p, 1200);
   check(await apply.isEnabled() && q(p).toString() === placeSearch && /^Matterhorn & Zermatt 40 × 26 km$/.test(await badgeText()), `a city from the menu moves the map only (${await badgeText()})`);
   await apply.click(); await settle(p, 600);
-  await badge.click(); await p.getByRole('menuitem').first().waitFor();
+  await badge.click(); await p.getByRole('option').first().waitFor();
   await settle(p, 300);
   // The menu holds jump-to-city actions only: no check mark and no highlighted row on a mouse open.
   const marks = await p.locator('.pt-menu-item svg').count();
   const lit = await p.locator('.pt-menu-item[data-highlighted]').count();
+  check(await p.evaluate(() => document.activeElement?.getAttribute('aria-label')) === 'Search places', 'the place menu opens with its search field focused');
   await p.keyboard.press('Escape'); await settle(p);
   check(marks === 0 && lit === 0, `the place menu shows no selected state (${marks} marks, ${lit} highlighted)`);
   check(q(p).get('place') === 'matterhorn' && await savedCount() === 3

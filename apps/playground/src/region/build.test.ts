@@ -21,7 +21,7 @@ describe('catalog place grids', () => {
   it('reads a catalog place from its grid file, with the catalog\'s heights', async () => {
     const size = 8;
     const png = encodeGrid16(new Float32Array(size * size).fill(0.5), size) as Uint8Array;
-    const s = sources(async () => new Response(png));
+    const s = sources(async () => new Response(png as BlobPart));
     const out = await build(request(), s);
     expect(s.fetch).toHaveBeenCalledWith(GRID.url);
     expect(s.fetchLocation).not.toHaveBeenCalled();
