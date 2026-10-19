@@ -45,7 +45,7 @@ function look(
 }
 
 /**
- * Every built-in look, in the order of the playground's dock. The playground opens on `fine-granite`.
+ * Every built-in look, in the order of the playground's dock.
  * `survey-map` and `rocky` set no colours, so they follow the page's light or dark theme.
  */
 export const LOOKS: readonly Look[] = [

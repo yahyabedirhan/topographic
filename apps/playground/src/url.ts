@@ -22,7 +22,7 @@ export function configOf(s: Settings): SettingsInput & { shape: string } {
   if (s.extent !== d.extent) out.extent = s.extent;
   if (s.detail !== d.detail && s.detail !== PLAYGROUND_QUALITY.detail) out.detail = s.detail;
   if (s.quality !== d.quality && s.quality !== PLAYGROUND_QUALITY.quality) out.quality = s.quality;
-  const camera = Object.fromEntries((['azimuth', 'elevation', 'radius', 'motion', 'panX', 'panZ'] as const)
+  const camera = Object.fromEntries((['azimuth', 'elevation', 'radius', 'motion', 'speed', 'panX', 'panZ'] as const)
     .filter((k) => s.camera[k] !== d.camera[k])
     .map((k) => [k, s.camera[k]]));
   if (Object.keys(camera).length) out.camera = camera;

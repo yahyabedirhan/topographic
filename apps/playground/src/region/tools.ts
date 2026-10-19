@@ -85,7 +85,7 @@ export const REGION_TOOL_DEFS: ToolDef[] = [
     name: 'set_region',
     title: 'Set region',
     readOnly: false,
-    description: `Sets the map region that becomes the terrain. Give place, an id from the Map menu's catalog of about 100 places (the ten built-in ones are ${PLACES.map((p) => p.id).join(', ')}; an unknown id returns the full list), or a bbox in degrees. The same values are written to the page URL as ?place= for a named place, or ?region= for a box. Like Apply in the Map popover, it switches to 3D with the map terrain view: 36 lines, width 0, opacity 0.9, an index line every 4, a block at elevation 0.12, and the camera at azimuth 341.8, elevation 39.3, radius 1.32. Every place but Istanbul and the cities brings its own camera angle and elevation.`,
+    description: `Sets the map region that becomes the terrain. Give place, an id from the Map menu's catalog of about 100 places (the ten built-in ones are ${PLACES.map((p) => p.id).join(', ')}; an unknown id returns the full list), or a bbox in degrees. The same values are written to the page URL as ?place= for a named place, or ?region= for a box. Like Apply in the Map popover, it switches to 3D with the map terrain view: 36 lines, width 0, opacity 0.9, an index line every 4, a block at elevation 0.12, and the camera at azimuth 341.8, elevation 39.3, radius 1.32, pushing in and back at speed 0.2. Every place but Istanbul and the cities brings its own camera angle and elevation.`,
     inputSchema: SET_SCHEMA,
   },
   {

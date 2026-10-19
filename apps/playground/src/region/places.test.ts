@@ -60,7 +60,7 @@ describe('example places', () => {
       extent: 'block',
       elevation: 0.12,
       lines: { count: 36, width: 0, opacity: 0.9, indexEvery: 4 },
-      camera: { azimuth: 341.8, elevation: 39.3, radius: 1.32 },
+      camera: { azimuth: 341.8, elevation: 39.3, radius: 1.32, motion: 'push', speed: 0.2 },
     });
   });
 
@@ -73,7 +73,7 @@ describe('example places', () => {
       expect(d.camera?.radius).toBe(MAP_TERRAIN_DEFAULTS.camera.radius);
       expect(Object.keys(d).sort()).toEqual(Object.keys(MAP_TERRAIN_DEFAULTS).sort());
     }
-    expect(terrainDefaults('cyprus')).toEqual({ ...MAP_TERRAIN_DEFAULTS, elevation: 0.1, camera: { azimuth: 341.8, elevation: 35, radius: 1.32 } });
+    expect(terrainDefaults('cyprus')).toEqual({ ...MAP_TERRAIN_DEFAULTS, elevation: 0.1, camera: { azimuth: 341.8, elevation: 35, radius: 1.32, motion: 'push', speed: 0.2 } });
   });
 
   it('lets Clear restore only the map view after any place', () => {

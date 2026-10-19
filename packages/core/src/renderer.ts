@@ -1,4 +1,4 @@
-import { blockLift, cameraPose, clampPan, terrainHalfSize, viewShift, type Pose, type ViewInsets } from './camera.js';
+import { blockLift, cameraPose, clampPan, pathPose, terrainHalfSize, viewShift, type Pose, type ViewInsets } from './camera.js';
 import type { Heightfield } from './heightfield.js';
 import { mergeSettings, resolveSettings, toUniforms, type CameraMotion, type Settings, type SettingsInput } from './settings.js';
 import { resolveTheme, rgbaToCss, type ResolvedTheme } from './theme.js';
@@ -137,6 +137,8 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
   let ema = 0;
 
   let frameMs = 0;
+  /** How far the camera has gone along its path, in milliseconds at the path's own pace. A speed change keeps the pose. */
+  let pathMs = 0;
   let lastNow = 0;
   let raf = 0;
   let inView = true;
@@ -352,7 +354,7 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
     if (three) {
       uploadHeight();
       const aspect = w / Math.max(1, h);
-      const at = framed(pose ?? cameraPose(settings.camera, frameMs / 1000), aspect);
+      const at = framed(pose ?? pathPose(settings.camera, pathMs / 1000), aspect);
       // Centre the block itself, then move it into the part of the page the UI leaves free. Endless
       // terrain is framed by the same block-sized middle, so switching the extent keeps the framing.
       const block = terrainHalfSize(aspect, 'block', heightField ? heightField.aspect : null);
@@ -407,6 +409,7 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
       }
     }
     frameMs += dt;
+    if (settings.mode === '3d') pathMs += dt * settings.camera.speed;
     draw();
     schedule();
   }
@@ -564,7 +567,7 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
   return {
     get settings() { return settings; },
     get status() { return status; },
-    get pose() { return framed(cameraPose(settings.camera, frameMs / 1000), cssW / Math.max(1, cssH)); },
+    get pose() { return framed(pathPose(settings.camera, pathMs / 1000), cssW / Math.max(1, cssH)); },
     get insets() { return { ...insets }; },
     clampPan(panX, panZ) {
       const p = framed({ azimuth: 0, elevation: 0, radius: 0, panX, panZ }, cssW / Math.max(1, cssH));
@@ -630,7 +633,8 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
       if (o.frame !== undefined) frameMs = o.frame;
       if (o.patch) { settings = mergeSettings(settings, o.patch); refreshTheme(); }
       if (o.field !== undefined) { heightField = o.field; heightVersion += 1; }
-      const pose = o.motion ? cameraPose({ ...settings.camera, motion: o.motion }, frameMs / 1000) : undefined;
+      const pose = o.motion ? cameraPose({ ...settings.camera, motion: o.motion }, frameMs / 1000)
+        : o.frame !== undefined ? cameraPose(settings.camera, o.frame / 1000) : undefined;
       const pixels = new Uint8Array(w * h * 4);
       const rect = { x: f.x, y: f.frameHeight - f.y - h, width: w, height: h };
       try { readback(f.frameWidth, f.frameHeight, pixels, pose, Boolean(o.motion), rect); }
@@ -665,6 +669,8 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
       const max = gl.getParameter(gl.MAX_RENDERBUFFER_SIZE) as number;
       if (w < 2 || h < 2 || w > max || h > max) throw new Error(`[topographic] video size must be 2..${max}px`);
       const motion = o.motion ?? (settings.camera.motion === 'still' ? 'orbit' : settings.camera.motion);
+      // The camera's own path keeps its speed; any other path runs at its own pace.
+      const camera = { ...settings.camera, motion, speed: motion === settings.camera.motion ? settings.camera.speed : 1 };
       const saved = frameMs;
       const start = o.frame ?? 0;
       const surface = doc.createElement('canvas');
@@ -680,7 +686,7 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
           renderFrame: (i) => {
             const t = i / fps;
             frameMs = start + t * 1000;
-            readback(w, h, pixels, cameraPose({ ...settings.camera, motion }, t), true);
+            readback(w, h, pixels, cameraPose(camera, t), true);
             for (let y = 0; y < h; y++) img.data.set(pixels.subarray((h - 1 - y) * row, (h - y) * row), y * row);
             ctx.putImageData(img, 0, 0);
           },

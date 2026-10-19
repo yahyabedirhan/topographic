@@ -47,7 +47,7 @@ const num = (v: number) => (Number.isInteger(v) ? String(v) : String(+v.toFixed(
 const jsVal = (v: Value): string => (typeof v === 'string' ? `'${v}'` : typeof v === 'number' ? num(v) : `{ ${Object.entries(v).map(([k, x]) => `${k}: ${jsVal(x)}`).join(', ')} }`);
 const ATTR: Record<string, Record<string, string>> = {
   top: { shape: 'shape', seed: 'seed', location: 'location', look: 'look', mode: 'mode', elevation: 'elevation', extent: 'extent', detail: 'detail' },
-  camera: { azimuth: 'azimuth', elevation: 'camera-elevation', radius: 'radius', motion: 'camera-motion' },
+  camera: { azimuth: 'azimuth', elevation: 'camera-elevation', radius: 'radius', motion: 'camera-motion', speed: 'camera-speed' },
   theme: { mode: 'theme', ink: 'ink', paper: 'paper' },
 };
 const attrOf = (group: string | null, key: string) =>

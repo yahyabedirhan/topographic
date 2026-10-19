@@ -196,7 +196,7 @@ A value outside its range is moved to the nearest limit. Whole-number settings a
 
 ### Three dimensions
 
-`mode` is `'2d'` or `'3d'`. 2D is the library default. The playground opens a bare URL in 3D, and a URL with settings in 2D unless it has `mode=3d`. 3D shows the same contour lines as a landscape. With the same seed and settings, you get the same map in both modes. You can switch between them at any time.
+`mode` is `'2d'` or `'3d'`. 2D is the library default. The playground opens a bare URL on the built-in Istanbul map terrain in 3D, with the camera slowly pushing in and back. A URL with settings opens in 2D unless it has `mode=3d`. 3D shows the same contour lines as a landscape. With the same seed and settings, you get the same map in both modes. You can switch between them at any time.
 
 | Setting | Attribute | Range | Default | What it does |
 |---|---|---|---|---|
@@ -209,6 +209,7 @@ A value outside its range is moved to the nearest limit. Whole-number settings a
 | `camera.elevation` | `camera-elevation` | 2–80 | 33.6 | The camera's angle above the horizon, in degrees. The camera never goes below the terrain. |
 | `camera.radius` | `radius` | 0.4–6.5 | 1.92 | The camera's distance from the centre of the terrain. |
 | `camera.motion` | `camera-motion` | `still`, `orbit`, `push`, `flyover`, `drone` | `still` | Makes the camera move. `motion.speed` still animates the terrain shape. |
+| `camera.speed` | `camera-speed` | 0–3 | 1 | How fast the camera moves along its path. 1 is the path's own pace, such as an orbit in about 26 seconds. 0 holds the camera. A change keeps the camera where it is. |
 | `camera.panX`, `camera.panZ` | `pan-x`, `pan-z` | −6–6 | 0 | The point the camera looks at, moved from the centre of the terrain. X is east and Z is south, in terrain units. The camera and every motion path turn around this point. The point stays over the terrain, so part of the terrain is always in view. |
 | `view2d.x`, `view2d.y`, `view2d.zoom` | `view-x`, `view-y`, `view-zoom` | −6–6, −6–6, 1–8 | 0, 0, 1 | The 2D map's own pan and zoom, apart from the 3D camera: the point at the centre of the view, x to the right and y up in screen heights, and how far it is zoomed in. 3D ignores it. |
 

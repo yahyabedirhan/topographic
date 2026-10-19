@@ -12,7 +12,7 @@ import { ignoredWithPlace } from './shape';
 import type { Terrains } from './terrains';
 import { InstallMenu } from './install';
 import {
-  DEFAULT_CAMERA, DEFAULT_DETAIL, LOOKS, DEFAULT_ELEVATION, DEFAULT_EXTENT, GROUPS, RADIUS_MAX, RADIUS_MIN, paramsIn, resolveMode,
+  CAMERA_SPEED_MAX, DEFAULT_CAMERA, DEFAULT_DETAIL, LOOKS, DEFAULT_ELEVATION, DEFAULT_EXTENT, GROUPS, RADIUS_MAX, RADIUS_MIN, paramsIn, resolveMode,
   type QualityName,
   type CameraMotion, type GroupName, type ParamDef, type TerrainExtent,
 } from 'topographic';
@@ -457,7 +457,7 @@ function ViewTune({ pg }: { pg: Playground }) {
   // The camera's default is the active look's camera, or the library's default camera without a look.
   const home = (pg.lookIndex >= 0 && LOOKS[pg.lookIndex].settings.camera) || DEFAULT_CAMERA;
   const cameraChanged = (Object.keys(home) as (keyof typeof home)[]).some((k) => s.camera[k] !== home[k])
-    || s.camera.motion !== DEFAULT_CAMERA.motion || s.camera.panX !== 0 || s.camera.panZ !== 0;
+    || s.camera.motion !== DEFAULT_CAMERA.motion || s.camera.speed !== DEFAULT_CAMERA.speed || s.camera.panX !== 0 || s.camera.panZ !== 0;
   const pose = useLivePose(pg, !off && s.camera.motion !== 'still');
   const rig = { azimuth: pose?.azimuth ?? azimuth, angle: pose?.elevation ?? s.camera.elevation, distance: pose?.radius ?? s.camera.radius, elevation: s.elevation, motion: s.camera.motion };
   return (
@@ -484,6 +484,12 @@ function ViewTune({ pg }: { pg: Playground }) {
       </Section>
       <Section title="Camera" resetIf={!off && cameraChanged} onReset={() => cam({ ...DEFAULT_CAMERA, ...home })}>
         <SegRow label="Motion" icon="camMotion" options={PATHS} value={s.camera.motion} disabled={off} onChange={(id) => { tuned('camera', 'motion'); cam({ motion: id }); }} />
+        <SliderRow
+          label="Speed" name="Camera speed" icon="speed" art="speed"
+          hint="How fast the camera moves along its path. 1 is the path's own pace; 0 holds it."
+          value={s.camera.speed} min={0} max={CAMERA_SPEED_MAX} step={0.05} shown={s.camera.speed.toFixed(2)} disabled={off || s.camera.motion === 'still'}
+          onChange={(n) => { tuned('camera', 'speed'); cam({ speed: n }); }}
+        />
         <SliderRow
           label="Azimuth" icon="azimuth" art="azimuth"
           hint="Orbit around the terrain. ⌘ + drag the view to move this too, or twist two fingers. A drag moves the terrain; a double-click recentres."

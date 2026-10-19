@@ -79,7 +79,7 @@ export function CopyIcon({ text, label, onCopy }: { text: string; label: string;
 const VIEW_NAMES: Record<string, [string, GlyphName]> = {
   look: ['Look', 'look'], s: ['Shape', 'style'], seed: ['Seed', 'seed'], m: ['Theme', 'theme'], ink: ['Ink colour', 'ink'], paper: ['Paper colour', 'paper'],
   mode: ['2D or 3D', 'mode'], ex: ['Extent', 'extent'], ev: ['Elevation', 'elevation'], dl: ['Detail', 'detail'], az: ['Azimuth', 'azimuth'],
-  ce: ['Camera angle', 'angle'], rd: ['Camera distance', 'distance'], cm: ['Camera motion', 'camMotion'], place: ['Map place', 'place'], region: ['Map area', 'place'],
+  ce: ['Camera angle', 'angle'], rd: ['Camera distance', 'distance'], cm: ['Camera motion', 'camMotion'], cs: ['Camera speed', 'speed'], place: ['Map place', 'place'], region: ['Map area', 'place'],
 };
 
 /** What a short URL key means, and its glyph. */

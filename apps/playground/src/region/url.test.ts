@@ -27,4 +27,11 @@ describe('region url', () => {
     writeRegion(q, { bbox: { ...istanbul, west: 28.5 }, place: 'istanbul' });
     expect(q.get('region')).toBe('28.5,40.78,29.65,41.36');
   });
+
+  it('opens a bare URL on Istanbul, and a URL with settings and no region on the generated terrain', () => {
+    const istanbul = { bbox: { west: 28.45, south: 40.78, east: 29.65, north: 41.36 }, place: 'istanbul' };
+    expect(readRegion('')).toEqual(istanbul);
+    expect(readRegion('?analytics_agent=claude&analytics_purpose=testing')).toEqual(istanbul);
+    expect(readRegion('?s=dunes')).toEqual({ bbox: null, place: null });
+  });
 });

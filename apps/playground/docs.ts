@@ -8,7 +8,7 @@ import { PLACES, catalogPlaces, type CatalogRow } from './src/region/places';
 import CATALOG_ROWS from './src/region/catalog.json';
 import { REGION_TOOL_DEFS } from './src/region/tools';
 import { DOCS_META } from './src/docs-page/copy';
-import { HOME_QUERY } from './src/share-url';
+import { HOME_QUERY, REGION_ONLY_QUERY } from './src/share-url';
 
 /** The Map menu's place catalog: the ten built-in places and the playground's own. */
 const CATALOG = catalogPlaces(CATALOG_ROWS as unknown as CatalogRow[]);
@@ -16,7 +16,6 @@ const CATALOG = catalogPlaces(CATALOG_ROWS as unknown as CatalogRow[]);
 export const SITE_URL = 'https://topographic.yahyapak.dev/';
 export const WEBMCP_SPEC = 'https://github.com/webmachinelearning/webmcp/blob/d0e4e0e0f039358cc9d93f90074116622bfebd53/index.bs';
 
-const HOME_LOOK = new URLSearchParams(HOME_QUERY).get('look') ?? '';
 const NAME_LIST = () => AGENT_NAMES.map((n) => `\`${n}\``).join(', ');
 const PURPOSE_LIST = () => PURPOSES.map((p) => `\`${p}\``).join(', ');
 
@@ -103,7 +102,7 @@ Other settings:
 - \`seed\` (attribute \`seed\`): integer 0 to 999999. The same seed gives the same terrain; 0 is the original look.
 - \`theme.mode\` (attribute \`theme\`): \`auto\` (follows the OS), \`light\` or \`dark\`.
 - \`theme.ink\` / \`theme.paper\` (attributes \`ink\`, \`paper\`): any CSS colour; paper may be \`transparent\`. Without them, the CSS variables \`--topographic-ink\` and \`--topographic-paper\` are used, then the mode defaults.
-- \`mode\` (attribute \`mode\`): \`2d\` (the library default) or \`3d\`. The playground opens a bare URL in 3D; see llms.txt. 3D draws the same contour field as a terrain. The same seed gives the same map in both.
+- \`mode\` (attribute \`mode\`): \`2d\` (the library default) or \`3d\`. The playground opens a bare URL on Istanbul in 3D; see llms.txt. 3D draws the same contour field as a terrain. The same seed gives the same map in both.
 - \`elevation\` (attribute \`elevation\`): 0 to 1, default 0.62. 3D height. 0 is flat like the 2D map; higher values make the terrain taller, with a rounded crest.
 - \`extent\` (attribute \`extent\`): \`endless\` (default) continues the terrain past the view. \`block\` is a finite tabletop whose cut sides carry thin ink layer lines.
 - \`detail\` (attribute \`detail\`): 0 to 1, default 0.5. Mesh resolution, from 32² to 160². Use a low value on a slow device.
@@ -112,6 +111,7 @@ Other settings:
 - \`camera.elevation\` (attribute \`camera-elevation\`): degrees above the horizon, 2 to 80. The camera never goes below the terrain. Default 33.6.
 - \`camera.radius\` (attribute \`radius\`): distance from the terrain centre, ${RADIUS_MIN} to ${RADIUS_MAX}. Default ${defaultSettings().camera.radius}.
 - \`camera.motion\` (attribute \`camera-motion\`): \`still\` (default), \`orbit\`, \`push\`, \`flyover\` or \`drone\`. The terrain's own \`motion.speed\` still morphs the field, so the two motions are independent.
+- \`camera.speed\` (attribute \`camera-speed\`): 0 to 3, default 1. How fast the camera moves along its path. 1 is the path's own pace, such as an orbit in about 26 seconds; 0 holds the camera.
 - \`camera.panX\` / \`camera.panZ\` (attributes \`pan-x\`, \`pan-z\`): where the camera looks, moved from the terrain centre across the ground (east and south), -6 to 6, default 0. The camera and every motion path turn around that point. The renderer keeps it over the terrain.
 
 ## Shapes
@@ -201,7 +201,7 @@ Behaviour:
 
 ## <topographic-view>
 
-\`import 'topographic/element'\` registers the element. Attributes: \`look\`, \`shape\`, \`location\`, \`seed\`, \`theme\`, \`ink\`, \`paper\`, \`mode\`, \`elevation\`, \`extent\`, \`detail\`, \`quality\`, \`azimuth\`, \`camera-elevation\`, \`radius\`, \`camera-motion\`, \`pan-x\`, \`pan-z\`, plus one per numeric setting (see [params.md](params.md)). Attribute changes apply live, and a removed attribute returns to its default. \`element.topographic\` is the instance, and \`element.snapshot(opts)\` is a shortcut.
+\`import 'topographic/element'\` registers the element. Attributes: \`look\`, \`shape\`, \`location\`, \`seed\`, \`theme\`, \`ink\`, \`paper\`, \`mode\`, \`elevation\`, \`extent\`, \`detail\`, \`quality\`, \`azimuth\`, \`camera-elevation\`, \`radius\`, \`camera-motion\`, \`camera-speed\`, \`pan-x\`, \`pan-z\`, plus one per numeric setting (see [params.md](params.md)). Attribute changes apply live, and a removed attribute returns to its default. \`element.topographic\` is the instance, and \`element.snapshot(opts)\` is a shortcut.
 
 ## React: <Topography> and useTopography
 
@@ -245,7 +245,8 @@ ${agentsMd('##')}
 ## First view and default mode
 
 - The library (\`topographic\`, \`<topographic-view>\`, \`topographic-react\`) draws in 2D unless you set \`mode: '3d'\`.
-- The playground opens a bare URL, with no settings keys, on the dock look \`look=${HOME_LOOK}\` in 3D (\`?${HOME_QUERY}\`).
+- The playground opens a bare URL, with no settings or region keys, on the built-in Istanbul map terrain in 3D, with the camera pushing in and back at speed 0.2 (\`?${HOME_QUERY}\`).
+- A URL with \`place\` or \`region\` and no settings keys opens that place with \`?${REGION_ONLY_QUERY}\`.
 - A playground URL with any settings key, such as \`?s=dunes\` or \`?look=night-lobes\`, is 2D unless it has \`mode=3d\`.
 - The page rewrites the address bar to the shortest query for the same view. It drops keys that have the default value, so \`?s=dunes&mode=2d\` becomes \`?s=dunes\`, and the view stays 2D.
 
