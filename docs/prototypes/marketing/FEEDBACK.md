@@ -330,3 +330,8 @@ On the 2D/3D switches, with a screenshot of the playground's top-right icon clus
 > And these 2D/3D option switches are nice as a functionality but let's use these types of icons for the controls.
 > Like we already have these in the playground.
 > I want you to consistently use this as a visual element library in the docs page as well.
+
+On the margin readout `pose.azimuth 545.0°` / `pose.elevation 40.0°` beside the first live figure:
+
+> Here this is a really nice area where we can show a small code snippet in which these parameters are actually changing, preferably React.
+> This shows a real connection between code and the preview immediately when they open up this documentation page.
