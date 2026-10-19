@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { limitProblem, spanOf } from './pipeline';
-import { mergeSettings, resolveSettings } from 'topographic';
-import { readSettings } from '../share-url';
-import { CYPRUS_DEFAULTS, MAP_TERRAIN_DEFAULTS, PLACE_GROUPS, PLACES, beforePlace, restoredKeys, sameBox, terrainDefaults } from './places';
+import { MAP_TERRAIN_DEFAULTS, PLACE_GROUPS, PLACES, restoredKeys, sameBox, terrainDefaults } from './places';
 
 const LANDSCAPES = PLACES.filter((place) => place.id !== 'istanbul' && place.id !== 'cyprus');
+/** Every place but Istanbul brings its own camera angle and elevation on the shared map terrain view. */
+const OWN_VIEW = PLACES.filter((place) => place.id !== 'istanbul');
 
 describe('example places', () => {
   it('offers Istanbul, Cyprus and eight landscapes, grouped by region in menu order', () => {
@@ -65,27 +65,20 @@ describe('example places', () => {
     });
   });
 
-  it('gives Cyprus the settings of its reference query, Istanbul the map terrain view and each landscape its own camera and elevation', () => {
-    const link = readSettings('?look=stone-grain&lc=37&lw=0&lo=0.92&ix=6&sd=1.3&sk=0.35&an=0.43&fd=0.22&m=dark&ink=a9c7e4&paper=10151c&mode=3d&ex=block&ev=0.06&az=3&ce=80&rd=1.18');
-    const { detail: _detail, quality: _quality, view2d: _view2d, ...rest } = link;
-    expect(CYPRUS_DEFAULTS).toEqual({ ...rest, camera: { azimuth: 3, elevation: 80, radius: 1.18 } });
-    expect(terrainDefaults('cyprus')).toBe(CYPRUS_DEFAULTS);
+  it('gives Istanbul the map terrain view, and Cyprus and each landscape the same view with their own camera angle and elevation', () => {
     expect(terrainDefaults('istanbul')).toBe(MAP_TERRAIN_DEFAULTS);
     expect(terrainDefaults(null)).toBe(MAP_TERRAIN_DEFAULTS);
-    for (const place of LANDSCAPES) {
+    for (const place of OWN_VIEW) {
       const d = terrainDefaults(place.id);
       expect({ ...d, camera: undefined, elevation: undefined }).toEqual({ ...MAP_TERRAIN_DEFAULTS, camera: undefined, elevation: undefined });
       expect(d.camera?.radius).toBe(MAP_TERRAIN_DEFAULTS.camera.radius);
       expect(Object.keys(d).sort()).toEqual(Object.keys(MAP_TERRAIN_DEFAULTS).sort());
     }
+    expect(terrainDefaults('cyprus')).toEqual({ ...MAP_TERRAIN_DEFAULTS, elevation: 0.1, camera: { azimuth: 341.8, elevation: 35, radius: 1.32 } });
   });
 
-  it('lets Clear restore the colours after Cyprus, and only the map view after Istanbul or a landscape', () => {
+  it('lets Clear restore only the map view after any place', () => {
     expect(restoredKeys('istanbul').sort()).toEqual(['camera', 'elevation', 'extent', 'lines']);
-    for (const place of LANDSCAPES) expect(restoredKeys(place.id).sort()).toEqual(['camera', 'elevation', 'extent', 'lines', 'mode']);
-    expect(restoredKeys('cyprus')).toEqual(expect.arrayContaining(['theme', 'style', 'motion', 'layout', 'lines', 'camera']));
-    const start = resolveSettings({ theme: { mode: 'light', ink: '#222222' } });
-    const applied = mergeSettings(start, CYPRUS_DEFAULTS);
-    expect(mergeSettings(applied, beforePlace(start, restoredKeys('cyprus')))).toEqual(start);
+    for (const place of OWN_VIEW) expect(restoredKeys(place.id).sort()).toEqual(['camera', 'elevation', 'extent', 'lines', 'mode']);
   });
 });
