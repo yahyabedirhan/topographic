@@ -6,36 +6,36 @@ This release renames the public API.
 It is a clean break: the old names are gone, with no deprecated aliases.
 
 - The core function `createTopographicBackground` is now `createTopography`, and its instance type `TopographicBackground` is now `Topography`.
-- The web component `<topographic-bg>` is now `<topographic-map>`, and its class `TopographicBackgroundElement` is now `TopographyElement`.
+- The web component `<topographic-bg>` is now `<topographic-view>`, and its class `TopographicBackgroundElement` is now `TopographyElement`.
 - The React component `TopographicBackground` is now `Topography`, and the hook `useTopographicBackground` is now `useTopography`.
 - The React types are now `TopographyProps`, `TopographySettingsProps` and `TopographyRef`. `topographic-react` also exports the core instance type as `TopographyInstance`.
-- The land shape setting `style` is now `landform`: in settings, as the element attribute (was `style-name`) and as the React prop (was `styleName`). The React `style` prop is now only React's CSS prop.
-- The data exports `STYLES`, `findStyle`, `Style`, `StyleId` and `DEFAULT_STYLE` are now `LANDFORMS`, `findLandform`, `Landform`, `LandformId` and `DEFAULT_LANDFORM`.
-- `toQuery` writes the landform as `lf=`. `fromQuery` and the playground still read the old `s=` key, so links made before 0.6.0 keep working.
-- Playground: the WebMCP tool `list_styles` is now `list_landforms`, and `randomize` takes `landform: true`. `set_settings` takes `landform`, and still takes the old `style` key for this release.
+- The land shape setting `style` is now `shape`: in settings, as the element attribute (was `style-name`) and as the React prop (was `styleName`). The React `style` prop is now only React's CSS prop.
+- The data exports `STYLES`, `findStyle`, `Style`, `StyleId` and `DEFAULT_STYLE` are now `SHAPES`, `findShape`, `Shape`, `ShapeId` and `DEFAULT_SHAPE`.
+- The query key `s=` stays, and now names the shape. Links made before 0.6.0 keep working.
+- Playground: the WebMCP tool `list_styles` is now `list_shapes`, and `randomize` takes `shape: true`. `set_settings` takes `shape`, and still takes the old `style` key for this release. Terrains saved with a `style` key load with that value as `shape`.
+- Playground: the Tune › Terrain section with peaks, spread, sharpness and variant is now titled Form.
 - Install lines in the READMEs no longer pin a version. Sizing and layering examples moved to the guide.
 
 | Old name | New name |
 |---|---|
 | `createTopographicBackground` | `createTopography` |
 | `TopographicBackground` (core instance type) | `Topography` |
-| `<topographic-bg>` | `<topographic-map>` |
+| `<topographic-bg>` | `<topographic-view>` |
 | `TopographicBackgroundElement` | `TopographyElement` |
 | `TopographicBackground` (React component) | `Topography` |
 | `useTopographicBackground` | `useTopography` |
 | `TopographicBackgroundProps` | `TopographyProps` |
 | `TopographicBackgroundSettingsProps` | `TopographySettingsProps` |
 | `TopographicBackgroundRef` | `TopographyRef` |
-| `style` setting | `landform` |
-| `style-name` attribute | `landform` |
-| `styleName` React prop | `landform` |
-| `s=` query key | `lf=` (`s=` is still read) |
-| `STYLES` | `LANDFORMS` |
-| `findStyle` | `findLandform` |
-| `Style` | `Landform` |
-| `StyleId` | `LandformId` |
-| `DEFAULT_STYLE` | `DEFAULT_LANDFORM` |
-| WebMCP `list_styles` | `list_landforms` |
+| `style` setting | `shape` |
+| `style-name` attribute | `shape` |
+| `styleName` React prop | `shape` |
+| `STYLES` | `SHAPES` |
+| `findStyle` | `findShape` |
+| `Style` | `Shape` |
+| `StyleId` | `ShapeId` |
+| `DEFAULT_STYLE` | `DEFAULT_SHAPE` |
+| WebMCP `list_styles` | `list_shapes` |
 
 ## 0.5.0
 
