@@ -39,8 +39,8 @@ export interface RegionController {
 }
 
 /** Every place uses the same height treatment; the 3D Elevation slider is the only height control. */
-const RELIEF: ReliefMode = 'dramatic';
-const SMOOTH: SmoothLevel = 'medium';
+export const RELIEF: ReliefMode = 'dramatic';
+export const SMOOTH: SmoothLevel = 'medium';
 
 function queryOf(bbox: BBox | null, placeId: string | null): RegionQuery {
   return { bbox, place: placeId };
