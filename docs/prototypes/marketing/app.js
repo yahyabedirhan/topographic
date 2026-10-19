@@ -2,6 +2,7 @@
 // URL: ?board=<id>&variant=<key>, or &view=grid to see every variant of a board side by side.
 // Each variant has an id such as positioning/B, for feedback in chat.
 import { destroyLive } from './live.js';
+import { ROUND, START, PLACES, PULLS, DECISIONS } from './review.js';
 // Every file in boards/ is a board. ORDER puts the important ones first; the rest follow by name.
 const ORDER = ['positioning', 'api-naming', 'docs-page', 'readme-header', 'github-repo', 'playground-install', 'npm-page', 'site-page', 'social-card'];
 const modules = import.meta.glob('./boards/*.js', { eager: true });
@@ -101,13 +102,23 @@ function bar(board, v, grid) {
 }
 
 function renderIndex() {
-  document.title = 'topographic marketing board';
+  document.title = 'topographic launch review';
   const el = document.createElement('section');
   el.className = 'mb-index';
-  el.innerHTML = `<h1>topographic marketing board</h1>
-    <p class="mb-q">Prototypes for every public surface. Each variant has an id such as <code>positioning/B</code>. Give feedback by id, and mix them: "the headline of B with the layout of C".</p>
-    <ol>${BOARDS.map((b) => `<li><a href="?board=${b.id}&view=grid"><b>${b.title}</b><span>${b.question}</span><em>${b.variants.length} variants · ${b.surface}</em></a></li>`).join('')}</ol>
-    <p class="mb-small">Keys: ← → switch variants, G toggles the grid.</p>`;
+  const row = (href, title, mid, end, ext) =>
+    `<li><a href="${href}"${ext ? ' target="_blank" rel="noopener"' : ''}><b>${title}</b><span>${mid}</span><em>${end}</em></a></li>`;
+  el.innerHTML = `<p class="mb-small">${ROUND}</p>
+    <h1>topographic launch review</h1>
+    <ul class="mb-start">${START.map((s) => `<li>${s}</li>`).join('')}</ul>
+    <h2>Prototype boards</h2>
+    <ol>${BOARDS.map((b) => row(`?board=${b.id}&view=grid`, b.title, b.question, `${b.variants.length} variants · ${b.surface}`)).join('')}</ol>
+    <h2>Decisions waiting for you</h2>
+    <ol class="mb-dec">${DECISIONS.map((d) => `<li><b>${d.id}</b><span>${d.q}<br><small>Options: ${d.options}${d.board ? ` · see the <a href="?board=${d.board}&view=grid">${d.board}</a> board` : ''}</small></span><em>Default: ${d.def}${d.after ? ' · after the launch' : ''}</em></li>`).join('')}</ol>
+    <h2>Pull requests</h2>
+    ${PULLS.length ? `<ol>${PULLS.map((p) => row(p.href, p.title, p.note, p.state, true)).join('')}</ol>` : '<p class="mb-small">None yet.</p>'}
+    <h2>Notion and other places</h2>
+    <ol>${PLACES.map((p) => row(p.href, p.title, p.note, p.kind, true)).join('')}</ol>
+    <p class="mb-small">Keys on a board: ← → switch variants, G toggles the grid. Each variant's id is in its caption and on the Copy id button.</p>`;
   app.append(el);
 }
 
