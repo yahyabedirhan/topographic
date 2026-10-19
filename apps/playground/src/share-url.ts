@@ -42,14 +42,28 @@ function diff(s: Settings, base: Settings): [string, string][] {
   return out;
 }
 
-/** What a bare playground URL shows. Written as no settings params at all. */
-export const HOME_QUERY = 'look=fine-granite&mode=3d';
+/** What a bare playground URL opens: the built-in Istanbul map terrain, as map-looks.ts decodes it. */
+export const HOME_QUERY = 's=gentle-summit&seed=67&lc=36&lw=0&lo=0.9&ix=4&fd=0.15&m=dark&paper=0b0b0d&mode=3d&ex=block&ev=0.12&az=341.6&ce=45.3&rd=1.15&px=-0.005&pz=-0.013&place=istanbul';
+
+/** The settings of a link with a region and no settings keys, which links wrote while a bare URL was fine granite. */
+const REGION_ONLY_QUERY = 'look=fine-granite&mode=3d';
+
+/** The query keys region/url.ts owns. */
+const REGION_KEYS = ['region', 'place'];
+
+/** A query with no settings or region keys is the home view: HOME_QUERY, with every other param kept after it. */
+export function homeSearch(search: string): string {
+  const q = new URLSearchParams(search);
+  if ([...SETTINGS_KEYS, ...REGION_KEYS].some((key) => q.has(key))) return search;
+  const home = new URLSearchParams(HOME_QUERY);
+  for (const [k, v] of q) home.append(k, v);
+  return queryText(home);
+}
 
 const same = (a: Settings, b: Settings) => !diff(a, b).length && a.theme.ink === b.theme.ink && a.theme.paper === b.theme.paper;
 
 /** The settings as the fewest query params: a diff against the shape defaults or against a library look of the same shape. */
 export function settingsParams(s: Settings): [string, string][] {
-  if (same(decode(new URLSearchParams(HOME_QUERY)), s)) return [];
   const plain = diff(s, { ...playgroundSettings({ shape: s.shape }), shape: DEFAULT_SHAPE });
   let best = plain;
   for (const look of LOOKS) {
@@ -58,13 +72,13 @@ export function settingsParams(s: Settings): [string, string][] {
     const entries: [string, string][] = [['look', look.id], ...diff(s, base)];
     if (entries.length < best.length && same(decode(new URLSearchParams(entries)), s)) best = entries;
   }
-  // An empty query means the home view, so other settings always name their shape.
+  // An empty query means the home view, so every other view names its shape.
   return best.length ? best : [['s', s.shape]];
 }
 
 export function readSettings(search: string): Settings {
-  const q = new URLSearchParams(search);
-  return decode(SETTINGS_KEYS.some((key) => q.has(key)) ? q : new URLSearchParams(HOME_QUERY));
+  const q = new URLSearchParams(homeSearch(search));
+  return decode(SETTINGS_KEYS.some((key) => q.has(key)) ? q : new URLSearchParams(REGION_ONLY_QUERY));
 }
 
 /** `look=` is a library look by id, as links made before 0.6.0 also wrote it. The other params override it. */

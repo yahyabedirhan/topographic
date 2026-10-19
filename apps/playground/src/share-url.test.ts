@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { LOOKS, mergeSettings, resolveSettings, type Settings } from 'topographic';
 import cameras from './looks.cameras.json';
-import { HOME_QUERY, playgroundSettings, readSettings, settingsParams, writeSettings } from './share-url';
+import { ISTANBUL_SETTINGS } from './region/map-looks';
+import { HOME_QUERY, homeSearch, playgroundSettings, readSettings, settingsParams, writeSettings } from './share-url';
 
 const query = (s: Settings) => new URLSearchParams(settingsParams(s)).toString();
 const roundTrip = (s: Settings) => expect(readSettings(writeSettings('', s))).toEqual(s);
@@ -32,10 +33,15 @@ describe('share url', () => {
     expect(query(s)).toBe('look=survey-map&lc=20&ink=ff0000');
   });
 
-  it('writes nothing for the home view, and names the shape otherwise', () => {
+  it('opens a bare URL on Istanbul, and names the shape for every view', () => {
     const home = readSettings('');
     expect(home).toEqual(readSettings(HOME_QUERY));
-    expect(query(home)).toBe('');
+    expect(home).toEqual(playgroundSettings(ISTANBUL_SETTINGS));
+    expect(readSettings('analytics_optout=all')).toEqual(home);
+    expect(homeSearch('analytics_optout=all')).toBe(`${HOME_QUERY}&analytics_optout=all`);
+    expect(homeSearch('s=dunes')).toBe('s=dunes');
+    expect(readSettings('place=matterhorn')).toEqual(readSettings('look=fine-granite&mode=3d'));
+    expect(query(readSettings('look=fine-granite&mode=3d'))).toBe('look=fine-granite&mode=3d');
     expect(query(playgroundSettings())).toBe('s=drifting-lobes');
     roundTrip(playgroundSettings());
     expect(query(playgroundSettings({ shape: 'dunes' }))).toBe('s=dunes');
@@ -95,7 +101,7 @@ describe('share url', () => {
     for (const look of LOOKS) {
       const s = mergeSettings(playgroundSettings({ look: look.id }), { mode: '3d' });
       expect(s.camera).toMatchObject((cameras as Record<string, object>)[look.name]);
-      expect(query(s)).toBe(`look=${look.id}&mode=3d` === HOME_QUERY ? '' : `look=${look.id}&mode=3d`);
+      expect(query(s)).toBe(`look=${look.id}&mode=3d`);
       roundTrip(s);
     }
     const moved = mergeSettings(nightLobes, { mode: '3d', camera: { azimuth: 12 } });
@@ -122,8 +128,8 @@ describe('share url', () => {
   });
 
   it('treats elevation the same with or without a place', () => {
-    expect(readSettings('place=istanbul').elevation).toBe(readSettings('').elevation);
-    expect(writeSettings('place=istanbul', readSettings('place=istanbul'))).toBe('place=istanbul');
+    expect(readSettings('place=istanbul').elevation).toBe(readSettings('look=fine-granite&mode=3d').elevation);
+    expect(writeSettings('place=istanbul', readSettings('place=istanbul'))).toBe('look=fine-granite&mode=3d&place=istanbul');
     const low = mergeSettings(nightLobes, { elevation: 0.1 });
     expect(writeSettings('place=istanbul', low)).toBe('look=night-lobes&ev=0.1&place=istanbul');
     expect(readSettings('look=night-lobes&ev=0.1&place=istanbul')).toEqual(low);

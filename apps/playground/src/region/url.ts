@@ -1,4 +1,5 @@
 import type { BBox } from 'topographic/locations';
+import { homeSearch } from '../share-url';
 import { findPlace } from './places';
 
 export interface RegionQuery {
@@ -33,8 +34,9 @@ export function formatBBox(bbox: BBox): string {
   return [bbox.west, bbox.south, bbox.east, bbox.north].map((n) => Number(n.toFixed(5))).join(',');
 }
 
+/** A bare query opens the home view, Istanbul. */
 export function readRegion(search: string): RegionQuery {
-  const q = new URLSearchParams(search);
+  const q = new URLSearchParams(homeSearch(search));
   return {
     bbox: parseBBox(q.get('region')) ?? findPlace(q.get('place'))?.bbox ?? null,
     place: q.get('place'),
