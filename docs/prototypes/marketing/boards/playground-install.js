@@ -211,7 +211,7 @@ const ROUND2 = [
         <div class="sec"><div class="sec-t">${LU(GLYPH.hand, 13)}${INSTALL_LABELS.npm}</div>${field('npm install topographic')}
           ${qfield('npm install topographic topographic-react')}
           <div class="codebox"><pre class="code2">${SCENE_JS.map((l, i) => `<span class="ln">${i + 1}</span><span>${l}</span>`).join('')}</pre>${icopy(SCENE_JS_TEXT, 'Copy this code')}</div>
-          <div class="foot"><a href="#">${LU(GLYPH.share, 13)}Open Export</a></div></div>`);
+          <div class="foot"><a href="#">${LU(GLYPH.share, 13)}Export</a></div></div>`);
     },
   },
   {

@@ -659,3 +659,8 @@ On "Link to this scene" with its copy icon, and "Open Export":
 > Can you cover these concerns?
 
 Applied: the row keeps one item, "Open Export", with the same icon as the Export button in the top-right cluster. The scene link lives in Export's Link tab.
+
+> So instead of saying "Open Export," maybe you can just show the icon and say "Export," which opens the export popup.
+> Does it make sense?
+
+Applied: the bottom item reads "Export", with the Export button's icon, and opens the Export popover.
