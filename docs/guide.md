@@ -417,7 +417,7 @@ The playground is a Cloudflare Worker with static assets. With Workers Builds, a
 | `identify_agent` | Optional. The agent gives its `name` and a `purpose`, both from fixed lists, so analytics count it apart from people. Any other value is an error. |
 | `list_styles` | Lists the styles and presets, with their ids and descriptions. |
 | `get_settings` | Returns the current settings, the shortest config JSON, and the graphics tier that is drawing (`quality`, `fps`, `frameMs`, `mesh`). |
-| `set_settings` | Applies some settings. Reports values that were moved into range and keys that were ignored. |
+| `set_settings` | Applies some settings. Reports values that were moved into range and keys that were ignored. A new `theme.mode` clears the earlier `ink` and `paper`, as the theme button does, unless the same call gives them. The result says which colours were cleared. |
 | `randomize` | Picks a new random seed. With `{ "style": true }`, it also picks a random style. |
 | `take_screenshot` | Returns a PNG of the background as a data URL, 1200 px wide by default. An optional `region` (`{ x, y, width, height }`, as fractions of the view) keeps only that part. |
 | `record_video` | Records a short 3D video of the current terrain with a moving camera. Returns it as an MP4 or WebM data URL. The default is a 2 second orbit at 640×360. |
