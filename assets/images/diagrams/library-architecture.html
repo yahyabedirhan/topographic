@@ -23,7 +23,7 @@ svg { width: 100%; min-width: 960px; display: block; }
 <div class="diagram-container">
 <svg viewBox="0 0 960 680" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="library-architecture-title library-architecture-desc">
 <title id="library-architecture-title">Library architecture</title>
-<desc id="library-architecture-desc">How the topographic library fits together: the web component, React component and playground call one public API, which also takes an optional heightfield. Settings resolve from the params table, landforms and presets, and one WebGL renderer draws them as a 2D contour shader or a 3D terrain pass, whose frames record() encodes as a video.</desc>
+<desc id="library-architecture-desc">How the topographic library fits together: the web component, React component and playground call one public API, which also takes an optional heightfield. Settings resolve from the params table, shapes and presets, and one WebGL renderer draws them as a 2D contour shader or a 3D terrain pass, whose frames record() encodes as a video.</desc>
 <defs>
 <linearGradient id="tile" x1="0" y1="0" x2="0" y2="680" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#222529"/><stop offset="1" stop-color="#131417"/></linearGradient>
 <linearGradient id="rim1" x1="0" y1="0" x2="0" y2="680" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity="0.32"/><stop offset="1" stop-color="#fff" stop-opacity="0.08"/></linearGradient>
@@ -75,7 +75,7 @@ svg { width: 100%; min-width: 960px; display: block; }
 <rect x="48.5" y="96.5" width="28" height="12" fill="none" stroke="#6b7078" stroke-opacity="0.6" stroke-width="0.8"/>
 <text x="62.5" y="105.5" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">HTML</text>
 <text x="120.0" y="126" fill="#e4e6e9" font-size="12" font-weight="600" font-family="'Inter Tight', system-ui, sans-serif" text-anchor="middle">Web component</text>
-<text x="120.0" y="141" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">&lt;topographic-map&gt;</text>
+<text x="120.0" y="141" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">&lt;topographic-view&gt;</text>
 <rect x="40" y="216" width="160" height="64" rx="2" fill="url(#tile)"/>
 <rect x="40.5" y="216.5" width="159" height="63" rx="2" fill="#222529" stroke="rgba(255,255,255,0.16)" stroke-width="1"/>
 <rect x="48.5" y="224.5" width="33" height="12" fill="none" stroke="#6b7078" stroke-opacity="0.6" stroke-width="0.8"/>
@@ -104,8 +104,8 @@ svg { width: 100%; min-width: 960px; display: block; }
 <rect x="520.5" y="88.5" width="159" height="63" rx="2" fill="rgba(228,230,233,0.05)" stroke="#8b9097" stroke-width="1"/>
 <rect x="528.5" y="96.5" width="28" height="12" fill="none" stroke="#6b7078" stroke-opacity="0.6" stroke-width="0.8"/>
 <text x="542.5" y="105.5" fill="#6b7078" font-size="8" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">DATA</text>
-<text x="600.0" y="126" fill="#e4e6e9" font-size="12" font-weight="600" font-family="'Inter Tight', system-ui, sans-serif" text-anchor="middle">Params + landforms</text>
-<text x="600.0" y="141" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">landforms · presets</text>
+<text x="600.0" y="126" fill="#e4e6e9" font-size="12" font-weight="600" font-family="'Inter Tight', system-ui, sans-serif" text-anchor="middle">Params + shapes</text>
+<text x="600.0" y="141" fill="#8b9097" font-size="9" font-family="'IBM Plex Mono', ui-monospace, monospace" text-anchor="middle">shapes · presets</text>
 <path d="M520 218Q520 216 522 216H666L680 230V278Q680 280 678 280H522Q520 280 520 278Z" fill="#ffffff"/>
 <path d="M666 216L680 230H666Z" fill="#b9bec4"/>
 <rect x="528.5" y="224.5" width="28" height="12" fill="none" stroke="#4f545b" stroke-opacity="0.6" stroke-width="0.8"/>
