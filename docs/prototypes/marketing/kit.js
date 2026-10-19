@@ -27,6 +27,9 @@ const topography = createTopography(el, { ${SHAPE}: 'long-ridge' });`,
 /** How a real place is drawn on the boards: the playground's dark paper with a bright, cool ink, orbiting. */
 export const PLACE_LOOK = { theme: { mode: 'dark', ink: '#cfd8ea', paper: '#0b0b0d' }, lines: { opacity: 1 }, camera: { motion: 'orbit' } };
 
+/** The two parts of the playground's Install popover (decision D9). One edit renames them in every variant. */
+export const INSTALL_LABELS = { agent: 'Agent skill', npm: 'npm package' };
+
 /** Proposed copy, kept in one place so every board says the same thing. */
 export const COPY = {
   // Round 2: candidates for the one line, from the maintainer's starting line. Each has the line itself
