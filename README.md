@@ -53,7 +53,7 @@ In plain HTML, use the web component:
 ```html
 <script type="module">import 'topographic/element';</script>
 
-<topographic-map landform="long-ridge"></topographic-map>
+<topographic-map shape="long-ridge"></topographic-map>
 ```
 
 In JavaScript:
@@ -61,7 +61,7 @@ In JavaScript:
 ```js
 import { createTopography } from 'topographic';
 
-const topography = createTopography(document.querySelector('#hero'), { landform: 'long-ridge' });
+const topography = createTopography(document.querySelector('#hero'), { shape: 'long-ridge' });
 ```
 
 In React, install `topographic-react` too (`npm install topographic topographic-react`):
@@ -69,7 +69,7 @@ In React, install `topographic-react` too (`npm install topographic topographic-
 ```tsx
 import { Topography } from 'topographic-react';
 
-<Topography landform="long-ridge" />
+<Topography shape="long-ridge" />
 ```
 
 The background fills the element you give it.
@@ -81,7 +81,7 @@ In the [playground](https://topographic.yahyapak.dev/), **Export** gives you thi
 
 ### Settings
 
-You control the background with one settings object. `landform` picks the basic shape of the land. `seed` is a number that picks one version of that shape. `lines`, `terrain`, `motion`, `layout` and `theme` change the rest. You can change settings at any time with `topography.update({ terrain: { peaks: 3 } })`.
+You control the background with one settings object. `shape` picks the basic form of the land. `seed` is a number that picks one version of that shape. `lines`, `terrain`, `motion`, `layout` and `theme` change the rest. You can change settings at any time with `topography.update({ terrain: { peaks: 3 } })`.
 
 The background stops drawing when it is not on screen. It does not move for people who turn on reduced motion. If the browser cannot run WebGL, it shows a plain colour.
 
@@ -122,7 +122,7 @@ The [guide](docs/guide.md) lists every setting with its range and default. It al
 
 ## How it works
 
-![How topographic fits together: the web component, the React component and the playground call one public API, which also takes an optional heightfield. Settings resolve from the params table, landforms and presets, and one WebGL renderer draws them as a 2D contour shader or a 3D terrain pass, whose frames record() encodes as video.](assets/images/diagrams/library-architecture.png)
+![How topographic fits together: the web component, the React component and the playground call one public API, which also takes an optional heightfield. Settings resolve from the params table, shapes and presets, and one WebGL renderer draws them as a 2D contour shader or a 3D terrain pass, whose frames record() encodes as video.](assets/images/diagrams/library-architecture.png)
 
 The web component, the React component and the [playground](https://topographic.yahyapak.dev/) all use the same code. One renderer draws both 2D and 3D.
 

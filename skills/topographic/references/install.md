@@ -28,18 +28,18 @@ Put it where the user asked for it, in the project's own idiom.
 ```js
 import { createTopography } from 'topographic';
 
-const topography = createTopography(document.querySelector('#terrain'), { landform: 'long-ridge' });
+const topography = createTopography(document.querySelector('#terrain'), { shape: 'long-ridge' });
 ```
 
 ```tsx
 import { Topography } from 'topographic-react';
 
-<Topography landform="long-ridge" />
+<Topography shape="long-ridge" />
 ```
 
 ```html
 <script type="module">import 'topographic/element';</script>
-<topographic-map landform="long-ridge"></topographic-map>
+<topographic-map shape="long-ridge"></topographic-map>
 ```
 
 ## 4. Give it a size

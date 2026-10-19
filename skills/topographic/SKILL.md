@@ -22,19 +22,19 @@ One settings object drives everything, and `update()` changes it live:
 ```js
 import { createTopography } from 'topographic';
 
-const topography = createTopography(element, { landform: 'long-ridge', mode: '3d' });
+const topography = createTopography(element, { shape: 'long-ridge', mode: '3d' });
 topography.update({ terrain: { peaks: 3 } });
 ```
 
-In React, the same settings are props: `<Topography landform="long-ridge" mode="3d" />` from `topographic-react`.
-In HTML, they are attributes: `<topographic-map landform="long-ridge">` after `import 'topographic/element'`.
+In React, the same settings are props: `<Topography shape="long-ridge" mode="3d" />` from `topographic-react`.
+In HTML, they are attributes: `<topographic-map shape="long-ridge">` after `import 'topographic/element'`.
 
 The guide is the source of truth for every name, range and default.
 Read the section you need before you write code:
 
 | Task | Guide section |
 |---|---|
-| Choose a landform, lines, terrain, motion, layout | [Settings](https://github.com/yahyabedirhan/topographic/blob/main/docs/guide.md#settings) and [Landforms](https://github.com/yahyabedirhan/topographic/blob/main/docs/guide.md#landforms) |
+| Choose a shape, lines, terrain, motion, layout | [Settings](https://github.com/yahyabedirhan/topographic/blob/main/docs/guide.md#settings) and [Shapes](https://github.com/yahyabedirhan/topographic/blob/main/docs/guide.md#shapes) |
 | 3D view and camera | [Three dimensions](https://github.com/yahyabedirhan/topographic/blob/main/docs/guide.md#three-dimensions) |
 | Colours and themes | [Colours, CSS variables and dark mode](https://github.com/yahyabedirhan/topographic/blob/main/docs/guide.md#colours-css-variables-and-dark-mode) |
 | Size it, or put it behind content | [Sizing and layering](https://github.com/yahyabedirhan/topographic/blob/main/docs/guide.md#sizing-and-layering) |

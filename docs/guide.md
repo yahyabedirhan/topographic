@@ -6,7 +6,7 @@ This guide explains how to use topographic. Each section covers one topic. To tr
 - [Three ways to use it](#three-ways-to-use-it)
 - [Sizing and layering](#sizing-and-layering)
 - [Settings](#settings)
-- [Landforms](#landforms)
+- [Shapes](#shapes)
 - [Presets](#presets)
 - [Colours, CSS variables and dark mode](#colours-css-variables-and-dark-mode)
 - [Seed](#seed)
@@ -49,7 +49,7 @@ The call adds a canvas inside `element`. The canvas fills the element, so give t
 | `update(partialSettings)` | Changes some settings and applies them right away. Values are kept inside their ranges. Only the changed values are sent to the GPU. |
 | `snapshot({ frame?, width?, height?, region?, motion? })` | Draws one PNG image in the background and returns it as a `Blob`. See [Snapshots](#snapshots-and-png-export). |
 | `record({ seconds?, fps?, width?, height?, frame?, format?, motion? })` | Records a short 3D video with a moving camera. Returns it as an MP4 or WebM `Blob`. |
-| `setHeightfield({ samples, size, aspect } \| null)` | Draws the lines from your own elevation data (a height map) instead of the landform's shape. The data is a square grid. `samples` is a `Float32Array` of `size × size` values, from 0 (low) to 1 (high). Row 0 is the south edge. `aspect` is the place's width divided by its height. `null` brings back the landform's own shape. |
+| `setHeightfield({ samples, size, aspect } \| null)` | Draws the lines from your own elevation data (a height map) instead of the generated shape. The data is a square grid. `samples` is a `Float32Array` of `size × size` values, from 0 (low) to 1 (high). Row 0 is the south edge. `aspect` is the place's width divided by its height. `null` brings back the shape's own shape. |
 | `setInsets({ top, right, bottom, left } \| null)` | Tells the 3D view how much space your page's UI covers on each side, in CSS pixels. A toolbar or a dock are examples. The 3D picture then moves so the terrain is centred in the free space. The camera does not move, so orbiting still turns around the terrain. 2D does not change. Snapshots and videos ignore this setting (see [Snapshots](#snapshots-and-png-export)). `null` clears it. `insets` reads it back. |
 | `clampPan(panX, panZ)` | Returns the pan as `[x, z]`, limited so the view stays over the terrain. This is the same limit the renderer uses for `camera.panX` and `camera.panZ`. |
 | `stats` | `{ fps, frameMs, mesh, quality }` for the 3D view. `mesh` is 0 in 2D. `quality` is the tier actually drawing: `low`, `medium` or `high`. |
@@ -72,11 +72,11 @@ The call adds a canvas inside `element`. The canvas fills the element, so give t
 ```html
 <script type="module">import 'topographic/element';</script>
 
-<topographic-map landform="long-ridge" line-count="36" peaks="2" theme="dark"></topographic-map>
+<topographic-map shape="long-ridge" line-count="36" peaks="2" theme="dark"></topographic-map>
 ```
 
-- Every setting has an HTML attribute (listed in [Settings](#settings)). There are also `landform`, `seed`, `theme`, `ink` and `paper`.
-- A changed attribute applies right away. A removed attribute goes back to the landform's default.
+- Every setting has an HTML attribute (listed in [Settings](#settings)). There are also `shape`, `seed`, `theme`, `ink` and `paper`.
+- A changed attribute applies right away. A removed attribute goes back to the shape's default.
 - `element.topographic` is the instance. `element.snapshot(opts)` is a shortcut to its `snapshot`.
 - The element is `display: block`. Size and position it with CSS, as [Sizing and layering](#sizing-and-layering) shows.
 
@@ -86,15 +86,15 @@ The call adds a canvas inside `element`. The canvas fills the element, so give t
 import { Topography, useTopography } from 'topographic-react';
 
 <Topography
-  landform="dunes"
+  shape="dunes"
   lines={{ count: 24 }}
   theme={{ mode: 'dark' }}
   style={{ position: 'fixed', inset: 0, zIndex: -1 }}
 />
 ```
 
-- Props: `landform`, `seed`, `lines`, `terrain`, `motion`, `layout`, `theme`, `mode`, `elevation`, `extent`, `detail`, `quality`, `camera`, `view2d`, `options`, `onReady`, plus any `div` props. Children are drawn on top.
-- `style` is React's normal inline style. The land shape is the `landform` prop.
+- Props: `shape`, `seed`, `lines`, `terrain`, `motion`, `layout`, `theme`, `mode`, `elevation`, `extent`, `detail`, `quality`, `camera`, `view2d`, `options`, `onReady`, plus any `div` props. Children are drawn on top.
+- `style` is React's normal inline style. The land shape is the `shape` prop.
 - `TopographyInstance` is the type of the instance.
 - Each group of settings updates only when its values change. A new object with the same values does nothing.
 - `onReady(instance)` gives you the instance after mount, for example to call `snapshot`. It gives `null` on unmount.
@@ -103,7 +103,7 @@ import { Topography, useTopography } from 'topographic-react';
 To use your own element, use the hook:
 
 ```tsx
-const ref = useTopography({ landform: 'seed-pod' });
+const ref = useTopography({ shape: 'seed-pod' });
 return <section ref={ref} style={{ height: 400 }} />;
 // ref.topographic is the instance while mounted
 ```
@@ -116,18 +116,18 @@ The element needs a size: without a height, it draws nothing.
 To put the background behind the whole page, fix it to the window and move it behind the content:
 
 ```html
-<topographic-map landform="long-ridge" style="position:fixed;inset:0;z-index:-1"></topographic-map>
+<topographic-map shape="long-ridge" style="position:fixed;inset:0;z-index:-1"></topographic-map>
 ```
 
 ```tsx
-<Topography landform="long-ridge" style={{ position: 'fixed', inset: 0, zIndex: -1 }} />
+<Topography shape="long-ridge" style={{ position: 'fixed', inset: 0, zIndex: -1 }} />
 ```
 
 To fill one section, give the element a height.
 Children of `<Topography>` are drawn on top:
 
 ```tsx
-<Topography landform="granite" style={{ height: '100vh' }}>
+<Topography shape="granite" style={{ height: '100vh' }}>
   <h1>Hello</h1>
 </Topography>
 ```
@@ -141,7 +141,7 @@ The settings are in groups. Pass only the values you want to change:
 
 ```js
 {
-  landform: 'dunes',
+  shape: 'dunes',
   seed: 0,
   lines:   { count, width, opacity, indexEvery },
   terrain: { peaks, spread, roughness, sharpness, terracing, variant },
@@ -152,7 +152,7 @@ The settings are in groups. Pass only the values you want to change:
 }
 ```
 
-A value outside its range is moved to the nearest limit. Whole-number settings are rounded. A value that is not a number uses the default. Some landforms have their own defaults. For example, dunes uses a lighter centre fade.
+A value outside its range is moved to the nearest limit. Whole-number settings are rounded. A value that is not a number uses the default. Some shapes have their own defaults. For example, dunes uses a lighter centre fade.
 
 ### Lines
 
@@ -172,7 +172,7 @@ A value outside its range is moved to the nearest limit. Whole-number settings a
 | `terrain.roughness` | `roughness` | 0–1 | 0 | Adds noise to the slopes. Low is smooth hills. High is rocky ground. |
 | `terrain.sharpness` | `sharpness` | 0–1 | 0.5 | Below 0.5, summits get flatter. Above 0.5, they get sharper. |
 | `terrain.terracing` | `terracing` | 0–1 | 0 | Groups the lines into steps. |
-| `terrain.variant` | `variant` | 0–1 | 0.5 | Changes the shape in a way that depends on the landform. For drifting lobes, it goes from three lobes to four. |
+| `terrain.variant` | `variant` | 0–1 | 0.5 | Changes the land in a way that depends on the shape. For drifting lobes, it goes from three lobes to four. |
 
 ### Motion
 
@@ -209,7 +209,7 @@ A value outside its range is moved to the nearest limit. Whole-number settings a
 
 ```js
 createTopography(el, {
-  landform: 'gentle-summit',
+  shape: 'gentle-summit',
   seed: 4,
   mode: '3d',
   elevation: 0.7,
@@ -220,9 +220,9 @@ createTopography(el, {
 
 The default camera looks from a little west of south. It is about a third of the way up. It is close enough that the terrain fills a wide window. `record({ motion: 'flyover', format: 'mp4' })` records a video. It does not resize the live canvas. You can also use `format: 'webm'` if the browser can encode it.
 
-## Landforms
+## Shapes
 
-There are seven landforms. Each one is a different starting shape. The settings change each landform in many ways, so the number of possible looks is not limited to seven.
+There are seven shapes. Each one is a different starting form for the land. The settings change each shape in many ways, so the number of possible looks is not limited to seven.
 
 | Id | Name | Looks like |
 |---|---|---|
@@ -234,15 +234,15 @@ There are seven landforms. Each one is a different starting shape. The settings 
 | `long-ridge` | Long ridge | A long, winding ridge with rounded ends. |
 | `dunes` | Dunes | Long ripples, like sand shaped by wind. There are no summits. |
 
-An unknown landform uses `drifting-lobes` instead and prints one warning in the console.
+An unknown shape uses `drifting-lobes` instead and prints one warning in the console.
 
-`terrain.variant` changes the shape in a way that depends on the landform. Today it has the biggest effect on drifting lobes, where it goes from three lobes to four.
+`terrain.variant` changes the land in a way that depends on the shape. Today it has the biggest effect on drifting lobes, where it goes from three lobes to four.
 
-### The landforms image
+### The shapes image
 
-![Sixteen dark-mode tiles: the seven landforms, the three presets Survey map, Terraces and Rocky, and six seed variants](../assets/screenshots/styles.png)
+![Sixteen dark-mode tiles: the seven shapes, the three presets Survey map, Terraces and Rocky, and six seed variants](../assets/screenshots/styles.png)
 
-The image shows every landform and preset in dark mode. Each tile is the frame at 4 seconds. The first ten tiles are the landforms and presets, by name. The last six tiles each use a landform with a different seed and one or two changed settings:
+The image shows every shape and preset in dark mode. Each tile is the frame at 4 seconds. The first ten tiles are the shapes and presets, by name. The last six tiles each use a shape with a different seed and one or two changed settings:
 
 | Tile | Settings |
 | --- | --- |
@@ -257,18 +257,18 @@ The tiles are small, so every tile uses a few extra settings to make the shapes 
 
 ## Presets
 
-A preset is a named starting point. It is a landform plus a few settings. The presets are exported as `PRESETS`.
+A preset is a named starting point. It is a shape plus a few settings. The presets are exported as `PRESETS`.
 
-- **Drifting lobes**: `{"landform":"drifting-lobes"}`
-- **Granite**: `{"landform":"granite","lines":{"count":34},"terrain":{"roughness":0.15}}`
-- **Five petals**: `{"landform":"five-petals"}`
-- **Seed pod**: `{"landform":"seed-pod","motion":{"speed":0.7}}`
-- **Gentle summit**: `{"landform":"gentle-summit","lines":{"count":26}}`
-- **Long ridge**: `{"landform":"long-ridge","terrain":{"sharpness":0.4}}`
-- **Dunes**: `{"landform":"dunes","motion":{"sparkle":0.3}}`
-- **Survey map**: `{"landform":"gentle-summit","lines":{"count":44,"indexEvery":5,"opacity":0.55},"terrain":{"peaks":3,"spread":0.6,"roughness":0.2},"motion":{"speed":0.4,"sparkle":0}}`
-- **Terraces**: `{"landform":"gentle-summit","terrain":{"terracing":0.8,"peaks":2},"motion":{"sparkle":0.2}}`
-- **Rocky**: `{"landform":"long-ridge","terrain":{"roughness":0.55,"sharpness":0.3},"lines":{"count":36}}`
+- **Drifting lobes**: `{"shape":"drifting-lobes"}`
+- **Granite**: `{"shape":"granite","lines":{"count":34},"terrain":{"roughness":0.15}}`
+- **Five petals**: `{"shape":"five-petals"}`
+- **Seed pod**: `{"shape":"seed-pod","motion":{"speed":0.7}}`
+- **Gentle summit**: `{"shape":"gentle-summit","lines":{"count":26}}`
+- **Long ridge**: `{"shape":"long-ridge","terrain":{"sharpness":0.4}}`
+- **Dunes**: `{"shape":"dunes","motion":{"sparkle":0.3}}`
+- **Survey map**: `{"shape":"gentle-summit","lines":{"count":44,"indexEvery":5,"opacity":0.55},"terrain":{"peaks":3,"spread":0.6,"roughness":0.2},"motion":{"speed":0.4,"sparkle":0}}`
+- **Terraces**: `{"shape":"gentle-summit","terrain":{"terracing":0.8,"peaks":2},"motion":{"sparkle":0.2}}`
+- **Rocky**: `{"shape":"long-ridge","terrain":{"roughness":0.55,"sharpness":0.3},"lines":{"count":36}}`
 
 ```js
 import { PRESETS, createTopography } from 'topographic';
@@ -294,7 +294,7 @@ topographic-map, .my-hero {
 
 ## Seed
 
-The seed is a number that picks a variation of a landform. `seed` is a whole number from 0 to 999999. The same seed gives the same terrain on every screen. `0` is the original look. Change the seed to get a new variation of a style. The other settings stay the same.
+The seed is a number that picks a variation of a shape. `seed` is a whole number from 0 to 999999. The same seed gives the same terrain on every screen. `0` is the original look. Change the seed to get a new variation of a shape. The other settings stay the same.
 
 ## Snapshots and PNG export
 
@@ -380,14 +380,14 @@ The playground (`apps/playground`) is the project's live demo page.
   - Apply also saves the terrain in the dock, after the built-in map terrains. Its name is the place's name, or Area.
   - The dock starts with a built-in Istanbul map terrain for everyone. Like a look, it does not keep your changes. A click on it always brings back its own settings, camera and pan.
   - When a saved item is active, your changes to it are kept, including camera moves. A click on it brings back the view you left it in.
-  - A built-in look does not keep your changes. A click on it always brings back its own camera. A plain landform uses the playground camera.
-  - **Clear** goes back to the generated terrain. It also brings back the lines, camera, extent and elevation you had before. After Cyprus, it also brings back your landform and colours.
+  - A built-in look does not keep your changes. A click on it always brings back its own camera. A plain shape uses the playground camera.
+  - **Clear** goes back to the generated terrain. It also brings back the lines, camera, extent and elevation you had before. After Cyprus, it also brings back your shape and colours.
   - When a map terrain is active, a small map above the right end of the dock shows the area you framed. In 3D, it turns with the camera, so it always matches the terrain on screen. Its compass points north. Click the compass to turn the camera back to north at the top (azimuth 0). Click the small map to open the map. In 2D, north is already at the top, so the small map does not turn.
   - The map loads only when you open it. It needs a network connection.
   - A link that opens a place hides the canvas until the heights arrive, so the default terrain does not flash. Contour rings draw in while it waits, on a desktop and on a phone. With reduced motion, the rings stay still. The page sets `data-loading` to `terrain`, and `get_region` returns `loading: true` with the message `Loading terrain`.
 - The URL stores the settings as short keys, so a link shows the same background.
-  - It stores only the values that are different from the landform's defaults or from a named look: `?lf=dunes&lc=24`, `?look=night-lobes&mode=3d`.
-  - Links made before 0.6.0 use `s` for the landform. They still open.
+  - It stores only the values that are different from the shape's defaults or from a named look: `?lf=dunes&lc=24`, `?look=night-lobes&mode=3d`.
+  - Links made before 0.6.0 use `s` for the shape. They still open.
   - Colours have no `#` (`ink=9fb0cc`).
   - 3D uses the library defaults unless the URL changes them: endless, azimuth 349.7, angle 33.6 and distance 1.92.
   - A pan away from the centre adds `px` and `pz`. A 2D pan or zoom adds `vx`, `vy` and `vz`.
@@ -448,10 +448,10 @@ The playground is a Cloudflare Worker with static assets. With Workers Builds, a
 | Tool | What it does |
 |---|---|
 | `identify_agent` | Optional. The agent gives its `name` and a `purpose`, both from fixed lists, so analytics count it apart from people. Any other value is an error. |
-| `list_landforms` | Lists the landforms and presets, with their ids and descriptions. |
+| `list_shapes` | Lists the shapes and presets, with their ids and descriptions. |
 | `get_settings` | Returns the current settings, the shortest config JSON, and the graphics tier that is drawing (`quality`, `fps`, `frameMs`, `mesh`). |
-| `set_settings` | Applies some settings. The land shape is `landform`; the old key `style` still works until the next release. Reports values that were moved into range and keys that were ignored. |
-| `randomize` | Picks a new random seed. With `{ "landform": true }`, it also picks a random landform. |
+| `set_settings` | Applies some settings. The land shape is `shape`; the old key `style` still works until the next release. Reports values that were moved into range and keys that were ignored. |
+| `randomize` | Picks a new random seed. With `{ "shape": true }`, it also picks a random shape. |
 | `take_screenshot` | Returns a PNG of the background as a data URL, 1200 px wide by default. An optional `region` (`{ x, y, width, height }`, as fractions of the view) keeps only that part. |
 | `record_video` | Records a short 3D video of the current terrain with a moving camera. Returns it as an MP4 or WebM data URL. The default is a 2 second orbit at 640×360. |
 | `get_embed_code` | Returns code for `html`, `react`, `vanilla` or `json`. |
@@ -471,4 +471,4 @@ The input schemas are in `/docs/webmcp.md` on the playground. WebMCP needs a sec
 - **The lines disappear behind my text.** That's `layout.fade`. Lower it, or set it to 0.
 - **My CSS variable change didn't apply.** Call `update({ theme: {} })` after you change it.
 - **`snapshot` throws.** The size is larger than the GPU limit, or WebGL is not available.
-- **There's a warning about an unknown landform.** Compare the id with the [Landforms](#landforms) list. Ids use dashes, like `seed-pod`.
+- **There's a warning about an unknown shape.** Compare the id with the [Shapes](#shapes) list. Ids use dashes, like `seed-pod`.

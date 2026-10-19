@@ -8,7 +8,7 @@ React bindings for [`topographic`](https://www.npmjs.com/package/topographic), t
 
 - Animated contour lines in 2D, or the same map as a 3D terrain
 - Real elevation data through `setHeightfield()`
-- Seven landforms and readable settings as props
+- Seven shapes and readable settings as props
 - Automatic quality tiers for phones and fast screens
 - PNG and video export
 
@@ -21,7 +21,7 @@ import { Topography } from 'topographic-react';
 
 export function Hero() {
   return (
-    <Topography landform="granite" terrain={{ roughness: 0.3 }}>
+    <Topography shape="granite" terrain={{ roughness: 0.3 }}>
       <h1>Hello</h1>
     </Topography>
   );
@@ -34,7 +34,7 @@ The [guide](https://github.com/yahyabedirhan/topographic/blob/main/docs/guide.md
 For the 3D terrain, add `mode="3d"`, and optionally `elevation`, `extent`, `detail`, `quality` and `camera`. `quality` is `auto` (the default, which follows the device), `low`, `medium` or `high`:
 
 ```tsx
-<Topography landform="long-ridge" mode="3d" extent="block" camera={{ motion: 'orbit' }} style={{ height: '100vh' }} />
+<Topography shape="long-ridge" mode="3d" extent="block" camera={{ motion: 'orbit' }} style={{ height: '100vh' }} />
 ```
 
 `onReady` gives you the instance, for `snapshot()`, `record()` and `setHeightfield()`. To show a real place, pass a square grid of heights from 0 to 1:
