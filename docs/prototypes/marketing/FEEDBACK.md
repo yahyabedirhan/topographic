@@ -672,3 +672,10 @@ Applied: the bottom item reads "Export", with the Export button's icon, and open
 > Just change their orders: Copy Link on the left and Export on the right, okay?
 
 Applied: the bottom row reads "Copy link · Export", each with its icon.
+
+On the bright Copy button on `npm install topographic`:
+
+> As a last piece of feedback for the `npm install topographic`, don't use that action button.
+> Use that white background copy button just for the agent skill and for the npm packages just keep that copy icon.
+
+Applied: only the agent skill command has the bright Copy button; both npm commands have the quiet copy icon.

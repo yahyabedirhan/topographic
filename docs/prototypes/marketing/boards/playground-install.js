@@ -211,7 +211,7 @@ const ROUND2 = [
     render(stage) {
       mount2(stage, 'code', `${preview(148, 'Istanbul · 3D')}${chips()}
         <div class="sec"><div class="sec-t">${LU(GLYPH.sparkles, 13)}${INSTALL_LABELS.agent}</div>${field(SKILL2)}</div>
-        <div class="sec"><div class="sec-t">${LU(GLYPH.hand, 13)}${INSTALL_LABELS.npm}</div>${field('npm install topographic')}
+        <div class="sec"><div class="sec-t">${LU(GLYPH.hand, 13)}${INSTALL_LABELS.npm}</div>${qfield('npm install topographic')}
           ${qfield('npm install topographic topographic-react')}
           <div class="codebox"><pre class="code2">${SCENE_JS.map((l, i) => `<span class="ln">${i + 1}</span><span>${l}</span>`).join('')}</pre>${icopy(SCENE_JS_TEXT, 'Copy this code')}</div>
           <div class="foot"><a href="#" data-copy="${SCENE_LINK.replace(/"/g, '&quot;')}">${LU(GLYPH.link, 13)}Copy link</a><span class="fdot">·</span><a href="#">${LU(GLYPH.share, 13)}Export</a></div></div>`);
@@ -225,7 +225,7 @@ const ROUND2 = [
     render(stage) {
       mount2(stage, 'code', `${preview(148, 'This scene')}${chips()}
         <div class="sec"><div class="sec-t">${LU(GLYPH.sparkles, 13)}${INSTALL_LABELS.agent}</div>${field(SKILL2)}</div>
-        <div class="sec"><div class="sec-t">${LU(GLYPH.hand, 13)}${INSTALL_LABELS.npm}</div>${field('npm install topographic')}
+        <div class="sec"><div class="sec-t">${LU(GLYPH.hand, 13)}${INSTALL_LABELS.npm}</div>${qfield('npm install topographic')}
           ${field('npm install topographic topographic-react', 'Copy', true)}</div>`);
     },
   },
@@ -250,7 +250,7 @@ const ROUND2 = [
     render(stage) {
       mount2(stage, 'terminal', `${preview(212, 'Istanbul · 3D · 36 lines')}
         <div class="sec"><div class="sec-t">${LU(GLYPH.sparkles, 13)}${INSTALL_LABELS.agent}</div>${field(SKILL2)}</div>
-        <div class="sec"><div class="sec-t">${LU(GLYPH.hand, 13)}${INSTALL_LABELS.npm}</div>${field('npm install topographic')}</div>`);
+        <div class="sec"><div class="sec-t">${LU(GLYPH.hand, 13)}${INSTALL_LABELS.npm}</div>${qfield('npm install topographic')}</div>`);
     },
   },
 ];
