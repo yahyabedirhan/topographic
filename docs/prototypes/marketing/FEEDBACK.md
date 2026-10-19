@@ -282,4 +282,4 @@ On the serif sentence "The contour lines of a hiking map, alive in 2D and 3D.":
 
 On the Install section:
 
-> And in the install area also show the `npx skills` install as well, similar to how we are planning that install experience in the playground.
+> And in the install area also show the `npx [skills add]` install as well, similar to how we are planning that install experience in the playground.
