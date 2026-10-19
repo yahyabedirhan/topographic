@@ -245,7 +245,7 @@ ${agentsMd('##')}
 ## First view and default mode
 
 - The library (\`topographic\`, \`<topographic-view>\`, \`topographic-react\`) draws in 2D unless you set \`mode: '3d'\`.
-- The playground opens a bare URL, with no settings or region keys, on the built-in Istanbul map terrain in 3D, orbiting at a quarter of the orbit's pace (\`?${HOME_QUERY}\`).
+- The playground opens a bare URL, with no settings or region keys, on the built-in Istanbul map terrain in 3D, with the camera pushing in and back at speed 0.2 (\`?${HOME_QUERY}\`).
 - A URL with \`place\` or \`region\` and no settings keys opens that place with \`?${REGION_ONLY_QUERY}\`.
 - A playground URL with any settings key, such as \`?s=dunes\` or \`?look=night-lobes\`, is 2D unless it has \`mode=3d\`.
 - The page rewrites the address bar to the shortest query for the same view. It drops keys that have the default value, so \`?s=dunes&mode=2d\` becomes \`?s=dunes\`, and the view stays 2D.

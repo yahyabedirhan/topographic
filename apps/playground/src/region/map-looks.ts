@@ -44,8 +44,8 @@ export interface MapLook {
 
 /**
  * Istanbul, decoded with readSettings from the query
- * `?s=gentle-summit&seed=67&lc=36&lw=0&lo=0.9&ix=4&fd=0.15&m=dark&paper=0b0b0d&mode=3d&ex=block&ev=0.12&az=341.6&ce=45.3&rd=1.15&cm=orbit&cs=0.25&px=-0.005&pz=-0.013&place=istanbul`.
- * It orbits slowly, at a quarter of the orbit's own pace.
+ * `?s=gentle-summit&seed=67&lc=36&lw=0&lo=0.9&ix=4&fd=0.15&m=dark&paper=0b0b0d&mode=3d&ex=block&ev=0.12&az=341.6&ce=45.3&rd=1.15&cm=push&cs=0.2&px=-0.005&pz=-0.013&place=istanbul`.
+ * The camera pushes in and back slowly, at a fifth of the push's own pace, about 70 seconds a cycle.
  */
 export const ISTANBUL_SETTINGS = {
   shape: 'gentle-summit',
@@ -58,7 +58,7 @@ export const ISTANBUL_SETTINGS = {
   mode: '3d',
   elevation: 0.12,
   extent: 'block',
-  camera: { azimuth: 341.6, elevation: 45.3, radius: 1.15, motion: 'orbit', speed: 0.25, panX: -0.005, panZ: -0.013 },
+  camera: { azimuth: 341.6, elevation: 45.3, radius: 1.15, motion: 'push', speed: 0.2, panX: -0.005, panZ: -0.013 },
 } as const satisfies SettingsInput;
 
 /**

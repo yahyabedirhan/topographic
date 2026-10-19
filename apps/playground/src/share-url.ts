@@ -44,7 +44,7 @@ function diff(s: Settings, base: Settings): [string, string][] {
 }
 
 /** What a bare playground URL opens: the built-in Istanbul map terrain, as map-looks.ts decodes it. */
-export const HOME_QUERY = 's=gentle-summit&seed=67&lc=36&lw=0&lo=0.9&ix=4&fd=0.15&m=dark&paper=0b0b0d&mode=3d&ex=block&ev=0.12&az=341.6&ce=45.3&rd=1.15&cm=orbit&cs=0.25&px=-0.005&pz=-0.013&place=istanbul';
+export const HOME_QUERY = 's=gentle-summit&seed=67&lc=36&lw=0&lo=0.9&ix=4&fd=0.15&m=dark&paper=0b0b0d&mode=3d&ex=block&ev=0.12&az=341.6&ce=45.3&rd=1.15&cm=push&cs=0.2&px=-0.005&pz=-0.013&place=istanbul';
 
 /** The settings of a link with a region and no settings keys, which links wrote while a bare URL was fine granite. */
 export const REGION_ONLY_QUERY = 'look=fine-granite&mode=3d';

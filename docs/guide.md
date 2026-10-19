@@ -196,7 +196,7 @@ A value outside its range is moved to the nearest limit. Whole-number settings a
 
 ### Three dimensions
 
-`mode` is `'2d'` or `'3d'`. 2D is the library default. The playground opens a bare URL on the built-in Istanbul map terrain in 3D, with the camera orbiting slowly. A URL with settings opens in 2D unless it has `mode=3d`. 3D shows the same contour lines as a landscape. With the same seed and settings, you get the same map in both modes. You can switch between them at any time.
+`mode` is `'2d'` or `'3d'`. 2D is the library default. The playground opens a bare URL on the built-in Istanbul map terrain in 3D, with the camera slowly pushing in and back. A URL with settings opens in 2D unless it has `mode=3d`. 3D shows the same contour lines as a landscape. With the same seed and settings, you get the same map in both modes. You can switch between them at any time.
 
 | Setting | Attribute | Range | Default | What it does |
 |---|---|---|---|---|
