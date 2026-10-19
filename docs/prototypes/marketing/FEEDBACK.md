@@ -397,3 +397,7 @@ On "Your coding agent installs topographic and writes the code." and "The second
 > This is an unnecessary explanation.
 
 Applied to the docs Install section and to install variants A1–A3 on the playground board.
+
+On the section title "In your page":
+
+> Let's use a little bit more technical name instead of this.
