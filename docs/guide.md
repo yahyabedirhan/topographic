@@ -28,6 +28,9 @@ npm install topographic-react      # React bindings (needs React 18 or 19)
 
 The packages are ESM only. They have no dependencies. They are marked as side-effect free, except `topographic/element`. That one registers the element when you import it.
 
+With a coding agent, `npx skills add yahyabedirhan/topographic` installs the topographic skill.
+The skill installs the packages, adds a first terrain and points the agent at this guide.
+
 On npm: [`topographic`](https://www.npmjs.com/package/topographic) and [`topographic-react`](https://www.npmjs.com/package/topographic-react).
 
 ## Three ways to use it
