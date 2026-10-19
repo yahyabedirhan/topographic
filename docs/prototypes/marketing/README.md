@@ -18,6 +18,13 @@ The ← and → keys also switch variants, and G toggles the grid.
 Give feedback by id, and mix variants freely, such as "the headline of `positioning/B` with the layout of `positioning/C`".
 `FEEDBACK.md` records each round: what was shown, what was said and what was chosen.
 
+## Docs page variants
+
+`docs/` holds whole pages for the `docs-page` board: `a.html`, `b.html` and `c.html`, which share their data, prose and tables through `docs-content.js`, `docs-sections.js` and `docs-parts.js`.
+The tables read their ranges and defaults from the built library.
+Open a page on its own to scroll it, such as `http://localhost:5199/docs/prototypes/marketing/docs/a.html`.
+With `?lite`, a page keeps one live view and shows stills for the rest, which the board's grid uses.
+
 ## Live renders
 
 `live.js` mounts the real library from `packages/core/dist`, so a live variant shows what the library draws today.
