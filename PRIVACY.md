@@ -1,8 +1,29 @@
 # Privacy
 
-This covers the playground at https://topographic.yahyapak.dev. The `topographic` and `topographic-react` npm packages collect nothing and contain no analytics or error reporting.
+This page covers the playground at https://topographic.yahyapak.dev.
 
-The playground counts visits and how its tools are used, so they can be improved. It uses no cookies, has no accounts, and does not record sessions. It keeps one random visitor id in your browser's local storage. It counts AI agents apart from people. The same list is on the [About page](https://topographic.yahyapak.dev/about#analytics).
+## The npm packages
+
+The `topographic` and `topographic-react` npm packages collect nothing. They contain no analytics and no error reporting.
+
+## What the playground collects
+
+- Page views: the page, the site you came from, and the time on the page.
+- Which tools, looks, settings and exports are used, never their values. The Events section lists each one.
+- Frame rate and load times.
+- Your browser's type, screen size, language and timezone.
+- One random visitor id, saved in your browser, so return visits count once.
+- Whether a visit comes from a person or an AI agent.
+- Crash reports.
+
+## What the playground never collects
+
+- The playground never sets cookies and never fingerprints your browser.
+- It never stores your IP address, and never collects your name, email or any account.
+- It never collects text you type, colours, hex values, the coordinates of your own areas, or the settings in a link.
+- It never collects the images or videos you export.
+- It never records sessions, heatmaps or clicks on its own.
+- It never collects what an agent types into the playground's tools or receives from them.
 
 ## Opting out
 
@@ -72,13 +93,7 @@ Every event also carries: site and app name, app version, a coarse screen class 
 
 Sentry receives crash reports: the error message and stack trace, browser and OS, the page path without the query string, the graphics tier and GPU name. Lost WebGL contexts are reported the same way. There is no user data, cookies, headers, tracing or replay, and one page sends at most 10 reports.
 
-## Never collected
+## Where it goes
 
-- The playground never sets cookies and never fingerprints your browser.
-- It never stores your IP address, and never collects your name, email or any account.
-- It never collects text you type, colours, hex values, the coordinates of your own areas, or the settings in a link.
-- It never collects the images or videos you export.
-- It never records sessions, heatmaps or clicks on its own.
-- It never collects what an agent types into the playground's tools or receives from them.
-
-Analytics are processed by PostHog in the EU, and error reports by Sentry. A build without `VITE_POSTHOG_KEY` or `VITE_SENTRY_DSN` contains neither client.
+- **PostHog:** analytics, stored in the EU.
+- **Sentry:** error reports, stored in the EU.
