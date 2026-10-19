@@ -343,13 +343,12 @@ The playground (`apps/playground`) is the project's live demo page.
   - Pan and zoom the map, or drag the frame's corners and edges. You can also pick a place from the badge's menu. The places are grouped by region: Istanbul, Cyprus, Matterhorn & Zermatt and Geirangerfjord (Europe & Middle East); Grand Canyon, Yosemite Valley and Torres del Paine (Americas); Mount Fuji and Everest & the Khumbu (Asia); Kilimanjaro (Africa).
   - Press **Apply**. The real elevation inside the frame becomes the terrain.
   - Apply switches to 3D and uses the map terrain view: 36 lines at 0.5 px and 0.9 opacity, every fourth line bold, a block at elevation 0.12, and a closer camera.
-  - Cyprus has its own look instead: dark blue paper, light blue ink, 37 lines, elevation 0.06 and a camera from almost directly above.
   - Each place keeps that view but has its own camera angle and elevation. This puts its main feature in the middle, with the skyline above it.
   - Apply also saves the terrain in the dock, after the built-in map terrains. Its name is the place's name, or Area.
   - The dock starts with a built-in Istanbul map terrain for everyone. Like a look, it does not keep your changes. A click on it always brings back its own settings, camera and pan.
   - When a saved item is active, your changes to it are kept, including camera moves. A click on it brings back the view you left it in.
   - A built-in look does not keep your changes. A click on it always brings back its own camera. A plain style uses the playground camera.
-  - **Clear** goes back to the generated terrain. It also brings back the lines, camera, extent and elevation you had before. After Cyprus, it also brings back your style and colours.
+  - **Clear** goes back to the generated terrain. It also brings back the lines, camera, extent and elevation you had before.
   - When a map terrain is active, a small map above the right end of the dock shows the area you framed. In 3D, it turns with the camera, so it always matches the terrain on screen. Its compass points north. Click the compass to turn the camera back to north at the top (azimuth 0). Click the small map to open the map. In 2D, north is already at the top, so the small map does not turn.
   - The map loads only when you open it. It needs a network connection.
   - A link that opens a place hides the canvas until the heights arrive, so the default terrain does not flash. Contour rings draw in while it waits, on a desktop and on a phone. With reduced motion, the rings stay still. The page sets `data-loading` to `terrain`, and `get_region` returns `loading: true` with the message `Loading terrain`.

@@ -170,7 +170,7 @@ export function useRegion(pg: Playground): RegionController {
       return;
     }
     if (!bboxRef.current && before.current === null) before.current = { settings: settingsRef.current, keys: new Set() };
-    // A place with its own defaults (Cyprus sets the colours too) adds those keys to what Clear restores.
+    // A place with its own defaults adds those keys to what Clear restores.
     for (const key of restoredKeys(id)) before.current?.keys.add(key);
     bboxRef.current = next;
     setPlaceId(id);
