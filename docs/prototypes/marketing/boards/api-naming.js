@@ -58,17 +58,17 @@ export default {
   variants: [
     {
       key: 'A', name: 'landform · location · look',
-      note: 'The current proposal: your createTopography and Topography, landform for the generated shape, location for a real place, look for a named design, <topographic-map>.',
+      note: 'The current proposal: your createTopography and Topography, landform for the generated shape, location for a real place, look for a named design, &lt;topographic-map&gt;.',
       render: scheme({ create: 'createTopography', component: 'Topography', hook: 'useTopography()', tag: 'topographic-map', land: 'landform', loc: 'location', look: 'look', locFn: 'fetchLocation', entry: 'topographic/locations' }),
     },
     {
       key: 'B', name: 'shape · location · preset',
-      note: 'Plainer words. "shape" is short but generic; "preset" is the word most libraries use for a saved design. Element <topography-view>.',
+      note: 'Plainer words. "shape" is short but generic; "preset" is the word most libraries use for a saved design. Element &lt;topography-view&gt;.',
       render: scheme({ create: 'createTopography', component: 'Topography', hook: 'useTopography()', tag: 'topography-view', land: 'shape', loc: 'location', look: 'preset', locFn: 'fetchLocation', entry: 'topographic/locations' }),
     },
     {
       key: 'C', name: 'land · place · look',
-      note: 'The shortest words. "land" pairs with "place": made-up land or a real place. Element <topographic-terrain>, which reads well for 3D but less for 2D maps.',
+      note: 'The shortest words. "land" pairs with "place": made-up land or a real place. Element &lt;topographic-terrain&gt;, which reads well for 3D but less for 2D maps.',
       render: scheme({ create: 'createTopography', component: 'Topography', hook: 'useTopography()', tag: 'topographic-terrain', land: 'land', loc: 'place', look: 'look', locFn: 'fetchPlace', entry: 'topographic/places' }),
     },
   ],

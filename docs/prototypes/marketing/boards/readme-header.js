@@ -110,7 +110,7 @@ export default {
     {
       key: 'B',
       name: 'Install first, code before the image',
-      note: 'Left aligned and developer-first: the line, the npm links, then three snippets as <details> blocks (JavaScript open, React and HTML one click away). GitHub has no real tabs, so <details> is the closest honest tab. The live picture starts at the fold.',
+      note: 'Left aligned and developer-first: the line, the npm links, then three snippets as &lt;details&gt; blocks (JavaScript open, React and HTML one click away). GitHub has no real tabs, so &lt;details&gt; is the closest honest tab. The live picture starts at the fold.',
       render(stage) {
         frame(stage, `
           <h1 style="display:flex;gap:12px;align-items:center"><img src="${LOGO}" width="40" alt="">topographic</h1>
