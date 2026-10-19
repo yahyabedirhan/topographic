@@ -6,6 +6,7 @@ import { renderPng } from './png';
 import { configOf } from './url';
 import { AGENT_CHOICES, identifyAgent, trackToolCall } from './analytics';
 import { isAgentName, isPurpose } from './actor';
+import { applySettingsInput } from './settings-tool';
 
 /** Runs a WebMCP tool and sends `agent_tool_called` with its name, whether it worked and how long it took. */
 export async function runTracked<T>(tool: string, fn: () => T | Promise<T>): Promise<T> {
@@ -34,30 +35,6 @@ export function getModelContext(): ModelContextLike | null {
 const blobToDataUrl = (b: Blob) => new Promise<string>((resolve, reject) => {
   const r = new FileReader(); r.onload = () => resolve(String(r.result)); r.onerror = () => reject(r.error); r.readAsDataURL(b);
 });
-
-const TOP_KEYS = ['style', 'seed', 'theme', 'lines', 'terrain', 'motion', 'layout', 'mode', 'elevation', 'extent', 'detail', 'quality', 'camera', 'view2d'];
-
-function adjustments(input: Record<string, unknown>, out: Settings): string[] {
-  const notes: string[] = [];
-  if (typeof input.style === 'string' && input.style !== out.style) notes.push(`unknown style "${input.style}", kept "${out.style}"`);
-  if (typeof input.mode === 'string' && input.mode !== out.mode) notes.push(`mode: ${JSON.stringify(input.mode)} adjusted to ${out.mode}`);
-  if (typeof input.extent === 'string' && input.extent !== out.extent) notes.push(`extent: ${JSON.stringify(input.extent)} adjusted to ${out.extent}`);
-  if (typeof input.elevation === 'number' && input.elevation !== out.elevation) notes.push(`elevation: ${input.elevation} adjusted to ${out.elevation}`);
-      if (typeof input.detail === 'number' && input.detail !== out.detail) notes.push(`detail: ${input.detail} adjusted to ${out.detail}`);
-  if (typeof input.quality === 'string' && input.quality !== out.quality) notes.push(`quality: ${JSON.stringify(input.quality)} adjusted to ${out.quality}`);
-  for (const [g, v] of Object.entries(input)) {
-    if (!TOP_KEYS.includes(g)) { notes.push(`ignored unknown key "${g}"`); continue; }
-    if (v && typeof v === 'object' && g !== 'theme') {
-      const gotGroup = out[g as 'lines'] as Record<string, unknown>;
-      for (const [k, n] of Object.entries(v as Record<string, unknown>)) {
-        const got = gotGroup[k];
-        if (got === undefined) notes.push(`ignored unknown key "${g}.${k}"`);
-        else if (got !== n) notes.push(`${g}.${k}: ${JSON.stringify(n)} adjusted to ${JSON.stringify(got)}`);
-      }
-    }
-  }
-  return notes;
-}
 
 export function registerTools(page: PageBridge): () => void {
   const mc = getModelContext();
@@ -89,9 +66,9 @@ export function registerTools(page: PageBridge): () => void {
     },
     set_settings: (input) => {
       if (!input || typeof input !== 'object') throw new Error('expected a settings object');
-      const next = mergeSettings(page.getSettings(), input as SettingsInput);
+      const { next, adjustments } = applySettingsInput(page.getSettings(), input);
       page.setSettings(next);
-      return { config: configOf(next), adjustments: adjustments(input, next) };
+      return { config: configOf(next), adjustments };
     },
     randomize: (input) => {
       const patch: SettingsInput = { seed: Math.floor(Math.random() * 999999) + 1 };

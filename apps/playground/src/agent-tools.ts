@@ -68,7 +68,7 @@ export const TOOL_DEFS: ToolDef[] = [
     description: 'Returns the current settings: the full resolved object, the minimal config JSON (only non-default values), and the graphics tier actually drawing (quality, fps, frameMs, mesh).',
     inputSchema: { type: 'object', properties: {} } },
   { name: 'set_settings', title: 'Set settings', readOnly: false,
-    description: 'Changes the background. Takes a partial settings object; values are merged into the current settings, clamped to their ranges, and applied live. Returns the resulting config and any adjustments made.',
+    description: 'Changes the background. Takes a partial settings object; values are merged into the current settings, clamped to their ranges, and applied live. A new theme.mode clears the earlier ink and paper unless you give them in the same call, as the page\'s theme button does. Returns the resulting config and any adjustments made.',
     inputSchema: SETTINGS_SCHEMA },
   { name: 'randomize', title: 'Randomize', readOnly: false,
     description: 'Picks a new random seed. With style: true, also picks a random style.',
