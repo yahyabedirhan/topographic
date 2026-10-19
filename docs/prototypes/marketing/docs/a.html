@@ -40,6 +40,7 @@ h1.title{text-wrap:nowrap}
 /* the links read as one quiet row with dots, like the playground's "yahyapak.dev · About"; ?links=icons shows the icon grid */
 .nav .blinks,.blinks{list-style:none;display:flex;flex-wrap:wrap;row-gap:6px}
 .nav .blinks{flex-wrap:nowrap;white-space:nowrap}
+.nav .blinks+.blinks{margin-top:7px}
 .blinks li+li::before{content:'·';margin:0 6px;color:var(--faint);font:400 12px/1 var(--sans)}
 .blinks svg{display:none}
 .icons .nav .blinks,.icons .blinks{display:grid;grid-template-columns:auto auto;gap:8px 16px;justify-content:start}
@@ -357,10 +358,12 @@ const ICONS = {
   site: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 2.5a14 14 0 0 0 0 19M12 2.5a14 14 0 0 1 0 19M2.5 12h19"/></svg>',
 };
 const EXT = '<svg class="ext" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M3 2h5v5M8 2 2.5 7.5"/></svg>';
-const BRAND_LINKS = [['playground', 'Playground', PLAYGROUND], ['github', 'GitHub', REPO], ['npm', 'npm', NPM], ['site', 'yahyapak.dev', SITE]];
+// Two rows: the product's own places first, then the source and its maker.
+const BRAND_ROWS = [[['playground', 'playground', PLAYGROUND], ['npm', 'npm', NPM]], [['github', 'GitHub', REPO], ['site', 'yahyapak.dev', SITE]]];
+const BRAND_LINKS = BRAND_ROWS.flat();
 if (new URLSearchParams(location.search).get('links') === 'icons') document.body.classList.add('icons');
 for (const host of document.querySelectorAll('[data-links]')) {
-  host.innerHTML = `<ul class="blinks">${BRAND_LINKS.map(([k, t, u]) => `<li><a href="${u}" target="_blank" rel="noreferrer">${ICONS[k]}${t}${EXT}</a></li>`).join('')}</ul>`;
+  host.innerHTML = BRAND_ROWS.map((row) => `<ul class="blinks">${row.map(([k, t, u]) => `<li><a href="${u}" target="_blank" rel="noreferrer">${ICONS[k]}${t}${EXT}</a></li>`).join('')}</ul>`).join('');
 }
 
 /* the two opening paragraphs belong to the writing desk: its draft first, then the shared defaults */

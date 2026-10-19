@@ -503,3 +503,9 @@ On "Everest and the Khumbu, `location="everest"`.":
 > So if we end a sentence with this character ` then I think you don't have to use that dot.
 
 Applied where inline code ends a caption, paragraph or note. A sentence that ends in code in the middle of a paragraph keeps its full stop, so the next sentence still reads as new.
+
+On the top-left links:
+
+> For this area make the playground lowercase and add: playground npm / GitHub [yahyapak.dev]
+>
+> What I mean here: put the playground and npm on the first line and put the GitHub and [yahyapak.dev] on the second line.
