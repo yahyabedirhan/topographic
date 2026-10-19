@@ -7,7 +7,7 @@ import hero from './assets/hero.webp';
 
 const LABEL: Record<Consent, string> = {
   all: 'Analytics are on in this browser.',
-  pageviews: 'Only page views are sent from this browser.',
+  pageviews: "You're opted out from analytics events. We still count that the page was opened, nothing more.",
   none: 'Nothing is sent from this browser.',
 };
 
@@ -47,7 +47,7 @@ function OptOut() {
       <div className="pt-optout">
         <p role="status" aria-live="polite">{LABEL[state]}</p>
         {state === 'all'
-          ? <button type="button" className="pt-pill" aria-label="Opt out of analytics" onClick={() => { optOut(); setState('none'); }}>Opt out</button>
+          ? <button type="button" className="pt-pill" aria-label="Opt out of analytics" onClick={() => { optOut('pageviews'); setState('pageviews'); }}>Opt out</button>
           : <button type="button" className="pt-pill" aria-label="Opt in to analytics" onClick={() => { optIn(); setState('all'); }}>Opt in</button>}
       </div>
       <p className="pt-muted">Your choice is saved in this browser, so each browser and device opts out separately.</p>

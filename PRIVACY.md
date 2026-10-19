@@ -35,7 +35,7 @@ Add one of these to any playground address:
 | `?analytics_optout=all` | Nothing is sent. The analytics and error scripts are not loaded. |
 | `?analytics_optin` | Undoes either. |
 
-The Analytics section of the About page also has an Opt out button. It sends one last `analytics_opted_out` event, then nothing.
+The Analytics section of the About page also has an Opt out button. It sends one last `analytics_opted_out` event, then only page views, the same as `?analytics_optout`.
 
 The choice is saved in the browser's local storage under `topographic:analytics`, so each browser and device keeps its own and must opt out separately. Clearing site data resets it. Either opt out also deletes the visitor id and the tab's agent id. Browsers with Do Not Track on send no analytics.
 
