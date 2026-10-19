@@ -95,7 +95,21 @@ export const WAITING = [
     ],
   },
   {
-    id: 'D9', kind: 'Decision', title: 'Locations in 0.6.0',
+    id: 'D9', kind: 'Decision', title: 'Install labels',
+    question: 'What labels replace "With an agent" and "By hand" in the install parts of the playground and the docs?',
+    context: [
+      'Each part holds one command: npx skills add yahyabedirhan/topographic installs the agent skill; npm install topographic installs the package.',
+      'A label that names what the command installs reads as reference, the way package docs label their install tabs; a label about the person (agent, hand) reads as a mode.',
+    ],
+    recommend: 'Agent skill / npm package.',
+    options: [
+      { label: 'Agent skill / npm package', text: 'AGENT SKILL — npx skills add yahyabedirhan/topographic — "Your coding agent installs topographic and writes the code."\nNPM PACKAGE — npm install topographic' },
+      { label: 'Coding agent / Package manager', text: 'CODING AGENT — npx skills add yahyabedirhan/topographic\nPACKAGE MANAGER — npm install topographic' },
+      { label: 'Skill / Package', text: 'SKILL — npx skills add yahyabedirhan/topographic\nPACKAGE — npm install topographic' },
+    ],
+  },
+  {
+    id: 'D10', kind: 'Decision', title: 'Locations in 0.6.0',
     question: 'Does #81 (locations in the library) ship inside 0.6.0?',
     context: [
       'Marketing may lead the product, but code examples must run: the README, npm, docs and social cards show location="everest".',

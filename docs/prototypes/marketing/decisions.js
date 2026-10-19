@@ -40,7 +40,7 @@ function render() {
 
 function show(opt) {
   const view = document.getElementById('dv-view');
-  if (opt.text) { view.innerHTML = `<div class="dv-text">${opt.text}</div>`; return; }
+  if (opt.text) { view.innerHTML = `<div class="dv-text" style="white-space:pre-line;font-family:var(--mono);font-size:13px">${opt.text}</div>`; return; }
   const board = BOARDS[opt.board];
   const v = board?.variants.find((x) => x.key === opt.variant);
   if (!v) { view.innerHTML = `<div class="dv-missing">${opt.board}/${opt.variant} arrives with round 2.</div>`; return; }
