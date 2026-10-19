@@ -71,6 +71,35 @@ function body(title, { first = 'js', links = true } = {}) {
     ${links ? `<div class="links"><a href="${NPM}">npm</a><a href="${REPO}">${ICON.github} GitHub</a><a href="${DOCS_URL}">Docs</a></div>` : ''}`;
 }
 
+/** The agent-first entry: install the topographic skill, then ask for a terrain in words. */
+const SKILL = 'npx skills add yahyabedirhan/topographic';
+const ASKS = [
+  'Add a 3D topographic terrain of Mount Fuji behind my landing page hero.',
+  'Render a 10-second orbit of this terrain as an MP4 for my video intro.',
+  'Use this exact scene in my React app.',
+];
+/** The current scene as a prompt an agent can act on, with the skill install first. */
+const SCENE_PROMPT = `Install the topographic skill with \`${SKILL}\`, then add this terrain to my project: location istanbul, 3D, 36 contour lines with every 4th line bold, camera at azimuth 341.8° and elevation 39.3°.`;
+
+function agentBody(title) {
+  return `<div class="pt">${title}</div>
+    <div class="seg" style="grid-template-columns:1fr 1fr"><button data-tab="agent" class="on">With an agent</button><button data-tab="hand">By hand</button></div>
+    <div data-pane="agent" style="display:grid;gap:10px">
+      <div class="hint">Install the topographic skill once. Your agent then installs the packages and writes the code.</div>
+      <div class="cmd"><b>$</b>${SKILL}<button class="cp" data-copy="${SKILL}" title="Copy">${ICON.copy}</button></div>
+      <div class="pt" style="margin-top:2px">Then ask</div>
+      ${ASKS.map((a) => `<div class="cmd" style="font-family:var(--sans);white-space:normal;font-weight:400">“${a}”<button class="cp" data-copy="${a}" title="Copy">${ICON.copy}</button></div>`).join('')}
+      <button class="wide" data-copy="${SCENE_PROMPT.replace(/"/g, '&quot;')}">${ICON.copy} Copy this scene as a prompt</button>
+      <div class="hint">Works with Claude Code, Cursor, Codex and other agents that read skills.</div>
+    </div>
+    <div data-pane="hand" hidden style="display:grid;gap:10px">
+      <div class="cmd"><b>$</b>${INST.js}<button class="cp" data-copy="${INST.js}" title="Copy">${ICON.copy}</button></div>
+      <pre>${hl(SCENE.js)}</pre>
+      <button class="wide" data-copy="${SCENE.js.replace(/"/g, '&quot;')}">${ICON.copy} Copy this scene as code</button>
+    </div>
+    <div class="links"><a href="${NPM}">npm</a><a href="${REPO}">${ICON.github} GitHub</a><a href="${DOCS_URL}">Docs</a></div>`;
+}
+
 const mount = (stage, html) => {
   stage.append(h`<style>${css}</style><div class="pi">${html}</div>`);
   wireCopy(stage);
@@ -128,6 +157,47 @@ export default {
             <span class="cmd" style="padding:6px 6px 6px 10px;border-radius:999px"><b>$</b>npm install topographic<button class="cp" data-copy="npm install topographic">${ICON.copy}</button></span>
             <a href="${DOCS_URL}" style="color:var(--fg);text-decoration:none;font-weight:500;padding:0 6px">Docs</a>
             <button class="cp" aria-label="Close" style="border-radius:50%;font-size:16px">×</button></div>`);
+      },
+    },
+    {
+      key: 'E',
+      name: 'Agent first: skill, then ask',
+      note: 'Agent-first take on A. The "Install" pill opens on a "With an agent" tab: install the topographic skill with one command, then three example asks (a website, a video, this scene) to copy, and "Copy this scene as a prompt". "By hand" keeps the npm line and the scene code. The skill is skills/topographic in draft PR #77.',
+      render(stage) {
+        mount(stage, `
+          <span class="pill glass open" style="top:16px;right:172px"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5.5 4 1.5 8l4 4M10.5 4l4 4-4 4"/></svg>Install</span>
+          <div class="pop glass" style="top:74px;right:172px">${agentBody('Use it in your project')}</div>`);
+      },
+    },
+    {
+      key: 'F',
+      name: 'This scene as a prompt, from the dock',
+      note: 'No install step on screen at all: the dock end card copies one prompt that tells an agent to install the skill and rebuild exactly what is on screen. The prompt is shown so people see what they paste. The npm route stays in Export. Best for people who will never open a terminal themselves.',
+      render(stage) {
+        mount(stage, `
+          <div style="position:absolute;left:1100px;top:832px;width:174px;height:48px;border-radius:16px;background:#ecebe8;color:#0b0b0d;display:flex;align-items:center;gap:8px;padding:0 12px;font:600 12.5px/1.15 var(--sans)">
+            ${ICON.copy}<span>Give this to<br>your agent</span></div>
+          <div class="ring" style="left:1100px;top:832px;width:174px;height:48px;border-radius:16px"></div>
+          <div class="pop glass" style="bottom:84px;left:880px">
+            <div class="pt">This scene, for your agent</div>
+            <pre style="white-space:pre-wrap;font-family:var(--sans);font-size:13px;line-height:1.5">${SCENE_PROMPT}</pre>
+            <button class="wide" data-copy="${SCENE_PROMPT.replace(/"/g, '&quot;')}">${ICON.copy} Copy prompt</button>
+            <div class="hint">The prompt installs the topographic skill, which installs the packages and writes the code. Prefer npm? Use Export.</div>
+          </div>
+`);
+      },
+    },
+    {
+      key: 'G',
+      name: 'Skill chip in the wordmark row',
+      note: 'Agent-first take on B: the always-visible chip under the wordmark copies the skill install instead of npm. "Docs" and "npm" sit beside About for people who install by hand. The quietest agent-first option.',
+      render(stage) {
+        mount(stage, `
+          <div class="wm"><span>topographic</span>
+            <span class="site"><a>yahyapak.dev</a><a>About</a><a class="new" href="${DOCS_URL}">Docs</a><a class="new" href="${NPM}">npm</a></span>
+            <button class="chip glass" data-copy="${SKILL}" style="margin-top:4px">✦ ${SKILL} ${ICON.copy}</button>
+            <span style="font:400 11.5px var(--sans);color:var(--mut);letter-spacing:0">Install the skill, then ask your agent for a terrain.</span></div>
+          <span class="tip" style="top:126px;left:330px">Copied · paste in your terminal</span>`);
       },
     },
   ],

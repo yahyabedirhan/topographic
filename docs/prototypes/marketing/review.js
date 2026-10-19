@@ -4,6 +4,7 @@
 export const ROUND = 'Round 1 · 2026-10-19';
 
 export const START = [
+  'New: agent-first install variants E, F and G on the playground-install board, and the topographic skill in #77.',
   'Start with the boards. Each variant has an id such as <code>positioning/B</code>. Give feedback by id, and mix freely.',
   'Then read the decisions: each one has the default agents used while you were away.',
   'Pull requests are drafts or open, none merged. The Notion pages are the reusable framework and this launch\'s checklist.',
@@ -23,6 +24,7 @@ export const PLACES = [
 /** Pull requests opened for this launch. Filled in as they open. */
 export const PULLS = [
   { title: 'topographic #77', href: 'https://github.com/yahyabedirhan/topographic/pull/77', note: 'Renames the public API: createTopography, Topography, useTopography, &lt;topographic-map&gt;, landform. Old ?s= links and saved terrains keep working. Tests, typecheck, build and smoke pass.', state: 'Draft, uses D1–D3 defaults' },
+  { title: 'topographic skill (in #77)', href: 'https://github.com/yahyabedirhan/topographic/tree/effort/topography-api/skills/topographic', note: 'A short entry point for agents: an install check, one example and a map of guide sections. references/install.md loads only for the first install. Install with npx skills add yahyabedirhan/topographic.', state: 'Draft, on the #77 branch' },
   { title: 'personal-website #26', href: 'https://github.com/yahyabedirhan/personal-website/pull/26', note: 'Points the 8 old github.io playground links on the topographic page at topographic.yahyapak.dev. No copy changes.', state: 'Open, ready to merge' },
 ];
 
