@@ -339,3 +339,19 @@ On the margin readout `pose.azimuth 545.0°` / `pose.elevation 40.0°` beside th
 On the link row "Real places · Generated shapes · 2D and 3D · Heightmaps · Install ↓" under the opening:
 
 > This link area is not necessary because we already have them in the left panel.
+
+On the two opening paragraphs, "Not a picture of land. The land itself, drawn as contour lines that move, from real elevation data or from a seed. The same settings draw the same terrain on every screen." and "Every figure on this page is the library running live. Every input rewrites the code under it, ready to copy.":
+
+> Let's try to be more careful about what to write here as the first description of the thing that we show to users.
+> I want to be consistent across the GitHub README and the npm package, here in the documentation.
+> These are the first two paragraphs that people see.
+> I want to be able to be more careful about this.
+>
+> And also let's be careful about the area that we are using.
+> For example this area takes up too much space without getting into action to show the user something.
+>
+> Make sure that the title is one line.
+> Increase the container width a little bit if you need to.
+> I really like this call-to-action description: "Generate a land. Or turn a real place into one."
+>
+> And I'm not sure if this one is necessary or not: "Documentation · Version 0.6.0".

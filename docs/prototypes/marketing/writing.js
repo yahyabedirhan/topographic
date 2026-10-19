@@ -2,6 +2,7 @@
 // suggestions to start from, and autosave to copy-draft.json through the dev server.
 import { COPY } from './kit.js';
 import { LOGO, shot } from './live.js';
+import { OPENING } from './opening.js';
 
 const START = 'Topographic terrain rendered with WebGL. Generate a land or turn a real place into a topographic terrain.';
 const lines = COPY.lines ?? [];
@@ -10,9 +11,9 @@ const lines = COPY.lines ?? [];
 const SLOTS = [
   { id: 'line', label: 'The line', where: 'README under the name, GitHub About, npm, yahyapak.dev', limit: 160, aim: 110, start: START,
     sugs: lines.map((l) => [l.id, l.line]) },
-  { id: 'head', label: 'Headline', where: 'Social cards, the docs page hero', limit: 60, aim: 40, start: 'Topographic terrain, rendered with WebGL.',
+  { id: 'head', label: 'Headline', where: 'Social cards, the docs page hero', limit: 60, aim: 48, start: OPENING.head,
     sugs: lines.map((l) => [l.id, l.head]) },
-  { id: 'sub', label: 'Sub line', where: 'Under the headline', limit: 120, aim: 80, start: 'Generate a land, or turn a real place into contour lines.',
+  { id: 'sub', label: 'Sub line', where: 'Under the headline', limit: 120, aim: 80, start: OPENING.sub,
     sugs: lines.map((l) => [l.id, l.sub]) },
   { id: 'github', label: 'GitHub description', where: 'Repository About sidebar and GitHub search', limit: 350, aim: 160, start: START },
   { id: 'npmCore', label: 'npm description: topographic', where: 'npm search results and the package page', limit: 250, aim: 180, start: START },
@@ -21,7 +22,8 @@ const SLOTS = [
   { id: 'title', label: 'Playground page title', where: 'Browser tab and search result title', limit: 60, aim: 50, start: 'topographic: topographic terrain, rendered with WebGL' },
   { id: 'meta', label: 'Playground meta description', where: 'Search result snippet and link previews', limit: 155, aim: 140, start: START },
   { id: 'site', label: 'yahyapak.dev project line', where: 'Home card and the project page', limit: 120, aim: 90, start: START },
-  { id: 'docs', label: 'Docs page opening', where: 'The first paragraph of /docs', limit: 320, aim: 220, start: START },
+  { id: 'open1', label: 'Opening, paragraph 1', where: 'The first paragraph under the line in the README, both npm pages and the docs', limit: 320, aim: 200, start: OPENING.open1 },
+  { id: 'open2', label: 'Opening, paragraph 2', where: 'The second paragraph in the same three places', limit: 240, aim: 140, start: OPENING.open2 },
 ];
 
 const state = { idea: '', ...Object.fromEntries(SLOTS.map((s) => [s.id, s.start])) };
@@ -68,7 +70,7 @@ function update() {
   const topics = COPY.topics ?? [];
   const kw = COPY.keywords?.core ?? [];
   document.getElementById('prev').innerHTML = `
-    <div><p class="wd-label">README, first screen</p><div class="wd-card rd"><img src="${LOGO}" alt=""><h4>topographic</h4><p>${esc(state.line)}</p></div></div>
+    <div><p class="wd-label">README, first screen</p><div class="wd-card rd"><img src="${LOGO}" alt=""><h4>topographic</h4><p>${esc(state.line)}</p><p style="text-align:left;margin-top:14px">${esc(state.open1)}</p><p style="text-align:left;margin-top:8px">${esc(state.open2)}</p></div></div>
     <div><p class="wd-label">Social card</p><div class="wd-card og" style="background-image:url(${shot('place-grand-canyon')})"><div class="in">
       <span class="wm"><img src="${LOGO}" alt="">topographic</span><h3>${esc(state.head)}</h3><p>${esc(state.sub)}</p><span class="url">topographic.yahyapak.dev</span></div></div></div>
     <div><p class="wd-label">GitHub About</p><div class="wd-card gh"><h4>About</h4><div>${esc(state.github)}</div><div class="site">🔗 topographic.yahyapak.dev</div>
