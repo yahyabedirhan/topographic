@@ -647,3 +647,15 @@ On "Tinted values come from Tune. Change them there and this updates.":
 > Make sure that you finish everything on your side and I will just say, "I approve," and go for it.
 > Wait for me to give that signal to you.
 > And make sure that there are no big decisions left.
+
+### 6. Install A4, the bottom row
+
+On "Link to this scene" with its copy icon, and "Open Export":
+
+> Okay I think this is looking good but I didn't like these items at the bottom.
+> This is a little bit confusing.
+> This link to the scene copy icon is a little bit confusing.
+> Open Export is a little bit confusing because it has this icon but it's not the same as the export icon.
+> Can you cover these concerns?
+
+Applied: the row keeps one item, "Open Export", with the same icon as the Export button in the top-right cluster. The scene link lives in Export's Link tab.
