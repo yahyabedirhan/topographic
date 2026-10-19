@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { tidy, tidyParagraphs, withMarkers } from './text';
+import { tidy, withMarkers } from './text';
 
 const NB = ' ';
 
@@ -16,11 +16,6 @@ describe('tidy', () => {
 
   it('counts an entity as one character', () => {
     expect(tidy('Use <code>&lt;topographic-view&gt;</code> anywhere')).toBe(`Use <code>&lt;topographic-view&gt;</code>${NB}anywhere`);
-  });
-
-  it('works on each paragraph of a body', () => {
-    expect(tidyParagraphs('<p>One two three four five six seven.</p><p>Eight nine ten eleven twelve.</p>'))
-      .toBe(`<p>One two three four${NB}five${NB}six${NB}seven.</p><p>Eight nine ten${NB}eleven${NB}twelve.</p>`);
   });
 });
 

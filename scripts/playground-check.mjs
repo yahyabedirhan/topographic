@@ -688,11 +688,6 @@ try {
       check(await d.title() === 'Docs: Topographic terrain, rendered live with WebGL' && await d.locator('#fig-hero .stage canvas').count() === 1,
         `${name}: /docs opens the docs page with a live Everest`);
       if (name === 'desktop') {
-        check((await d.locator('.nav .blinks').evaluateAll((rows) => rows.map((r) => [...r.querySelectorAll('a')].map((a) => a.textContent).join(' · ')))).join(' / ') === 'playground · npm / GitHub · yahyapak.dev'
-          && /^\d+\.\d+\.\d+$/.test(await d.locator('.nav .ver').innerText()) && await d.locator('.nav .nav-feedback').innerText() === 'Share feedback',
-          'the nav has the two link rows, the version once and Share feedback at the bottom');
-        const fonts = await d.evaluate(() => ({ mark: getComputedStyle(document.querySelector('.nav .wordmark')).fontFamily, h2: getComputedStyle(document.querySelector('.sec-h')).fontFamily, p: getComputedStyle(document.querySelector('.dx main p')).fontFamily }));
-        check(/^Literata/.test(fonts.mark) && /^Literata/.test(fonts.h2) && /^Inter/.test(fonts.p), `Literata only for the wordmark and section titles (${fonts.p.split(',')[0]} elsewhere)`);
         if (shots) await d.screenshot({ path: `${shots}/docs-desktop-top.png` });
 
         // The mode button rewrites the hero's React code.

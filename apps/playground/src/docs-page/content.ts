@@ -3,7 +3,7 @@
 // so the tables cannot drift from the code.
 import {
   CAMERA_MOTIONS, DEFAULT_CAMERA, DEFAULT_DETAIL, DEFAULT_ELEVATION, DEFAULT_EXTENT, PARAMS, QUALITY_TIERS, RADIUS_MAX, RADIUS_MIN,
-  SHAPES, THEME_DEFAULTS, ZOOM_MAX, ZOOM_MIN, type SettingsInput,
+  LOOKS, SHAPES, THEME_DEFAULTS, ZOOM_MAX, ZOOM_MIN, findLook, type LookId, type SettingsInput,
 } from 'topographic';
 import { TAGLINE } from '../content';
 import type { Snippet } from './code';
@@ -59,19 +59,8 @@ export interface DocSection {
   live?: SettingsInput;
 }
 
-/**
- * The library's looks, in the order of the playground's dock: LOOKS in packages/core/src/looks.ts on the
- * look-setting branch (pull request 85). Once that lands, this list can come from LOOKS itself.
- */
-export const LOOK_NAMES = [
-  'Survey ridge', 'Fine granite', 'Wide lobes', 'Rose pod', 'Terraces', 'High dunes', 'Moss granite', 'Sea dunes',
-  'Night flower', 'Night lobes', 'Violet pod', 'Ink petals', 'Stepped petals', 'Day lobes', 'Still dunes', 'Rocky spine',
-  'Pale dunes', 'Stone grain', 'Open pod', 'Quiet hill', 'Bloom', 'Soft summit', 'Paper ridge', 'Centred lobes',
-  'Survey map', 'Rocky',
-] as const;
-
-/** A look's id: its name in lower case, with dashes. */
-export const lookId = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+/** The library's looks by name, in the order of the playground's dock. */
+export const LOOK_NAMES = LOOKS.map((l) => l.name);
 
 export const GROUPS: { name: string; ids: string[] }[] = [
   { name: 'Start', ids: ['what', 'install', 'first'] },
@@ -129,7 +118,7 @@ export const SECTIONS: DocSection[] = [
     id: 'looks', title: 'Looks', nav: 'Looks',
     lede: 'A look is a finished design with a name, such as survey-map or sea-dunes.',
     body: `<p>A look is a finished design with a name. Pass it, and change any setting on top of it. What you pass wins over the look.</p>\n<p>There are ${LOOK_NAMES.length} looks, the same ones as in the ${ext(PLAYGROUND, 'playground')}'s dock, in the same order.<sup class="fn"></sup></p>`,
-    notes: [`The looks are ${LOOK_NAMES.slice(0, -1).join(', ')} and ${LOOK_NAMES.at(-1)}. A look's id is its name in lower case with dashes, such as <code>night-flower</code>`],
+    notes: [`The looks are ${LOOK_NAMES.slice(0, -1).join(', ')} and ${LOOK_NAMES[LOOK_NAMES.length - 1]}. A look's id is its name in lower case with dashes, such as <code>night-flower</code>`],
     code: 'looks',
   },
   {
@@ -277,17 +266,12 @@ export const SECTIONS: DocSection[] = [
 export const byId: Record<string, DocSection> = Object.fromEntries(SECTIONS.map((s) => [s.id, s]));
 
 /** Playground looks that have a screenshot (apps/playground/src/looks.ts). */
-export const LOOK_GALLERY: { name: (typeof LOOK_NAMES)[number]; shot: string }[] = [
-  { name: 'Survey ridge', shot: 'look-survey-ridge-2d' },
-  { name: 'Sea dunes', shot: 'look-sea-dunes-2d' },
-  { name: 'Rose pod', shot: 'look-rose-pod-2d' },
-  { name: 'Stepped petals', shot: 'look-stepped-petals-2d' },
-  { name: 'Stone grain', shot: 'look-stone-grain-2d' },
-  { name: 'Centred lobes', shot: 'look-centred-lobes-2d' },
-  { name: 'Night flower', shot: 'look-night-flower-3d' },
-  { name: 'Terraces', shot: 'look-terraces-3d' },
-  { name: 'Rocky spine', shot: 'look-rocky-spine-3d' },
-];
+/** Looks that have a screenshot, by id; the names come from the library. */
+export const LOOK_GALLERY = ([
+  ['survey-ridge', 'look-survey-ridge-2d'], ['sea-dunes', 'look-sea-dunes-2d'], ['rose-pod', 'look-rose-pod-2d'],
+  ['stepped-petals', 'look-stepped-petals-2d'], ['stone-grain', 'look-stone-grain-2d'], ['centred-lobes', 'look-centred-lobes-2d'],
+  ['night-flower', 'look-night-flower-3d'], ['terraces', 'look-terraces-3d'], ['rocky-spine', 'look-rocky-spine-3d'],
+] as const satisfies readonly (readonly [LookId, string])[]).map(([id, shot]) => ({ name: findLook(id)!.name, shot }));
 
 export const MOTIONS = [
   { id: 'still', what: 'The camera stays where you put it.' },
