@@ -401,3 +401,8 @@ Applied to the docs Install section and to install variants A1–A3 on the playg
 On the section title "In your page":
 
 > Let's use a little bit more technical name instead of this.
+
+On "The npm packages collect nothing. The playground site sends cookieless analytics; PRIVACY.md lists every event and how to opt out.":
+
+> Let's link this privacy.md to what it actually refers to: GitHub.
+> Similarly make sure that these types of references are actual links in the documentation if there are any similar links.
