@@ -11,7 +11,7 @@ type Store = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
-function randomUuid(): string {
+export function randomUuid(): string {
   if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
   // randomUUID needs a secure context; build a version 4 UUID by hand otherwise.
   const b = crypto.getRandomValues(new Uint8Array(16));

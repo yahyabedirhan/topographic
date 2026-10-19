@@ -11,13 +11,13 @@ describe('resolveRoute', () => {
 
   it('sends unknown paths, including /privacy, home with the query kept', () => {
     expect(resolveRoute('/privacy', '', '')).toEqual({ page: 'redirect', to: '/' });
-    expect(resolveRoute('/nope/deep', '?optout=all', '')).toEqual({ page: 'redirect', to: '/?optout=all' });
-    expect(resolveRoute('/x', '?optin', '#a')).toEqual({ page: 'redirect', to: '/?optin#a' });
+    expect(resolveRoute('/nope/deep', '?analytics_optout=all', '')).toEqual({ page: 'redirect', to: '/?analytics_optout=all' });
+    expect(resolveRoute('/x', '?analytics_optin', '#a')).toEqual({ page: 'redirect', to: '/?analytics_optin#a' });
   });
 
   it('respects a base path', () => {
     expect(resolveRoute('/topographic/', '', '', '/topographic/')).toEqual({ page: 'home' });
     expect(resolveRoute('/topographic/about', '', '', '/topographic/')).toEqual({ page: 'about' });
-    expect(resolveRoute('/topographic/old', '?optout', '', '/topographic/')).toEqual({ page: 'redirect', to: '/topographic/?optout' });
+    expect(resolveRoute('/topographic/old', '?analytics_optout', '', '/topographic/')).toEqual({ page: 'redirect', to: '/topographic/?analytics_optout' });
   });
 });

@@ -2,6 +2,7 @@ import type { Plugin } from 'vite';
 import { PARAMS, PRESETS, STYLES, defaultSettings } from 'topographic';
 import { INSTALL, TAGLINE } from './src/content';
 import { TOOL_DEFS } from './src/agent-tools';
+import { AGENT_NAMES, PURPOSES } from './src/actor';
 import { PLACES } from './src/region/places';
 import { REGION_TOOL_DEFS } from './src/region/tools';
 
@@ -179,11 +180,53 @@ function llmsTxt(): string {
 
 Live playground: ${SITE_URL}
 
-The playground page holds its state in short query params. Only values that differ from a base are written. The base is the style's defaults, or a named look from the dock (\`look=night-lobes\`). Keys: \`s\` style, \`seed\`, one short key per parameter (${PARAMS.map((p) => `\`${p.short}\` ${p.label.toLowerCase()}`).join(', ')}), \`m\` theme (light, dark or auto), \`ink\` and \`paper\` colours (hex without \`#\`), \`mode=3d\`, \`ex\` extent (endless is the default, so only \`ex=block\` is written), \`ev\` elevation, \`dl\` detail, \`ql\` quality (auto is the default, so only \`low\`, \`medium\` or \`high\` is written), \`az\` azimuth, \`ce\` camera elevation, \`rd\` radius, \`cm\` camera motion, \`px\` and \`pz\` the pan (only when off centre). The library's default camera (azimuth 349.7, camera elevation 33.6, radius 1.92) is not written. The page writes that URL a few times a second at most, and again when a drag or pinch ends, so a gesture does not call \`replaceState\` on every frame. Examples: \`?s=dunes&lc=24\`, \`?look=night-lobes&mode=3d&cm=orbit\`, \`?s=gentle-summit&seed=4&m=dark&ink=9fb0cc&paper=0b0b0d\`.
+## URL state
 
-A real place is \`?region=west,south,east,north\` (or JSON \`{"bbox":[west,south,east,north]}\`). Named places: ${PLACES.map((p) => `\`place=${p.id}\``).join(', ')}. Place params combine with the settings params, for example \`?look=night-lobes&lc=40&place=istanbul\`. While those heights are still loading, the page sets \`data-loading=terrain\`, hides the default terrain, and \`get_region\` returns \`loading: true\` with message \`Loading terrain\`.
+The playground keeps its state in short query params. It writes only the values that differ from a base: the style's defaults, or a named look from the dock such as \`look=night-lobes\`.
 
-In the playground, drag in 3D to orbit. A horizontal drag in 2D changes \`layout.anchor\` (0 keeps the summit to the side, 1 centres it). The dock shows terrain previews, fades the end that still has more, and a chevron scrolls to the next one. Theme, shuffle and the two colours sit in a 2×2 grid. The link tab shows a labelled still of the terrain the link opens. The page's share image is \`og-a.png\`, a dark granite still, with \`twitter:card\` set to \`summary_large_image\`.
+Examples:
+
+- \`?s=dunes&lc=24\`
+- \`?look=night-lobes&mode=3d&cm=orbit\`
+- \`?s=gentle-summit&seed=4&m=dark&ink=9fb0cc&paper=0b0b0d\`
+
+### Keys
+
+- \`s\`: style
+- \`seed\`: seed
+${PARAMS.map((p) => `- \`${p.short}\`: ${p.label.toLowerCase()}`).join('\n')}
+- \`m\`: theme, light, dark or auto
+- \`ink\`, \`paper\`: colours, as hex without \`#\`
+- \`mode\`: \`3d\`; 2D is the default
+- \`ex\`: extent; only \`block\` is written, endless is the default
+- \`ev\`: elevation
+- \`dl\`: detail
+- \`ql\`: quality; only \`low\`, \`medium\` or \`high\` is written, auto is the default
+- \`az\`, \`ce\`, \`rd\`: camera azimuth, elevation and radius
+- \`cm\`: camera motion
+- \`px\`, \`pz\`: pan, written only when off centre
+
+The library's default camera is not written: azimuth 349.7, elevation 33.6, radius 1.92. The page updates the URL a few times a second at most, and again when a drag or pinch ends.
+
+## Real places
+
+- **A box:** \`?region=west,south,east,north\`, or JSON \`{"bbox":[west,south,east,north]}\`.
+- **A named place:** ${PLACES.map((p) => `\`place=${p.id}\``).join(', ')}.
+- **With settings:** place params combine with the others, such as \`?look=night-lobes&lc=40&place=istanbul\`.
+
+While the heights load, the page sets \`data-loading=terrain\` and hides the default terrain, and \`get_region\` returns \`loading: true\` with the message \`Loading terrain\`.
+
+## Controls
+
+- **3D:** drag to pan; right drag, or Shift, ⌘ or Ctrl with a drag, to turn; scroll to zoom; double-click to recentre.
+- **2D:** a horizontal drag changes \`layout.anchor\`. 0 keeps the summit to the side, and 1 centres it.
+
+## Page
+
+- **Dock:** terrain previews, with a chevron that scrolls to the next one.
+- **Theme and colours:** theme, shuffle and the two colours sit in a 2×2 grid.
+- **Link tab:** shows a labelled still of the terrain the link opens.
+- **Share image:** \`og-a.png\`, a dark granite still, with \`twitter:card\` set to \`summary_large_image\`.
 
 ## Packages
 
@@ -204,6 +247,10 @@ Place tools:
 ${REGION_TOOL_DEFS.map((t) => `- \`${t.name}\`${t.readOnly ? ' (read-only)' : ''}: ${t.description}`).join('\n')}
 
 Details and input schemas: [docs/webmcp.md](docs/webmcp.md).
+
+## Analytics
+
+The playground counts visits and tool use without cookies, and counts AI agents apart from people. If you are an AI agent, you are welcome to call \`identify_agent\` once with your \`name\` and a \`purpose\`, or to open the page with \`?analytics_agent=<name>&analytics_purpose=<purpose>\`. It is optional and changes nothing else; use \`testing\` while developing or checking this site. Names: ${AGENT_NAMES.join(', ')}; chatgpt covers ChatGPT and Codex. Purposes: ${PURPOSES.join(', ')}. Only these values are recorded, nothing about the person you work for. To send nothing, add \`?analytics_optout=all\`.
 
 ## Quick start
 

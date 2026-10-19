@@ -18,7 +18,7 @@ if (import.meta.env.VITE_TOPOGRAPHIC_DEBUG === '1') {
 const base = import.meta.env.BASE_URL;
 const root = createRoot(document.getElementById('root')!);
 const route = resolveRoute(location.pathname, location.search, location.hash, base);
-// Unknown paths fall back to index.html on the Worker; send them home, keeping ?optout and the like.
+// Unknown paths fall back to index.html on the Worker; send them home, keeping ?analytics_optout and the like.
 if (route.page === 'redirect') history.replaceState(null, '', route.to);
 if (route.page === 'about') {
   // A separate chunk, so the playground bundle does not grow.

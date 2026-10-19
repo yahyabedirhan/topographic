@@ -38,7 +38,7 @@ export function createErrorQueue(enabled: boolean, max = MAX_EVENTS) {
   };
 }
 
-// Any opt out (`?optout` or `?optout=all`) also turns error reports off.
+// Any opt out (`?analytics_optout` or `?analytics_optout=all`) also turns error reports off.
 const DSN = (consent() === 'all' && import.meta.env.VITE_SENTRY_DSN) || undefined;
 const queue = createErrorQueue(Boolean(DSN));
 

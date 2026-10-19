@@ -469,11 +469,20 @@ try {
   await agent.addInitScript(stub);
   await agent.goto(base);
   await agent.waitForSelector('.pt-stage canvas');
-  const want = 'clear_region,get_embed_code,get_install_instructions,get_region,get_settings,list_styles,randomize,record_video,set_region,set_settings,take_screenshot';
-  await agent.waitForFunction((n) => Object.keys(window.__tools).length >= n, 11, { timeout: 10000 }).catch(() => {});
+  const want = 'clear_region,get_embed_code,get_install_instructions,get_region,get_settings,identify_agent,list_styles,randomize,record_video,set_region,set_settings,take_screenshot';
+  await agent.waitForFunction((n) => Object.keys(window.__tools).length >= n, 12, { timeout: 10000 }).catch(() => {});
   const names = await agent.evaluate(() => Object.keys(window.__tools).sort().join());
-  check(names === want, `WebMCP registers 11 tools${names === want ? '' : ': ' + names}`);
+  check(names === want, `WebMCP registers 12 tools${names === want ? '' : ': ' + names}`);
   const call = (n, a = {}) => agent.evaluate(([n, a]) => window.__tools[n].execute(a), [n, a]);
+  // identify_agent takes only names and purposes from its lists, and says the playground works the same.
+  const ident = await call('identify_agent', { name: 'claude', purpose: 'testing' });
+  check(ident.name === 'claude' && ident.purpose === 'testing' && typeof ident.recorded === 'boolean' && /works the same/.test(ident.note), `identify_agent accepts a listed name and purpose (recorded ${ident.recorded})`);
+  for (const [bad, field] of [[{ name: 'john-smith', purpose: 'testing' }, 'name'], [{ name: 'claude', purpose: 'stealing' }, 'purpose']]) {
+    const err = await call('identify_agent', bad).then(() => '', (e) => String(e));
+    check(err.includes(`${field} must be one of`), `identify_agent refuses ${JSON.stringify(bad)}: ${err.slice(0, 60)}`);
+  }
+  const desc = await agent.evaluate(() => window.__tools.identify_agent.description);
+  check(/Optional/.test(desc) && /nothing about the person/.test(desc), 'identify_agent says it is optional and records nothing about the person');
   check((await call('list_styles')).styles.length === 7, 'list_styles');
   const set = await call('set_settings', { style: 'dunes', lines: { count: 999 }, bogus: 1 });
   check(set.config.style === 'dunes' && set.config.lines.count === 60 && set.adjustments.length === 2, `set_settings validates: ${JSON.stringify(set.adjustments)}`);

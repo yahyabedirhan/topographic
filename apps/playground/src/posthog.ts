@@ -27,12 +27,23 @@ export function startPostHog(key: string, host: string, props: SuperProperties):
     capture_heatmaps: false,
     capture_performance: false,
     capture_exceptions: false,
-  });
+    // WebDriver browsers (Playwright, Selenium, Puppeteer) are sent, not dropped: pageviews arrive as $bot_pageview,
+    // and `actor.ts` marks every event of theirs `actor: agent`. A preview option of posthog-js, which may change.
+    __preview_capture_bot_pageviews: true,
+  } as Parameters<typeof posthog.init>[1]);
   posthog.register(props as unknown as Record<string, unknown>);
   return (event, p) => { posthog.capture(event, p); };
 }
 
-/** Stops sending the visitor id from this page, after an opt out. */
+const ACTOR_KEYS = ['actor', 'visitor_id', 'agent_id', 'agent_name', 'purpose', 'automation'];
+
+/** Stops sending the visitor id and the actor properties from this page, after an opt out. */
 export function dropVisitorId(): void {
-  posthog.unregister('visitor_id');
+  for (const k of ACTOR_KEYS) posthog.unregister(k);
+}
+
+/** Replaces the actor properties, after an agent identifies itself. */
+export function setActor(props: object): void {
+  for (const k of ACTOR_KEYS) posthog.unregister(k);
+  posthog.register(props as Record<string, unknown>);
 }
