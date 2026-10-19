@@ -310,3 +310,8 @@ On the "With an agent" and "By hand" labels in the install parts:
 
 > And I didn't like that separation of [With an] Agent and by hand.
 > Let's find a little bit more professional and useful terminology for those.
+
+On "`topographic-react` adds the React component and the hook, for React 18 or 19.²", where "19.²" wraps onto a line of its own:
+
+> This last word in the sentence just creates a new multiline for these types of things.
+> Validate visually so that there are no unnecessary newlines like this and the documentation shows more beautifully visually.
