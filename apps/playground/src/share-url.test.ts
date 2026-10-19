@@ -20,15 +20,15 @@ describe('share url', () => {
     const home = readSettings('');
     expect(home).toEqual(readSettings(HOME_QUERY));
     expect(query(home)).toBe('');
-    expect(query(playgroundSettings())).toBe('lf=drifting-lobes');
+    expect(query(playgroundSettings())).toBe('s=drifting-lobes');
     roundTrip(playgroundSettings());
-    expect(query(playgroundSettings({ shape: 'dunes' }))).toBe('lf=dunes');
+    expect(query(playgroundSettings({ shape: 'dunes' }))).toBe('s=dunes');
     roundTrip(playgroundSettings({ shape: 'dunes' }));
   });
 
-  it('reads the shape from an old s= link', () => {
+  it('reads the shape from s=, as links made before 0.6.0 do', () => {
     expect(readSettings('s=dunes&seed=4').shape).toBe('dunes');
-    expect(query(readSettings('s=dunes&seed=4'))).toBe('lf=dunes&seed=4');
+    expect(query(readSettings('s=dunes&seed=4'))).toBe('s=dunes&seed=4');
   });
 
   it('writes a look by name', () => {
@@ -88,7 +88,7 @@ describe('share url', () => {
 
   it('writes colours without # and reads them back', () => {
     const s = playgroundSettings({ shape: 'gentle-summit', seed: 4, theme: { mode: 'dark', ink: '#9fb0cc', paper: '#0b0b0d' } });
-    expect(query(s)).toBe('lf=gentle-summit&seed=4&m=dark&ink=9fb0cc&paper=0b0b0d');
+    expect(query(s)).toBe('s=gentle-summit&seed=4&m=dark&ink=9fb0cc&paper=0b0b0d');
     roundTrip(s);
     expect(readSettings('ink=fff&paper=transparent').theme).toMatchObject({ ink: '#fff', paper: 'transparent' });
   });

@@ -186,13 +186,13 @@ The playground keeps its state in short query params. It writes only the values 
 
 Examples:
 
-- \`?lf=dunes&lc=24\`
+- \`?s=dunes&lc=24\`
 - \`?look=night-lobes&mode=3d&cm=orbit\`
-- \`?lf=gentle-summit&seed=4&m=dark&ink=9fb0cc&paper=0b0b0d\`
+- \`?s=gentle-summit&seed=4&m=dark&ink=9fb0cc&paper=0b0b0d\`
 
 ### Keys
 
-- \`lf\`: shape. Links made before 0.6.0 use \`s\`, which still works.
+- \`s\`: shape.
 - \`seed\`: seed
 ${PARAMS.map((p) => `- \`${p.short}\`: ${p.label.toLowerCase()}`).join('\n')}
 - \`m\`: theme, light, dark or auto

@@ -72,7 +72,7 @@ try {
     const first = nav.locator('.pt-thumb').first();
     check(await first.getAttribute('aria-label') === 'Istanbul map' && await nav.locator('.pt-saved[data-builtin]').count() === 4
       && await nav.getByRole('button', { name: /^Delete / }).count() === 0 && await nav.getAttribute('data-saved') === '0', 'a fresh profile shows the built-in Istanbul first in the dock, with no delete');
-    const OWNER = { place: 'istanbul', lf: 'gentle-summit', seed: '67', lc: '36', ix: '4', m: 'dark', mode: '3d', ex: 'block', ev: '0.12', az: '341.6', ce: '45.3', rd: '1.15', px: '-0.005', pz: '-0.013' };
+    const OWNER = { place: 'istanbul', s: 'gentle-summit', seed: '67', lc: '36', ix: '4', m: 'dark', mode: '3d', ex: 'block', ev: '0.12', az: '341.6', ce: '45.3', rd: '1.15', px: '-0.005', pz: '-0.013' };
     const matches = () => Object.entries(OWNER).every(([k, v]) => q(b).get(k) === v);
     await first.click(); await settle(b, 600);
     await b.waitForFunction(() => document.documentElement.dataset.region === 'ready', null, { timeout: 60000 }).catch(() => {});
@@ -90,9 +90,9 @@ try {
   }
 
   // URL state: short params load, and the page writes its state back as short params.
-  await open(p, '?lf=granite&lc=40');
+  await open(p, '?s=granite&lc=40');
   let c = await cfg(p);
-  check(c.shape === 'granite' && c.lines?.count === 40 && q(p).get('lf') === 'granite' && q(p).get('lc') === '40', `short query loads (?${q(p)})`);
+  check(c.shape === 'granite' && c.lines?.count === 40 && q(p).get('s') === 'granite' && q(p).get('lc') === '40', `short query loads (?${q(p)})`);
   await p.getByRole('button', { name: 'Tune', exact: true }).click();
   const tabs = await p.locator('.pt-tabs button.pt-tab').allInnerTexts();
   check(tabs.join() === 'Lines,Terrain,Motion,Layout,3D', `Tune tabs are labelled (${tabs.join()})`);
@@ -449,13 +449,13 @@ try {
   c = await cfg(back);
   check(c.shape === 'granite' && c.seed === 191 && c.lines?.count === 54, '?look= loads a dock look');
   await open(back, '?s=dunes&mode=3d');
-  check((await cfg(back)).shape === 'dunes', 'an old ?s= link loads its shape');
+  check((await cfg(back)).shape === 'dunes', 'a ?s= link from before 0.6.0 loads its shape');
   check((await cfg(back)).mode === '3d' && await back.locator('.pt-stage.is-3d').count() === 1, '?mode=3d opens 3D');
   await back.close();
 
   if (shots) {
     const m = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
-    await m.goto(base + '?lf=dunes'); await m.waitForSelector('.pt-stage canvas'); await m.waitForTimeout(600);
+    await m.goto(base + '?s=dunes'); await m.waitForSelector('.pt-stage canvas'); await m.waitForTimeout(600);
     await m.screenshot({ path: join(shots, 'playground-phone.png') }); await m.close();
   }
 
@@ -491,7 +491,7 @@ try {
   check(old.config.shape === 'granite' && /shape/.test(old.adjustments[0] ?? ''), `set_settings takes the old style key: ${JSON.stringify(old.adjustments)}`);
   await call('set_settings', { shape: 'dunes' });
   await settle(agent);
-  const shapeKey = q(agent).get('lf') ?? q(agent).get('look') ?? '';
+  const shapeKey = q(agent).get('s') ?? q(agent).get('look') ?? '';
   check(/dune/.test(shapeKey) && q(agent).get('lc') === '60', `set_settings updates the page and URL (?${q(agent)})`);
   check((await call('get_settings')).config.lines.count === 60, 'get_settings');
   const before = (await call('get_settings')).config.seed;

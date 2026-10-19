@@ -320,7 +320,7 @@ export function toAttributes(s: Settings): Record<string, string> {
 /** Compact query string with only non-default values. */
 export function toQuery(s: Settings): string {
   const d = resolveSettings({ shape: s.shape });
-  const q = new URLSearchParams({ lf: s.shape });
+  const q = new URLSearchParams({ s: s.shape });
   if (s.seed) q.set('seed', String(s.seed));
   for (const def of PARAMS as readonly ParamDef[]) {
     const v = (s[def.group] as Record<string, number>)[def.key];
@@ -353,7 +353,7 @@ export function fromQuery(query: string): SettingsInput {
     elevation: 'ev', extent: 'ex', detail: 'dl', quality: 'ql', azimuth: 'az', 'camera-elevation': 'ce', radius: 'rd', 'camera-motion': 'cm', 'pan-x': 'px', 'pan-z': 'pz', 'view-x': 'vx', 'view-y': 'vy', 'view-zoom': 'vz',
   };
   return fromAttributes((name) => {
-    if (name === 'shape') return q.get('lf') ?? q.get('s');
+    if (name === 'shape') return q.get('s');
     if (name === 'theme') return q.get('m');
     if (name === 'mode') return q.get('mode');
     if (name === 'seed' || name === 'ink' || name === 'paper') return q.get(name);

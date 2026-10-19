@@ -89,7 +89,7 @@ describe('view settings', () => {
     const q = toQuery(s);
     expect(q).toContain('px=0.25');
     expect(q).toContain('pz=-0.123');
-    expect(toQuery(resolveSettings({ mode: '3d' }))).toBe('lf=drifting-lobes&mode=3d');
+    expect(toQuery(resolveSettings({ mode: '3d' }))).toBe('s=drifting-lobes&mode=3d');
     expect(resolveSettings(fromQuery(q))).toEqual(s);
     const attrs = toAttributes(s);
     expect(attrs).toMatchObject({ mode: '3d', extent: 'block', 'camera-motion': 'orbit', azimuth: '12', 'pan-x': '0.25' });
@@ -125,12 +125,11 @@ describe('serialisation', () => {
   it('round-trips through the URL query', () => {
     const s = resolveSettings({ shape: 'granite', seed: 42, lines: { count: 18 }, theme: { mode: 'dark', paper: 'transparent' } });
     const q = toQuery(s);
-    expect(q).toContain('lf=granite');
+    expect(q).toContain('s=granite');
     expect(resolveSettings(fromQuery(q))).toEqual(s);
   });
-  it('reads the old s= query key from links made before 0.6.0', () => {
+  it('reads the shape from s=, as links made before 0.6.0 do', () => {
     expect(resolveSettings(fromQuery('s=dunes&seed=3')).shape).toBe('dunes');
-    expect(resolveSettings(fromQuery('lf=granite&s=dunes')).shape).toBe('granite');
   });
   it('round-trips through element attributes', () => {
     const s = resolveSettings({ shape: 'seed-pod', terrain: { peaks: 3 }, motion: { speed: 0 } });

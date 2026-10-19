@@ -386,8 +386,7 @@ The playground (`apps/playground`) is the project's live demo page.
   - The map loads only when you open it. It needs a network connection.
   - A link that opens a place hides the canvas until the heights arrive, so the default terrain does not flash. Contour rings draw in while it waits, on a desktop and on a phone. With reduced motion, the rings stay still. The page sets `data-loading` to `terrain`, and `get_region` returns `loading: true` with the message `Loading terrain`.
 - The URL stores the settings as short keys, so a link shows the same background.
-  - It stores only the values that are different from the shape's defaults or from a named look: `?lf=dunes&lc=24`, `?look=night-lobes&mode=3d`.
-  - Links made before 0.6.0 use `s` for the shape. They still open.
+  - It stores only the values that are different from the shape's defaults or from a named look: `?s=dunes&lc=24`, `?look=night-lobes&mode=3d`.
   - Colours have no `#` (`ink=9fb0cc`).
   - 3D uses the library defaults unless the URL changes them: endless, azimuth 349.7, angle 33.6 and distance 1.92.
   - A pan away from the centre adds `px` and `pz`. A 2D pan or zoom adds `vx`, `vy` and `vz`.
