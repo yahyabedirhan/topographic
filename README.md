@@ -36,14 +36,6 @@ The landscape can also come from a real place, using real height data. The [play
 
 ## Install
 
-With a coding agent, install the topographic skill and ask for a terrain:
-
-```sh
-npx skills add yahyabedirhan/topographic
-```
-
-By hand:
-
 ```sh
 npm install topographic
 ```
