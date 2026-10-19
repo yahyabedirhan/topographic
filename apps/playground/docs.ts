@@ -5,7 +5,7 @@ import { TOOL_DEFS } from './src/agent-tools';
 import { AGENT_NAMES, PURPOSES } from './src/actor';
 import { PLACES } from './src/region/places';
 import { REGION_TOOL_DEFS } from './src/region/tools';
-import { DOCS_META } from './src/docs/copy';
+import { DOCS_META } from './src/docs-page/copy';
 
 export const SITE_URL = 'https://topographic.yahyapak.dev/';
 export const WEBMCP_SPEC = 'https://github.com/webmachinelearning/webmcp/blob/d0e4e0e0f039358cc9d93f90074116622bfebd53/index.bs';
