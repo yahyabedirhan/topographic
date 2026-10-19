@@ -42,6 +42,13 @@ export function PlaceMenu({ trigger, label, onPick }: {
     onPick(place.id);
   };
 
+  const search = (text: string) => {
+    setQuery(text);
+    // A search highlights its first result, so Enter picks it.
+    setActive(text.trim() ? 0 : -1);
+    if (list.current) list.current.scrollTop = 0;
+  };
+
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault();
@@ -55,11 +62,13 @@ export function PlaceMenu({ trigger, label, onPick }: {
       pick(active);
     } else if (e.key.length === 1 && !e.metaKey && !e.ctrlKey && !e.altKey && document.activeElement !== input.current) {
       // Typing anywhere in the menu types into the field.
+      e.preventDefault();
       input.current?.focus();
+      search(query + e.key);
     }
   };
 
-  const fine = typeof matchMedia === 'function' && matchMedia('(pointer: fine)').matches;
+  const fine = !(typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches);
   let index = -1;
   return (
     <Popover.Root
@@ -89,12 +98,7 @@ export function PlaceMenu({ trigger, label, onPick }: {
                 autoComplete="off"
                 spellCheck={false}
                 value={query}
-                onChange={(e) => {
-                  setQuery(e.target.value);
-                  // A search highlights its first result, so Enter picks it.
-                  setActive(e.target.value.trim() ? 0 : -1);
-                  if (list.current) list.current.scrollTop = 0;
-                }}
+                onChange={(e) => search(e.target.value)}
               />
             </div>
             <div ref={list} id={`${id}-list`} role="listbox" aria-label="Places" className="pt-menu-list">
