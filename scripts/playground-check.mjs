@@ -72,8 +72,10 @@ try {
     await open(b, '');
     const nav = b.locator('nav[data-looks]');
     const first = nav.locator('.pt-thumb').first();
-    check(await first.getAttribute('aria-label') === 'Istanbul map' && await nav.locator('.pt-saved[data-builtin]').count() === 4
-      && await nav.getByRole('button', { name: /^Delete / }).count() === 0 && await nav.getAttribute('data-saved') === '0', 'a fresh profile shows the built-in Istanbul first in the dock, with no delete');
+    const builtIns = await nav.locator('.pt-saved[data-builtin] .pt-thumb').evaluateAll((els) => els.map((el) => el.getAttribute('aria-label')?.replace(/ map$/, '')));
+    const WANT = ['Istanbul', 'Grand Canyon', 'Geirangerfjord', 'Yosemite Valley', 'Mount Fuji', 'Matterhorn & Zermatt', 'Torres del Paine', 'Everest', 'Kilimanjaro', 'Machu Picchu', 'Naples & Vesuvius'];
+    check(await first.getAttribute('aria-label') === 'Istanbul map' && builtIns.join() === WANT.join()
+      && await nav.getByRole('button', { name: /^Delete / }).count() === 0 && await nav.getAttribute('data-saved') === '0', `a fresh profile shows the ten built-in places first in the dock, Istanbul first, with no delete (${builtIns.join()})`);
     const OWNER = { place: 'istanbul', s: 'gentle-summit', seed: '67', lc: '36', ix: '4', m: 'dark', mode: '3d', ex: 'block', ev: '0.12', az: '341.6', ce: '45.3', rd: '1.15', px: '-0.005', pz: '-0.013' };
     const matches = () => Object.entries(OWNER).every(([k, v]) => q(b).get(k) === v);
     await first.click(); await settle(b, 600);
@@ -245,6 +247,8 @@ try {
 
   // Map popover: MapLibre loads lazily and its tiles need the network.
   const dockNav = p.locator('nav[data-looks]');
+  // The saved items, apart from the built-in places that can share their names.
+  const savedItems = dockNav.locator('.pt-saved:not([data-builtin])');
   const savedCount = async (pg = p) => Number(await pg.locator('nav[data-looks]').getAttribute('data-saved'));
   const VIEW_KEYS = ['lc', 'lw', 'lo', 'ix', 'mode', 'ex', 'ev', 'az', 'ce', 'rd'];
   const viewOf = (pg) => Object.fromEntries(VIEW_KEYS.map((k) => [k, q(pg).get(k)]));
@@ -286,12 +290,29 @@ try {
   const badgeText = () => badge.innerText().then((t) => t.replace(/\s+/g, ' ').trim());
   const status = () => place.locator('.pt-place-foot .pt-status').innerText().then((t) => t.replace(/\s+/g, ' ').trim());
   check(/^Istanbul [\d.]+ × [\d.]+ km$/.test(await badgeText()) && /^Generated terrain/.test(await status()), `the badge names the framed city and the footer the terrain (${await badgeText()} | ${await status()})`);
-  await badge.click(); await p.getByRole('menuitem').first().waitFor();
-  const items = (await p.getByRole('menuitem').allInnerTexts()).map((t) => t.split('\n')[0]);
-  check(items.join() === 'Istanbul,Cyprus,Matterhorn & Zermatt,Geirangerfjord,Grand Canyon,Yosemite Valley,Torres del Paine,Mount Fuji,Everest & the Khumbu,Kilimanjaro', `the badge opens the place menu (${items.join()})`);
+  await badge.click(); await p.getByRole('option').first().waitFor();
+  await p.waitForFunction(() => document.querySelectorAll('.pt-place-menu [role="option"]').length > 100, null, { timeout: 10000 }).catch(() => {});
+  const items = (await p.getByRole('option').allInnerTexts()).map((t) => t.split('\n')[0]);
+  check(items.length > 100 && items.slice(0, 4).join() === 'Istanbul,Matterhorn & Zermatt,Geirangerfjord,Mont Blanc' && items.indexOf('Cyprus') === 9 && items.includes('Kilimanjaro'), `the badge opens the place menu with the catalog (${items.length} places)`);
   const labels = await p.locator('.pt-menu-label').allInnerTexts();
-  check(labels.map((t) => t.toLowerCase()).join() === 'europe & middle east,americas,asia,africa', `the place menu groups places by region (${labels.join()})`);
+  check(labels.map((t) => t.toLowerCase()).join() === 'europe,middle east,africa,asia,oceania,north america,south america,antarctica,arctic', `the place menu groups places by continent (${labels.join()})`);
+  // Search: typing goes to the field, accents do not matter, and Enter picks the first result.
+  await p.waitForFunction(() => document.activeElement?.getAttribute('aria-label') === 'Search places', null, { timeout: 5000 }).catch(() => {});
+  await p.keyboard.type('reunion'); await settle(p, 200);
+  const found = (await p.getByRole('option').allInnerTexts()).map((t) => t.split('\n')[0]);
+  check(found.join() === 'Réunion' && (await p.locator('.pt-menu-label').allInnerTexts()).join().toLowerCase() === 'africa', `the place search ignores accents and hides empty groups (${found.join()})`);
+  await p.getByRole('combobox', { name: 'Search places' }).fill('atlantis'); await settle(p, 200);
+  check(await p.getByRole('option').count() === 0 && await p.locator('.pt-menu-empty').innerText() === 'No places', 'a search with no match shows No places');
   await p.keyboard.press('Escape'); await settle(p);
+  check(await place.isVisible() && await p.locator('.pt-place-menu').count() === 0, 'Escape closes the place menu and keeps the Map popover open');
+  await badge.click(); await p.getByRole('option').first().waitFor();
+  await p.waitForFunction(() => document.activeElement?.getAttribute('aria-label') === 'Search places', null, { timeout: 5000 }).catch(() => {});
+  await p.keyboard.type('fitz roy'); await settle(p, 200); await p.keyboard.press('Enter');
+  await badge.filter({ hasText: 'Fitz Roy' }).waitFor({ timeout: 10000 }).catch(() => {});
+  check(/^Fitz Roy & Cerro Torre [\d.]+ × [\d.]+ km$/.test(await badgeText()), `Enter picks a catalog place and moves the map to it (${await badgeText()})`);
+  await badge.click(); await p.getByRole('option').first().waitFor();
+  await p.waitForFunction(() => document.activeElement?.getAttribute('aria-label') === 'Search places', null, { timeout: 5000 }).catch(() => {});
+  await p.keyboard.type('istanbul'); await settle(p, 200); await p.keyboard.press('Enter'); await settle(p, 1200);
   check(await place.isVisible(), 'closing the place menu keeps the Map popover open');
   check(await apply.evaluate((el) => el.classList.contains('pt-action')) && await place.getByRole('button', { name: 'Generated' }).count() === 0, 'Apply is an action button and Generated is gone');
   await apply.click(); await settle(p, 600);
@@ -352,16 +373,31 @@ try {
   // A city: the segment moves the frame only; Apply saves it under its name.
   await p.getByRole('button', { name: 'Map', exact: true }).click(); await settle(p, 600);
   const placeSearch = q(p).toString();
-  await badge.click(); await p.getByRole('menuitem', { name: /^Matterhorn/ }).click(); await settle(p, 1200);
+  await badge.click(); await p.getByRole('option', { name: /^Matterhorn/ }).click(); await settle(p, 1200);
   check(await apply.isEnabled() && q(p).toString() === placeSearch && /^Matterhorn & Zermatt 40 × 26 km$/.test(await badgeText()), `a city from the menu moves the map only (${await badgeText()})`);
   await apply.click(); await settle(p, 600);
-  await badge.click(); await p.getByRole('menuitem').first().waitFor();
+  await badge.click(); await p.getByRole('option').first().waitFor();
   await settle(p, 300);
-  // The menu holds jump-to-city actions only: no check mark and no highlighted row on a mouse open.
-  const marks = await p.locator('.pt-menu-item svg').count();
-  const lit = await p.locator('.pt-menu-item[data-highlighted]').count();
+  // The framed place shows as selected, with a check, as the first row under its continent heading.
+  const selectedAtTop = () => p.evaluate(() => {
+    const listEl = document.querySelector('.pt-place-menu [role="listbox"]');
+    const row = listEl?.querySelector('[role="option"][aria-selected="true"]');
+    if (!listEl || !row) return null;
+    const heading = row.closest('.pt-menu-group').querySelector('.pt-menu-label');
+    const gap = row.getBoundingClientRect().top - heading.getBoundingClientRect().bottom;
+    return { name: row.querySelector('b').textContent, checks: listEl.querySelectorAll('.pt-menu-check').length, gap: Math.round(gap), active: row.hasAttribute('data-highlighted') };
+  });
+  const sel = await selectedAtTop();
+  check(await p.evaluate(() => document.activeElement?.getAttribute('aria-label')) === 'Search places', 'the place menu opens with its search field focused');
+  check(sel?.name === 'Matterhorn & Zermatt' && sel.checks === 1 && sel.active && Math.abs(sel.gap) <= 1, `the place menu shows the framed place as selected and active (${JSON.stringify(sel)})`);
+  // A place far down the list: reopening shows it at the top.
+  await p.keyboard.type('cotopaxi'); await settle(p, 200); await p.keyboard.press('Enter');
+  await badge.filter({ hasText: 'Cotopaxi' }).waitFor({ timeout: 10000 }).catch(() => {}); await settle(p, 900);
+  await badge.click(); await p.getByRole('option').first().waitFor(); await settle(p, 300);
+  const thor = await selectedAtTop();
+  const scrolled = await p.locator('.pt-place-menu [role="listbox"]').evaluate((el) => el.scrollTop);
+  check(thor?.name === 'Cotopaxi' && Math.abs(thor.gap) <= 1 && scrolled > 500, `reopening shows the selected place at the top (${JSON.stringify(thor)}, scrollTop ${scrolled})`);
   await p.keyboard.press('Escape'); await settle(p);
-  check(marks === 0 && lit === 0, `the place menu shows no selected state (${marks} marks, ${lit} highlighted)`);
   check(q(p).get('place') === 'matterhorn' && await savedCount() === 3
     && await dockNav.locator('.pt-saved:not([data-builtin]) .pt-thumb').first().getAttribute('aria-label') === 'Matterhorn & Zermatt map', `Apply on a city writes its name and saves it (?${q(p)})`);
   await clearBtn.click(); await settle(p, 400);
@@ -373,7 +409,7 @@ try {
   // Saved items: they stay after a reload, a click brings back place and colours, a look clears the place.
   await p.reload(); await p.waitForSelector('.pt-stage canvas'); await settle(p);
   check(await savedCount() === 3, 'saved map terrains stay after a reload');
-  await dockNav.getByRole('button', { name: 'Matterhorn & Zermatt map' }).click(); await settle(p, 600);
+  await savedItems.getByRole('button', { name: 'Matterhorn & Zermatt map' }).click(); await settle(p, 600);
   const matterhorn = await cfg(p);
   check(q(p).get('place') === 'matterhorn' && sameView(viewOf(p), MATTERHORN_VIEW) && await pinDot() === 1, `a saved item brings back its place and view (?${q(p)})`);
   await p.waitForFunction(() => document.documentElement.dataset.region === 'ready', null, { timeout: 60000 }).catch(() => {});
@@ -381,7 +417,7 @@ try {
   c = await cfg(p);
   const lookAz = q(p).get('az');
   check(q(p).get('place') === null && c.shape === 'granite' && c.seed === 191 && await pinDot() === 0, 'a built-in look clears the place and brings its shape');
-  await dockNav.getByRole('button', { name: 'Matterhorn & Zermatt map' }).click(); await settle(p, 600);
+  await savedItems.getByRole('button', { name: 'Matterhorn & Zermatt map' }).click(); await settle(p, 600);
   check(q(p).get('place') === 'matterhorn' && JSON.stringify(await cfg(p)) === JSON.stringify(matterhorn), 'the saved item returns with its own colours');
   // Edits to the active saved item are kept, the camera included.
   await p.getByRole('button', { name: 'Ink colour' }).click();
@@ -396,20 +432,20 @@ try {
   check(draggedAz !== '341.8', `a right-drag turns the camera (az=${draggedAz})`);
   await dockNav.getByRole('button', { name: 'Fine granite' }).click(); await settle(p, 600);
   check(q(p).get('az') === lookAz, `a built-in look still resets to its own camera (az ${q(p).get('az')}, want ${lookAz})`);
-  await dockNav.getByRole('button', { name: 'Matterhorn & Zermatt map' }).click(); await settle(p, 600);
+  await savedItems.getByRole('button', { name: 'Matterhorn & Zermatt map' }).click(); await settle(p, 600);
   check(q(p).get('az') === draggedAz && q(p).get('ce') === draggedCe, `the saved item comes back with the dragged camera (az ${q(p).get('az')}, want ${draggedAz})`);
   await p.reload(); await p.waitForSelector('.pt-stage canvas'); await settle(p);
   await dockNav.getByRole('button', { name: 'Fine granite' }).click(); await settle(p, 400);
-  await dockNav.getByRole('button', { name: 'Matterhorn & Zermatt map' }).click(); await settle(p, 600);
+  await savedItems.getByRole('button', { name: 'Matterhorn & Zermatt map' }).click(); await settle(p, 600);
   c = await cfg(p);
   check(c.theme?.ink === ink && ink !== matterhorn.theme?.ink && q(p).get('az') === draggedAz, `after a reload the saved item kept the new ink (${ink}) and the dragged camera (az ${q(p).get('az')})`);
   // Delete: hover shows the ×.
-  await dockNav.locator('.pt-saved', { has: p.getByRole('button', { name: 'Matterhorn & Zermatt map' }) }).hover();
+  await savedItems.filter({ has: p.getByRole('button', { name: 'Matterhorn & Zermatt map' }) }).hover();
   if (shots) await dockNav.screenshot({ path: join(shots, 'dock-saved-hover.png') });
   await dockNav.getByRole('button', { name: 'Delete Matterhorn & Zermatt' }).click(); await settle(p);
   check(await savedCount() === 2 && q(p).get('place') === 'matterhorn', 'delete removes the item and keeps the view');
   await p.reload(); await p.waitForSelector('.pt-stage canvas'); await settle(p);
-  check(await savedCount() === 2 && await dockNav.getByRole('button', { name: 'Matterhorn & Zermatt map' }).count() === 0, 'a deleted item stays gone after a reload');
+  check(await savedCount() === 2 && await savedItems.getByRole('button', { name: 'Matterhorn & Zermatt map' }).count() === 0, 'a deleted item stays gone after a reload');
   await p.close();
 
   // Storage blocked: the page, Apply and the dock still work.

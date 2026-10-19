@@ -1,1 +1,1 @@
-{ "extends": "../../tsconfig.base.json", "compilerOptions": { "noEmit": true, "emitDeclarationOnly": false, "declaration": false }, "include": ["src"] }
+{ "extends": "../../tsconfig.base.json", "compilerOptions": { "noEmit": true, "emitDeclarationOnly": false, "declaration": false, "resolveJsonModule": true }, "include": ["src"] }

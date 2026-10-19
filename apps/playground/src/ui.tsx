@@ -2,7 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useSta
 import { Popover } from '@base-ui-components/react/popover';
 import { Toggle } from '@base-ui-components/react/toggle';
 import { Tooltip } from '@base-ui-components/react/tooltip';
-import { Box, ChevronRight, Dices, Earth, Frame, Map, Moon, Mountain, SlidersHorizontal, Spline, Sun, TriangleAlert, Wind, X } from 'lucide-react';
+import { Box, ChevronLeft, ChevronRight, Dices, Earth, Frame, Map, Moon, Mountain, SlidersHorizontal, Spline, Sun, TriangleAlert, Wind, X } from 'lucide-react';
 import { MapButton } from './region/controls';
 import { MAP_LOOKS } from './region/map-looks';
 import { Minimap } from './region/Minimap';
@@ -129,11 +129,12 @@ export function Readout({ pg }: { pg: Playground }) {
   return <div className="pt-fps" data-tier={stats.quality} aria-live="polite">{`${stats.fps} fps · ${stats.frameMs.toFixed(1)} ms · ${stats.mesh}² · ${stats.quality}`}</div>;
 }
 
-export function Cluster({ pg, place, tune, exporting, clusterRef }: {
+export function Cluster({ pg, place, tune, share, clusterRef }: {
   pg: Playground;
   place?: ReactNode;
   tune: ReactNode;
-  exporting: ReactNode;
+  /** Export and Install, after a thin separator. */
+  share?: ReactNode;
   clusterRef?: Ref<HTMLDivElement>;
 }) {
   return (
@@ -141,7 +142,7 @@ export function Cluster({ pg, place, tune, exporting, clusterRef }: {
       {place}
       <ModeToggle pg={pg} />
       {tune}
-      {exporting}
+      {share ? <><span className="pt-cluster-sep" aria-hidden="true" />{share}</> : null}
     </div>
   );
 }
@@ -322,6 +323,11 @@ export function Dock({ pg, terrains, onOpenMap }: { pg: Playground; terrains: Te
             </button>
           ))}
         </div>
+          {scroll.overflow && scroll.left > 4 ? (
+            <button type="button" className="pt-scroll-more is-back" aria-label="Earlier terrains" onClick={() => scroller.current?.scrollBy({ left: -(thumb + GAP), behavior: 'smooth' })}>
+              <ChevronLeft size={16} strokeWidth={1.75} />
+            </button>
+          ) : null}
           {scroll.overflow && scroll.left < scroll.max - 4 ? (
             <button type="button" className="pt-scroll-more" aria-label="More terrains" onClick={() => scroller.current?.scrollBy({ left: thumb + GAP, behavior: 'smooth' })}>
               <ChevronRight size={16} strokeWidth={1.75} />
@@ -653,14 +659,13 @@ function LowPerformancePrompt({ pg, loading }: { pg: Playground; loading: boolea
   );
 }
 
-export function Shell({ pg, terrains, place, tune, exporting, install, clusterRef, onOpenMap, children }: {
+export function Shell({ pg, terrains, place, tune, install, clusterRef, onOpenMap, children }: {
   pg: Playground;
   terrains: Terrains;
   onOpenMap?: () => void;
   place?: ReactNode;
   tune: ReactNode;
-  exporting: ReactNode;
-  /** Install, in its own glass circle at the far right of the top bar. */
+  /** Export and Install, the cluster's second group. */
   install?: ReactNode;
   clusterRef?: Ref<HTMLDivElement>;
   children?: ReactNode;
@@ -672,8 +677,7 @@ export function Shell({ pg, terrains, place, tune, exporting, install, clusterRe
       <GlRecovery pg={pg} />
       <Wordmark />
       <div className="pt-top">
-        <Cluster pg={pg} place={place} tune={tune} exporting={exporting} clusterRef={clusterRef} />
-        {install}
+        <Cluster pg={pg} place={place} tune={tune} share={install} clusterRef={clusterRef} />
       </div>
       <LowPerformancePrompt pg={pg} loading={terrains.region.status === 'loading'} />
       {children}
@@ -765,8 +769,12 @@ export function GlassFrame({ pg, terrains, tune, exporting }: {
           </ClusterPositioner>
         </Popover.Root>
       )}
-      exporting={exporting(open === 'export', openChange('export'), clusterRef)}
-      install={<InstallMenu pg={pg} region={region} open={open === 'install'} onOpenChange={openChange('install')} onOpenExport={() => setOpen('export')} />}
+      install={(
+        <InstallMenu
+          pg={pg} region={region} open={open === 'install'} onOpenChange={openChange('install')} onOpenExport={() => setOpen('export')}
+          anchor={clusterRef} exporting={exporting(open === 'export', openChange('export'), clusterRef)}
+        />
+      )}
     />
   );
 }

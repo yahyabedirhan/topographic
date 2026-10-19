@@ -99,7 +99,7 @@ export const SECTIONS: DocSection[] = [
     lede: 'Name a mountain. Get its contours.',
     body: '<p>Any place on Earth can be the land. Ten come built in by name, from Everest to Yosemite Valley.<sup class="fn"></sup> Any other area on Earth comes in by its corners, through <code>fetchLocation()</code><sup class="fn"></sup></p>\n<p>A place draws its real heights, so the seed, the terrain settings and <code>motion.warp</code> rest while it is on. Lines, colours, layout and the camera still apply.</p>',
     notes: [
-      `The ${ext(PLAYGROUND, 'playground')} does this today in its Map panel, and a link such as ${ext(`${PLAYGROUND}/?place=everest`, '<code>?place=everest</code>')} opens a place. The figures here use the playground's own pipeline.`,
+      `The ${ext(PLAYGROUND, 'playground')} does this today in its Map panel, and a link such as ${ext(`${PLAYGROUND}/?place=everest`, '<code>?place=everest</code>')} opens a place. Its Map menu holds 108 places to search, ${ext(`${REPO}/blob/main/docs/places.md`, 'listed here')}. The figures here use the playground's own pipeline.`,
       `Heights come from ${ext(TERRAIN_TILES, 'Mapzen Terrain Tiles')} on ${ext(AWS_OPEN_DATA, 'AWS Open Data')}.`,
     ],
     code: 'locations',

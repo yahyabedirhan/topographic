@@ -28,6 +28,9 @@
   Cache-Control: public, max-age=86400
 /readme/*
   Cache-Control: public, max-age=86400
+# The catalog places' height grids. scripts/places.mjs writes them again only when a box changes.
+/places/*
+  Cache-Control: public, max-age=86400
 
 /*
   X-Content-Type-Options: nosniff

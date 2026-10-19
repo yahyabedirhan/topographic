@@ -285,6 +285,8 @@ A change to another place sets that place's look again, except for the values in
 
 `LOCATIONS` from `topographic/locations` lists each place with its `id`, `name`, `bbox`, `aspect` and `defaults`.
 `loadLocation(id)` returns a place's grid, with `minMeters` and `maxMeters` for its lowest and highest point.
+`decodeGrid16(bytes)` reads a grid saved in the same format, a square 16-bit greyscale PNG with north at the top, and returns `{ samples, size }` with heights from 0 to 1.
+The playground serves its catalog places this way.
 
 ### Any area: `fetchLocation`
 
@@ -519,12 +521,14 @@ The playground (`apps/playground`) is the project's live demo page.
   - The files are named after the named place on the map, such as `topographic-mount-fuji.png` and `topographic-mount-fuji-orbit.mp4`. Without a named place, a PNG is named after the shape and the seed, such as `topographic-seed-pod-71.png`, and a video after its camera path, such as `topographic-orbit.mp4`.
   - The code tabs number their lines. They colour the values that come from your settings.
 - **Map** opens a map with a frame. Use it to draw a real place as the terrain.
-  - Pan and zoom the map, or drag the frame's corners and edges. You can also pick a place from the badge's menu. The places are grouped by region: Istanbul, Cyprus, Matterhorn & Zermatt and Geirangerfjord (Europe & Middle East); Grand Canyon, Yosemite Valley and Torres del Paine (Americas); Mount Fuji and Everest & the Khumbu (Asia); Kilimanjaro (Africa).
+  - Pan and zoom the map, or drag the frame's corners and edges. You can also pick a place from the badge's menu. It holds 108 places, grouped by continent: the ten built-in places and 98 more, listed in [Places](places.md).
+  - The menu opens with a search field. Type a name, a country, a continent or a kind such as `volcano`; case and accents do not matter, so `reunion` finds Réunion. The arrow keys move through the results and Enter picks one.
+  - The ten built-in places load from the library. Every other place loads its pre-rendered grid from `/places/<id>.png`, and falls back to the elevation tiles when that file fails.
   - Press **Apply**. The real elevation inside the frame becomes the terrain.
   - Apply switches to 3D and uses the map terrain view: 36 lines at 0.5 px and 0.9 opacity, every fourth line bold, a block at elevation 0.12, and a closer camera.
   - Each place keeps that view but has its own camera angle and elevation. This puts its main feature in the middle, with the skyline above it.
   - Apply also saves the terrain in the dock, after the built-in map terrains. Its name is the place's name, or Area.
-  - The dock starts with a built-in Istanbul map terrain for everyone. Like a look, it does not keep your changes. A click on it always brings back its own settings, camera and pan.
+  - The dock starts with eleven built-in map terrains for everyone: Istanbul, Grand Canyon, Geirangerfjord, Yosemite Valley, Mount Fuji, Matterhorn & Zermatt, Torres del Paine, Everest, Kilimanjaro, Machu Picchu, and Naples & Vesuvius. The last two are catalog places and load their grids from `/places/<id>.png`. Each one is like a look: it does not keep your changes, and a click on it always brings back its own settings, camera and pan.
   - When a saved item is active, your changes to it are kept, including camera moves. A click on it brings back the view you left it in.
   - A built-in look does not keep your changes. A click on it always brings back its own camera. A plain shape uses the playground camera.
   - **Clear** goes back to the generated terrain. It also brings back the lines, camera, extent and elevation you had before.
@@ -538,7 +542,7 @@ The playground (`apps/playground`) is the project's live demo page.
   - A pan away from the centre adds `px` and `pz`. A 2D pan or zoom adds `vx`, `vy` and `vz`.
   - Quality writes `ql` when it is `low`, `medium` or `high`. `auto` is the default, so it is left out.
   - The address bar updates a few times a second at most, and again when a drag or pinch ends. A gesture does not write the URL on every frame.
-  - `?place=istanbul` or `?region=west,south,east,north` opens a real place.
+  - `?place=istanbul` or `?region=west,south,east,north` opens a real place. `place=` takes any id in [Places](places.md).
 - It serves `/llms.txt`, `/llms-full.txt` and `/docs/*.md`. These files are made from the settings table in the code.
 
 To run it, use `npm install && npm run dev`.
@@ -622,7 +626,7 @@ The `?analytics_agent=<name>&analytics_purpose=<purpose>` keys in that first URL
 | `record_video` | Records a short 3D video of the current terrain with a moving camera. Returns it as an MP4 or WebM data URL. The default is a 2 second orbit at 640×360. |
 | `get_embed_code` | Returns code for `html`, `react`, `vanilla` or `json`. |
 | `get_install_instructions` | Returns setup steps for `npm`, `web-component`, `react` or `vanilla`. |
-| `set_region` | Draws a real place as the terrain. Use a named `place` or a bounding box in degrees. `relief` and `smooth` are optional. |
+| `set_region` | Draws a real place as the terrain. Use a named `place`, any id in [Places](places.md), or a bounding box in degrees. `relief` and `smooth` are optional. |
 | `get_region` | Returns the current region, relief, smoothing, load status and URL query. While heights are still loading, `loading` is true and `message` is `Loading terrain`. |
 | `clear_region` | Removes the region and brings back the generated terrain. |
 

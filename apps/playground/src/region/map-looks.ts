@@ -7,6 +7,20 @@ import fujiThumb from '../assets/map-looks/fuji-thumb.webp';
 import fujiMinimap from '../assets/map-looks/fuji-minimap.webp';
 import yosemiteThumb from '../assets/map-looks/yosemite-thumb.webp';
 import yosemiteMinimap from '../assets/map-looks/yosemite-minimap.webp';
+import matterhornThumb from '../assets/map-looks/matterhorn-thumb.webp';
+import matterhornMinimap from '../assets/map-looks/matterhorn-minimap.webp';
+import grandCanyonThumb from '../assets/map-looks/grand-canyon-thumb.webp';
+import grandCanyonMinimap from '../assets/map-looks/grand-canyon-minimap.webp';
+import torresDelPaineThumb from '../assets/map-looks/torres-del-paine-thumb.webp';
+import torresDelPaineMinimap from '../assets/map-looks/torres-del-paine-minimap.webp';
+import everestThumb from '../assets/map-looks/everest-thumb.webp';
+import everestMinimap from '../assets/map-looks/everest-minimap.webp';
+import kilimanjaroThumb from '../assets/map-looks/kilimanjaro-thumb.webp';
+import kilimanjaroMinimap from '../assets/map-looks/kilimanjaro-minimap.webp';
+import machuPicchuThumb from '../assets/map-looks/machu-picchu-thumb.webp';
+import machuPicchuMinimap from '../assets/map-looks/machu-picchu-minimap.webp';
+import naplesThumb from '../assets/map-looks/naples-vesuvius-thumb.webp';
+import naplesMinimap from '../assets/map-looks/naples-vesuvius-minimap.webp';
 import type { BBox } from 'topographic/locations';
 import { findPlace } from './places';
 
@@ -47,10 +61,10 @@ export const ISTANBUL_SETTINGS = {
 } as const satisfies SettingsInput;
 
 /**
- * Geirangerfjord, Mount Fuji and Yosemite share the rose pod look on #0b0b0d paper, with their own ink, elevation and camera
- * angle, decoded from `?look=rose-pod&lc=36&lw=0&lo=0.9&ix=4&ink=…&paper=0b0b0d&mode=3d&ex=block&ev=…&az=341.8&ce=…&rd=1.32&px=0.033&pz=-0.049&place=…`.
+ * Every place but Istanbul shares the rose pod look on #0b0b0d paper, with its own ink, elevation and camera
+ * angle, decoded from `?look=rose-pod&lc=36&lw=0&lo=0.9&ix=4&ink=…&paper=0b0b0d&mode=3d&ex=block&ev=…&az=341.8&ce=…&rd=1.32&px=0.003&pz=0.05&place=…`.
  */
-function rosePod(ink: string, elevation: number, cameraElevation: number): SettingsInput {
+function rosePod(ink: string, elevation: number, cameraElevation: number, azimuth = 341.8, camera: SettingsInput['camera'] = {}): SettingsInput {
   return {
     shape: 'seed-pod',
     seed: 71,
@@ -62,12 +76,21 @@ function rosePod(ink: string, elevation: number, cameraElevation: number): Setti
     mode: '3d',
     elevation,
     extent: 'block',
-      camera: { azimuth: 341.8, elevation: cameraElevation, radius: 1.32, motion: 'still', panX: 0.033, panZ: -0.049 },
+    camera: { azimuth, elevation: cameraElevation, radius: 1.32, motion: 'still', panX: 0.003, panZ: 0.05, ...camera },
   };
 }
 
+/**
+ * A catalog place in the dock: its name and box, copied from catalog.json so the dock does not
+ * load the catalog on the first page load. map-looks.test.ts checks that they match.
+ */
+const CATALOG_DOCK: Record<string, { name: string; bbox: BBox }> = {
+  'machu-picchu': { name: 'Machu Picchu', bbox: { west: -72.688, south: -13.26, east: -72.412, north: -13.06 } },
+  'naples-vesuvius': { name: 'Naples & Vesuvius', bbox: { west: 13.98, south: 40.617, east: 14.62, north: 40.943 } },
+};
+
 function mapLook(id: string, placeId: string, settings: SettingsInput, thumb: string, minimap: string): MapLook {
-  const place = findPlace(placeId);
+  const place = CATALOG_DOCK[placeId] ?? findPlace(placeId);
   if (!place) throw new Error(`No place ${placeId}`);
   return { id, name: place.name, placeId, bbox: place.bbox, settings, thumb, minimap };
 }
@@ -75,9 +98,19 @@ function mapLook(id: string, placeId: string, settings: SettingsInput, thumb: st
 /** The built-in map terrains, in dock order. */
 export const MAP_LOOKS: readonly MapLook[] = [
   mapLook('istanbul', 'istanbul', ISTANBUL_SETTINGS, istanbulThumb, istanbulMinimap),
+  // Each ink is a quiet tint of the land: dry stone, glacier ice, fjord water, red rock, granite and pine,
+  // glacial lakes, volcanic ash, high snow, savanna, cloud forest and volcanic stone.
+  mapLook('grand-canyon', 'grand-canyon', rosePod('#dcb9a0', 0.08, 40, 10), grandCanyonThumb, grandCanyonMinimap),
   mapLook('geirangerfjord', 'geirangerfjord', rosePod('#a8c7f0', 0.16, 35), geirangerfjordThumb, geirangerfjordMinimap),
-  mapLook('fuji', 'fuji', rosePod('#9fbecc', 0.24, 30), fujiThumb, fujiMinimap),
   mapLook('yosemite', 'yosemite', rosePod('#a8eff0', 0.16, 35), yosemiteThumb, yosemiteMinimap),
+  mapLook('fuji', 'fuji', rosePod('#9fbecc', 0.24, 30), fujiThumb, fujiMinimap),
+  mapLook('matterhorn', 'matterhorn', rosePod('#c4d7e8', 0.16, 35), matterhornThumb, matterhornMinimap),
+  mapLook('torres-del-paine', 'torres-del-paine', rosePod('#b3d6d0', 0.16, 35), torresDelPaineThumb, torresDelPaineMinimap),
+  mapLook('everest', 'everest', rosePod('#d5e2ee', 0.32, 40), everestThumb, everestMinimap),
+  mapLook('kilimanjaro', 'kilimanjaro', rosePod('#d4c39e', 0.24, 30), kilimanjaroThumb, kilimanjaroMinimap),
+  // Two catalog places, with the camera and elevation the catalog gives their kind: a mountain and a city.
+  mapLook('machu-picchu', 'machu-picchu', rosePod('#b9d3b0', 0.16, 35), machuPicchuThumb, machuPicchuMinimap),
+  mapLook('naples-vesuvius', 'naples-vesuvius', rosePod('#d2c4b8', 0.12, 39.3), naplesThumb, naplesMinimap),
 ];
 
 export function findMapLook(id: string | null): MapLook | undefined {
