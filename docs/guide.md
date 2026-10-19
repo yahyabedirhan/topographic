@@ -403,7 +403,11 @@ The playground is a Cloudflare Worker with static assets. With Workers Builds, a
 
 ### Hosting
 
-`wrangler.jsonc` at the repo root describes the Worker `topographic`. It has no script: it serves `apps/playground/dist` as static assets, with `_headers` from `apps/playground/public` for caching. Unknown paths fall back to `index.html`, since the playground keeps its state in the query string.
+`wrangler.jsonc` at the repo root describes the Worker `topographic`. It serves `apps/playground/dist` as static assets, with `_headers` from `apps/playground/public` for caching. The build also writes the page as `about.html`, so `/about` is a real file.
+
+- A browser that navigates to an unknown path gets `index.html`, since the playground keeps its state in the query string. The page then goes home and keeps the query.
+- Any other request for an unknown path, such as `curl` or `fetch` for `/.well-known/mcp.json`, reaches the small script `worker/index.js` and gets a plain-text 404 that points to `llms.txt`.
+- `robots.txt` allows every crawler and points to `llms.txt` and `sitemap.xml`.
 
 - `npm run deploy` builds the playground and runs `wrangler deploy`.
 - Workers Builds, connected to this repo, uses the build command `npm run build`, the deploy command `npx wrangler deploy` and `NODE_VERSION=20`.
