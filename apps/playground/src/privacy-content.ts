@@ -35,4 +35,4 @@ export const EVENT_INFO: Record<AnalyticsEvent, EventInfo> = {
   analytics_opted_out: { props: 'The previous level (all or pageviews only)', why: 'sent once when you opt out, to count opt outs' },
 };
 
-export const SUPER_PROPS = 'Every event also carries: site and app name, app version, a coarse screen class (phone, tablet or desktop), mobile or desktop, OS family, and the view the visit started in.';
+export const SUPER_PROPS = 'Every event also carries: site and app name, app version, a coarse screen class (phone, tablet or desktop), mobile or desktop, OS family, the view the visit started in, and the random visitor id.';

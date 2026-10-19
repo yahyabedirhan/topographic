@@ -6,14 +6,17 @@
  * - `?optin` clears the choice.
  *
  * The parameter is removed from the address bar once it is read, so it does not end up in shared links.
+ * Any choice other than `all` also deletes the visitor id.
  */
+
+import { forgetVisitor } from './visitor';
 
 export type Consent = 'all' | 'pageviews' | 'none';
 export const CONSENT_KEY = 'topographic:analytics';
 
 type Store = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 
-function safeStore(): Store | null {
+export function safeStore(): Store | null {
   try { return window.localStorage; } catch { return null; }
 }
 
@@ -40,6 +43,7 @@ function initial(): Consent {
     url.searchParams.delete(handled);
     try { window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash); } catch { /* ignore */ }
   }
+  if (consent !== 'all') forgetVisitor(safeStore());
   return consent;
 }
 
@@ -55,4 +59,5 @@ export function setConsent(next: Consent): void {
     if (next === 'all') store?.removeItem(CONSENT_KEY);
     else store?.setItem(CONSENT_KEY, next);
   } catch { /* ignore */ }
+  if (next !== 'all') forgetVisitor(store);
 }
