@@ -486,7 +486,11 @@ try {
   }
   const desc = await agent.evaluate(() => window.__tools.identify_agent.description);
   check(/Optional/.test(desc) && /nothing about the person/.test(desc), 'identify_agent says it is optional and records nothing about the person');
-  check((await call('list_shapes')).shapes.length === 7, 'list_shapes');
+  const listed = await call('list_shapes');
+  check(listed.shapes.length === 7 && listed.looks.some((l) => l.id === 'survey-map'), `list_shapes (${listed.looks.length} looks)`);
+  const looked = await call('set_settings', { look: 'rose-pod', lines: { count: 40 } });
+  check(looked.config.shape === 'seed-pod' && looked.config.seed === 71 && looked.config.lines.count === 40 && looked.adjustments.length === 0,
+    `set_settings applies a look with an override: ${JSON.stringify(looked.adjustments)}`);
   const set = await call('set_settings', { shape: 'dunes', lines: { count: 999 }, bogus: 1 });
   check(set.config.shape === 'dunes' && set.config.lines.count === 60 && set.adjustments.length === 2, `set_settings validates: ${JSON.stringify(set.adjustments)}`);
   const old = await call('set_settings', { style: 'granite' });

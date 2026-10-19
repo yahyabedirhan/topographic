@@ -3,6 +3,8 @@ import { forwardRef, useEffect, useRef, useState, type HTMLAttributes, type Muta
 import { createTopography, type RendererOptions, type SettingsInput, type Topography as TopographyInstance } from 'topographic';
 
 export interface TopographySettingsProps {
+  /** A built-in look by id, e.g. 'survey-map'. The other props override its values. */
+  look?: string;
   /** Shape id, e.g. 'dunes'. `style` stays React's inline CSS prop. */
   shape?: string;
   seed?: number;
@@ -54,7 +56,7 @@ export function useTopography<T extends HTMLElement = HTMLDivElement>(
     return () => { t.destroy(); ref.topographic = null; };
   }, [ref, stableOptions]);
 
-  const { shape, seed, mode, elevation, extent, detail, quality } = settings;
+  const { look, shape, seed, mode, elevation, extent, detail, quality } = settings;
   const lines = useByValue(settings.lines);
   const terrain = useByValue(settings.terrain);
   const motion = useByValue(settings.motion);
@@ -62,6 +64,8 @@ export function useTopography<T extends HTMLElement = HTMLDivElement>(
   const theme = useByValue(settings.theme);
   const camera = useByValue(settings.camera);
   const view2d = useByValue(settings.view2d);
+  // A new look replaces the design, so the other props apply again on top of it.
+  useEffect(() => { if (look !== undefined) ref.topographic?.update({ ...latest.current, look }); }, [ref, look]);
   useEffect(() => { if (shape !== undefined) ref.topographic?.update({ shape }); }, [ref, shape]);
   useEffect(() => { if (seed !== undefined) ref.topographic?.update({ seed }); }, [ref, seed]);
   useEffect(() => { if (lines) ref.topographic?.update({ lines }); }, [ref, lines]);
@@ -90,10 +94,10 @@ export interface TopographyProps extends TopographySettingsProps, Omit<HTMLAttri
 
 /** A <div> with a topographic background. Size it like any div; children render on top. */
 export const Topography = forwardRef<HTMLDivElement, TopographyProps>(function Topography(
-  { shape, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera, view2d, options, onReady, style, children, ...div },
+  { look, shape, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera, view2d, options, onReady, style, children, ...div },
   forwarded,
 ) {
-  const ref = useTopography<HTMLDivElement>({ shape, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera, view2d }, options);
+  const ref = useTopography<HTMLDivElement>({ look, shape, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera, view2d }, options);
   const stableOptions = useByValue(options);
   const ready = useRef(onReady);
   ready.current = onReady;

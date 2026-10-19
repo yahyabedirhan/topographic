@@ -13,7 +13,7 @@ const topography = createTopography(el, { shape: 'dunes', lines: { count: 30 } }
 3. A `seed` varies a shape reproducibly.
 4. Colours: `ink` and `paper`, taken from CSS variables, with automatic dark mode. Paper can be transparent.
 5. Settings update live, without remounting.
-6. The playground has sliders, presets, randomize, state in the URL, and exports an embed snippet and a PNG.
+6. The playground has sliders, looks, randomize, state in the URL, and exports an embed snippet and a PNG.
 7. Out-of-range values are clamped. An unknown shape falls back to the default shape and logs one warning.
 8. Reduced motion shows one still frame. Animation pauses when off-screen or when the tab is hidden. A pixel budget caps GPU cost.
 9. If WebGL is missing or the context is lost, the element shows the paper colour. A restored context resumes rendering.
@@ -27,7 +27,7 @@ const topography = createTopography(el, { shape: 'dunes', lines: { count: 30 } }
 - **Renderer**: owns the canvas, the WebGL program, the frame loop, observers and the pixel budget. It is created by `createTopography` and is the only thing that touches WebGL.
 - **Settings**: the full, validated value object (`shape`, `seed`, `lines`, `terrain`, `motion`, `layout`, `theme`). The `params` table defines each field's name, range, default and uniform slot.
 - **Shape**: data, not code. `{ id, name, index, notes }`. `index` selects a branch in the one combined shader.
-- **Preset**: data. `{ name, settings: Partial<Settings> }`. Presets live in core, so every wrapper shares them.
+- **Look**: data. `{ id, name, settings: Partial<Settings> }`, a named, finished design. Looks live in core, so every wrapper and the playground's dock share them. The `look` setting names one by id.
 - **Theme**: resolves `ink` and `paper` from settings, then CSS variables (`--topographic-ink`, `--topographic-paper`), then light/dark defaults.
 - **`<topographic-view>`**: a custom element. Attributes become Settings, and it holds one Renderer.
 - **React `<Topography>`** and **`useTopography`**: props become Settings, and they hold one Renderer.
@@ -43,7 +43,7 @@ packages/core/src/
   params.ts              the single table: name, group, range, default, uniform slot
   settings.ts            resolve, clamp, merge, serialize to attributes and URL
   shapes.ts           Shape records (7)
-  presets.ts             Preset records
+  looks.ts               Look records
   theme.ts               ink/paper resolution, dark mode, CSS variables
   shader/common.glsl.ts  noise, smooth-min, line drawing
   shader/topographic.glsl.ts  combined height field, branch per shape
@@ -87,7 +87,7 @@ Ranges are 0–1 except counts. The land shape is `shape` everywhere: in setting
 
 ## Traced flow
 **Happy path.** `createTopography(el, { shape: 'dunes' })` runs these steps:
-1. Settings are resolved: defaults, then the preset, then the input; values are clamped.
+1. Settings are resolved: defaults, then the shape's defaults, then the look, then the input; values are clamped.
 2. Theme reads the CSS variables.
 3. The Renderer compiles the shader and maps Settings to uniforms.
 4. Observers start, and the frame loop draws.
@@ -105,14 +105,14 @@ Ranges are 0–1 except counts. The land shape is `shape` everywhere: in setting
 |---|---|
 | A setting | `params.ts` row, plus its use in `topographic.glsl.ts` |
 | A shape | `shapes.ts` record, plus a branch in `topographic.glsl.ts` |
-| A preset | `presets.ts` record only |
+| A look | `looks.ts` record and its `LookId` |
 | A wrapper (Vue, Svelte) | a new package calling `createTopography` |
 | An export format | `apps/playground/src/exporting.tsx` (SVG later needs a CPU port of the height field) |
 
 ## Decisions
 - **One combined shader; the shape is data.** It's simpler to ship and to switch shapes live. The cost is that one shader carries every branch.
 - **Grouped, readable setting names, normalised to 0–1.** This is the public contract and is costly to change later.
-- **Presets in core**, shared by all wrappers.
+- **Looks in core**, shared by all wrappers and the playground.
 - **Colours through CSS variables**, with dark mode and transparent paper. Palettes come later.
 - **Pixel budget** (minimum pixel ratio plus maximum pixel count) instead of a simple DPR cap.
 - **Fallback, not exceptions,** when WebGL is missing or lost.
