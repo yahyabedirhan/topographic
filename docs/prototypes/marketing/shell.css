@@ -5,6 +5,7 @@ html,body{background:var(--bg);color:var(--fg);font:400 14px/1.5 var(--sans)}
 a{color:inherit}
 code{font-family:var(--mono);font-size:.92em}
 p,li,figcaption,td{text-wrap:pretty}
+:not(pre)>code{white-space:nowrap}
 h1,h2,h3{text-wrap:balance}
 #app{padding:28px 24px 120px;max-width:1520px;margin:0 auto}
 .mb-head{margin-bottom:22px}

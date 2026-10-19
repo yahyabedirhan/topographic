@@ -367,3 +367,12 @@ Read as: no icons, one text row with small dots, like the playground's "yahyapak
 On the 2D/3D icon button over a figure:
 
 > You can decrease the padding around this button because when it's not hovered it looks like it's a huge button.
+
+On "Children are drawn on top":
+
+> So this `children` is React terminology but it's hard to understand here.
+> Say things like `content`.
+
+On a sidenote where the inline code `'use client'` breaks across two lines:
+
+> And here the new line breaks the `use client` directive and it's not looking good like this.
