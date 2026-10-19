@@ -12,6 +12,7 @@ export const START = [
 
 /** Places to review outside the boards. Each: { title, kind, href, note }. */
 export const PLACES = [
+  { title: 'Decisions and reviews', kind: 'Start here', href: 'decisions.html', note: 'Everything waiting for you, each with its context, a recommendation and the variants it is about, switchable live.' },
   { title: 'Writing desk', kind: 'Edit here', href: 'writing.html', note: 'Every public line in one place: write your idea and each line, see it live on the README, a social card, GitHub, npm and a search result. Saves as you type.' },
   { title: 'Docs page A, reference essay', kind: 'Full page', href: 'docs/a.html', note: 'The anatomy layout in dark: sticky nav, one column, margin notes and controls, live figures.' },
   { title: 'Docs page B, live split', kind: 'Full page', href: 'docs/b.html', note: 'One sticky live terrain that changes as each section scrolls in.' },

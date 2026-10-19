@@ -220,3 +220,19 @@ Issues filed for the next release: #78 heightmap export, #79 glTF mesh export, #
 > You just focus on the things that you showed me on this prototypes page (http://localhost:5199/docs/prototypes/marketing/).
 >
 > After I am done with them, I will hand over this session to another one to focus on the videos separately, okay?
+
+## Round 2
+
+### docs-page: variant A, in progress
+
+On the italic emphasis, such as "the land itself":
+
+> I didn't like this font.
+> Instead you can use the font that we use as the branding font of this website, Literata.
+> Don't use all of these different kinds of fonts.
+> Just stick to one serif font and use it consistently, okay?
+
+On the "0.6.0" badges:
+
+> And I didn't like these versioning tags everywhere.
+> Instead just show the version somewhere in a global manner so that we don't have them everywhere around.

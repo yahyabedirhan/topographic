@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>topographic decisions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Literata:opsz,wght@7..72,500;7..72,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shell.css">
+<style>
+  #dv{max-width:1520px;margin:0 auto;padding:28px 24px 120px;display:grid;grid-template-columns:300px minmax(0,1fr);gap:28px;align-items:start}
+  .dv-list{position:sticky;top:20px;display:grid;gap:6px}
+  .dv-list h1{font:600 24px/1.2 var(--serif);margin:6px 0 10px}
+  .dv-list button{display:grid;grid-template-columns:40px 1fr;gap:4px 8px;text-align:left;padding:10px 12px;border:0;border-radius:12px;background:#111114;color:var(--fg);box-shadow:inset 0 0 0 .5px var(--line);cursor:pointer;font:inherit}
+  .dv-list button.on{background:#1d1d22;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}
+  .dv-list b{font:500 12px var(--mono);color:var(--muted);grid-row:span 2}
+  .dv-list small{color:var(--muted);font-size:12px}
+  .dv-main h2{font:600 22px/1.25 var(--serif);margin:4px 0 6px}
+  .dv-kind{font:500 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .dv-q{font-size:16px;color:#ecebe8;margin-bottom:12px}
+  .dv-ctx{display:grid;gap:6px;color:#c9c8c3;max-width:900px;margin-bottom:14px}
+  .dv-rec{padding:12px 14px;border-radius:12px;background:#15140f;box-shadow:inset 0 0 0 1px rgba(224,162,74,.35);max-width:900px;margin-bottom:16px}
+  .dv-rec b{color:#e0a24a;font-weight:600;margin-right:6px}
+  .dv-opts{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;align-items:center}
+  .dv-opts button{font:500 13px var(--sans);border:0;border-radius:999px;padding:8px 14px;background:#1a1a1e;color:var(--fg);cursor:pointer}
+  .dv-opts button.on{background:var(--fg);color:#0b0b0d}
+  .dv-opts .ans{margin-left:auto;color:var(--muted);font-size:12.5px}
+  .dv-opts .ans code{color:var(--fg)}
+  .dv-text{padding:18px;border-radius:14px;background:#111114;box-shadow:inset 0 0 0 .5px var(--line);max-width:900px}
+  .dv-link{display:inline-block;margin-bottom:14px;color:var(--fg)}
+  .dv-missing{padding:40px;border-radius:14px;background:#111114;color:var(--muted);text-align:center}
+  @media (max-width:900px){#dv{grid-template-columns:1fr}.dv-list{position:static}}
+</style>
+</head>
+<body>
+<!-- PROTOTYPE. Decisions and reviews waiting for the maintainer, each with the variants it is about. -->
+<main id="dv"></main>
+<script type="module" src="decisions.js"></script>
+</body>
+</html>
