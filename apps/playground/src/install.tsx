@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { Button } from '@base-ui-components/react/button';
 import { Popover } from '@base-ui-components/react/popover';
 import { Tooltip } from '@base-ui-components/react/tooltip';
@@ -66,19 +66,22 @@ function FootAction({ icon, label, onClick }: { icon: ReactNode; label: string; 
 }
 
 /**
- * Install, alone in the top-right corner: a preview of the view with its main settings, the agent
- * skill and the npm packages, and this view's code and link as a shortcut to Export.
+ * Export and Install, together in the top-right corner. Install shows a preview of the view with its
+ * main settings, the agent skill and the npm packages, and this view's code and link as a shortcut to Export.
  */
-export function InstallMenu({ pg, region, open, onOpenChange, onOpenExport }: {
+export function InstallMenu({ pg, region, open, onOpenChange, onOpenExport, anchor, exporting }: {
   pg: Playground;
   region: RegionController;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onOpenExport: () => void;
+  /** The right cluster, which both popovers open under. */
+  anchor: RefObject<HTMLDivElement>;
+  exporting: ReactNode;
 }) {
-  const anchor = useRef<HTMLDivElement>(null);
   return (
     <div className="pt-cluster pt-glass pt-install-solo" ref={anchor}>
+      {exporting}
       <Popover.Root open={open} onOpenChange={onOpenChange}>
         <Tooltip.Root>
           <Tooltip.Trigger delay={180} render={<Popover.Trigger className="pt-ibtn" aria-label="Install" />}>

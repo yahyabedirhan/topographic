@@ -133,6 +133,7 @@ button.pt-thumb-del:hover{background:var(--paper)}
 button.pt-scroll-more{position:absolute;right:1px;top:50%;transform:translateY(-50%);width:22px;height:22px;padding:0;border:0;border-radius:50%;display:grid;place-items:center;color:var(--fg);
   background:color-mix(in srgb,var(--paper) 82%,transparent);box-shadow:inset 0 0 0 .5px var(--line);z-index:1}
 button.pt-scroll-more:hover{background:var(--paper)}
+button.pt-scroll-more.is-back{right:auto;left:1px}
 .pt-tool-slot{width:28px;height:28px;display:grid;place-items:center}
 button.pt-tool{width:28px;height:28px;padding:0;border:0;border-radius:50%;display:grid;place-items:center;color:var(--fg);line-height:0;
   background:color-mix(in srgb,var(--fg) 7%,transparent);box-shadow:inset 0 0 0 .5px var(--line)}
