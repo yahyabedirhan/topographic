@@ -411,3 +411,15 @@ On the footer ("topographic is Apache 2.0, by Yahya Bedirhan Pak. Heights from M
 
 > This area is looking a little bit crowded.
 > It's not visually understandable what this is about so let's try to make this a little bit more beautiful and structural.
+
+On naming the element after the React component:
+
+> Since we have this React component named Topography, we can do this for the HTML web component.
+> Instead of Topographic View we can just say Topography there as well: `<topography>`.
+> Does it make sense?
+
+A custom element needs a hyphen, so `<topography>` is not valid. After the options `<topography-view>` and `<topographic-view>`:
+
+> Okay let's make it a topographic view then.
+
+Decision: the element stays `<topographic-view>`.
