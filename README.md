@@ -14,6 +14,14 @@
 
 <p align="center"><img src="apps/playground/public/readme/hero-everest.webp" width="100%" alt="Everest and the Khumbu valley in 3D, drawn as pale contour lines from real elevation data, the camera swinging slowly around the block"></p>
 
+With a coding agent, install the topographic skill and ask for a terrain:
+
+```sh
+npx skills add yahyabedirhan/topographic
+```
+
+By hand:
+
 ```sh
 npm install topographic
 ```
@@ -274,7 +282,7 @@ The [guide](docs/guide.md) lists every setting with its range and default, and c
 
 ## How it works
 
-![How topographic fits together: the web component, the React component and the playground call one public API, which also takes an optional heightfield. Settings resolve from the params table, shapes and presets, and one WebGL renderer draws them as a 2D contour shader or a 3D terrain pass, whose frames record() encodes as video.](assets/images/diagrams/library-architecture.png)
+![How topographic fits together: the web component, the React component and the playground call one public API, which also takes an optional heightfield. Settings resolve from the params table, shapes and looks, and one WebGL renderer draws them as a 2D contour shader or a 3D terrain pass, whose frames record() encodes as video.](assets/images/diagrams/library-architecture.png)
 
 The web component, the React component and the [playground](https://topographic.yahyapak.dev/) all use the same code.
 One renderer draws both 2D and 3D.
@@ -284,7 +292,7 @@ One renderer draws both 2D and 3D.
 2D and 3D use the same land and the same lines.
 3D adds height and a camera.
 
-![How a real place becomes a terrain in the playground: the Map popover gives a bounding box, a worker fetches Terrarium elevation tiles, stitches and resamples them to a 256 by 256 grid, scales the relief and smooths it, and the region hook hands the heightfield to the renderer with setHeightfield().](assets/images/diagrams/real-place-pipeline.png)
+![How a real place becomes a terrain in the playground: the Map popover gives a bounding box, and the playground worker calls the library's topographic/locations. A named place loads its built-in grid with loadLocation(). Any other area goes through fetchLocation(), which fetches Terrarium elevation tiles, stitches and resamples them to a 256 by 256 grid, scales the relief and smooths it. The region hook hands the heightfield to the renderer with setHeightfield().](assets/images/diagrams/real-place-pipeline.png)
 
 A real place starts as elevation tiles.
 They are stitched, smoothed and turned into a grid of heights, which the renderer draws.

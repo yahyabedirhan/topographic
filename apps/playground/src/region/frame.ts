@@ -1,4 +1,4 @@
-import type { BBox } from './pipeline';
+import type { BBox } from 'topographic/locations';
 
 /** A rectangle on the map, in CSS pixels from the map's top-left corner. */
 export interface Rect {

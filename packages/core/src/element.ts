@@ -3,7 +3,7 @@ import { createTopography, type Topography, type SnapshotOptions } from './rende
 import { fromAttributes, resolveSettings, type SettingsInput } from './settings.js';
 
 export const ELEMENT_ATTRIBUTES: readonly string[] = [
-  'shape', 'seed', 'theme', 'ink', 'paper', 'mode', 'elevation', 'extent', 'detail', 'quality',
+  'look', 'shape', 'location', 'seed', 'theme', 'ink', 'paper', 'mode', 'elevation', 'extent', 'detail', 'quality',
   'azimuth', 'camera-elevation', 'radius', 'camera-motion', 'pan-x', 'pan-z', 'view-x', 'view-y', 'view-zoom', ...PARAMS.map((p) => p.attr),
 ];
 
@@ -31,10 +31,12 @@ export class TopographyElement extends Base {
     this.#topographic = null;
   }
 
-  attributeChangedCallback(): void {
+  attributeChangedCallback(name: string): void {
     if (!this.#topographic) return;
-    const full = resolveSettings(this.#read());
-    this.#topographic.update({ ...full, theme: { ink: undefined, paper: undefined, ...full.theme } });
+    const { location, ...full } = resolveSettings(this.#read());
+    // Without the attribute, a grid passed with update({ location }) stays.
+    const keep = name !== 'location' && !this.hasAttribute('location');
+    this.#topographic.update({ ...full, ...(keep ? {} : { location }), theme: { ink: undefined, paper: undefined, ...full.theme } });
   }
 
   snapshot(opts?: SnapshotOptions): Promise<Blob> {

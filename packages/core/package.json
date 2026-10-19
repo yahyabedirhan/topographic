@@ -55,6 +55,10 @@
     "./element": {
       "types": "./dist/element.d.ts",
       "import": "./dist/element.js"
+    },
+    "./locations": {
+      "types": "./dist/locations/index.d.ts",
+      "import": "./dist/locations/index.js"
     }
   },
   "files": [

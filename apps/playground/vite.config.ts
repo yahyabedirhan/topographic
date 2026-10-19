@@ -26,4 +26,10 @@ function debugEndpoint(): Plugin {
   };
 }
 
-export default defineConfig({ plugins: [react(), docsPlugin(), debugEndpoint()], base: process.env.BASE_PATH || '/', define: { __APP_VERSION__: JSON.stringify(version) } });
+// The region worker is a module worker. ES output lets it split each built-in location into its own chunk.
+export default defineConfig({
+  plugins: [react(), docsPlugin(), debugEndpoint()],
+  base: process.env.BASE_PATH || '/',
+  define: { __APP_VERSION__: JSON.stringify(version) },
+  worker: { format: 'es' },
+});

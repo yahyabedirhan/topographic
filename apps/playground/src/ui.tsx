@@ -12,11 +12,10 @@ import { ignoredWithPlace } from './shape';
 import type { Terrains } from './terrains';
 import { InstallMenu } from './install';
 import {
-  DEFAULT_CAMERA, DEFAULT_DETAIL, DEFAULT_ELEVATION, DEFAULT_EXTENT, GROUPS, RADIUS_MAX, RADIUS_MIN, paramsIn, resolveMode,
+  DEFAULT_CAMERA, DEFAULT_DETAIL, LOOKS, DEFAULT_ELEVATION, DEFAULT_EXTENT, GROUPS, RADIUS_MAX, RADIUS_MIN, paramsIn, resolveMode,
   type QualityName,
   type CameraMotion, type GroupName, type ParamDef, type TerrainExtent,
 } from 'topographic';
-import { LOOK_CAMERAS, LOOKS } from './looks';
 import { PLAYGROUND_QUALITY } from './share-url';
 import { OffNote, Preview, Section, SegRow, SliderRow, Tabs, Tip, type TabItem } from './parts';
 import { contourArt, flowArt, layoutArt, rigArt, terrainArt, type GlyphName, type TrackKind } from './track-art';
@@ -469,7 +468,7 @@ function ViewTune({ pg }: { pg: Playground }) {
   // Scene, camera and quality only show in 3D.
   const off = s.mode !== '3d';
   // The camera's default is the active look's camera, or the library's default camera without a look.
-  const home = (pg.lookIndex >= 0 && LOOK_CAMERAS[LOOKS[pg.lookIndex].name]) || DEFAULT_CAMERA;
+  const home = (pg.lookIndex >= 0 && LOOKS[pg.lookIndex].settings.camera) || DEFAULT_CAMERA;
   const cameraChanged = (Object.keys(home) as (keyof typeof home)[]).some((k) => s.camera[k] !== home[k])
     || s.camera.motion !== DEFAULT_CAMERA.motion || s.camera.panX !== 0 || s.camera.panZ !== 0;
   const pose = useLivePose(pg, !off && s.camera.motion !== 'still');

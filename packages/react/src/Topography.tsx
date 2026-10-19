@@ -3,8 +3,12 @@ import { forwardRef, useEffect, useRef, useState, type HTMLAttributes, type Muta
 import { createTopography, type RendererOptions, type SettingsInput, type Topography as TopographyInstance } from 'topographic';
 
 export interface TopographySettingsProps {
+  /** A built-in look by id, e.g. 'survey-map'. The other props override its values. */
+  look?: string;
   /** Shape id, e.g. 'dunes'. `style` stays React's inline CSS prop. */
   shape?: string;
+  /** A built-in location id such as 'everest', or a height grid from fetchLocation(). Compared by identity. */
+  location?: SettingsInput['location'];
   seed?: number;
   lines?: SettingsInput['lines'];
   terrain?: SettingsInput['terrain'];
@@ -54,7 +58,7 @@ export function useTopography<T extends HTMLElement = HTMLDivElement>(
     return () => { t.destroy(); ref.topographic = null; };
   }, [ref, stableOptions]);
 
-  const { shape, seed, mode, elevation, extent, detail, quality } = settings;
+  const { look, shape, location, seed, mode, elevation, extent, detail, quality } = settings;
   const lines = useByValue(settings.lines);
   const terrain = useByValue(settings.terrain);
   const motion = useByValue(settings.motion);
@@ -62,7 +66,20 @@ export function useTopography<T extends HTMLElement = HTMLDivElement>(
   const theme = useByValue(settings.theme);
   const camera = useByValue(settings.camera);
   const view2d = useByValue(settings.view2d);
+  // A new look replaces the design, so the other props apply again on top of it.
+  useEffect(() => { if (look !== undefined) ref.topographic?.update({ ...latest.current, look }); }, [ref, look]);
   useEffect(() => { if (shape !== undefined) ref.topographic?.update({ shape }); }, [ref, shape]);
+  // A height grid is large, so it is compared by identity rather than by value. The props a place
+  // sets go with it, so a new location's look never replaces the ones you set.
+  useEffect(() => {
+    if (location === undefined) return;
+    const { camera: c, elevation: e, extent: x, lines: l, layout: y } = latest.current;
+    ref.topographic?.update({
+      location,
+      ...(c ? { camera: c } : {}), ...(e !== undefined ? { elevation: e } : {}), ...(x !== undefined ? { extent: x } : {}),
+      ...(l ? { lines: l } : {}), ...(y ? { layout: y } : {}),
+    });
+  }, [ref, location]);
   useEffect(() => { if (seed !== undefined) ref.topographic?.update({ seed }); }, [ref, seed]);
   useEffect(() => { if (lines) ref.topographic?.update({ lines }); }, [ref, lines]);
   useEffect(() => { if (terrain) ref.topographic?.update({ terrain }); }, [ref, terrain]);
@@ -90,10 +107,10 @@ export interface TopographyProps extends TopographySettingsProps, Omit<HTMLAttri
 
 /** A <div> with a topographic background. Size it like any div; children render on top. */
 export const Topography = forwardRef<HTMLDivElement, TopographyProps>(function Topography(
-  { shape, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera, view2d, options, onReady, style, children, ...div },
+  { look, shape, location, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera, view2d, options, onReady, style, children, ...div },
   forwarded,
 ) {
-  const ref = useTopography<HTMLDivElement>({ shape, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera, view2d }, options);
+  const ref = useTopography<HTMLDivElement>({ look, shape, location, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera, view2d }, options);
   const stableOptions = useByValue(options);
   const ready = useRef(onReady);
   ready.current = onReady;

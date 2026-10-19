@@ -1,4 +1,4 @@
-import { mergeSettings, PRESETS, SHAPES, type Settings, type SettingsInput, type Topography } from 'topographic';
+import { LOOKS, mergeSettings, SHAPES, type Settings, type SettingsInput, type Topography } from 'topographic';
 import { INSTALL } from './content';
 import { embedCode, type EmbedFormat } from './embed';
 import { TOOL_DEFS } from './agent-tools';
@@ -35,10 +35,11 @@ const blobToDataUrl = (b: Blob) => new Promise<string>((resolve, reject) => {
   const r = new FileReader(); r.onload = () => resolve(String(r.result)); r.onerror = () => reject(r.error); r.readAsDataURL(b);
 });
 
-const TOP_KEYS = ['shape', 'seed', 'theme', 'lines', 'terrain', 'motion', 'layout', 'mode', 'elevation', 'extent', 'detail', 'quality', 'camera', 'view2d'];
+const TOP_KEYS = ['look', 'shape', 'seed', 'theme', 'lines', 'terrain', 'motion', 'layout', 'mode', 'elevation', 'extent', 'detail', 'quality', 'camera', 'view2d'];
 
 function adjustments(input: Record<string, unknown>, out: Settings): string[] {
   const notes: string[] = [];
+  if (typeof input.look === 'string' && !LOOKS.some((l) => l.id === input.look)) notes.push(`ignored unknown look "${input.look}"`);
   if (typeof input.shape === 'string' && input.shape !== out.shape) notes.push(`unknown shape "${input.shape}", kept "${out.shape}"`);
   if (typeof input.mode === 'string' && input.mode !== out.mode) notes.push(`mode: ${JSON.stringify(input.mode)} adjusted to ${out.mode}`);
   if (typeof input.extent === 'string' && input.extent !== out.extent) notes.push(`extent: ${JSON.stringify(input.extent)} adjusted to ${out.extent}`);
@@ -76,7 +77,7 @@ export function registerTools(page: PageBridge): () => void {
     },
     list_shapes: () => ({
       shapes: SHAPES.map(({ id, name, description }) => ({ id, name, description })),
-      presets: PRESETS.map((p) => ({ name: p.name, settings: p.settings })),
+      looks: LOOKS.map(({ id, name, settings }) => ({ id, name, settings })),
     }),
     get_settings: () => {
       const settings = page.getSettings();

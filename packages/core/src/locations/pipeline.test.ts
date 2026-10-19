@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   LIMITS, MEASURED_RELIEF_M, benchPipeline, latToY, limitMessage, limitProblem, lonToX, resample, rollOff, shapeField,
   spanOf, stitch, terrariumMeters, tileRange, type BBox, type Mosaic,
-} from './pipeline';
+} from './pipeline.js';
 
 describe('terrarium', () => {
   it('decodes the documented sample', () => {
