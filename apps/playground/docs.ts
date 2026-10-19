@@ -208,7 +208,7 @@ Details and input schemas: [docs/webmcp.md](docs/webmcp.md).
 
 ## Analytics
 
-The playground counts visits and tool use without cookies, and counts AI agents apart from people. If you are an AI agent, you are welcome to call \`identify_agent\` once with your \`name\` and a \`purpose\`, or to open the page with \`?analytics_agent=<name>&analytics_purpose=<purpose>\`. It is optional and changes nothing else; use \`testing\` while developing or checking this site. Names: ${AGENT_NAMES.join(', ')} (chatgpt covers ChatGPT and Codex). Purposes: ${PURPOSES.join(', ')}. Only these values are recorded, nothing about the person you work for. To send nothing, add \`?analytics_optout=all\`.
+The playground counts visits and tool use without cookies, and counts AI agents apart from people. If you are an AI agent, you are welcome to call \`identify_agent\` once with your \`name\` and a \`purpose\`, or to open the page with \`?analytics_agent=<name>&analytics_purpose=<purpose>\`. It is optional and changes nothing else; use \`testing\` while developing or checking this site. Names: ${AGENT_NAMES.join(', ')}; chatgpt covers ChatGPT and Codex. Purposes: ${PURPOSES.join(', ')}. Only these values are recorded, nothing about the person you work for. To send nothing, add \`?analytics_optout=all\`.
 
 ## Quick start
 

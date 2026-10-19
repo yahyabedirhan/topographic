@@ -24,39 +24,39 @@ PostHog records a pageview and a page leave with the page path, referrer, UTM ca
 
 ## Visitor id
 
-The first visit makes a random id (a UUID) and saves it in local storage under `topographic:visitor`. Every event carries it as `visitor_id`, so the visits of one browser can be counted together across days. The id is random: it holds nothing about you, and it differs per browser and device. Either opt out deletes it and stops sending it, and clearing site data removes it. The playground settings in the query string are not sent.
+The first visit makes a random UUID and saves it in local storage under `topographic:visitor`. Every event carries it as `visitor_id`, so the visits of one browser can be counted together across days. The id is random: it holds nothing about you, and it differs per browser and device. Either opt out deletes it and stops sending it, and clearing site data removes it. The playground settings in the query string are not sent.
 
 ## People and agents
 
 The playground counts AI agents apart from people, to see how agents use it. A person's events carry the `visitor_id`. An agent's events carry a random `agent_id` instead, kept for one browser tab.
 
-A visit counts as an agent's when the agent identifies itself, which is optional, or when the browser is run by automation such as Playwright (`automation`: `headless` or `visible`). Agents can identify with the `identify_agent` tool or with `?analytics_agent=<name>&analytics_purpose=<purpose>`. Only a name and a purpose from these lists are recorded, never free text:
+A visit counts as an agent's when the agent identifies itself, which is optional, or when the browser is run by automation such as Playwright. Automated browsers also send whether they were headless or visible. Agents can identify with the `identify_agent` tool or with `?analytics_agent=<name>&analytics_purpose=<purpose>`. Only a name and a purpose from these lists are recorded, never free text:
 
-- Names: claude, chatgpt (ChatGPT and Codex), gemini, jules, copilot, cursor, windsurf, opencode, pi, amp, droid, cline, roo, kilo, aider, goose, kiro, devin, manus, grok, perplexity, other.
+- Names: claude, chatgpt, gemini, jules, copilot, cursor, windsurf, opencode, pi, amp, droid, cline, roo, kilo, aider, goose, kiro, devin, manus, grok, perplexity, other. chatgpt covers ChatGPT and Codex.
 - Purposes: testing, demo, creating, exploring, integrating, research, reverse-engineering, other.
 
 ## Events
 
-Every event also carries: site and app name, app version, a coarse screen class (phone, tablet or desktop), mobile or desktop, OS family, the view the visit started in, and the random visitor id.
+Every event also carries: site and app name, app version, a coarse screen class such as phone, tablet or desktop, mobile or desktop, OS family, the view the visit started in, and the random visitor id.
 
 | Event | Contains | Why |
 | --- | --- | --- |
-| `ui_click` | Which header link (GitHub or the project page), its address, and that it leaves the site | To see which links are useful |
-| `view_mode_changed` | The view before and after (2D or 3D) | To see how much the 3D view is used |
-| `panel_opened` | Which panel (Map, Tune or Export) and its tab | To see which tools are used |
+| `ui_click` | Which header link was clicked, its address, and that it leaves the site | To see which links are useful |
+| `view_mode_changed` | Whether the view changed from 2D to 3D or back | To see how much the 3D view is used |
+| `panel_opened` | Which panel was opened and its tab | To see which tools are used |
 | `panel_closed` | Which panel, its tab, and how long it was open | To find panels that are hard to use |
 | `export_tab_changed` | The export format before and after, and time on the first one | To see which formats are wanted |
-| `dock_item_clicked` | The kind of item (look, map look or saved terrain), its preset id and position | To see which presets are popular |
+| `dock_item_clicked` | Whether it was a look, a map look or a saved terrain, with its preset id and position | To see which presets are popular |
 | `saved_terrain_deleted` | The position of the deleted item | To improve saved terrains |
-| `place_applied` | The preset place id, or "custom" for your own area (never coordinates) | To see which places are drawn |
+| `place_applied` | The preset place id, or "custom" for your own area, never coordinates | To see which places are drawn |
 | `region_loaded` | Load time, success, preset place id or "custom", and tile count | To keep map loading fast and reliable |
-| `setting_changed` | The settings group and key that changed (not the value) | To see which settings matter |
+| `setting_changed` | The settings group and key that changed, never the value | To see which settings matter |
 | `quality_changed` | Detail or budget, and the chosen level | To tune graphics defaults |
 | `theme_toggled` | Light or dark | To set a good default theme |
-| `shuffle_clicked` | What was shuffled (all, paper or ink) | To improve random looks |
-| `colour_changed` | Paper or ink, and how it was picked (picker, swatch or hex); not the colour | To improve the colour controls |
-| `link_copied` | How many settings the link holds (not the link) | To see how sharing is used |
-| `code_copied` | Which snippet (install, React, HTML or JSON) | To see how the library is set up |
+| `shuffle_clicked` | Whether all, paper or ink was shuffled | To improve random looks |
+| `colour_changed` | Paper or ink, and whether the picker, a swatch or a hex code was used, never the colour | To improve the colour controls |
+| `link_copied` | How many settings the link holds, never the link | To see how sharing is used |
+| `code_copied` | Which snippet was copied: install, React, HTML or JSON | To see how the library is set up |
 | `export_image_downloaded` | Size option, width, height, style id, theme, view and render time | To keep image export fast |
 | `export_image_failed` | Size option, a short error label and time taken | To fix failing exports |
 | `export_video_started` | Camera motion, MP4 or WebM, duration, frame rate, width and height | To see which video options are used |
@@ -65,7 +65,7 @@ Every event also carries: site and app name, app version, a coarse screen class 
 | `performance_sample` | Once per visit, about 20 seconds in: median and low frame rate, refresh rate, graphics tier, viewport, pixel ratio, GPU name, device memory, browser, OS family, long frames, lost WebGL contexts, time to first frame and view | To keep the animation smooth on every device |
 | `low_performance_prompt_shown` | The frame rate, the view, and the detail and budget levels | To see how often the default graphics are too heavy |
 | `low_performance_prompt_clicked` | Nothing more | To see if the prompt helps |
-| `analytics_opted_out` | The previous level (all or pageviews only) | Sent once when you opt out, to count opt outs |
+| `analytics_opted_out` | The previous level: all, or pageviews only | Sent once when you opt out, to count opt outs |
 | `agent_tool_called` | When an agent uses a playground tool: the tool's name, whether it worked, and a rough duration. Never the agent's input or the result | To see which tools agents use |
 
 ## Error reports
