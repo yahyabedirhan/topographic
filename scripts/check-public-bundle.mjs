@@ -6,7 +6,10 @@ import { join } from 'node:path';
 
 const dist = new URL('../apps/playground/dist/', import.meta.url).pathname;
 const markers = ['pt-debug', '__debug', 'peakContexts', 'installDebug'];
-const vendors = { posthog: ['posthog', 'i.posthog.com'], sentry: ['@sentry', 'sentry.io', 'captureException'] };
+// Each vendor's words must appear only in that vendor's own code.
+// posthog-js has a Sentry integration with `captureException` and a `sentry.io` link,
+// so the Sentry words are the SDK's package names and its global carrier object.
+const vendors = { posthog: ['posthog', 'i.posthog.com'], sentry: ['@sentry/', '__SENTRY__'] };
 const packageDists = ['packages/core/dist/', 'packages/react/dist/'].map((d) => new URL(`../${d}`, import.meta.url).pathname);
 
 async function files(dir) {
