@@ -4,15 +4,15 @@
 export const ROUND = 'Round 2 · 2026-10-19';
 
 export const START = [
-  'Start with <b>The line</b>: five candidates for the one line, each shown as the GitHub About text, an npm search result and a social card. Pick one by id, such as <code>copy/L3</code>. Every other board uses L1 until you pick.',
-  'Then the boards you picked in round 1, rebuilt from your feedback: real places lead (Everest, the Grand Canyon, Yosemite Valley, drawn live from real elevation), then generated shapes, then 2D and 3D. Primary views move; secondary views are stills.',
+  'Start with the boards you picked in round 1, rebuilt from your feedback: real places lead (Everest, the Grand Canyon, Yosemite Valley, drawn live from real elevation), then generated shapes, then 2D and 3D. Primary views move; secondary views are stills.',
   'New variants to judge: <code>playground-install/A1</code>–<code>A3</code> (Install alone in the top-right corner, an Export-style popover with a live preview, "With an agent" and "By hand"), and <code>npm-page/D</code>–<code>F</code> (code beside its result, pair after pair, for both packages).',
   'Updated in place: <code>readme-header/A</code> (install below the image), <code>github-repo/A</code> and <code>A2</code> (real-place social previews), <code>site-page/A</code> (link icons), and all three <code>social-card</code> layouts (code with the result its parameters give).',
-  'Variants you did not pick are archived, and so is the positioning board. "Show archived" brings them back. Code names follow your decisions: <code>shape</code> and <code>&lt;topographic-view&gt;</code>.',
+  'Variants you did not pick are archived, and so is the positioning board. "Show archived" brings them back. Every board uses line L1 from <code>kit.js</code> COPY.lines until you pick one on the writing page. Code names follow your decisions: <code>shape</code> and <code>&lt;topographic-view&gt;</code>.',
 ];
 
 /** Places to review outside the boards. Each: { title, kind, href, note }. */
 export const PLACES = [
+  { title: 'Writing desk', kind: 'Edit here', href: 'writing.html', note: 'Every public line in one place: write your idea and each line, see it live on the README, a social card, GitHub, npm and a search result. Saves as you type.' },
   { title: 'Docs page A, reference essay', kind: 'Full page', href: 'docs/a.html', note: 'The anatomy layout in dark: sticky nav, one column, margin notes and controls, live figures.' },
   { title: 'Docs page B, live split', kind: 'Full page', href: 'docs/b.html', note: 'One sticky live terrain that changes as each section scrolls in.' },
   { title: 'Docs page C, developer reference', kind: 'Full page', href: 'docs/c.html', note: 'Three columns: filterable nav, prose and tables, sticky code with JS / React / HTML.' },
