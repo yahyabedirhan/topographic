@@ -25,6 +25,9 @@ npm install topographic
 <topographic-map landform="dunes" line-count="30"></topographic-map>
 ```
 
+The background fills its element, so give the element a size.
+The [guide](https://github.com/yahyabedirhan/topographic/blob/main/docs/guide.md#sizing-and-layering) shows how to size it and put it behind the page.
+
 **JavaScript:**
 
 ```js
