@@ -1,4 +1,4 @@
-import type { SnapshotRegion, TopographicBackground } from 'topographic';
+import type { SnapshotRegion, Topography } from 'topographic';
 
 export const PNG_SIZES = [
   { id: 'screen', label: 'Screen ×2', width: 0, height: 0 },
@@ -14,7 +14,7 @@ export type PngSize = (typeof PNG_SIZES)[number];
  * A PNG of the background. With a region, only that slice of the view, drawn at full detail; without one,
  * a size other than the window's shape lays the view out again at that shape.
  */
-export async function renderPng(t: TopographicBackground, width?: number, height?: number, region?: SnapshotRegion): Promise<Blob> {
+export async function renderPng(t: Topography, width?: number, height?: number, region?: SnapshotRegion): Promise<Blob> {
   if (region) return t.snapshot({ width: width || undefined, height: height || undefined, region });
   const w = width || t.canvas.clientWidth * 2;
   const h = height || (width ? Math.round((width * t.canvas.clientHeight) / t.canvas.clientWidth) : t.canvas.clientHeight * 2);
@@ -38,11 +38,11 @@ export function cropRegion(viewAspect: number, width: number, height: number, at
   return { x: 0, y: (1 - h) * a, width: 1, height: h };
 }
 
-export async function downloadPng(t: TopographicBackground, size: PngSize, region?: SnapshotRegion | null): Promise<void> {
+export async function downloadPng(t: Topography, size: PngSize, region?: SnapshotRegion | null): Promise<void> {
   const blob = await renderPng(t, size.width, size.height, region ?? undefined);
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `topographic-${t.settings.style}-${t.settings.seed}.png`;
+  a.download = `topographic-${t.settings.landform}-${t.settings.seed}.png`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }

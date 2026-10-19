@@ -1,10 +1,10 @@
-import { DEFAULT_STYLE, PARAMS, fromQuery, mergeSettings, resolveSettings, type ParamDef, type Settings, type SettingsInput } from 'topographic';
+import { DEFAULT_LANDFORM, PARAMS, fromQuery, mergeSettings, resolveSettings, type ParamDef, type Settings, type SettingsInput } from 'topographic';
 import { LOOKS, type Look } from './looks';
 
 const VIEW = ['m', 'ink', 'paper', 'mode', 'ex', 'ev', 'dl', 'ql', 'az', 'ce', 'rd', 'cm', 'px', 'pz', 'vx', 'vy', 'vz'] as const;
 
-/** Every query key the settings own. The region keys belong to region/url.ts. */
-export const SETTINGS_KEYS: readonly string[] = ['look', 's', 'seed', ...(PARAMS as readonly ParamDef[]).map((p) => p.short), ...VIEW];
+/** Every query key the settings own. `s` is the landform key of links made before 0.6.0. The region keys belong to region/url.ts. */
+export const SETTINGS_KEYS: readonly string[] = ['look', 'lf', 's', 'seed', ...(PARAMS as readonly ParamDef[]).map((p) => p.short), ...VIEW];
 
 export const lookSlug = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
@@ -24,7 +24,7 @@ const colourIn = (c: string) => HEX.test(`#${c}`) ? `#${c}` : c;
 function diff(s: Settings, base: Settings): [string, string][] {
   const out: [string, string][] = [];
   const put = (key: string, a: unknown, b: unknown) => { if (a !== b) out.push([key, String(a)]); };
-  put('s', s.style, base.style);
+  put('lf', s.landform, base.landform);
   put('seed', s.seed, base.seed);
   for (const p of PARAMS as readonly ParamDef[]) put(p.short, (s[p.group] as Record<string, number>)[p.key], (base[p.group] as Record<string, number>)[p.key]);
   put('m', s.theme.mode, base.theme.mode);
@@ -52,19 +52,19 @@ export const HOME_QUERY = 'look=fine-granite&mode=3d';
 
 const same = (a: Settings, b: Settings) => !diff(a, b).length && a.theme.ink === b.theme.ink && a.theme.paper === b.theme.paper;
 
-/** The settings as the fewest query params: a diff against the style defaults or against a look of the same style. */
+/** The settings as the fewest query params: a diff against the landform defaults or against a look of the same landform. */
 export function settingsParams(s: Settings): [string, string][] {
   if (same(decode(new URLSearchParams(HOME_QUERY)), s)) return [];
-  const plain = diff(s, { ...playgroundSettings({ style: s.style }), style: DEFAULT_STYLE });
+  const plain = diff(s, { ...playgroundSettings({ landform: s.landform }), landform: DEFAULT_LANDFORM });
   let best = plain;
   for (const look of LOOKS) {
     const base = playgroundSettings(look.settings);
-    if (base.style !== s.style) continue;
+    if (base.landform !== s.landform) continue;
     const entries: [string, string][] = [['look', lookSlug(look.name)], ...diff(s, base)];
     if (entries.length < best.length && same(decode(new URLSearchParams(entries)), s)) best = entries;
   }
-  // An empty query means the home view, so other settings always name their style.
-  return best.length ? best : [['s', s.style]];
+  // An empty query means the home view, so other settings always name their landform.
+  return best.length ? best : [['lf', s.landform]];
 }
 
 export function readSettings(search: string): Settings {
@@ -74,7 +74,7 @@ export function readSettings(search: string): Settings {
 
 function decode(q: URLSearchParams): Settings {
   const look = findLook(q.get('look'));
-  const base = playgroundSettings(look ? look.settings : { style: q.get('s') ?? undefined });
+  const base = playgroundSettings(look ? look.settings : { landform: q.get('lf') ?? q.get('s') ?? undefined });
   for (const key of ['ink', 'paper']) {
     const v = q.get(key);
     if (v) q.set(key, colourIn(v));

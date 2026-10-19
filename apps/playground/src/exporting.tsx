@@ -77,7 +77,7 @@ function CopyIcon({ text, label, onCopy }: { text: string; label: string; onCopy
 // ---------------------------------------------------------------- Link
 
 const VIEW_NAMES: Record<string, [string, GlyphName]> = {
-  look: ['Look', 'look'], s: ['Style', 'style'], seed: ['Seed', 'seed'], m: ['Theme', 'theme'], ink: ['Ink colour', 'ink'], paper: ['Paper colour', 'paper'],
+  look: ['Look', 'look'], lf: ['Landform', 'style'], s: ['Landform', 'style'], seed: ['Seed', 'seed'], m: ['Theme', 'theme'], ink: ['Ink colour', 'ink'], paper: ['Paper colour', 'paper'],
   mode: ['2D or 3D', 'mode'], ex: ['Extent', 'extent'], ev: ['Elevation', 'elevation'], dl: ['Detail', 'detail'], az: ['Azimuth', 'azimuth'],
   ce: ['Camera angle', 'angle'], rd: ['Camera distance', 'distance'], cm: ['Camera motion', 'camMotion'], place: ['Map place', 'place'], region: ['Map area', 'place'],
 };
@@ -242,7 +242,7 @@ function PngBlock({ pg, size, setSize, crops, setCrops }: {
     try {
       await downloadPng(t, sizeOf(size) as PngSize, size === 'screen' ? null : cropRegion(aspect, sizeOf(size).width, sizeOf(size).height, crops[size]));
       track('export_image_downloaded', {
-        variant: size, format: 'png', width, height, style: String(pg.settings.style), theme: pg.mode, mode: pg.settings.mode,
+        variant: size, format: 'png', width, height, style: String(pg.settings.landform), theme: pg.mode, mode: pg.settings.mode,
         duration_ms: Math.round(performance.now() - t0),
       });
     } catch (error) {

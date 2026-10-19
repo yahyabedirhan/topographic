@@ -1,9 +1,9 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type MutableRefObject, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import {
-  GROUPS, RADIUS_MAX, RADIUS_MIN, STYLES, THEME_DEFAULTS, clampParam, mergeSettings, panBy, paramsIn, resolveMode, resolveSettings, rgbaToCss,
-  type GroupName, type Heightfield, type ParamDef, type Settings, type SettingsInput, type TopographicBackground as Instance,
+  GROUPS, RADIUS_MAX, RADIUS_MIN, LANDFORMS, THEME_DEFAULTS, clampParam, mergeSettings, panBy, paramsIn, resolveMode, resolveSettings, rgbaToCss,
+  type GroupName, type Heightfield, type ParamDef, type Settings, type SettingsInput, type Topography as Instance,
 } from 'topographic';
-import { TopographicBackground } from 'topographic-react';
+import { Topography } from 'topographic-react';
 import { isWheelNotch, notchZoom, pan2d, twoFingerKind, wheelZoom, zoom2d } from './gestures';
 import { bindPageUrlFlush, flushPageUrl, schedulePageUrl } from './page-history';
 import { registerTools } from './webmcp';
@@ -59,10 +59,10 @@ function band(p: ParamDef): [number, number] {
 }
 
 function rollSettings(): Settings {
-  const style = STYLES[Math.floor(Math.random() * STYLES.length)].id;
+  const landform = LANDFORMS[Math.floor(Math.random() * LANDFORMS.length)].id;
   const pair = PAIRS[Math.floor(Math.random() * PAIRS.length)];
   const input: SettingsInput = {
-    style,
+    landform,
     seed: 1 + Math.floor(Math.random() * 99999),
     theme: { mode: pair.mode, ink: pair.ink, paper: pair.paper },
   };
@@ -484,11 +484,11 @@ export function Backdrop({ pg, hold = false, className = 'pt-stage' }: { pg: Pla
   const insets = useStageInsets(pg);
   useEffect(() => { pg.instance.current?.hold(hold); }, [hold, pg.instance]);
   return (
-    <TopographicBackground
+    <Topography
       ref={orbit.node}
       className={`${className}${s.mode === '3d' ? ' is-3d' : ' is-2d'}`}
       aria-hidden="true"
-      styleName={s.style}
+      landform={s.landform}
       seed={s.seed}
       lines={s.lines}
       terrain={s.terrain}

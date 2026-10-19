@@ -1,5 +1,5 @@
 import type { Plugin } from 'vite';
-import { PARAMS, PRESETS, STYLES, defaultSettings } from 'topographic';
+import { PARAMS, PRESETS, LANDFORMS, defaultSettings } from 'topographic';
 import { INSTALL, TAGLINE } from './src/content';
 import { TOOL_DEFS } from './src/agent-tools';
 import { AGENT_NAMES, PURPOSES } from './src/actor';
@@ -41,7 +41,7 @@ const DOC_EXTRAS = [{ title: 'WebMCP tools', path: 'docs/webmcp.md', body: webmc
 function paramsMd(): string {
   const rows = PARAMS.map((p) =>
     `| \`${p.group}.${p.key}\` | \`${p.attr}\` | ${p.min} to ${p.max}${'integer' in p ? ' (integer)' : ''} | ${p.default} | ${p.description} |`);
-  const styles = STYLES.map((s) => `| \`${s.id}\` | ${s.name} | ${s.description} |`);
+  const landforms = LANDFORMS.map((s) => `| \`${s.id}\` | ${s.name} | ${s.description} |`);
   const presets = PRESETS.map((p) => `- **${p.name}**: \`${JSON.stringify(p.settings)}\``);
   return `# Parameters
 
@@ -53,7 +53,7 @@ ${rows.join('\n')}
 
 Other settings:
 
-- \`style\` (attribute \`style-name\`, React prop \`styleName\`): one of the styles below. Unknown styles fall back to \`${defaultSettings().style}\` with one console warning.
+- \`landform\` (attribute \`landform\`, React prop \`landform\`): one of the landforms below. Unknown landforms fall back to \`${defaultSettings().landform}\` with one console warning.
 - \`seed\` (attribute \`seed\`): integer 0 to 999999. The same seed gives the same terrain; 0 is the original look.
 - \`theme.mode\` (attribute \`theme\`): \`auto\` (follows the OS), \`light\` or \`dark\`.
 - \`theme.ink\` / \`theme.paper\` (attributes \`ink\`, \`paper\`): any CSS colour; paper may be \`transparent\`. Without them, the CSS variables \`--topographic-ink\` and \`--topographic-paper\` are used, then the mode defaults.
@@ -68,11 +68,11 @@ Other settings:
 - \`camera.motion\` (attribute \`camera-motion\`): \`still\` (default), \`orbit\`, \`push\`, \`flyover\` or \`drone\`. The terrain's own \`motion.speed\` still morphs the field, so the two motions are independent.
 - \`camera.panX\` / \`camera.panZ\` (attributes \`pan-x\`, \`pan-z\`): where the camera looks, moved from the terrain centre across the ground (east and south), -6 to 6, default 0. The camera and every motion path turn around that point. The renderer keeps it over the terrain.
 
-## Styles
+## Landforms
 
 | Id | Name | Description |
 |---|---|---|
-${styles.join('\n')}
+${landforms.join('\n')}
 
 ## Presets
 
@@ -122,11 +122,11 @@ ${INSTALL.css}
 function apiMd(): string {
   return `# API
 
-## createTopographicBackground(element, settings?, options?)
+## createTopography(element, settings?, options?)
 
 Mounts a canvas inside \`element\` (it fills the element) and returns an instance.
 
-- \`settings\`: partial settings, see [params.md](params.md). Shape: \`{ style, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera }\`. \`mode\` is \`'2d' | '3d'\` and defaults to \`'2d'\`. \`quality\` is \`'auto' | 'low' | 'medium' | 'high'\` and defaults to \`'auto'\`. \`auto\` starts a phone at low and a desktop at high, then steps down if presented frames miss 60 Hz, or 120 Hz once a frame under 12 ms has been seen. It does not step back up.
+- \`settings\`: partial settings, see [params.md](params.md). Shape: \`{ landform, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera }\`. \`mode\` is \`'2d' | '3d'\` and defaults to \`'2d'\`. \`quality\` is \`'auto' | 'low' | 'medium' | 'high'\` and defaults to \`'auto'\`. \`auto\` starts a phone at low and a desktop at high, then steps down if presented frames miss 60 Hz, or 120 Hz once a frame under 12 ms has been seen. It does not step back up.
 - \`options\`: \`{ maxPixelRatio = 2, maxPixels = 4147200, forceWebGL1 = false, benchmark = false }\`. \`benchmark\` keeps a 3D view drawing while it is visible so \`stats\` can be read.
 
 Instance:
@@ -150,26 +150,26 @@ Behaviour:
 - Animation pauses when the element is off-screen or the tab is hidden.
 - Pixel budget: \`quality\` caps the device pixel ratio, the pixel count and the mesh. \`maxPixelRatio\` and \`maxPixels\` are the ceiling above that.
 
-## <topographic-bg>
+## <topographic-map>
 
-\`import 'topographic/element'\` registers the element. Attributes: \`style-name\`, \`seed\`, \`theme\`, \`ink\`, \`paper\`, \`mode\`, \`elevation\`, \`extent\`, \`detail\`, \`quality\`, \`azimuth\`, \`camera-elevation\`, \`radius\`, \`camera-motion\`, \`pan-x\`, \`pan-z\`, plus one per numeric setting (see [params.md](params.md)). Attribute changes apply live, and a removed attribute returns to its default. \`element.topographic\` is the instance, and \`element.snapshot(opts)\` is a shortcut.
+\`import 'topographic/element'\` registers the element. Attributes: \`landform\`, \`seed\`, \`theme\`, \`ink\`, \`paper\`, \`mode\`, \`elevation\`, \`extent\`, \`detail\`, \`quality\`, \`azimuth\`, \`camera-elevation\`, \`radius\`, \`camera-motion\`, \`pan-x\`, \`pan-z\`, plus one per numeric setting (see [params.md](params.md)). Attribute changes apply live, and a removed attribute returns to its default. \`element.topographic\` is the instance, and \`element.snapshot(opts)\` is a shortcut.
 
-## React: <TopographicBackground> and useTopographicBackground
+## React: <Topography> and useTopography
 
-\`<TopographicBackground styleName lines terrain motion layout theme seed mode elevation extent detail quality camera options onReady {...divProps}>\` renders a div with the background, and children on top. It is SSR-safe: the server renders an empty div.
+\`<Topography landform lines terrain motion layout theme seed mode elevation extent detail quality camera options onReady {...divProps}>\` renders a div with the background, and children on top. It is SSR-safe: the server renders an empty div.
 
-\`useTopographicBackground(settings, options)\` returns a ref to put on any element. \`ref.topographic\` is the instance while mounted.
+\`useTopography(settings, options)\` returns a ref to put on any element. \`ref.topographic\` is the instance while mounted.
 
 ## Helpers
 
-\`resolveSettings\`, \`mergeSettings\`, \`toUniforms\`, \`fromAttributes\`, \`toAttributes\`, \`toQuery\`, \`fromQuery\`, \`parseColor\`, \`resolveTheme\`, plus the data exports \`PARAMS\`, \`STYLES\` and \`PRESETS\`.
+\`resolveSettings\`, \`mergeSettings\`, \`toUniforms\`, \`fromAttributes\`, \`toAttributes\`, \`toQuery\`, \`fromQuery\`, \`parseColor\`, \`resolveTheme\`, plus the data exports \`PARAMS\`, \`LANDFORMS\` and \`PRESETS\`.
 `;
 }
 
 const PAGES = () => [
   { title: 'Install', path: 'docs/install.md', body: installMd },
   { title: 'API', path: 'docs/api.md', body: apiMd },
-  { title: 'Parameters, styles and presets', path: 'docs/params.md', body: paramsMd },
+  { title: 'Parameters, landforms and presets', path: 'docs/params.md', body: paramsMd },
   ...DOC_EXTRAS,
 ];
 
@@ -182,17 +182,17 @@ Live playground: ${SITE_URL}
 
 ## URL state
 
-The playground keeps its state in short query params. It writes only the values that differ from a base: the style's defaults, or a named look from the dock such as \`look=night-lobes\`.
+The playground keeps its state in short query params. It writes only the values that differ from a base: the landform's defaults, or a named look from the dock such as \`look=night-lobes\`.
 
 Examples:
 
-- \`?s=dunes&lc=24\`
+- \`?lf=dunes&lc=24\`
 - \`?look=night-lobes&mode=3d&cm=orbit\`
-- \`?s=gentle-summit&seed=4&m=dark&ink=9fb0cc&paper=0b0b0d\`
+- \`?lf=gentle-summit&seed=4&m=dark&ink=9fb0cc&paper=0b0b0d\`
 
 ### Keys
 
-- \`s\`: style
+- \`lf\`: landform. Links made before 0.6.0 use \`s\`, which still works.
 - \`seed\`: seed
 ${PARAMS.map((p) => `- \`${p.short}\`: ${p.label.toLowerCase()}`).join('\n')}
 - \`m\`: theme, light, dark or auto
@@ -230,7 +230,7 @@ While the heights load, the page sets \`data-loading=terrain\` and hides the def
 
 ## Packages
 
-- [topographic](https://www.npmjs.com/package/topographic): core and the \`<topographic-bg>\` web component
+- [topographic](https://www.npmjs.com/package/topographic): core and the \`<topographic-map>\` web component
 - [topographic-react](https://www.npmjs.com/package/topographic-react): React component and hook
 
 ## Docs

@@ -1,4 +1,4 @@
-import { mergeSettings, PRESETS, STYLES, type Settings, type SettingsInput, type TopographicBackground } from 'topographic';
+import { mergeSettings, PRESETS, LANDFORMS, type Settings, type SettingsInput, type Topography } from 'topographic';
 import { INSTALL } from './content';
 import { embedCode, type EmbedFormat } from './embed';
 import { TOOL_DEFS } from './agent-tools';
@@ -18,7 +18,7 @@ export async function runTracked<T>(tool: string, fn: () => T | Promise<T>): Pro
 export interface PageBridge {
   getSettings(): Settings;
   setSettings(s: Settings): void;
-  instance(): TopographicBackground | null;
+  instance(): Topography | null;
 }
 
 interface ModelContextLike {
@@ -35,11 +35,11 @@ const blobToDataUrl = (b: Blob) => new Promise<string>((resolve, reject) => {
   const r = new FileReader(); r.onload = () => resolve(String(r.result)); r.onerror = () => reject(r.error); r.readAsDataURL(b);
 });
 
-const TOP_KEYS = ['style', 'seed', 'theme', 'lines', 'terrain', 'motion', 'layout', 'mode', 'elevation', 'extent', 'detail', 'quality', 'camera', 'view2d'];
+const TOP_KEYS = ['landform', 'seed', 'theme', 'lines', 'terrain', 'motion', 'layout', 'mode', 'elevation', 'extent', 'detail', 'quality', 'camera', 'view2d'];
 
 function adjustments(input: Record<string, unknown>, out: Settings): string[] {
   const notes: string[] = [];
-  if (typeof input.style === 'string' && input.style !== out.style) notes.push(`unknown style "${input.style}", kept "${out.style}"`);
+  if (typeof input.landform === 'string' && input.landform !== out.landform) notes.push(`unknown landform "${input.landform}", kept "${out.landform}"`);
   if (typeof input.mode === 'string' && input.mode !== out.mode) notes.push(`mode: ${JSON.stringify(input.mode)} adjusted to ${out.mode}`);
   if (typeof input.extent === 'string' && input.extent !== out.extent) notes.push(`extent: ${JSON.stringify(input.extent)} adjusted to ${out.extent}`);
   if (typeof input.elevation === 'number' && input.elevation !== out.elevation) notes.push(`elevation: ${input.elevation} adjusted to ${out.elevation}`);
@@ -74,8 +74,8 @@ export function registerTools(page: PageBridge): () => void {
         note: recorded ? 'Thank you. Only analytics changed; the playground works the same.' : 'Analytics are off in this browser, so nothing was recorded. The playground works the same.',
       };
     },
-    list_styles: () => ({
-      styles: STYLES.map(({ id, name, description }) => ({ id, name, description })),
+    list_landforms: () => ({
+      landforms: LANDFORMS.map(({ id, name, description }) => ({ id, name, description })),
       presets: PRESETS.map((p) => ({ name: p.name, settings: p.settings })),
     }),
     get_settings: () => {
@@ -89,13 +89,17 @@ export function registerTools(page: PageBridge): () => void {
     },
     set_settings: (input) => {
       if (!input || typeof input !== 'object') throw new Error('expected a settings object');
-      const next = mergeSettings(page.getSettings(), input as SettingsInput);
+      // `style` is the name before 0.6.0, accepted for one release.
+      const { style, ...rest } = input as Record<string, unknown>;
+      const patch = style !== undefined && rest.landform === undefined ? { ...rest, landform: style } : rest;
+      const next = mergeSettings(page.getSettings(), patch as SettingsInput);
       page.setSettings(next);
-      return { config: configOf(next), adjustments: adjustments(input, next) };
+      const renamed = style !== undefined ? ['style is now named landform; use landform'] : [];
+      return { config: configOf(next), adjustments: [...renamed, ...adjustments(patch, next)] };
     },
     randomize: (input) => {
       const patch: SettingsInput = { seed: Math.floor(Math.random() * 999999) + 1 };
-      if (input?.style) patch.style = STYLES[Math.floor(Math.random() * STYLES.length)].id;
+      if (input?.landform) patch.landform = LANDFORMS[Math.floor(Math.random() * LANDFORMS.length)].id;
       const next = mergeSettings(page.getSettings(), patch);
       page.setSettings(next);
       return { config: configOf(next) };
