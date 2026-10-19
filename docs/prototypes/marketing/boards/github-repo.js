@@ -1,6 +1,7 @@
 // PROTOTYPE board: the GitHub About sidebar (description, website, topics) and the 1280x640 social preview.
 import { terrain, h, shot, LOOKS, LOGO } from '../live.js';
-import { COPY, ICON } from '../kit.js';
+import { COPY, ICON, PLACE_LOOK } from '../kit.js';
+import { placeTerrain, PLACES } from '../places.js';
 
 const css = `
 .gr{position:absolute;inset:0;background:#0d1117;color:#f0f6fc;font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif;display:grid;grid-template-columns:320px 960px;gap:40px;padding:48px 60px}
@@ -18,7 +19,7 @@ const css = `
 .gr .og h1{font:600 76px/1.04 Literata,Georgia,serif;letter-spacing:-.02em;margin:0}
 .gr .og .mark{display:flex;gap:16px;align-items:center;font:600 34px Literata,Georgia,serif}
 .gr .og .mark img{width:64px;height:64px}
-.gr .og .chip{display:inline-flex;gap:12px;padding:14px 20px;border-radius:14px;background:rgba(23,23,27,.85);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);font:500 24px 'JetBrains Mono',monospace}
+.gr .og .chip{white-space:nowrap;justify-self:start;display:inline-flex;gap:12px;padding:14px 20px;border-radius:14px;background:rgba(23,23,27,.85);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);font:500 24px 'JetBrains Mono',monospace}
 .gr .og .chip b{color:#8b8a86;font-weight:400}
 .gr .og .url{font:500 22px Inter;color:#b9b8b3}
 .gr .preview{margin-top:22px;display:flex;gap:16px;align-items:center;width:960px}
@@ -48,13 +49,26 @@ function compose(stage, desc, og, mount) {
         <p>The same image as a link unfurl in Slack, X or iMessage: the type must still read at 400px wide.</p>
       </div>
     </div></div>`);
-  const t = mount(stage.querySelector('#og-main'));
   // the unfurl copy shows a still of the live layer, so the board keeps one WebGL context per variant
   const still = stage.querySelector('.thumb .live');
-  setTimeout(async () => {
+  Promise.resolve(mount(stage.querySelector('#og-main'))).then((t) => setTimeout(async () => {
     try { still.style.background = `url(${URL.createObjectURL(await t.snapshot())}) center/cover`; } catch { /* switched away */ }
-  }, 3000);
+  }, 2500), (e) => console.warn(e));
 }
+
+/** The round 2 card: a real place full bleed, the line on the left, and the code that draws the place. */
+function placeCard(id) {
+  const name = PLACES.find((p) => p.id === id)?.name ?? id;
+  return `
+    <div class="live" id="gr-${id}" style="inset:0"></div>
+    <div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(11,11,13,.95) 24%,rgba(11,11,13,0) 72%)"></div>
+    <div style="position:absolute;left:72px;top:64px;bottom:64px;display:grid;align-content:space-between;max-width:620px">
+      <div class="mark"><img src="${LOGO}" alt="">topographic</div>
+      <div style="display:grid;gap:20px"><h1 style="font-size:64px">${COPY.the.head}</h1><span class="url" style="font-size:26px;color:#cfcdc7">${COPY.the.sub}</span></div>
+      <span class="chip"><b>location:</b>'${id}'<b style="margin-left:6px">· ${name}</b></span>
+    </div>`;
+}
+const STILL_NOTE = 'GitHub\'s social preview takes only a still PNG or JPG (up to 1 MB), so the card ships as one frame of this view; the motion goes to the README hero, an animated WebP. The live view here is for choosing the frame.';
 
 export default {
   id: 'github-repo',
@@ -64,23 +78,25 @@ export default {
   variants: [
     {
       key: 'A',
-      name: 'Category line, full-bleed terrain',
-      note: 'Description says the category, the three uses and the zero-dependency fact. The image is one big live 3D terrain with the wordmark and line in the lower left, like a film still. Topics are the same 20 on every variant; "gamedev" waits for D7.',
+      name: 'The line, Everest full bleed',
+      note: `Round 2. Description is the new line; topics unchanged. The social preview is Everest and the Khumbu from real elevation, with the line on the left and the one setting that draws it. ${STILL_NOTE}`,
       render(stage) {
-        compose(stage, COPY.ghA, `
-          <div class="live" id="gr-a" style="inset:0"></div>
-          <div style="position:absolute;inset:0;background:linear-gradient(0deg,rgba(11,11,13,.92) 8%,rgba(11,11,13,0) 62%)"></div>
-          <div style="position:absolute;left:72px;bottom:64px;display:grid;gap:22px;max-width:900px">
-            <div class="mark"><img src="${LOGO}" alt="">topographic</div>
-            <h1>${COPY.taglineShort}.</h1>
-            <span class="url">For websites, videos and games · github.com/yahyabedirhan/topographic</span>
-          </div>`, (el) => terrain(el.querySelector('#gr-a'), LOOKS.terraces3d));
+        compose(stage, COPY.line, placeCard('everest'), (el) => placeTerrain(el.querySelector('#gr-everest'), 'everest', PLACE_LOOK));
+      },
+    },
+    {
+      key: 'A2',
+      name: 'The line, Yosemite Valley full bleed',
+      note: `A with a different real place: Yosemite Valley (Half Dome, El Capitan and the valley floor), whose deep valley reads well even at unfurl size. ${STILL_NOTE}`,
+      render(stage) {
+        compose(stage, COPY.line, placeCard('yosemite'), (el) => placeTerrain(el.querySelector('#gr-yosemite'), 'yosemite', PLACE_LOOK));
       },
     },
     {
       key: 'B',
+      archived: true,
       name: 'Uses line, split card with install',
-      note: 'Description leads with the three uses and lists the features after. The image is split: type and the install line on a solid panel, live 2D lines on the right. It is the only card that teaches the install command.',
+      note: 'Description leads with the category and lists the features after. The image is split: type and the install line on a solid panel, live 2D lines on the right. It is the only card that teaches the install command.',
       render(stage) {
         compose(stage, COPY.ghB, `
           <div class="live" id="gr-b" style="inset:0 0 0 46%"></div>
@@ -88,7 +104,7 @@ export default {
             <div class="mark"><img src="${LOGO}" alt="">topographic</div>
             <div style="display:grid;gap:18px">
               <h1 style="font-size:60px">Contour maps and 3D terrain.</h1>
-              <div style="display:flex;gap:10px;font:500 22px Inter;color:#b9b8b3">Websites · Videos · Games</div>
+              <div style="display:flex;gap:10px;font:500 22px Inter;color:#b9b8b3">Real places · Generated shapes</div>
             </div>
             <span class="chip"><b>$</b>npm i topographic</span>
           </div>`, (el) => terrain(el.querySelector('#gr-b'), { ...LOOKS.ridge2d, lines: { count: 40, indexEvery: 5, opacity: 0.95 } }));
@@ -96,6 +112,7 @@ export default {
     },
     {
       key: 'C',
+      archived: true,
       name: 'Short line, mosaic of four',
       note: 'The shortest description (keywords only, fits GitHub search without cutting). The image is a 2×2 mosaic: live 2D dunes, a 3D look, a real place (Mount Fuji) and a light 2D look, with the wordmark on a centre band. Shows range rather than one picture.',
       render(stage) {

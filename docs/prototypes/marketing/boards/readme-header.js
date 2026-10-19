@@ -1,6 +1,7 @@
 // PROTOTYPE board: the README's first screen, as GitHub renders it in dark mode, with the About sidebar.
 import { terrain, h, shot, LOOKS, LOGO, NPM, NPM_REACT, PLAYGROUND } from '../live.js';
-import { SNIP, COPY, hl, badge, ICON, DOCS_URL, wireCopy } from '../kit.js';
+import { SNIP, COPY, hl, badge, ICON, DOCS_URL, wireCopy, PLACE_LOOK } from '../kit.js';
+import { placeTerrain } from '../places.js';
 
 const css = `
 .gh{position:absolute;inset:0;background:#0d1117;color:#f0f6fc;font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif;overflow:hidden}
@@ -56,7 +57,7 @@ const css = `
 `;
 
 /** The GitHub frame around a README body: header, tabs, title row, commit row, About sidebar. */
-function frame(stage, readme, description = COPY.ghA) {
+function frame(stage, readme, description = COPY.line) {
   stage.append(h`<style>${css}</style><div class="gh">
     <div class="top"><span class="oct">${ICON.github.replace(/16/g, '32')}</span><span class="crumb">yahyabedirhan / <b>topographic</b></span><span class="search">Type / to search</span></div>
     <div class="tabs"><span class="on">&lt;&gt; Code</span><span>Issues <i>3</i></span><span>Pull requests <i>1</i></span><span>Actions</span><span>Projects</span><span>Security</span><span>Insights</span></div>
@@ -91,24 +92,28 @@ export default {
   title: 'README header',
   question: 'What should the README show before the first scroll, so a visitor from GitHub reaches install and a working snippet fastest?',
   surface: 'README.md on GitHub (and its copy on npm)',
+  size: [1440, 1560],
   variants: [
     {
       key: 'A',
-      name: 'Badges, one install line, hero',
-      note: 'Keeps the centred header, adds four badges (both npm versions link to npm, license, zero dependencies), then one copyable install line and the link row, then the hero image (the static hero.webp, as GitHub would show it). Install stops pinning 0.4.0. The snippet stays in "## Usage" below the fold.',
+      name: 'Badges, the line, a moving real place, then install',
+      note: 'Round 2. Badges stay on top (both npm packages and the license, without per-badge version numbers: the version shows once, in Releases; the zero-dependency badge is gone), then the new line and the link row, then the hero: Everest and the Khumbu, live from real elevation, orbiting. On GitHub it ships as <code>readme/hero-everest.webp</code>, an animated WebP loop (the only way to move in a README). <code>npm install topographic</code> now sits below the image, then the first snippet.',
       render(stage) {
         frame(stage, `
           <div class="c-row"><img src="${LOGO}" width="72" alt=""></div>
           <h1 style="text-align:center">topographic</h1>
-          <p class="c-row">${COPY.tagline}</p>
-          <p class="c-row" style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap">${badge('npm', 'topographic 0.5.0', '#cb3837')} ${badge('npm', 'topographic-react 0.5.0', '#cb3837')} ${badge('license', 'Apache-2.0', '#007ec6')} ${badge('dependencies', '0', '#3fb950')}</p>
-          ${pre('npm install topographic')}
+          <p class="c-row" style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap">${badge('npm', 'topographic', '#cb3837')} ${badge('npm', 'topographic-react', '#cb3837')} ${badge('license', 'Apache-2.0', '#007ec6')}</p>
+          <p class="c-row">${COPY.line}</p>
           <p class="c-row"><a href="${PLAYGROUND}"><b>Open the playground</b></a> · <a href="${DOCS_URL}">Docs</a> · ${npmLinks}</p>
-          <img src="${shot('hero')}" alt="" style="display:block;width:100%;border-radius:6px">`);
+          <div class="live" id="rh-a" style="height:400px;margin-bottom:16px;background:#0b0b0d"></div>
+          ${pre('npm install topographic')}
+          ${pre(SNIP.placeJs)}`);
+        placeTerrain(stage.querySelector('#rh-a'), 'everest', PLACE_LOOK);
       },
     },
     {
       key: 'B',
+      archived: true,
       name: 'Install first, code before the image',
       note: 'Left aligned and developer-first: the line, the npm links, then three snippets as &lt;details&gt; blocks (JavaScript open, React and HTML one click away). GitHub has no real tabs, so &lt;details&gt; is the closest honest tab. The live picture starts at the fold.',
       render(stage) {
@@ -127,17 +132,18 @@ export default {
     },
     {
       key: 'C',
-      name: 'Three uses, then install',
-      note: 'Shows the range before the code: a three-column table of live terrains captioned Websites, Videos and Games, then install and links. The Games cell needs D7 (heightmap and mesh export) before it is honest; until then it reads "planned".',
+      archived: true,
+      name: 'Three terrains, then install',
+      note: 'Shows the range before the code: a three-column table of live terrains, then install and links.',
       render(stage) {
         const cell = (id, head, text) => `<td><div class="live" id="${id}" style="height:150px;margin-bottom:8px"></div><b>${head}</b><br><span style="color:#9198a1">${text}</span></td>`;
         frame(stage, `
           <h1 style="text-align:center">topographic</h1>
           <p class="c-row">${COPY.taglineShort}. Generate land or load a real place.</p>
           <table><tr>
-            ${cell('rh-c0', 'Websites', 'A live hero or background, in HTML or React.')}
-            ${cell('rh-c1', 'Videos', '<code>record()</code> up to 12 s, or frame-exact PNGs.')}
-            ${cell('rh-c2', 'Games', 'Heightmaps for your engine. Planned (D7).')}
+            ${cell('rh-c0', '2D', 'Contour lines that drift.')}
+            ${cell('rh-c1', '3D', 'A surface the camera orbits.')}
+            ${cell('rh-c2', 'Any shape', 'A seed is a new land.')}
           </tr></table>
           ${pre('npm install topographic')}
           <p class="c-row">${npmLinks} · <a href="${PLAYGROUND}"><b>Playground</b></a> · <a href="${DOCS_URL}">Docs</a></p>`);
