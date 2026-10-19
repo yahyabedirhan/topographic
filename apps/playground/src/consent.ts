@@ -1,15 +1,16 @@
 /**
  * The visitor's analytics choice, kept in this browser's local storage.
  *
- * - `?optout` keeps pageviews and pageleaves only: no custom events and no error reports.
- * - `?optout=all` sends nothing: the analytics and error clients are not loaded.
- * - `?optin` clears the choice.
+ * - `?analytics_optout` keeps pageviews and pageleaves only: no custom events and no error reports.
+ * - `?analytics_optout=all` sends nothing: the analytics and error clients are not loaded.
+ * - `?analytics_optin` clears the choice.
  *
  * The parameter is removed from the address bar once it is read, so it does not end up in shared links.
- * Any choice other than `all` also deletes the visitor id.
+ * Any choice other than `all` also deletes the visitor id and this tab's agent identity.
  */
 
 import { forgetVisitor } from './visitor';
+import { forgetAgent, safeSession } from './actor';
 
 export type Consent = 'all' | 'pageviews' | 'none';
 export const CONSENT_KEY = 'topographic:analytics';
@@ -20,16 +21,22 @@ export function safeStore(): Store | null {
   try { return window.localStorage; } catch { return null; }
 }
 
+/** The opt-in and opt-out parameters. */
+export const OPT_IN = ['analytics_optin'];
+export const OPT_OUT = ['analytics_optout'];
+
 /** Reads the choice from the query string, saves it, and falls back to the saved value. */
 export function resolveConsent(search: string, store: Store | null): { consent: Consent; handled: string | null } {
   const q = new URLSearchParams(search);
-  const handled = q.has('optin') ? 'optin' : q.has('optout') ? 'optout' : null;
+  const optIn = OPT_IN.find((k) => q.has(k));
+  const optOut = OPT_OUT.find((k) => q.has(k));
+  const handled = optIn ?? optOut ?? null;
+  const level: Consent = optIn ? 'all' : optOut && q.get(optOut) === 'all' ? 'none' : 'pageviews';
   try {
-    if (handled === 'optin') store?.removeItem(CONSENT_KEY);
-    else if (handled === 'optout') store?.setItem(CONSENT_KEY, q.get('optout') === 'all' ? 'none' : 'pageviews');
+    if (optIn) store?.removeItem(CONSENT_KEY);
+    else if (optOut) store?.setItem(CONSENT_KEY, level);
   } catch { /* storage can be blocked; the choice then lasts for this page only */ }
-  if (handled === 'optin') return { consent: 'all', handled };
-  if (handled === 'optout') return { consent: q.get('optout') === 'all' ? 'none' : 'pageviews', handled };
+  if (handled) return { consent: level, handled };
   let saved: string | null = null;
   try { saved = store?.getItem(CONSENT_KEY) ?? null; } catch { /* ignore */ }
   return { consent: saved === 'none' || saved === 'pageviews' ? saved : 'all', handled };
@@ -43,7 +50,7 @@ function initial(): Consent {
     url.searchParams.delete(handled);
     try { window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash); } catch { /* ignore */ }
   }
-  if (consent !== 'all') forgetVisitor(safeStore());
+  if (consent !== 'all') { forgetVisitor(safeStore()); forgetAgent(safeSession()); }
   return consent;
 }
 
@@ -59,5 +66,5 @@ export function setConsent(next: Consent): void {
     if (next === 'all') store?.removeItem(CONSENT_KEY);
     else store?.setItem(CONSENT_KEY, next);
   } catch { /* ignore */ }
-  if (next !== 'all') forgetVisitor(store);
+  if (next !== 'all') { forgetVisitor(store); forgetAgent(safeSession()); }
 }

@@ -13,18 +13,22 @@ describe('consent', () => {
     expect(resolveConsent('', memory()).consent).toBe('all');
   });
 
-  it('?optout keeps pageviews only and is saved', () => {
+  it('ignores the old ?optout and ?optin names', () => {
+    expect(resolveConsent('?optout=all', memory())).toEqual({ consent: 'all', handled: null });
+  });
+
+  it('?analytics_optout keeps pageviews only and is saved', () => {
     const s = memory();
-    expect(resolveConsent('?optout', s)).toEqual({ consent: 'pageviews', handled: 'optout' });
+    expect(resolveConsent('?analytics_optout', s)).toEqual({ consent: 'pageviews', handled: 'analytics_optout' });
     expect(s.m.get(CONSENT_KEY)).toBe('pageviews');
     expect(resolveConsent('?seed=3', s).consent).toBe('pageviews');
   });
 
-  it('?optout=all sends nothing and ?optin clears it', () => {
+  it('?analytics_optout=all sends nothing and ?analytics_optin clears it', () => {
     const s = memory();
-    expect(resolveConsent('?optout=all', s).consent).toBe('none');
+    expect(resolveConsent('?analytics_optout=all', s).consent).toBe('none');
     expect(resolveConsent('', s).consent).toBe('none');
-    expect(resolveConsent('?optin', s).consent).toBe('all');
+    expect(resolveConsent('?analytics_optin', s).consent).toBe('all');
     expect(s.m.has(CONSENT_KEY)).toBe(false);
   });
 
@@ -33,7 +37,7 @@ describe('consent', () => {
     s.setItem(CONSENT_KEY, 'weird');
     expect(resolveConsent('', s).consent).toBe('all');
     const blocked = { getItem: () => { throw new Error('x'); }, setItem: () => { throw new Error('x'); }, removeItem: () => { throw new Error('x'); } };
-    expect(resolveConsent('?optout=all', blocked).consent).toBe('none');
+    expect(resolveConsent('?analytics_optout=all', blocked).consent).toBe('none');
     expect(resolveConsent('', blocked).consent).toBe('all');
   });
 

@@ -4,11 +4,14 @@
  *
  * PostHog runs cookieless (`persistence: 'memory'`, `cookieless_mode: 'always'`), with no session recording and no autocapture.
  * Events carry only the small, fixed properties typed below: never free text, colours or the URL state.
+ * Each event says who it comes from (`actor`, see `actor.ts`): a person with a `visitor_id`, or an agent with an `agent_id`.
  */
 
 import { superProperties } from './device';
 import { consent, safeStore, setConsent, type Consent } from './consent';
 import { visitorId } from './visitor';
+import { AGENT_NAMES, PURPOSES, durationBucket, loadAgent, readAgentParams, resolveActor, safeSession, saveAgent, type ActorProps, type AgentIdentity } from './actor';
+import { randomUuid } from './visitor';
 
 export type ExportFormat = 'link' | 'png' | 'video' | 'react' | 'html' | 'json';
 export type PanelName = 'map' | 'tune' | 'export';
@@ -58,6 +61,8 @@ export interface AnalyticsEvents {
   low_performance_prompt_shown: { fps: number; view_mode: ViewMode; detail: 'low' | 'medium' | 'high'; budget: QualityLevel };
   low_performance_prompt_clicked: Record<string, never>;
   analytics_opted_out: { from: Exclude<Consent, 'none'> };
+  /** Sent by the page after each WebMCP tool call; never the tool's input, output or error message. */
+  agent_tool_called: { tool: string; ok: boolean; duration: ReturnType<typeof durationBucket> };
 }
 
 /** One frame-rate summary per visit, sent about 20 s in. */
@@ -79,8 +84,8 @@ export interface PerformanceSample {
   view_mode: ViewMode;
 }
 
-/** Properties registered once on every event after init. */
-export interface SuperProperties {
+/** Properties registered once on every event after init. The actor properties are sent only while the visitor has not opted out. */
+export interface SuperProperties extends Partial<ActorProps> {
   site: 'topographic';
   app: 'topographic';
   app_version: string;
@@ -89,8 +94,6 @@ export interface SuperProperties {
   platform: 'mobile' | 'desktop';
   os: string;
   initial_view_mode: ViewMode;
-  /** The random id saved in this browser, sent only while the visitor has not opted out. */
-  visitor_id?: string;
 }
 
 /** Event names, for tests and for checks that the map stays the single source. */
@@ -99,7 +102,7 @@ export const EVENT_NAMES = [
   'saved_terrain_deleted', 'place_applied', 'region_loaded', 'setting_changed', 'quality_changed', 'theme_toggled',
   'shuffle_clicked', 'colour_changed', 'link_copied', 'code_copied', 'export_image_downloaded', 'export_image_failed',
   'export_video_started', 'export_video_completed', 'export_video_failed', 'performance_sample', 'low_performance_prompt_shown',
-  'low_performance_prompt_clicked', 'analytics_opted_out',
+  'low_performance_prompt_clicked', 'analytics_opted_out', 'agent_tool_called',
 ] as const satisfies readonly (keyof AnalyticsEvents)[];
 
 /** A short, fixed error label: the message's first line, without the library prefix, capped. */
@@ -168,13 +171,35 @@ const HOST = import.meta.env.VITE_POSTHOG_HOST || DEFAULT_HOST;
 
 let posthogLoaded = false;
 
-// With `?optout=all` saved, the client is never loaded.
+// `?analytics_agent=<name>&analytics_purpose=<purpose>` on the first load: saved for this tab when valid, and always removed from the address bar.
+if (typeof window !== 'undefined') {
+  const { identity, handled } = readAgentParams(window.location.search);
+  if (identity && consent() === 'all') saveAgent(safeSession(), identity);
+  if (handled.length) {
+    const url = new URL(window.location.href);
+    for (const k of handled) url.searchParams.delete(k);
+    try { window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash); } catch { /* ignore */ }
+  }
+}
+
+/** This tab's actor properties: a person's visitor id, or an agent's id, name and purpose. */
+function actorProps(): ActorProps {
+  return resolveActor(
+    { webdriver: Boolean(navigator.webdriver), userAgent: navigator.userAgent, agent: loadAgent(safeSession()) },
+    { visitor: () => visitorId(safeStore()), agent: () => saveAgent(safeSession(), null).id },
+  );
+}
+
+// A tool call in a tab that has not identified still comes from an agent: it gets an id for this page only.
+let pageAgentId: string | null = null;
+
+// With `?analytics_optout=all` saved, the client is never loaded.
 const tracker = createTracker(consent() === 'none' ? undefined : KEY, HOST, async (key, host) => {
   if (doNotTrack()) return null;
   const { startPostHog } = await import('./posthog');
   posthogLoaded = true;
-  const props = superProperties();
-  if (consent() === 'all') props.visitor_id = visitorId(safeStore());
+  const props: SuperProperties = superProperties();
+  if (consent() === 'all') Object.assign(props, actorProps());
   return startPostHog(key, host, props);
 });
 
@@ -201,6 +226,28 @@ export function optOut(to: 'pageviews' | 'none' = 'none'): void {
   setConsent(to);
   // Pageviews only keeps PostHog running on this page, so it must stop sending the deleted id too.
   if (posthogLoaded && to === 'pageviews') import('./posthog').then((m) => m.dropVisitorId()).catch(() => {});
+}
+
+/** The agent names and purposes `identify_agent` and `?agent` accept. */
+export const AGENT_CHOICES = { names: AGENT_NAMES, purposes: PURPOSES };
+
+/**
+ * Marks this tab as an agent with a name and purpose, from the `identify_agent` tool.
+ * Returns false when nothing is recorded: a build without a key, or a visitor who opted out.
+ */
+export function identifyAgent(identity: AgentIdentity): boolean {
+  if (!KEY || consent() !== 'all') return false;
+  saveAgent(safeSession(), identity);
+  if (posthogLoaded) { const props = actorProps(); import('./posthog').then((m) => m.setActor(props)).catch(() => {}); }
+  return true;
+}
+
+/** Sends `agent_tool_called` after a WebMCP tool call. The event is always an agent's, even in a person's tab. */
+export function trackToolCall(tool: string, ok: boolean, ms: number): void {
+  if (!KEY || consent() !== 'all') return;
+  const props = actorProps();
+  const agent = props.actor === 'agent' ? props : { actor: 'agent' as const, agent_id: (pageAgentId ??= randomUuid()), visitor_id: undefined };
+  tracker.track('agent_tool_called', { tool, ok, duration: durationBucket(ms), ...agent } as AnalyticsEvents['agent_tool_called']);
 }
 
 /** Clears the saved choice. Analytics start again on the next page load. */
