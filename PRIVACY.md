@@ -78,6 +78,7 @@ Every event also carries: site and app name, app version, a coarse screen class 
 | `colour_changed` | Paper or ink, and whether the picker, a swatch or a hex code was used, never the colour | To improve the colour controls |
 | `link_copied` | How many settings the link holds, never the link | To see how sharing is used |
 | `code_copied` | Which snippet was copied: install, React, HTML or JSON | To see how the library is set up |
+| `install_copied` | Which line in Install was copied: the agent skill, an npm line, or the view's code or link, never the text | To see how people install the library |
 | `export_image_downloaded` | Size option, width, height, style id, theme, view and render time | To keep image export fast |
 | `export_image_failed` | Size option, a short error label and time taken | To fix failing exports |
 | `export_video_started` | Camera motion, MP4 or WebM, duration, frame rate, width and height | To see which video options are used |

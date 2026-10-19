@@ -49,7 +49,7 @@ function useCopied(): [boolean, (text: string) => void] {
 }
 
 /** A compact copy action: a copy glyph and its label, then a check and "Copied". */
-function CopyAction({ text, label = 'Copy', quiet = false, onCopy }: { text: string; label?: string; quiet?: boolean; onCopy?: () => void }) {
+export function CopyAction({ text, label = 'Copy', quiet = false, onCopy }: { text: string; label?: string; quiet?: boolean; onCopy?: () => void }) {
   const [copied, copy] = useCopied();
   return (
     <Button className={`pt-action pt-copy${quiet ? ' pt-action-quiet' : ''}${copied ? ' is-done' : ''}`} onClick={() => { onCopy?.(); copy(text); }}>
@@ -62,7 +62,7 @@ function CopyAction({ text, label = 'Copy', quiet = false, onCopy }: { text: str
 }
 
 /** An icon-only copy button, for a line that has its own copy next to a bigger one. */
-function CopyIcon({ text, label, onCopy }: { text: string; label: string; onCopy?: () => void }) {
+export function CopyIcon({ text, label, onCopy }: { text: string; label: string; onCopy?: () => void }) {
   const [copied, copy] = useCopied();
   return (
     <Tooltip.Root>
@@ -142,7 +142,7 @@ export type Crops = Record<CropId, number>;
 const CENTRED: Crops = { screen: 0.5, phone: 0.5, '1080p': 0.5 };
 
 /** A picture of the view as it is now, redrawn after the settings settle. */
-function useViewPicture(pg: Playground, width: number, height: number, motion?: CameraMotion, time = 0) {
+export function useViewPicture(pg: Playground, width: number, height: number, motion?: CameraMotion, time = 0) {
   const [src, setSrc] = useState('');
   const current = useRef('');
   const busy = useRef(false);
