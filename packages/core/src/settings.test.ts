@@ -210,7 +210,7 @@ describe('location setting', () => {
     const s = resolveSettings({ location: 'everest' });
     expect(s.location).toBe('everest');
     expect(s.camera).toMatchObject({ azimuth: 341.8, elevation: 40, radius: 1.32, motion: 'still' });
-    expect(s.elevation).toBe(0.2);
+    expect(s.elevation).toBe(0.32);
     expect(s.extent).toBe('block');
     expect(s.lines).toEqual({ count: 36, width: 0, opacity: 0.9, indexEvery: 4 });
     expect(s.layout.fade).toBe(0.15);
