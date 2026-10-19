@@ -679,3 +679,12 @@ On the bright Copy button on `npm install topographic`:
 > Use that white background copy button just for the agent skill and for the npm packages just keep that copy icon.
 
 Applied: only the agent skill command has the bright Copy button; both npm commands have the quiet copy icon.
+
+## Social card: install command
+
+On the social card (`og.png`, Everest), after PR #88 opened:
+
+> One small feedback.
+> In that social card, above the code snippet, let's show the npm install command so people can understand better how that code snippet works.
+
+Sent to PR #88: the card shows `npm install topographic` above the `createTopography` snippet.
