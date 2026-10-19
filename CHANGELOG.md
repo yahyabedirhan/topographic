@@ -15,6 +15,11 @@ It is a clean break: the old names are gone, with no deprecated aliases.
 - Playground: the WebMCP tool `list_styles` is now `list_shapes`, and `randomize` takes `shape: true`. `set_settings` takes `shape`, and still takes the old `style` key for this release. Terrains saved with a `style` key load with that value as `shape`.
 - Playground: the Tune › Terrain section with peaks, spread, sharpness and variant is now titled Form.
 - Install lines in the READMEs no longer pin a version. Sizing and layering examples moved to the guide.
+- New package descriptions and keywords: "Topographic terrain rendered with WebGL. Generate a land or turn a real place into a topographic terrain." The words background and animated-background are gone.
+- New READMEs for the project and both packages: real places first, then generated shapes, then 2D and 3D, with each code example beside the picture it draws. Limits have their own section.
+- Playground: **Install**, a new button in its own circle at the top right. It shows a preview of the view and its main settings, the agent skill and npm install lines, and this view's code and link with a shortcut to Export.
+- Playground: new share images, `og.png` and `og-docs.png`, with a real place, the headline and the code that draws it. The page title and description use the new line.
+- Playground: Export no longer shows the hint about tinted values under the code, and the HTML hint says element instead of background.
 
 | Old name | New name |
 |---|---|
