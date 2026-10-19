@@ -7,7 +7,7 @@ import fujiThumb from '../assets/map-looks/fuji-thumb.webp';
 import fujiMinimap from '../assets/map-looks/fuji-minimap.webp';
 import yosemiteThumb from '../assets/map-looks/yosemite-thumb.webp';
 import yosemiteMinimap from '../assets/map-looks/yosemite-minimap.webp';
-import type { BBox } from './pipeline';
+import type { BBox } from 'topographic/locations';
 import { findPlace } from './places';
 
 /**

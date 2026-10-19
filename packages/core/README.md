@@ -7,7 +7,7 @@ Try it live in the [playground](https://topographic.yahyapak.dev/).
 Animated contour-line backgrounds for the web, in 2D and 3D. No dependencies.
 
 - **2D or 3D:** flat contour lines by default, or the same map as a lit 3D terrain with an orbiting or still camera.
-- **Real places:** draw the lines from real elevation data with `setHeightfield()`.
+- **Real places:** ten built-in places such as `location: 'everest'`, any area through `fetchLocation()`, or your own elevation data.
 - **Seven shapes:** `drifting-lobes`, `granite`, `five-petals`, `seed-pod`, `gentle-summit`, `long-ridge` and `dunes`, plus readable settings for lines, terrain, motion, layout and colours.
 - **Quality tiers:** `quality: 'auto'` starts phones on the low tier and steps down when frames miss the screen's refresh rate. `low`, `medium` and `high` stay put.
 - **Export:** `snapshot()` for PNG and `record()` for MP4 or WebM video.
@@ -45,14 +45,16 @@ const png = await topography.snapshot({ width: 1920, height: 1080 });
 const clip = await topography.record({ seconds: 6, motion: 'orbit', format: 'mp4' });
 ```
 
-**Real places:** pass a square grid of heights from 0 (lowest) to 1 (highest). Row 0 is the south edge, and `aspect` is the area's width divided by its height. Pass `null` to go back to the generated shape.
+**Real places:** the `location` setting takes one of ten built-in places, such as `everest`, `fuji` or `istanbul`, and gives it the playground's camera and lines. A page downloads only the places it uses. `fetchLocation()` makes the same kind of grid for any area up to 300 km wide.
 
 ```js
-topography.setHeightfield({ samples, size: 256, aspect: 1.2 }); // samples: Float32Array of size * size
-topography.update({ mode: '3d' });
+import { fetchLocation } from 'topographic/locations';
+
+createTopography(el, { location: 'everest', mode: '3d' });
+topography.update({ location: await fetchLocation({ west: 28.45, south: 40.78, east: 29.65, north: 41.36 }) });
 ```
 
-The [playground](https://topographic.yahyapak.dev/) does this for ten ready places, such as Istanbul, the Matterhorn and Mount Fuji, or any area up to 300 km wide. It fetches elevation tiles, smooths them and hands the grid to `setHeightfield()`. In browsers with WebMCP, the playground also gives AI agents tools to change settings, choose a place and export.
+Your own elevation data also works: pass `{ samples, size, aspect }`, a square grid of heights from 0 (lowest) to 1 (highest), as `location` or to `setHeightfield()`. The [playground](https://topographic.yahyapak.dev/) has the same ten places and a map for any area. In browsers with WebMCP, it also gives AI agents tools to change settings, choose a place and export.
 
 For React, use [`topographic-react`](https://www.npmjs.com/package/topographic-react).
 

@@ -5,7 +5,9 @@ import { extname, join } from 'node:path';
 
 const root = new URL('..', import.meta.url).pathname;
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript' };
+const served = [];
 const server = createServer(async (req, res) => {
+  served.push(req.url.split('?')[0]);
   try {
     const body = await readFile(join(root, decodeURIComponent(req.url.split('?')[0])));
     res.writeHead(200, { 'content-type': types[extname(req.url.split('?')[0])] ?? 'application/octet-stream' }).end(body);
@@ -102,6 +104,36 @@ try {
   });
   check(el.a === 'webgl2,dunes,24,3,0.5' && el.b === 'granite,12,0.7' && el.c === 30 && el.d === 'destroyed',
     `<topographic-view> attributes: ${el.a} | ${el.b} | reset ${el.c} | removed ${el.d}`);
+
+  // Real locations: `location: 'everest'` loads only Everest's grid and draws it in 2D and 3D.
+  const loc = await page();
+  served.length = 0;
+  const everest2d = await coverage(loc, 'drifting-lobes', { settings: { location: 'everest' } });
+  const everestView = await loc.evaluate(() => [window.t.settings.location, window.t.settings.camera.elevation, window.t.settings.elevation, window.t.settings.extent].join());
+  const everest3d = await coverage(loc, 'drifting-lobes', { settings: { location: 'everest', mode: '3d' } });
+  const generated3d = await coverage(loc, 'drifting-lobes', { settings: { mode: '3d', extent: 'block', elevation: 0.1, camera: { azimuth: 341.8, elevation: 40, radius: 1.32 } } });
+  const grids = served.filter((u) => u.includes('/locations/data/'));
+  check(everest2d.coverage > 0.02 && everest3d.coverage > 0.02 && everestView === 'everest,40,0.1,block',
+    `location everest draws in 2D (${(everest2d.coverage * 100).toFixed(1)}%) and 3D (${(everest3d.coverage * 100).toFixed(1)}%) with its view (${everestView})`);
+  check(Buffer.compare(Buffer.from(everest3d.png), Buffer.from(generated3d.png)) !== 0, 'the Everest grid differs from the generated terrain under the same camera');
+  check(grids.length === 1 && grids[0].endsWith('/everest.js'), `only Everest's grid is downloaded (${grids.join(', ')})`);
+  if (shots) {
+    await writeFile(join(shots, 'location-everest-2d.png'), Buffer.from(everest2d.png));
+    await writeFile(join(shots, 'location-everest-3d.png'), Buffer.from(everest3d.png));
+  }
+  const lp = await browser.newPage({ viewport: { width: 900, height: 560 } });
+  await lp.goto(url.replace('smoke.html', 'element.html'));
+  await lp.waitForFunction(() => window.ready);
+  const elLoc = await lp.evaluate(async () => {
+    const e = document.querySelector('topographic-view');
+    e.setAttribute('location', 'fuji'); e.setAttribute('mode', '3d');
+    const t = e.topographic;
+    const b = await e.snapshot({ width: 300 });
+    const a = [t.settings.location, t.settings.mode, t.settings.camera.elevation].join();
+    e.removeAttribute('location');
+    return { a, bytes: b.size, after: t.settings.location };
+  });
+  check(elLoc.a === 'fuji,3d,30' && elLoc.bytes > 1000 && elLoc.after === null, `<topographic-view location="fuji">: ${elLoc.a}, ${elLoc.bytes} bytes, removed -> ${elLoc.after}`);
 
   const nogl = await page();
   const fb = await nogl.evaluate(() => {

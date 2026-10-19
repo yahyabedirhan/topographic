@@ -10,7 +10,7 @@ import { registerTools } from './webmcp';
 import { configOf, readUrl } from './url';
 import { withQuery, writeSettings } from './share-url';
 import { keepShape } from './shape';
-import { smooth } from './region/pipeline';
+import { smoothGrid } from 'topographic/locations';
 import { track } from './analytics';
 
 export interface Playground {
@@ -616,7 +616,7 @@ export async function placeThumb(settings: Settings, field: Heightfield, width =
     const blob = await enqueueThumb(() => t.snapshot({
       frame: 4000, width: drawW, height: drawH,
       patch: placeThumbSettings(settings),
-      field: { ...field, samples: smooth(field.samples, field.size, 2.5) },
+      field: { ...field, samples: smoothGrid(field.samples, field.size, 2.5) },
     }));
     const bitmap = await createImageBitmap(blob);
     const canvas = document.createElement('canvas');

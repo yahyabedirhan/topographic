@@ -93,7 +93,7 @@ topography.update({ mode: '3d', elevation: 0.7, extent: 'block', camera: { motio
 
 ### Real places
 
-In the [playground](https://topographic.yahyapak.dev/), open **Map**, choose an area up to 300 km wide, and click **Apply**. The playground downloads the height data for that area and shows it in 3D. A shared link to a place waits for those heights, and shows contour rings instead of the default terrain. In your own code, you can pass any grid of heights to `setHeightfield({ samples, size, aspect })`. Each height is a number from 0 (lowest) to 1 (highest).
+In the [playground](https://topographic.yahyapak.dev/), open **Map**, choose an area up to 300 km wide, and click **Apply**. The playground downloads the height data for that area and shows it in 3D. A shared link to a place waits for those heights, and shows contour rings instead of the default terrain. In your own code, `location: 'everest'` draws one of the same ten places, and `fetchLocation()` from `topographic/locations` makes a grid for any area. You can also pass your own grid of heights, `{ samples, size, aspect }`, with each height from 0 (lowest) to 1 (highest).
 
 ![The Map popover over Istanbul: a dark map with a white frame around the city, the place menu above, and Clear and Applied below](assets/screenshots/map-popover-dark.webp)
 
@@ -122,9 +122,9 @@ The web component, the React component and the [playground](https://topographic.
 
 2D and 3D use the same land shape and the same lines. 3D only adds height and a camera.
 
-![How a real place becomes a terrain in the playground: the Map popover gives a bounding box, a worker fetches Terrarium elevation tiles, stitches and resamples them to a 256 by 256 grid, scales the relief and smooths it, and the region hook hands the heightfield to the renderer with setHeightfield().](assets/images/diagrams/real-place-pipeline.png)
+![How a real place becomes a terrain in the playground: the Map popover gives a bounding box, and the playground worker calls the library's topographic/locations. A named place loads its built-in grid with loadLocation(). Any other area goes through fetchLocation(), which fetches Terrarium elevation tiles, stitches and resamples them to a 256 by 256 grid, scales the relief and smooths it. The region hook hands the heightfield to the renderer with setHeightfield().](assets/images/diagrams/real-place-pipeline.png)
 
-The [playground](https://topographic.yahyapak.dev/) downloads height data for the area, smooths it and turns it into a grid of heights. `setHeightfield()` then draws it. The [low-level design](docs/low-level-design.md) explains each part.
+The library's `topographic/locations` turns an area's height data into a smoothed grid of heights, and ships that grid for the ten built-in places. The [playground](https://topographic.yahyapak.dev/) calls it from a worker, and `setHeightfield()` then draws the grid. The [low-level design](docs/low-level-design.md) explains each part.
 
 ## Contributing
 

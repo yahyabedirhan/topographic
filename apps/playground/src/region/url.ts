@@ -1,4 +1,4 @@
-import type { BBox } from './pipeline';
+import type { BBox } from 'topographic/locations';
 import { findPlace } from './places';
 
 export interface RegionQuery {
