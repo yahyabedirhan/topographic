@@ -269,3 +269,13 @@ On the caption "Everest and the Khumbu valley, drawn from real elevation data wi
 
 > And keep this short and maybe you can make this input a little bit smaller.
 > Try to make it just one line not multi-line, okay?
+
+On the serif sentence "The contour lines of a hiking map, alive in 2D and 3D.":
+
+> So do not overuse the serif font.
+> Instead of these long different sentences, I think these section titles are more suitable for the serif.
+>
+> - What it is
+> - Install
+>
+> Otherwise this random content looks a bit heavy with the serif font.
