@@ -3,7 +3,7 @@
 // Today they come from the playground's own region pipeline: its worker fetches the elevation tiles, stitches them
 // and shapes them, as the Map panel's Apply does, so a figure draws what the playground draws.
 // When the library ships `location` (issue #81), loadPlace returns `{ ...defaults, location: id }` as settings and a
-// null field, and every figure keeps working unchanged. The heightmap figure then reads the heights back from the view.
+// null field, and every figure keeps working unchanged.
 import type { Heightfield, SettingsInput } from 'topographic';
 import { PLACES, terrainDefaults, type Place } from '../region/places';
 import { RELIEF, SMOOTH } from '../region/useRegion';

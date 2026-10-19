@@ -64,7 +64,7 @@ export const GROUPS: { name: string; ids: string[] }[] = [
   { name: 'Land', ids: ['locations', 'landforms', 'looks'] },
   { name: 'Settings', ids: ['lines', 'terrain', 'motion', 'layout', 'theme'] },
   { name: '3D', ids: ['modes', 'camera'] },
-  { name: 'Output', ids: ['export', 'heightfields', 'heightmaps'] },
+  { name: 'Output', ids: ['export', 'heightfields'] },
   { name: 'API', ids: ['instance', 'react', 'element', 'page'] },
   { name: 'Care', ids: ['performance', 'accessibility', 'agents'] },
   { name: 'Last', ids: ['limits', 'questions'] },
@@ -187,13 +187,6 @@ export const SECTIONS: DocSection[] = [
     notes: ['Row 0 is the south edge and column 0 the west. <code>aspect</code> is the area\'s width over its height, so the block matches the map.'],
     code: 'heightfields',
     live: { shape: 'gentle-summit', mode: '3d', extent: 'endless', elevation: 0.5, lines: { count: 44, width: 0.22, opacity: 0.85, indexEvery: 5 }, camera: { azimuth: 20, elevation: 40, radius: 1.75 }, theme: { mode: 'dark', ink: '#c9c2b4', paper: '#0b0b0d' } },
-  },
-  {
-    id: 'heightmaps', title: 'Heightmaps', nav: 'Heightmaps',
-    lede: 'The land you see, as data you can take anywhere.',
-    body: '<p>Every terrain here is data. <code>heightfield()</code> returns the heights you see, generated or real, and <code>exportHeightmap()</code> writes them as a 16-bit PNG that 3D tools and engines import as terrain.<sup class="fn"></sup></p>\n<p>Draw the contours, and build from the same heights wherever you need them.</p>',
-    notes: ['A 16-bit PNG keeps 65,536 height levels, so slopes stay smooth. <code>size</code> sets its width in pixels.'],
-    code: 'heightmaps',
   },
   {
     id: 'instance', title: 'The instance', nav: 'Instance',
@@ -501,22 +494,6 @@ const clip = await topography.record({ seconds: 6, fps: 30, motion: 'orbit', for
   const map = document.querySelector('topographic-view');
   const png = await map.snapshot({ width: 1920 });
   const clip = await map.topography.record({ seconds: 6, format: 'webm' });
-</script>`,
-  },
-  heightmaps: {
-    js: `const field = topography.heightfield(); // { samples, size, aspect }, 0 is low and 1 is high
-
-const png = await topography.exportHeightmap({ size: 1024, format: 'png16' });
-// a 16-bit greyscale PNG, ready for any terrain importer`,
-    react: `<Topography
-  location="matterhorn"
-  onReady={async (t) => save(await t.exportHeightmap({ size: 1024, format: 'png16' }))}
-/>`,
-    html: `<topographic-view location="matterhorn"></topographic-view>
-
-<script type="module">
-  const { topography } = document.querySelector('topographic-view');
-  const png = await topography.exportHeightmap({ size: 1024, format: 'png16' });
 </script>`,
   },
   heightfields: {

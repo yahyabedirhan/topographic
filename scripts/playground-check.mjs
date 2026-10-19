@@ -726,7 +726,7 @@ try {
       const total = await d.evaluate(() => document.documentElement.scrollHeight);
       for (let y = 0; y < total; y += height * 0.8) {
         await d.evaluate((top) => scrollTo({ top, behavior: 'instant' }), y); await settle(d, 350);
-        most = Math.max(most, await d.evaluate(() => [...document.querySelectorAll('canvas')].filter((c) => !c.classList.contains('dx-hm')).length));
+        most = Math.max(most, await d.evaluate(() => document.querySelectorAll('canvas').length));
       }
       check(most > 0 && most <= 6, `${name}: at most ${most} WebGL views at once while scrolling`);
       await d.evaluate(() => scrollTo({ top: 0, behavior: 'instant' })); await settle(d, 800);

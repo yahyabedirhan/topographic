@@ -8,7 +8,7 @@ import {
 } from './content';
 import { OPENING } from './copy';
 import {
-  AgentsResult, CameraFigure, ElementResult, ExportResult, FirstFigure, HeightfieldFigure, HeightmapFigure, Hero, InstallFigure, LayoutFigure,
+  AgentsResult, CameraFigure, ElementResult, ExportResult, FirstFigure, HeightfieldFigure, Hero, InstallFigure, LayoutFigure,
   LinesFigure, LooksFigure, ModesFigure, MotionFigure, PageResult, PerformanceResult, PlacesFigure, ReactResult, ShapeFigure, SnapshotBox,
   TerrainFigure, ThemeFigure,
 } from './figures';
@@ -118,7 +118,6 @@ function figureOf(id: string, camera: (v: LiveView | null) => void): { node: Rea
     case 'camera': return { node: <CameraFigure onView={camera} />, first: true };
     case 'export': return { node: <ExportResult />, first: false };
     case 'heightfields': return { node: <HeightfieldFigure />, first: true };
-    case 'heightmaps': return { node: <HeightmapFigure />, first: true };
     case 'react': return { node: <ReactResult />, first: false };
     case 'element': return { node: <ElementResult />, first: false };
     case 'page': return { node: <PageResult />, first: false };

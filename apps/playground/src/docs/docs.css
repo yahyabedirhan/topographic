@@ -105,7 +105,7 @@ html:has(.dx){background:#0b0b0d;scroll-padding-top:40px}
 .dx .fig .stage{position:relative;height:380px;border-radius:14px;overflow:hidden;background:#0b0b0d;box-shadow:inset 0 0 0 1px var(--line)}
 .dx .fig .stage.tall{height:420px}
 .dx .fig .stage.short{height:300px}
-.dx .fig .stage canvas,.dx .pair .ph canvas{display:block}
+.dx .fig .stage canvas{display:block}
 /* captions: one plain line under each visual, as on yahyapak.dev/projects/topographic */
 .dx .fig .cap,.dx .pair figcaption,.dx .grid3 figcaption,.dx .res figcaption{display:block;margin-top:10px;font:400 12.5px/1.5 var(--sans);color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dx .fig .cap code,.dx .pair figcaption code,.dx .grid3 figcaption code,.dx .res figcaption code{font-size:11.5px}
@@ -205,7 +205,6 @@ html:has(.dx){background:#0b0b0d;scroll-padding-top:40px}
 .dx .pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .dx .pair figure,.dx .grid3 figure{margin:0;position:relative;min-width:0}
 .dx .pair .ph{position:relative;aspect-ratio:16/10;border-radius:10px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--line);background:#0b0b0d center/cover}
-.dx .pair .ph canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .dx .pair .mock{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:6px;text-align:center}
 .dx .pair .mock b{font:600 17px/1.2 var(--sans);color:#ecebe8}
 .dx .pair .mock i{display:block;width:120px;height:5px;border-radius:3px;background:rgba(236,235,232,.35)}

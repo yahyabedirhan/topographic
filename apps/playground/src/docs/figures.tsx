@@ -610,46 +610,6 @@ export function HeightfieldFigure() {
   );
 }
 
-/** The Matterhorn as contours, beside its heights as a greyscale heightmap. */
-export function HeightmapFigure() {
-  const stage = useRef<HTMLDivElement>(null);
-  const canvas = useRef<HTMLCanvasElement>(null);
-  const look = useMemo(() => merge(PLACE_LOOK, { theme: { ink: '#d6cfc0' } }), []);
-  const { state } = usePlace(stage, 'matterhorn', look);
-  useEffect(() => {
-    let off = false;
-    loadPlace('matterhorn').then(({ field }) => {
-      const c = canvas.current;
-      if (off || !c || !field) return;
-      const { size, samples } = field;
-      c.width = size;
-      c.height = size;
-      const ctx = c.getContext('2d');
-      if (!ctx) return;
-      const img = ctx.createImageData(size, size);
-      let lo = Infinity;
-      let hi = -Infinity;
-      for (const v of samples) { if (v < lo) lo = v; if (v > hi) hi = v; }
-      for (let y = 0; y < size; y++) {
-        for (let x = 0; x < size; x++) {
-          // Row 0 is the south edge, so the rows flip to draw north up.
-          const v = Math.round(((samples[(size - 1 - y) * size + x] - lo) / (hi - lo || 1)) * 255);
-          const i = (y * size + x) * 4;
-          img.data[i] = v; img.data[i + 1] = v; img.data[i + 2] = v; img.data[i + 3] = 255;
-        }
-      }
-      ctx.putImageData(img, 0, 0);
-    }).catch(() => {});
-    return () => { off = true; };
-  }, []);
-  return (
-    <div className="pair">
-      <figure><div className={`ph${loadClass(state)}`} ref={stage} /><figcaption>The Matterhorn as contours.</figcaption></figure>
-      <figure><div className="ph"><canvas className="dx-hm" ref={canvas} width={256} height={256} /></div><figcaption>The same land as a 16-bit heightmap.</figcaption></figure>
-    </div>
-  );
-}
-
 /* ---------------------------------------------------------------- the rest */
 
 export function LooksFigure() {
