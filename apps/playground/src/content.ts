@@ -1,6 +1,9 @@
 export const PACKAGE = 'topographic';
 export const REACT_PACKAGE = 'topographic-react';
 
+/** Installs the topographic agent skill, for coding agents that read skills. */
+export const SKILL_INSTALL = 'npx skills add yahyabedirhan/topographic';
+
 export const INSTALL = {
   npm: `npm install ${PACKAGE}`,
   react: `npm install ${PACKAGE} ${REACT_PACKAGE}`,

@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import { resolveSettings, type Settings, type SettingsInput } from 'topographic';
-import type { BBox } from './region/pipeline';
+import type { BBox } from 'topographic/locations';
 import { findPlace, sameBox } from './region/places';
 
 /**

@@ -1,5 +1,5 @@
 import type { ToolDef } from '../agent-tools';
-import { limitMessage, limitProblem, type BBox } from './pipeline';
+import { areaProblem as limitProblem, areaProblemMessage as limitMessage, type BBox } from 'topographic/locations';
 import { PLACES, findPlace } from './places';
 import { queryText } from '../share-url';
 import { parseBBox, writeRegion } from './url';

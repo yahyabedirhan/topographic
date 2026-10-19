@@ -1,5 +1,5 @@
 import { getModelContext, runTracked } from '../webmcp';
-import type { BBox } from './pipeline';
+import type { BBox } from 'topographic/locations';
 import { REGION_TOOL_DEFS, regionQuery, regionUpdate, type RegionToolState } from './tools';
 
 export interface RegionAgent extends RegionToolState {
@@ -12,8 +12,8 @@ export interface RegionAgent extends RegionToolState {
     reliefM: number;
     zoom: number;
     tiles: number;
-    fetchMs: number;
-    shapeMs: number;
+    builtIn: boolean;
+    loadMs: number;
   } | null;
   setPlace(bbox: BBox, placeId: string | null): void;
   clear(): void;
@@ -33,8 +33,8 @@ function snapshot(agent: RegionAgent) {
     maxM: agent.info?.maxM ?? null,
     zoom: agent.info?.zoom ?? null,
     tiles: agent.info?.tiles ?? null,
-    fetchMs: agent.info ? Math.round(agent.info.fetchMs) : null,
-    shapeMs: agent.info ? Math.round(agent.info.shapeMs) : null,
+    builtIn: agent.info?.builtIn ?? null,
+    loadMs: agent.info ? Math.round(agent.info.loadMs) : null,
     query: regionQuery(agent),
   };
 }

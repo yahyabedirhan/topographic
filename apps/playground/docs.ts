@@ -1,5 +1,6 @@
 import type { Plugin } from 'vite';
 import { LOOKS, PARAMS, SHAPES, defaultSettings } from 'topographic';
+import { AREA_LIMITS, LOCATIONS } from 'topographic/locations';
 import { INSTALL, TAGLINE } from './src/content';
 import { TOOL_DEFS } from './src/agent-tools';
 import { AGENT_NAMES, PURPOSES } from './src/actor';
@@ -56,6 +57,7 @@ Other settings:
 
 - \`look\` (attribute \`look\`, React prop \`look\`): one of the looks below, by id. It sets the shape, seed, groups, colours and camera pose. The other settings next to it override its values. An unknown look is ignored with one console warning. In \`update()\`, a look replaces the design and keeps the view: \`mode\`, \`elevation\`, \`extent\`, \`detail\`, \`quality\`, \`view2d\`, and the camera motion and pan.
 - \`shape\` (attribute \`shape\`, React prop \`shape\`): one of the shapes below. Unknown shapes fall back to \`${defaultSettings().shape}\` with one console warning.
+- \`location\` (attribute \`location\`, React prop \`location\`): a real place instead of the generated terrain. A built-in id (${LOCATIONS.map((l) => `\`${l.id}\``).join(', ')}), or a height grid \`{ samples, size, aspect }\` such as one from \`fetchLocation()\`. A built-in id also sets \`camera.azimuth\`, \`camera.elevation\`, \`camera.radius\`, \`elevation\`, \`extent: 'block'\`, \`lines\` (\`{ count: 36, width: 0, opacity: 0.9, indexEvery: 4 }\`) and \`layout.fade: 0.15\`, under the values you set. It does not set \`mode\`. Default \`null\`, the generated terrain. Unknown ids fall back to \`null\` with one console warning. See [api.md](api.md).
 - \`seed\` (attribute \`seed\`): integer 0 to 999999. The same seed gives the same terrain; 0 is the original look.
 - \`theme.mode\` (attribute \`theme\`): \`auto\` (follows the OS), \`light\` or \`dark\`.
 - \`theme.ink\` / \`theme.paper\` (attributes \`ink\`, \`paper\`): any CSS colour; paper may be \`transparent\`. Without them, the CSS variables \`--topographic-ink\` and \`--topographic-paper\` are used, then the mode defaults.
@@ -130,7 +132,7 @@ function apiMd(): string {
 
 Mounts a canvas inside \`element\` (it fills the element) and returns an instance.
 
-- \`settings\`: partial settings, see [params.md](params.md). Fields: \`{ look, shape, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera }\`. \`mode\` is \`'2d' | '3d'\` and defaults to \`'2d'\`. \`quality\` is \`'auto' | 'low' | 'medium' | 'high'\` and defaults to \`'auto'\`. \`auto\` starts a phone at low and a desktop at high, then steps down if presented frames miss 60 Hz, or 120 Hz once a frame under 12 ms has been seen. It does not step back up.
+- \`settings\`: partial settings, see [params.md](params.md). Fields: \`{ look, shape, location, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera }\`. \`mode\` is \`'2d' | '3d'\` and defaults to \`'2d'\`. \`quality\` is \`'auto' | 'low' | 'medium' | 'high'\` and defaults to \`'auto'\`. \`auto\` starts a phone at low and a desktop at high, then steps down if presented frames miss 60 Hz, or 120 Hz once a frame under 12 ms has been seen. It does not step back up.
 - \`options\`: \`{ maxPixelRatio = 2, maxPixels = 4147200, forceWebGL1 = false, benchmark = false }\`. \`benchmark\` keeps a 3D view drawing while it is visible so \`stats\` can be read.
 
 Instance:
@@ -138,6 +140,7 @@ Instance:
 - \`update(partialSettings)\`: merges, clamps and applies live. Only changed uniforms reach the GPU.
 - \`snapshot({ frame?, width?, height?, region?, motion?, patch?, field? }) => Promise<Blob>\`: renders one PNG off-screen. \`frame\` is the animation time in ms. Give one side to keep the aspect ratio. \`region\` (\`{ x, y, width, height }\`, fractions from the top-left) keeps only that slice of the view, drawn at full detail. \`motion\` draws the 3D view along that camera path at its pose for \`frame\`, like that moment of \`record\`. \`patch\` and \`field\` draw this image from temporary settings and a temporary height grid, then put the live view back, so the page does not flash and a second WebGL context is not required. The live canvas is not resized. Rejects without WebGL. In 3D it includes the current camera.
 - \`record({ seconds?, fps?, width?, height?, frame?, format?, motion? }) => Promise<Blob>\`: renders a 3D clip with a moving camera. \`format\` is \`'mp4'\` (default) or \`'webm'\`. \`motion\` is \`orbit\`, \`push\`, \`flyover\`, \`drone\` or \`still\`. The live canvas is not resized. Rejects without WebGL or when the browser cannot encode that format.
+- \`setHeightfield({ samples, size, aspect } | null)\`: draws your own height grid until the \`location\` setting changes. \`null\` brings back the generated terrain.
 - \`setInsets({ top, right, bottom, left } | null)\`: the space page UI covers on each side of the view, in CSS px. The 3D picture slides (a lens shift, not a camera move) so the terrain centres in the part left free. 2D, \`snapshot\` and \`record\` ignore it and centre in their own frame. \`insets\` reads it back.
 - \`clampPan(panX, panZ) => [x, z]\`: the pan kept over the terrain as it is drawn now.
 - \`pose\`: \`{ azimuth, elevation, radius, panX, panZ }\`, where the 3D camera is now along its path.
@@ -156,13 +159,23 @@ Behaviour:
 
 ## <topographic-view>
 
-\`import 'topographic/element'\` registers the element. Attributes: \`look\`, \`shape\`, \`seed\`, \`theme\`, \`ink\`, \`paper\`, \`mode\`, \`elevation\`, \`extent\`, \`detail\`, \`quality\`, \`azimuth\`, \`camera-elevation\`, \`radius\`, \`camera-motion\`, \`pan-x\`, \`pan-z\`, plus one per numeric setting (see [params.md](params.md)). Attribute changes apply live, and a removed attribute returns to its default. \`element.topographic\` is the instance, and \`element.snapshot(opts)\` is a shortcut.
+\`import 'topographic/element'\` registers the element. Attributes: \`look\`, \`shape\`, \`location\`, \`seed\`, \`theme\`, \`ink\`, \`paper\`, \`mode\`, \`elevation\`, \`extent\`, \`detail\`, \`quality\`, \`azimuth\`, \`camera-elevation\`, \`radius\`, \`camera-motion\`, \`pan-x\`, \`pan-z\`, plus one per numeric setting (see [params.md](params.md)). Attribute changes apply live, and a removed attribute returns to its default. \`element.topographic\` is the instance, and \`element.snapshot(opts)\` is a shortcut.
 
 ## React: <Topography> and useTopography
 
-\`<Topography look shape lines terrain motion layout theme seed mode elevation extent detail quality camera options onReady {...divProps}>\` renders a div with the background, and children on top. It is SSR-safe: the server renders an empty div.
+\`<Topography look shape location lines terrain motion layout theme seed mode elevation extent detail quality camera options onReady {...divProps}>\` renders a div with the background, and children on top. It is SSR-safe: the server renders an empty div.
 
 \`useTopography(settings, options)\` returns a ref to put on any element. \`ref.topographic\` is the instance while mounted.
+
+## topographic/locations
+
+\`import { LOCATIONS, loadLocation, fetchLocation } from 'topographic/locations'\`.
+
+- \`LOCATIONS\`: the built-in places, each \`{ id, name, bbox, aspect, defaults }\`. \`defaults\` is \`{ camera: { azimuth, elevation, radius }, elevation, extent, lines, layout }\`.
+${LOCATIONS.map((l) => `  - \`${l.id}\`: ${l.name}, west ${l.bbox.west}, south ${l.bbox.south}, east ${l.bbox.east}, north ${l.bbox.north}`).join('\n')}
+- \`loadLocation(id) => Promise<{ samples, size, aspect, minMeters, maxMeters, zoom }>\`: a built-in place's 256 × 256 grid. Each place is its own dynamic import of 35 to 150 KB (25 to 115 KB compressed), so a page downloads only the places it uses. The \`location\` setting calls it for you.
+- \`fetchLocation({ west, south, east, north }, { relief?, smooth?, tiles?, signal? }) => Promise<{ samples, size, aspect, minMeters, maxMeters, zoom, tiles }>\`: downloads Terrarium elevation tiles (AWS Open Data) for any area and makes the same 256 × 256 grid as the playground. The shorter side must be at least ${AREA_LIMITS.minSideM / 1000} km, the longer side at most ${AREA_LIMITS.maxSideM / 1000} km, and the sides within ${AREA_LIMITS.maxAspect}:1. \`relief\` is \`dramatic\` (default) or \`measured\`; \`smooth\` is \`light\`, \`medium\` (default) or \`strong\`; \`tiles\` is a Terrarium URL template with \`{z}\`, \`{x}\` and \`{y}\`. Pass the result as \`location\`.
+- \`areaProblem(bbox)\` returns \`'order' | 'small' | 'large' | 'aspect' | null\`, and \`areaSpan(bbox)\` the size in metres.
 
 ## Helpers
 
@@ -231,7 +244,7 @@ While the heights load, the page sets \`data-loading=terrain\` and hides the def
 - **Dock:** terrain previews, with a chevron that scrolls to the next one.
 - **Theme and colours:** theme, shuffle and the two colours sit in a 2×2 grid.
 - **Link tab:** shows a labelled still of the terrain the link opens.
-- **Share image:** \`og-a.png\`, a dark granite still, with \`twitter:card\` set to \`summary_large_image\`.
+- **Share image:** \`og.png\`, Everest in 3D beside the headline and the code that draws it, with \`twitter:card\` set to \`summary_large_image\`. The docs page uses \`og-docs.png\`.
 
 ## Packages
 

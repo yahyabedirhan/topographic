@@ -6,6 +6,7 @@ This guide explains how to use topographic. Each section covers one topic. To tr
 - [Three ways to use it](#three-ways-to-use-it)
 - [Sizing and layering](#sizing-and-layering)
 - [Settings](#settings)
+- [Locations](#locations)
 - [Shapes](#shapes)
 - [Looks](#looks)
 - [Colours, CSS variables and dark mode](#colours-css-variables-and-dark-mode)
@@ -27,6 +28,9 @@ npm install topographic-react      # React bindings (needs React 18 or 19)
 
 The packages are ESM only. They have no dependencies. They are marked as side-effect free, except `topographic/element`. That one registers the element when you import it.
 
+With a coding agent, `npx skills add yahyabedirhan/topographic` installs the topographic skill.
+The skill installs the packages, adds a first terrain and points the agent at this guide.
+
 On npm: [`topographic`](https://www.npmjs.com/package/topographic) and [`topographic-react`](https://www.npmjs.com/package/topographic-react).
 
 ## Three ways to use it
@@ -46,7 +50,7 @@ The call adds a canvas inside `element`. The canvas fills the element, so give t
 | `update(partialSettings)` | Changes some settings and applies them right away. Values are kept inside their ranges. Only the changed values are sent to the GPU. |
 | `snapshot({ frame?, width?, height?, region?, motion? })` | Draws one PNG image in the background and returns it as a `Blob`. See [Snapshots](#snapshots-and-png-export). |
 | `record({ seconds?, fps?, width?, height?, frame?, format?, motion? })` | Records a short 3D video with a moving camera. Returns it as an MP4 or WebM `Blob`. |
-| `setHeightfield({ samples, size, aspect } \| null)` | Draws the lines from your own elevation data (a height map) instead of the generated shape. The data is a square grid. `samples` is a `Float32Array` of `size × size` values, from 0 (low) to 1 (high). Row 0 is the south edge. `aspect` is the place's width divided by its height. `null` brings back the shape's own shape. |
+| `setHeightfield({ samples, size, aspect } \| null)` | Draws the lines from your own elevation data (a height map) instead of the generated shape. The data is a square grid. `samples` is a `Float32Array` of `size × size` values, from 0 (low) to 1 (high). Row 0 is the south edge. `aspect` is the place's width divided by its height. `null` brings back the shape's own shape. The grid stays until the `location` setting changes. The [`location` setting](#locations) is usually simpler. |
 | `setInsets({ top, right, bottom, left } \| null)` | Tells the 3D view how much space your page's UI covers on each side, in CSS pixels. A toolbar or a dock are examples. The 3D picture then moves so the terrain is centred in the free space. The camera does not move, so orbiting still turns around the terrain. 2D does not change. Snapshots and videos ignore this setting (see [Snapshots](#snapshots-and-png-export)). `null` clears it. `insets` reads it back. |
 | `clampPan(panX, panZ)` | Returns the pan as `[x, z]`, limited so the view stays over the terrain. This is the same limit the renderer uses for `camera.panX` and `camera.panZ`. |
 | `stats` | `{ fps, frameMs, mesh, quality }` for the 3D view. `mesh` is 0 in 2D. `quality` is the tier actually drawing: `low`, `medium` or `high`. |
@@ -72,7 +76,7 @@ The call adds a canvas inside `element`. The canvas fills the element, so give t
 <topographic-view shape="long-ridge" line-count="36" peaks="2" theme="dark"></topographic-view>
 ```
 
-- Every setting has an HTML attribute (listed in [Settings](#settings)). There are also `look`, `shape`, `seed`, `theme`, `ink` and `paper`.
+- Every setting has an HTML attribute (listed in [Settings](#settings)). There are also `look`, `shape`, `location`, `seed`, `theme`, `ink` and `paper`.
 - A changed attribute applies right away. A removed attribute goes back to the shape's default.
 - `element.topographic` is the instance. `element.snapshot(opts)` is a shortcut to its `snapshot`.
 - The element is `display: block`. Size and position it with CSS, as [Sizing and layering](#sizing-and-layering) shows.
@@ -90,7 +94,7 @@ import { Topography, useTopography } from 'topographic-react';
 />
 ```
 
-- Props: `look`, `shape`, `seed`, `lines`, `terrain`, `motion`, `layout`, `theme`, `mode`, `elevation`, `extent`, `detail`, `quality`, `camera`, `view2d`, `options`, `onReady`, plus any `div` props. Children are drawn on top.
+- Props: `look`, `shape`, `location`, `seed`, `lines`, `terrain`, `motion`, `layout`, `theme`, `mode`, `elevation`, `extent`, `detail`, `quality`, `camera`, `view2d`, `options`, `onReady`, plus any `div` props. Children are drawn on top.
 - `style` is React's normal inline style. The land shape is the `shape` prop.
 - `TopographyInstance` is the type of the instance.
 - Each group of settings updates only when its values change. A new object with the same values does nothing.
@@ -140,6 +144,7 @@ The settings are in groups. Pass only the values you want to change:
 {
   look: 'survey-map',
   shape: 'dunes',
+  location: null,
   seed: 0,
   lines:   { count, width, opacity, indexEvery },
   terrain: { peaks, spread, roughness, sharpness, terracing, variant },
@@ -219,6 +224,93 @@ createTopography(el, {
 ```
 
 The default camera looks from a little west of south. It is about a third of the way up. It is close enough that the terrain fills a wide window. `record({ motion: 'flyover', format: 'mp4' })` records a video. It does not resize the live canvas. You can also use `format: 'webm'` if the browser can encode it.
+
+## Locations
+
+A location draws a real place instead of the generated terrain.
+The `location` setting takes the id of a built-in place, or a height grid.
+It works in 2D and in 3D.
+
+```js
+createTopography(el, { location: 'everest' });
+createTopography(el, { location: 'fuji', mode: '3d', camera: { motion: 'orbit' } });
+```
+
+```html
+<topographic-view location="matterhorn" mode="3d"></topographic-view>
+```
+
+```tsx
+<Topography location="grand-canyon" mode="3d" />
+```
+
+### The ten places
+
+| Id | Place |
+|---|---|
+| `istanbul` | Istanbul, the whole metro area with the Bosphorus |
+| `cyprus` | Cyprus, the whole island with some sea around it |
+| `matterhorn` | The Matterhorn and Zermatt |
+| `geirangerfjord` | Geirangerfjord |
+| `grand-canyon` | The Grand Canyon, from the South Rim to the North Rim |
+| `yosemite` | Yosemite Valley |
+| `torres-del-paine` | Torres del Paine |
+| `fuji` | Mount Fuji and the Fuji Five Lakes |
+| `everest` | Everest and the Khumbu |
+| `kilimanjaro` | Kilimanjaro |
+
+These are the playground's places.
+Each place is a 256 × 256 height grid that comes with the package, so it works offline and gives the same picture every time.
+A page downloads only the places it uses.
+A place's file is 25 to 115 KB when the server compresses it.
+Until the file arrives, the view shows only the paper colour.
+`snapshot()` and `record()` wait for it.
+
+A built-in place also sets the look the playground gives it.
+That is the camera angle and distance, the 3D `elevation`, `extent: 'block'`, the lines and a light centre fade:
+
+```js
+{
+  camera: { azimuth, elevation, radius: 1.32 },   // each place has its own angle
+  elevation,                                      // each place has its own height
+  extent: 'block',
+  lines: { count: 36, width: 0, opacity: 0.9, indexEvery: 4 },
+  layout: { fade: 0.15 },
+}
+```
+
+It does not set `mode`, so a place is a 2D map unless you set `mode: '3d'`.
+The values you set win over the place's own.
+A change to another place sets that place's look again, except for the values in the same update.
+
+`LOCATIONS` from `topographic/locations` lists each place with its `id`, `name`, `bbox`, `aspect` and `defaults`.
+`loadLocation(id)` returns a place's grid, with `minMeters` and `maxMeters` for its lowest and highest point.
+
+### Any area: `fetchLocation`
+
+```js
+import { fetchLocation } from 'topographic/locations';
+
+const grid = await fetchLocation({ west: 28.45, south: 40.78, east: 29.65, north: 41.36 });
+topography.update({ location: grid });
+```
+
+`fetchLocation()` downloads the elevation of any area and makes a 256 × 256 grid from it, the same way the playground does.
+The edges are in degrees.
+The result also has `minMeters`, `maxMeters`, the tile `zoom` and the number of `tiles` it downloaded.
+
+| Option | Default | What it does |
+|---|---|---|
+| `relief` | `'dramatic'` | `'dramatic'` stretches the area's own heights to fill the terrain, so a flat city still shows its hills. `'measured'` makes 400 m the full height, so flat ground stays flat. |
+| `smooth` | `'medium'` | How much the heights are smoothed: `'light'`, `'medium'` or `'strong'`. |
+| `tiles` | AWS Open Data | A URL for Terrarium elevation tiles, with `{z}`, `{x}` and `{y}`. |
+| `signal` | none | An `AbortSignal` that stops the downloads. |
+
+`areaProblem(bbox)` from the same entry point tells you before the download whether an area is too small, too large or too thin.
+
+A height grid in `location` is used as it is, and it brings no camera.
+To use your own elevation data, pass `{ samples, size, aspect }` as described for `setHeightfield()` in [Vanilla JavaScript](#vanilla-javascript-createtopography).
+React compares a grid by identity, so keep the same object between renders.
 
 ## Shapes
 
@@ -409,7 +501,7 @@ The playground (`apps/playground`) is the project's live demo page.
 
   2D and 3D keep their own pan and zoom: the 2D view is `view2d` (`vx`, `vy`, `vz` in the URL), the 3D view is the camera. The Anchor setting still places the summit in 2D: 0 keeps it to the side, 1 puts it in the centre.
   The terrain is centred in the space between the top buttons and the dock, not behind the dock. The pan and the zoom are part of the camera. A saved map terrain keeps them. A click on a look, or the camera reset in Tune, moves the camera back to the centre.
-- The buttons at the top right are **Map**, 2D/3D, **Tune** and **Export**. Each one opens its panel below the buttons. Only one panel is open at a time. The 2D/3D button has a small badge that shows the current mode.
+- The buttons at the top right are **Map**, 2D/3D, **Tune** and **Export**, and **Install** in its own circle in the corner. Each one opens its panel below the buttons. Only one panel is open at a time. The 2D/3D button has a small badge that shows the current mode.
 - **Tune** opens the settings, one tab at a time: Lines, Terrain, Motion, Layout and 3D.
   - Each tab starts with a small live picture of its settings. The pictures show the contour rings, the side view of the terrain, the movement, the page layout, or the camera from above and from the side. The camera picture follows a moving camera a few times a second.
   - Every row has a small icon. Each slider's track shows what the setting does, such as thicker lines, rougher ground or wider waves.
@@ -419,6 +511,7 @@ The playground (`apps/playground`) is the project's live demo page.
   - The playground starts at High detail and High budget, unless the link or saved terrain names its own. If the frame rate stays below 30 fps, a **Low performance: reduce quality** button shows under the top right buttons. It sets Detail and Budget to medium. It shows once per browser session.
   - In 3D, the frame rate shows just above the dock, at its left edge, with the graphics tier that is actually drawing.
   - When a map place is applied, the Terrain sliders and Motion's Warp are dimmed, because the place sets the terrain. A note with **Clear map** is above them.
+- **Install** shows a preview of the view with its main settings, the agent skill command `npx skills add yahyabedirhan/topographic`, the npm install lines and this view's code as one `createTopography` call. **Copy link** copies the same link as Export's Link tab, and **Export** opens the Export panel.
 - **Export** gives you a link, a PNG, a 4 second 3D video as MP4 or WebM, and the code as React, HTML or JSON.
   - The link tab shows a labelled still of the terrain the link will open, then each of the link's parameters as a key and value.
   - The PNG tab shows the view with a frame for each size: 2× the window, a phone (1170 × 2532) or 1920 × 1080. If a size has a different shape from the window, it crops the view. Drag its frame, or use the arrow keys, to choose the part to keep. For example, choose which part of a wide view goes on a phone. The frame is centred each time Export opens. The image is exactly that part of the screen, at full detail.
@@ -467,7 +560,7 @@ Each client loads in its own chunk when the page is idle after the first paint.
 - **PostHog** runs without cookies (`persistence: 'memory'`, `cookieless_mode: 'always'`, which needs the project's cookieless server hash setting), with no session recording and no autocapture, and it respects Do Not Track. It sends pageview and pageleave (time on page, referrer and UTM parameters) and the typed events in `apps/playground/src/analytics.ts`:
   - Navigation: `ui_click` (header links), `view_mode_changed`, `panel_opened`, `panel_closed` (with time open), `export_tab_changed`.
   - Looks and settings: `dock_item_clicked`, `saved_terrain_deleted`, `place_applied`, `region_loaded`, `setting_changed`, `quality_changed`, `theme_toggled`, `shuffle_clicked`, `colour_changed`.
-  - Sharing and export: `link_copied`, `code_copied`, `export_image_downloaded`, `export_image_failed`, `export_video_started`, `export_video_completed`, `export_video_failed`.
+  - Sharing and export: `link_copied`, `code_copied`, `install_copied`, `export_image_downloaded`, `export_image_failed`, `export_video_started`, `export_video_completed`, `export_video_failed`.
   - `performance_sample`, once about 20 seconds into a visible visit: median and 10th-percentile fps, refresh rate, quality tier, viewport, device pixel ratio, GPU renderer, device memory, browser, OS, long frames, context losses and time to first frame.
   - `low_performance_prompt_shown` (fps, view, detail and budget levels) and `low_performance_prompt_clicked`, from the low performance prompt.
   - `analytics_opted_out`, once, from the Opt out button.
@@ -523,4 +616,7 @@ The input schemas are in `/docs/webmcp.md` on the playground. WebMCP needs a sec
 - **The lines disappear behind my text.** That's `layout.fade`. Lower it, or set it to 0.
 - **My CSS variable change didn't apply.** Call `update({ theme: {} })` after you change it.
 - **`snapshot` throws.** The size is larger than the GPU limit, or WebGL is not available.
+- **A location shows only the paper colour.** The place's file did not load. Look for the warning in the console. For `fetchLocation()`, the page needs network access to the tile host.
+- **`fetchLocation()` rejects the area.** The shorter side must be at least 1.5 km, and the longer side at most 300 km. The longer side can be at most 3 times the shorter side. `areaProblem(bbox)` names the problem before the download.
+- **There's a warning about an unknown location.** Compare the id with [the ten places](#the-ten-places).
 - **There's a warning about an unknown shape.** Compare the id with the [Shapes](#shapes) list. Ids use dashes, like `seed-pod`.

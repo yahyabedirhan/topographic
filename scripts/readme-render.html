@@ -1,0 +1,139 @@
+<!doctype html>
+<meta charset="utf-8">
+<!-- The page scripts/render-readme-assets.mjs drives: it draws each README, npm and social image with the
+     built library, and loads real places through the playground's own region worker. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&family=Literata:opsz,wght@7..72,600&display=block" rel="stylesheet">
+<style>
+  html, body { margin: 0; background: #0b0b0d; }
+  #host { position: fixed; left: 0; top: 0; width: 960px; height: 540px; }
+  #card { position: fixed; left: 0; top: 0; overflow: hidden; background: #0b0b0d; color: #ecebe8; font-family: Inter, sans-serif; }
+  #card[hidden] { display: none; }
+  #card .bg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  #card .fade { position: absolute; inset: 0; }
+  #card .col { position: absolute; top: 56px; bottom: 56px; display: flex; flex-direction: column; justify-content: space-between; }
+  #card .mark { display: flex; align-items: center; gap: 14px; font: 600 30px/1 Literata, Georgia, serif; letter-spacing: -.01em; }
+  #card .mark img { width: 56px; height: 56px; }
+  #card .mark small { font: 500 22px/1 Inter, sans-serif; color: #8b8a86; margin-left: 4px; }
+  #card .words { display: grid; gap: 16px; }
+  #card h1 { margin: 0; font: 600 52px/1.08 Literata, Georgia, serif; letter-spacing: -.02em; }
+  #card .sub { margin: 0; font: 500 24px/1.3 Inter, sans-serif; color: #b9b8b3; }
+  #card pre { align-self: flex-start; margin: 0; padding: 14px 20px; border-radius: 14px; background: rgba(15, 15, 18, .84);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .1); font: 400 19px/1.55 'JetBrains Mono', monospace; color: #cfcdc7; white-space: pre; }
+  #card pre .step { display: block; margin: 0 -20px 10px; padding: 0 20px 10px; border-bottom: 1px solid rgba(255, 255, 255, .1); color: #ecebe8; }
+  #card pre b { color: #8b8a86; font-weight: 400; }
+  #card pre i { color: #8fd6a5; font-style: normal; }
+  #card pre u { color: #8aadd4; text-decoration: none; }
+</style>
+<div id="host"></div>
+<div id="card" hidden></div>
+<script type="module">
+  import { createTopography } from '/packages/core/dist/index.js';
+  import { PLACES, terrainDefaults } from '/apps/playground/src/region/places.ts';
+
+  // The playground's own build settings (useRegion.ts).
+  const RELIEF = 'dramatic';
+  const SMOOTH = 'medium';
+  let worker;
+  let nextId = 0;
+  const pending = new Map();
+  const fields = new Map();
+
+  function loadField(id) {
+    if (fields.has(id)) return fields.get(id);
+    const place = PLACES.find((p) => p.id === id);
+    if (!place) throw new Error(`unknown place ${id}`);
+    worker ??= new Worker(new URL('/apps/playground/src/region/worker.ts', import.meta.url), { type: 'module' });
+    worker.onmessage = (e) => {
+      const job = pending.get(e.data.id);
+      pending.delete(e.data.id);
+      if (e.data.ok) job.resolve({ samples: e.data.samples, size: e.data.size, aspect: e.data.aspect });
+      else job.reject(new Error(e.data.error));
+    };
+    const promise = new Promise((resolve, reject) => {
+      const reqId = ++nextId;
+      pending.set(reqId, { resolve, reject });
+      worker.postMessage({ id: reqId, bbox: place.bbox, relief: RELIEF, smooth: SMOOTH });
+    });
+    fields.set(id, promise);
+    return promise;
+  }
+
+  const isObj = (v) => v && typeof v === 'object' && !Array.isArray(v);
+  const merge = (a, b) => {
+    const out = { ...a };
+    for (const [k, v] of Object.entries(b ?? {})) out[k] = isObj(v) && isObj(a?.[k]) ? merge(a[k], v) : v;
+    return out;
+  };
+
+  const blobToB64 = async (blob) => {
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+    let s = '';
+    for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+    return btoa(s);
+  };
+
+  /** Draws twice the size and scales down, so thin lines on steep real terrain do not band or alias. */
+  async function supersampled(opts) {
+    const { width, height } = opts;
+    const big = await createImageBitmap(await live.snapshot({ ...opts, width: width * 2, height: height * 2 }));
+    const c = new OffscreenCanvas(width, height);
+    const g = c.getContext('2d');
+    g.imageSmoothingEnabled = true;
+    g.imageSmoothingQuality = 'high';
+    g.drawImage(big, 0, 0, width, height);
+    big.close();
+    return c.convertToBlob({ type: 'image/png' });
+  }
+
+  let live = null;
+  /**
+   * Mounts the library with `settings`, on top of a place's defaults and heights when `place` is set,
+   * the way `location` draws it. Every place uses the shared map camera, as in the playground.
+   */
+  async function mount({ place, settings }) {
+    live?.destroy();
+    const base = place ? structuredClone(terrainDefaults(place === 'cyprus' ? null : place)) : {};
+    const all = merge(base, settings);
+    live = createTopography(document.getElementById('host'), all, { maxPixelRatio: 1 });
+    if (place) live.setHeightfield(await loadField(place));
+    await new Promise((r) => setTimeout(r, 300));
+    return live.settings;
+  }
+
+  /** One PNG, as base64. */
+  window.still = async ({ place, settings, width, height, frame = 0 }) => {
+    await mount({ place, settings });
+    return blobToB64(await supersampled({ width, height, frame }));
+  };
+
+  /**
+   * A seamless loop: the camera swings `sway` degrees to each side of the place's own angle and back, on a
+   * sine, in `count` frames, at a fixed terrain time, so the last frame leads straight back into the first.
+   * A swing keeps the framing each place was given; a full turn would show the block edge-on.
+   */
+  window.orbit = async ({ place, settings, width, height, count, sway = 30 }) => {
+    const s = await mount({ place, settings });
+    const out = [];
+    for (let i = 0; i < count; i++) {
+      const azimuth = (s.camera.azimuth + sway * Math.sin((2 * Math.PI * i) / count) + 360) % 360;
+      out.push(await blobToB64(await supersampled({ width, height, frame: 0, patch: { camera: { azimuth } } })));
+    }
+    return out;
+  };
+
+  /** Lays out a social card over one frame of a terrain; the script then screenshots #card. */
+  window.card = async ({ place, settings, width, height, html, fade }) => {
+    const png = await window.still({ place, settings, width, height });
+    const card = document.getElementById('card');
+    card.style.width = `${width}px`;
+    card.style.height = `${height}px`;
+    card.innerHTML = `<img class="bg" src="data:image/png;base64,${png}" alt=""><div class="fade" style="background:${fade}"></div>${html}`;
+    card.hidden = false;
+    await Promise.all([...card.querySelectorAll('img')].map((i) => i.decode()));
+    await document.fonts.ready;
+  };
+
+  window.ready = true;
+</script>

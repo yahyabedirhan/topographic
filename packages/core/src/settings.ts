@@ -2,6 +2,8 @@ import { findLook, type Look } from './looks.js';
 import { GROUPS, PARAMS, clampParam, paramsIn, type GroupName, type GroupValues, type ParamDef } from './params.js';
 import { QUALITIES, type QualityName } from './quality.js';
 import { DEFAULT_SHAPE, findShape, type DeepPartialSettings, type ShapeId } from './shapes.js';
+import type { Heightfield } from './heightfield.js';
+import { findLocation, type LocationId } from './locations/builtin.js';
 
 export type ThemeMode = 'auto' | 'light' | 'dark';
 export interface ThemeSettings {
@@ -73,12 +75,19 @@ export interface Settings {
   quality: QualityName;
   camera: CameraSettings;
   view2d: View2dSettings;
+  /**
+   * A real place instead of the generated terrain: a built-in location id, or a height grid such as
+   * one from fetchLocation(). A built-in location also brings its camera, elevation, extent, lines
+   * and centre fade, under the values you set. null is the generated terrain.
+   */
+  location: LocationId | Heightfield | null;
 }
 
-export type SettingsInput = Omit<DeepPartialSettings, 'shape'> & {
+export type SettingsInput = Omit<DeepPartialSettings, 'shape' | 'location'> & {
   shape?: string;
   /** A built-in look by id, such as 'survey-map'. The other settings next to it override its values. */
   look?: string;
+  location?: LocationId | (string & {}) | Heightfield | null;
 };
 
 const warned = new Set<string>();
@@ -186,7 +195,43 @@ export function defaultSettings(): Settings {
     quality: 'auto',
     camera: { ...DEFAULT_CAMERA },
     view2d: { ...DEFAULT_VIEW2D },
+    location: null,
   };
+}
+
+function isHeightfield(v: unknown): v is Heightfield {
+  const f = v as Heightfield;
+  return typeof v === 'object' && v !== null && f.samples instanceof Float32Array && Number.isInteger(f.size) && f.size > 0
+    && f.samples.length === f.size * f.size;
+}
+
+function resolveLocation(location: SettingsInput['location']): Settings['location'] {
+  if (location === null || location === undefined || location === '') return null;
+  if (typeof location === 'string') {
+    if (findLocation(location)) return location as LocationId;
+    warnOnce(`unknown location "${location}", using the generated terrain`);
+    return null;
+  }
+  if (isHeightfield(location)) return location;
+  warnOnce('a location height grid needs samples, a Float32Array of size × size; using the generated terrain');
+  return null;
+}
+
+/** Sets the location and, for a new built-in one, its look. Call it before the input's own values. */
+function applyLocation(into: Settings, input: SettingsInput): void {
+  if (input.location === undefined) return;
+  const next = resolveLocation(input.location);
+  if (next === into.location) return;
+  into.location = next;
+  applyPlaceDefaults(into, next);
+}
+
+/** A built-in location's camera, elevation, extent, lines and centre fade. A height grid has none. */
+function applyPlaceDefaults(into: Settings, location: Settings['location']): void {
+  const builtin = typeof location === 'string' ? findLocation(location) : undefined;
+  if (!builtin) return;
+  applyGroups(into, builtin.defaults);
+  applyView(into, builtin.defaults);
 }
 
 function resolveShape(shape: string | undefined): ShapeId {
@@ -220,7 +265,8 @@ function resolveLook(id: string | undefined): Look | undefined {
 }
 
 /**
- * Defaults, then the shape's own defaults, then the look, then the input. Every number is clamped.
+ * Defaults, then the shape's own defaults, then the look, then the location's defaults, then the input.
+ * Every number is clamped.
  * The shape is the input's shape, else the look's shape.
  */
 export function resolveSettings(input: SettingsInput = {}): Settings {
@@ -230,6 +276,7 @@ export function resolveSettings(input: SettingsInput = {}): Settings {
   applyGroups(out, findShape(out.shape)?.defaults as SettingsInput | undefined);
   applyGroups(out, look);
   applyView(out, look);
+  applyLocation(out, input);
   applyGroups(out, input);
   applyView(out, input);
   return out;
@@ -242,15 +289,20 @@ export function resolveSettings(input: SettingsInput = {}): Settings {
  * The other values in the patch then apply on top.
  */
 export function mergeSettings(current: Settings, patch: SettingsInput): Settings {
-  let out: Settings = structuredClone(current);
+  // A height grid is shared, not copied: it can be large, and the renderer only reads it.
+  let out: Settings = { ...structuredClone({ ...current, location: null }), location: current.location };
   if (patch.look !== undefined && resolveLook(patch.look)) {
     const base = resolveSettings({ look: patch.look, shape: patch.shape });
     out = {
       ...base,
       mode: out.mode, elevation: out.elevation, extent: out.extent, detail: out.detail, quality: out.quality, view2d: out.view2d,
       camera: { ...out.camera, azimuth: base.camera.azimuth, elevation: base.camera.elevation, radius: base.camera.radius },
+      location: out.location,
     };
+    // The place's own view stays on top of the new look.
+    if (patch.location === undefined) applyPlaceDefaults(out, out.location);
   } else if (patch.shape !== undefined) out.shape = resolveShape(patch.shape);
+  applyLocation(out, patch);
   applyGroups(out, patch);
   applyView(out, patch);
   return out;
@@ -277,6 +329,7 @@ export function fromAttributes(get: (name: string) => string | null): SettingsIn
   const input: Record<string, unknown> = {};
   const look = get('look'); if (look) input.look = look;
   const shape = get('shape'); if (shape) input.shape = shape;
+  const location = get('location'); if (location !== null) input.location = location || null;
   const seed = get('seed'); if (seed !== null) input.seed = Number(seed);
   for (const def of PARAMS as readonly ParamDef[]) {
     const v = get(def.attr);
@@ -323,6 +376,7 @@ export function fromAttributes(get: (name: string) => string | null): SettingsIn
 export function toAttributes(s: Settings): Record<string, string> {
   const d = resolveSettings({ shape: s.shape });
   const out: Record<string, string> = { shape: s.shape };
+  if (typeof s.location === 'string') out.location = s.location;
   if (s.seed) out.seed = String(s.seed);
   for (const def of PARAMS as readonly ParamDef[]) {
     const v = (s[def.group] as Record<string, number>)[def.key];

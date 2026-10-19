@@ -14,12 +14,21 @@ It is a clean break: the old names are gone, with no deprecated aliases.
 - The query key `s=` stays, and now names the shape. Links made before 0.6.0 keep working.
 - Playground: the WebMCP tool `list_styles` is now `list_shapes`, and `randomize` takes `shape: true`. `set_settings` takes `shape`, and still takes the old `style` key for this release. Terrains saved with a `style` key load with that value as `shape`.
 - Playground: the Tune › Terrain section with peaks, spread, sharpness and variant is now titled Form.
+- New entry point `topographic/locations` with the ten playground places as built-in height grids: `istanbul`, `cyprus`, `matterhorn`, `geirangerfjord`, `grand-canyon`, `yosemite`, `torres-del-paine`, `fuji`, `everest` and `kilimanjaro`. Each place loads on its own, so a page downloads only the places it uses. `LOCATIONS` lists them, and `loadLocation(id)` returns a grid.
+- New `fetchLocation({ west, south, east, north })` makes a height grid for any area up to 300 km wide, with the playground's own elevation pipeline, which moved into the library.
+- New `location` setting, element attribute and React prop. It takes a place id or a height grid. A place also sets the playground's look for it: its camera, elevation, `extent: 'block'`, the lines (`count: 36, width: 0, opacity: 0.9, indexEvery: 4`) and `layout.fade: 0.15`, under the values you set. It does not set `mode`. `setHeightfield()` still works.
+- Playground: the ten places load their built-in grids instead of the elevation tiles. `get_region` returns `builtIn` and `loadMs` in place of `fetchMs` and `shapeMs`.
 - Install lines in the READMEs no longer pin a version. Sizing and layering examples moved to the guide.
 - New `look` setting: a named, finished design by id, such as `look: 'survey-map'`. It is the attribute `look` on `<topographic-view>`, the React prop `look` and the query key `look`. The other settings next to it override its values. An unknown look is ignored with one console warning. In `update()`, a look replaces the design and keeps the view settings.
 - `PRESETS` and `Preset` are now `LOOKS` and `Look`. Each look has an `id`. `findLook(id)` and the type `LookId` are new. The list joins the old presets and the playground's looks: 26 looks, listed in the guide's Looks section.
 - From the old presets, Survey map and Rocky are now the looks `survey-map` and `rocky`. Terraces is now the playground's Terraces look. The presets that were a shape with a few changes are gone; use `shape` for them.
 - Playground: the dock and the `look=` link key use the library's looks. Links made before 0.6.0 keep working, because the ids are the old `look=` values. The dock gains Survey map and Rocky.
 - Playground: `set_settings` takes `look`, and `list_shapes` returns the looks with their ids in place of the presets.
+- New package descriptions and keywords: "Topographic terrain rendered with WebGL. Generate a land or turn a real place into a topographic terrain." The words background and animated-background are gone.
+- New READMEs for the project and both packages: real places first, then generated shapes, then 2D and 3D, with each code example beside the picture it draws. Limits have their own section.
+- Playground: **Install**, a new button in its own circle at the top right. It shows a preview of the view and its main settings, the agent skill and npm install lines, this view's code, and its link with a shortcut to Export.
+- Playground: new share images, `og.png` and `og-docs.png`, with a real place, the headline and the code that draws it. The page title and description use the new line.
+- Playground: Export no longer shows the hint about tinted values under the code, and the HTML hint says element instead of background.
 
 | Old name | New name |
 |---|---|

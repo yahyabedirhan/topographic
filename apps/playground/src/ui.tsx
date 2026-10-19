@@ -10,6 +10,7 @@ import type { RegionController } from './region/useRegion';
 import type { SavedTerrain } from './saved';
 import { ignoredWithPlace } from './shape';
 import type { Terrains } from './terrains';
+import { InstallMenu } from './install';
 import {
   DEFAULT_CAMERA, DEFAULT_DETAIL, LOOKS, DEFAULT_ELEVATION, DEFAULT_EXTENT, GROUPS, RADIUS_MAX, RADIUS_MIN, paramsIn, resolveMode,
   type QualityName,
@@ -652,13 +653,15 @@ function LowPerformancePrompt({ pg, loading }: { pg: Playground; loading: boolea
   );
 }
 
-export function Shell({ pg, terrains, place, tune, exporting, clusterRef, onOpenMap, children }: {
+export function Shell({ pg, terrains, place, tune, exporting, install, clusterRef, onOpenMap, children }: {
   pg: Playground;
   terrains: Terrains;
   onOpenMap?: () => void;
   place?: ReactNode;
   tune: ReactNode;
   exporting: ReactNode;
+  /** Install, in its own glass circle at the far right of the top bar. */
+  install?: ReactNode;
   clusterRef?: Ref<HTMLDivElement>;
   children?: ReactNode;
 }) {
@@ -670,6 +673,7 @@ export function Shell({ pg, terrains, place, tune, exporting, clusterRef, onOpen
       <Wordmark />
       <div className="pt-top">
         <Cluster pg={pg} place={place} tune={tune} exporting={exporting} clusterRef={clusterRef} />
+        {install}
       </div>
       <LowPerformancePrompt pg={pg} loading={terrains.region.status === 'loading'} />
       {children}
@@ -686,9 +690,9 @@ export function useDismiss(close: () => void) {
   }, [close]);
 }
 
-type PopName = 'place' | 'tune' | 'export';
+type PopName = 'place' | 'tune' | 'export' | 'install';
 
-const PANEL: Record<PopName, PanelName> = { place: 'map', tune: 'tune', export: 'export' };
+const PANEL: Record<PopName, PanelName> = { place: 'map', tune: 'tune', export: 'export', install: 'install' };
 
 /** Sends `panel_opened` when a cluster popover opens and `panel_closed` with how long it stayed open. */
 function usePanelTiming(open: PopName | null) {
@@ -762,6 +766,7 @@ export function GlassFrame({ pg, terrains, tune, exporting }: {
         </Popover.Root>
       )}
       exporting={exporting(open === 'export', openChange('export'), clusterRef)}
+      install={<InstallMenu pg={pg} region={region} open={open === 'install'} onOpenChange={openChange('install')} onOpenExport={() => setOpen('export')} />}
     />
   );
 }

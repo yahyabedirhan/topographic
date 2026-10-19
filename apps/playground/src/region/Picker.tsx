@@ -4,7 +4,7 @@ import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Menu } from '@base-ui-components/react/menu';
 import { Check, ChevronDown, MapPin, Mountain, Move } from 'lucide-react';
-import { limitMessage, limitProblem, spanOf, type BBox } from './pipeline';
+import { areaProblem as limitProblem, areaProblemMessage as limitMessage, areaSpan as spanOf, type BBox } from 'topographic/locations';
 import { ELEVATION_CREDIT, mapStyle, type MapAppearance } from './basemap';
 import { findPlace, PLACE_GROUPS, PLACES, sameBox } from './places';
 import { clampTowards, containRect, fitRect, HANDLES, resizeRect, screenAspect, type Handle, type Rect } from './frame';

@@ -11,3 +11,9 @@ describe('<Topography> on the server', () => {
     expect(renderToString(<Topography><h1>Hi</h1></Topography>)).toContain('<h1>Hi</h1>');
   });
 });
+
+describe('<Topography location>', () => {
+  it('takes a location id like any other setting', () => {
+    expect(renderToString(<Topography location="everest" mode="3d" />)).toBe('<div style="position:relative"></div>');
+  });
+});
