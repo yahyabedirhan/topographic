@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.6.0 (unreleased)
+## 0.6.0 (2026-10-19)
 
 This release renames the public API.
 It is a clean break: the old names are gone, with no deprecated aliases.
