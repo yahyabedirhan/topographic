@@ -38,4 +38,4 @@ topography.destroy();`,
 }`,
 };
 
-export const TAGLINE = 'Animated contour lines, like those on a topographic map, as the background of a web page. One WebGL shader, seven terrain styles, readable settings.';
+export const TAGLINE = 'Topographic terrain rendered with WebGL. Generate a land or turn a real place into a topographic terrain.';
