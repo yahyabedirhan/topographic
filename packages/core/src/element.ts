@@ -4,7 +4,7 @@ import { fromAttributes, resolveSettings, type SettingsInput } from './settings.
 
 export const ELEMENT_ATTRIBUTES: readonly string[] = [
   'look', 'shape', 'location', 'seed', 'theme', 'ink', 'paper', 'mode', 'elevation', 'extent', 'detail', 'quality',
-  'azimuth', 'camera-elevation', 'radius', 'camera-motion', 'camera-speed', 'pan-x', 'pan-z', 'view-x', 'view-y', 'view-zoom', ...PARAMS.map((p) => p.attr),
+  'azimuth', 'camera-elevation', 'radius', 'camera-motion', 'camera-speed', 'pan-x', 'pan-z', 'view-x', 'view-y', 'view-zoom', 'column', 'scenes', 'scene', ...PARAMS.map((p) => p.attr),
 ];
 
 const Base = (typeof HTMLElement !== 'undefined' ? HTMLElement : class {}) as typeof HTMLElement;
@@ -33,10 +33,15 @@ export class TopographyElement extends Base {
 
   attributeChangedCallback(name: string): void {
     if (!this.#topographic) return;
-    const { location, ...full } = resolveSettings(this.#read());
+    const { location, scenes, scene, ...full } = resolveSettings(this.#read());
     // Without the attribute, a grid passed with update({ location }) stays.
     const keep = name !== 'location' && !this.hasAttribute('location');
-    this.#topographic.update({ ...full, ...(keep ? {} : { location }), theme: { ink: undefined, paper: undefined, ...full.theme } });
+    // Likewise, scenes passed with update({ scenes }) stay until a scenes or scene attribute is used.
+    const fromAttributes = name === 'scenes' || name === 'scene' || this.hasAttribute('scenes') || this.hasAttribute('scene');
+    this.#topographic.update({
+      ...full, ...(keep ? {} : { location }), ...(fromAttributes ? { scenes, scene } : {}),
+      theme: { ink: undefined, paper: undefined, ...full.theme },
+    });
   }
 
   snapshot(opts?: SnapshotOptions): Promise<Blob> {

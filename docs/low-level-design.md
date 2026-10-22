@@ -25,8 +25,9 @@ const topography = createTopography(el, { shape: 'dunes', lines: { count: 30 } }
 
 ## Entities and relationships
 - **Renderer**: owns the canvas, the WebGL program, the frame loop, observers and the pixel budget. It is created by `createTopography` and is the only thing that touches WebGL.
-- **Settings**: the full, validated value object (`shape`, `seed`, `lines`, `terrain`, `motion`, `layout`, `theme`). The `params` table defines each field's name, range, default and uniform slot.
+- **Settings**: the full, validated value object (`shape`, `seed`, `lines`, `terrain`, `motion`, `layout`, `theme`, the view settings, `location`, `column`, `scenes` and `scene`). The `params` table defines each field's name, range, default and uniform slot.
 - **Shape**: data, not code. `{ id, name, index, notes }`. `index` selects a branch in the one combined shader.
+- **Scene**: data. `{ shape, ink? }`, one part of a blended background. `scenes` lists them and `scene` names the target. The Renderer keeps a weight per scene and a dark amount, and fades them toward their targets each frame.
 - **Look**: data. `{ id, name, settings: Partial<Settings> }`, a named, finished design. Looks live in core, so every wrapper and the playground's dock share them. The `look` setting names one by id.
 - **Theme**: resolves `ink` and `paper` from settings, then CSS variables (`--topographic-ink`, `--topographic-paper`), then light/dark defaults.
 - **`<topographic-view>`**: a custom element. Attributes become Settings, and it holds one Renderer.
@@ -39,7 +40,7 @@ Flow: wrapper → Settings (via the params table) → Renderer → uniforms → 
 ```
 packages/core/src/
   index.ts               public exports
-  renderer.ts            Renderer: GL, loop, observers, budget, context loss
+  renderer.ts            Renderer: GL, loop, observers, budget, context loss, scene fades
   params.ts              the single table: name, group, range, default, uniform slot
   settings.ts            resolve, clamp, merge, serialize to attributes and URL
   shapes.ts           Shape records (7)
@@ -66,7 +67,9 @@ apps/playground/src/
 ## Public API
 ```ts
 const topography = createTopography(el: HTMLElement, settings?: Partial<Settings>);
-topography.update(partial: Partial<Settings>): void;   // live, merges and clamps
+topography.update(partial: Partial<Settings>, opts?: { instant?: boolean }): void;   // live, merges and clamps
+topography.setOptions(opts: { maxPixelRatio?: number; maxPixels?: number; maxFps?: number }): void;   // pixel budget and frame cap, live
+topography.blend: { weights: number[]; dark: number };   // scene weights and dark amount drawn now
 topography.snapshot(opts?: { frame?: number; width?: number; height?: number; region?: SnapshotRegion; motion?: CameraMotion }): Promise<Blob>;
 // renders off-screen at the given size and frame; the live canvas is not resized
 topography.destroy(): void;
@@ -84,6 +87,13 @@ Settings groups:
 - `motion`: speed, warp, sparkle
 - `layout`: anchor, fade
 
+Top-level settings beside the groups:
+- `column`: the faded centre column's half-width in CSS pixels, default 300.
+- `scenes`: up to 8 `{ shape, ink? }` scenes to blend in 2D; empty draws `shape` alone.
+- `scene`: the target scene's index. A change fades: each weight moves by `1 - exp(-dt × 4.5)`, `dt` at most 0.05 s. With scenes set, a theme mode change fades the dark amount by `1 - exp(-dt × 6)`; `update(patch, { instant: true })` jumps both.
+- Renderer options `maxFps` (a frame rate cap) and `powerPreference` (passed to the WebGL context).
+- `quality: 'full'`: the high tier without its pixel caps, so only `maxPixelRatio` and `maxPixels` apply.
+
 Ranges are 0–1 except counts. The land shape is `shape` everywhere: in settings, as the element attribute and as the React prop. `style` stays the HTML and React CSS attribute.
 
 ## Traced flow
@@ -94,12 +104,14 @@ Ranges are 0–1 except counts. The land shape is `shape` everywhere: in setting
 4. Observers start, and the frame loop draws.
 5. Each `update` clamps, merges and sends only the uniforms that changed.
 
+**Scenes path.** `createTopography(el, { scenes, scene })` starts with the target scene's weight at 1 and the dark amount on the theme. On each frame the Renderer moves the weights and the dark amount toward their targets (`stepBlend`), mixes the light and dark theme colours by the dark amount, and sends one weight, shape index and ink per scene. The 2D shader draws each scene with a weight above 0.002 through the same contour paint and divides the colour sum by the weight sum. The `maxFps` option skips display frames, and the next drawn frame takes the whole time step.
+
 **Rejection paths.**
 - `shape: 'volcano'` → one warning, and the default shape is used.
 - `lines.count: 500` → clamped to the maximum.
 - No WebGL → no canvas is drawn; the element shows the paper colour and `snapshot` rejects.
 - Context lost → paper colour is shown and the loop stops. When the context is restored, the program is recompiled and rendering resumes.
-- Reduced motion → one still frame, and `motion.speed` is ignored.
+- Reduced motion → one still frame, and `motion.speed` is ignored. A scene or dark fade still runs to its end on a still terrain, then drawing stops.
 
 ## Extensibility
 | To add | Touch |
@@ -118,6 +130,8 @@ Ranges are 0–1 except counts. The land shape is `shape` everywhere: in setting
 - **Pixel budget** (minimum pixel ratio plus maximum pixel count) instead of a simple DPR cap.
 - **Fallback, not exceptions,** when WebGL is missing or lost.
 - **`snapshot` renders off-screen**, so exports never disturb the live view.
+- **Scenes blend in one pass of the 2D shader.** Each scene runs the shared contour paint with its own ink, so a scene draws the same pixels as that shape alone. The blend reproduces the yahyapak.dev background, which was generated from this library; `scripts/blend-check.mjs` compares the two pixel by pixel.
+- **Fades only with scenes.** A plain renderer still switches its theme at once, as before 0.7.0.
 - **Always spell out "topographic"** in names (element, files, API).
 - **License: Apache 2.0,** with a NOTICE file asking for credit.
 

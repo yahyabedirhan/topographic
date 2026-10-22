@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.7.0 (2026-10-22)
+
+- New `scenes` and `scene` settings: a background blends between up to 8 scenes, each a shape with its own line colour. A new target scene fades in, by `1 - exp(-dt × 4.5)` each frame. They are the element attributes `scenes` (JSON) and `scene`, and React props. The guide's Scenes section shows the setup that draws the yahyapak.dev background.
+- With scenes set, a theme mode change fades the dark amount from light to dark, by `1 - exp(-dt × 6)` each frame. `update(patch, { instant: true })` jumps to the target scene and dark amount at once. The new `blend` member reads the weights and the dark amount. A plain renderer still switches its theme at once.
+- New `column` setting, element attribute and React prop: half the width of the faded centre column, in CSS pixels. The default, 300, is the width it had before.
+- New `powerPreference` renderer option, passed to the WebGL context. Without it, a phone still asks for `low-power` and other devices for `default`.
+- New `maxFps` renderer option, such as 30 on a phone. New `setOptions()` changes `maxPixelRatio`, `maxPixels` and `maxFps` while the renderer runs.
+- New `quality: 'full'`: the high tier without its pixel caps, so only `maxPixelRatio` and `maxPixels` limit the canvas.
+- With reduced motion, a scene or dark fade still runs to its end on a still terrain, then drawing stops.
+- With scenes set, the animation time also takes at most 50 ms a frame, so a slow frame does not jump the terrain ahead. A new `look` keeps `column`, `scenes` and `scene`.
+- New exports: `MAX_SCENES`, `DEFAULT_COLUMN`, `COLUMN_MAX`, `mixTheme` and the types `SceneSettings`, `BlendState`, `UpdateOptions`, `LiveRendererOptions` and `ThemeColours`.
+- New `scripts/blend-check.mjs`, part of `npm run smoke`: it draws the yahyapak.dev background and the library side by side in headless Chrome and checks each colour channel differs by at most 1.
+
 ## 0.6.0 (2026-10-19)
 
 This release renames the public API.

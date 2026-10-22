@@ -1,4 +1,5 @@
 import { SHAPES } from '../shapes.js';
+import { MAX_SCENES, SCENE_SETTLED } from '../settings.js';
 import { COMMON } from './common.glsl.js';
 
 const STYLE_DEFINES = SHAPES.map((s) => `#define STYLE_${s.id.toUpperCase().replace(/-/g, '_')} ${s.index}`).join('\n');
@@ -80,8 +81,8 @@ float regionSample(vec2 uv){
   // R is the high byte and G the low byte; the sum is linear, so filtering stays correct.
   return dot(hl, vec2(65280., 255.)/65535.);
 }
-vec4 contourPaint(int s, vec2 p, vec2 screen){
-  float t=uTime*.08*uParams[3]; vec3 c=uInk.rgb; float n=uParams[0]; float px=uParams[1]; float a=1.;
+vec4 contourPaintInk(int s, vec2 p, vec2 screen, vec4 inkColor){
+  float t=uTime*.08*uParams[3]; vec3 c=inkColor.rgb; float n=uParams[0]; float px=uParams[1]; float a=1.;
   bool petal=s==STYLE_DRIFTING_LOBES||s==STYLE_GRANITE||s==STYLE_FIVE_PETALS||s==STYLE_SEED_POD;
   if(s==STYLE_DRIFTING_LOBES) a=.95;
   if(s==STYLE_GRANITE){ px*=1.2; c*=mix(.7,1.3,granite(p)); }
@@ -110,20 +111,37 @@ vec4 contourPaint(int s, vec2 p, vec2 screen){
     : smoothstep(.75,1.,sin((p.x+p.y)*60.+t*8.+6.2832*hash(vec2(idx,17.))*uHasHeight))*l*uParams[4];
   float m=shaped ? colMask(screen)*smoothstep(2.2,.1,r)*a : colMask(screen);
   float lineAmp=(l*.75+beads*.7)*uParams[2]*m;
-  vec4 ink=paint(c,lineAmp);
+  vec4 ink=paintCover(c,clamp(lineAmp,0.,1.)*inkColor.a);
   return mix(vec4(uPaper.rgb,uPaper.a), ink, cover);
 }
+vec4 contourPaint(int s, vec2 p, vec2 screen){ return contourPaintInk(s,p,screen,uInk); }
 `;
 
 const FIELD = /* glsl */ `
 ${CONTOUR_FIELD}
 ${CONTOUR_PAINT}
+// Blended scenes: 0 draws uStyle alone. Each scene has a shape, an ink and a weight.
+uniform float uSceneCount;
+uniform float uSceneWeight[${MAX_SCENES}];
+uniform float uSceneShape[${MAX_SCENES}];
+uniform vec4 uSceneInk[${MAX_SCENES}];
 void main(){
   vec2 screen=(gl_FragCoord.xy-.5*uRes)/uRes.y;
   // The fade stays on the page; the terrain moves under it.
   vec2 p=screen/uView.z+uView.xy;
-  int s=int(uStyle+.5);
-  OUT_COLOR = contourPaint(s,p,screen);
+  if(uSceneCount<.5){
+    OUT_COLOR = contourPaint(int(uStyle+.5),p,screen);
+    return;
+  }
+  // Each scene with a visible weight is drawn, and the sum is divided by the weights drawn.
+  vec4 c=vec4(0.); float tw=0.;
+  for(int i=0;i<${MAX_SCENES};i++){
+    if(float(i)<uSceneCount && uSceneWeight[i]>${SCENE_SETTLED}){
+      c+=uSceneWeight[i]*contourPaintInk(int(uSceneShape[i]+.5),p,screen,uSceneInk[i]);
+      tw+=uSceneWeight[i];
+    }
+  }
+  OUT_COLOR = c/max(tw,1e-4);
 }
 `;
 

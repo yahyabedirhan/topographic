@@ -20,7 +20,7 @@ export type ImageVariant = 'screen' | 'phone' | '1080p';
 export type VideoMotion = 'orbit' | 'push' | 'flyover' | 'drone';
 export type VideoContainer = 'mp4' | 'webm';
 export type ColourSlot = 'paper' | 'ink';
-export type QualityLevel = 'auto' | 'low' | 'medium' | 'high';
+export type QualityLevel = 'auto' | 'low' | 'medium' | 'high' | 'full';
 
 interface VideoProps {
   motion: VideoMotion;

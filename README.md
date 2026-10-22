@@ -255,6 +255,19 @@ import { Topography } from 'topographic-react';
 
 The terrain fills the element you give it.
 The [guide](docs/guide.md#sizing-and-layering) shows how to size it and how to put content over it.
+
+A background can also blend between scenes, each with its own shape and line colour.
+A new `scene` fades in, and with scenes set, a theme change fades between light and dark:
+
+```js
+const topography = createTopography(el, {
+  scenes: [{ shape: 'drifting-lobes' }, { shape: 'long-ridge', ink: 'rgb(98% 50% 13%)' }],
+  scene: 0,
+});
+topography.update({ scene: 1 });
+```
+
+The [guide](docs/guide.md#scenes) covers scenes, the dark amount, the centre `column`, the `maxFps` cap and `setOptions`.
 In the [playground](https://topographic.yahyapak.dev/), **Install** and **Export** give you this code with your settings filled in.
 
 ## Images and video
@@ -305,7 +318,8 @@ The [low-level design](docs/low-level-design.md) explains each part.
 - An area framed on the map in the playground can be up to 300 km wide.
 - `record()` draws the 3D view only, up to 12 seconds a clip.
 - topographic needs WebGL. Without it, the element shows a plain colour.
-- It stops drawing when it is off screen, and draws one still frame for people who turn on reduced motion.
+- It stops drawing when it is off screen, and draws one still frame for people who turn on reduced motion. A scene fade runs to its end first.
+- Scenes blend in 2D only, up to 8 at a time.
 
 ## Contributing
 

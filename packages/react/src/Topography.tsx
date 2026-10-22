@@ -25,6 +25,12 @@ export interface TopographySettingsProps {
   camera?: SettingsInput['camera'];
   /** The 2D map's own pan and zoom. 3D ignores it. */
   view2d?: SettingsInput['view2d'];
+  /** Scenes to blend between in 2D, each a shape and a line colour. Compared by value. */
+  scenes?: SettingsInput['scenes'];
+  /** The target scene, an index into `scenes`. A change fades to it. */
+  scene?: number;
+  /** Half the width of the faded centre column, in CSS pixels. */
+  column?: number;
 }
 
 export interface TopographyRef<T extends HTMLElement = HTMLDivElement> extends MutableRefObject<T | null> {
@@ -58,7 +64,7 @@ export function useTopography<T extends HTMLElement = HTMLDivElement>(
     return () => { t.destroy(); ref.topographic = null; };
   }, [ref, stableOptions]);
 
-  const { look, shape, location, seed, mode, elevation, extent, detail, quality } = settings;
+  const { look, shape, location, seed, mode, elevation, extent, detail, quality, scene, column } = settings;
   const lines = useByValue(settings.lines);
   const terrain = useByValue(settings.terrain);
   const motion = useByValue(settings.motion);
@@ -66,6 +72,7 @@ export function useTopography<T extends HTMLElement = HTMLDivElement>(
   const theme = useByValue(settings.theme);
   const camera = useByValue(settings.camera);
   const view2d = useByValue(settings.view2d);
+  const scenes = useByValue(settings.scenes);
   // A new look replaces the design, so the other props apply again on top of it.
   useEffect(() => { if (look !== undefined) ref.topographic?.update({ ...latest.current, look }); }, [ref, look]);
   useEffect(() => { if (shape !== undefined) ref.topographic?.update({ shape }); }, [ref, shape]);
@@ -93,6 +100,11 @@ export function useTopography<T extends HTMLElement = HTMLDivElement>(
   useEffect(() => { if (quality !== undefined) ref.topographic?.update({ quality }); }, [ref, quality]);
   useEffect(() => { if (camera) ref.topographic?.update({ camera }); }, [ref, camera]);
   useEffect(() => { if (view2d) ref.topographic?.update({ view2d }); }, [ref, view2d]);
+  useEffect(() => { if (column !== undefined) ref.topographic?.update({ column }); }, [ref, column]);
+  // The list and the target go together, so a new list never fades to an index that is not in it yet.
+  useEffect(() => {
+    if (scenes !== undefined || scene !== undefined) ref.topographic?.update({ ...(scenes ? { scenes } : {}), ...(scene !== undefined ? { scene } : {}) });
+  }, [ref, scenes, scene]);
 
   return ref;
 }
@@ -107,10 +119,10 @@ export interface TopographyProps extends TopographySettingsProps, Omit<HTMLAttri
 
 /** A <div> with a topographic background. Size it like any div; children render on top. */
 export const Topography = forwardRef<HTMLDivElement, TopographyProps>(function Topography(
-  { look, shape, location, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera, view2d, options, onReady, style, children, ...div },
+  { look, shape, location, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera, view2d, scenes, scene, column, options, onReady, style, children, ...div },
   forwarded,
 ) {
-  const ref = useTopography<HTMLDivElement>({ look, shape, location, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera, view2d }, options);
+  const ref = useTopography<HTMLDivElement>({ look, shape, location, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera, view2d, scenes, scene, column }, options);
   const stableOptions = useByValue(options);
   const ready = useRef(onReady);
   ready.current = onReady;

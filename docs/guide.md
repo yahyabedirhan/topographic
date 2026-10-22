@@ -9,6 +9,7 @@ This guide explains how to use topographic. Each section covers one topic. To tr
 - [Locations](#locations)
 - [Shapes](#shapes)
 - [Looks](#looks)
+- [Scenes](#scenes)
 - [Colours, CSS variables and dark mode](#colours-css-variables-and-dark-mode)
 - [Seed](#seed)
 - [Snapshots and PNG export](#snapshots-and-png-export)
@@ -47,13 +48,15 @@ The call adds a canvas inside `element`. The canvas fills the element, so give t
 
 | Member | What it does |
 |---|---|
-| `update(partialSettings)` | Changes some settings and applies them right away. Values are kept inside their ranges. Only the changed values are sent to the GPU. |
+| `update(partialSettings, { instant? })` | Changes some settings and applies them right away. Values are kept inside their ranges. Only the changed values are sent to the GPU. With [`scenes`](#scenes) set, a new `scene` and a new theme mode fade in; `instant: true` jumps to them at once. |
+| `setOptions({ maxPixelRatio?, maxPixels?, maxFps? })` | Changes the renderer options below while the renderer runs. The values you leave out stay. The canvas is sized again at once. |
+| `blend` | `{ weights, dark }`: the weight of each scene, from 0 to 1, and the dark amount drawn now, from 0 (light) to 1 (dark). See [Scenes](#scenes). |
 | `snapshot({ frame?, width?, height?, region?, motion? })` | Draws one PNG image in the background and returns it as a `Blob`. See [Snapshots](#snapshots-and-png-export). |
 | `record({ seconds?, fps?, width?, height?, frame?, format?, motion? })` | Records a short 3D video with a moving camera. Returns it as an MP4 or WebM `Blob`. |
 | `setHeightfield({ samples, size, aspect } \| null)` | Draws the lines from your own elevation data (a height map) instead of the generated shape. The data is a square grid. `samples` is a `Float32Array` of `size × size` values, from 0 (low) to 1 (high). Row 0 is the south edge. `aspect` is the place's width divided by its height. `null` brings back the shape's own shape. The grid stays until the `location` setting changes. The [`location` setting](#locations) is usually simpler. |
 | `setInsets({ top, right, bottom, left } \| null)` | Tells the 3D view how much space your page's UI covers on each side, in CSS pixels. A toolbar or a dock are examples. The 3D picture then moves so the terrain is centred in the free space. The camera does not move, so orbiting still turns around the terrain. 2D does not change. Snapshots and videos ignore this setting (see [Snapshots](#snapshots-and-png-export)). `null` clears it. `insets` reads it back. |
 | `clampPan(panX, panZ)` | Returns the pan as `[x, z]`, limited so the view stays over the terrain. This is the same limit the renderer uses for `camera.panX` and `camera.panZ`. |
-| `stats` | `{ fps, frameMs, mesh, quality }` for the 3D view. `mesh` is 0 in 2D. `quality` is the tier actually drawing: `low`, `medium` or `high`. |
+| `stats` | `{ fps, frameMs, mesh, quality }` for the 3D view. `mesh` is 0 in 2D. `quality` is the tier actually drawing: `low`, `medium` or `high`. `full` reports `high`. |
 | `pose` | `{ azimuth, elevation, radius, panX, panZ }`: where the 3D camera is now on its motion path. At azimuth 0, the camera looks from the south and north is at the top of the screen. The angle grows clockwise, as seen from above. So as it grows, north turns towards the right of the screen. |
 | `destroy()` | Stops drawing. Removes the listeners and the canvas, and frees the WebGL context. |
 | `settings` | The current settings, with every value filled in. |
@@ -65,8 +68,12 @@ The call adds a canvas inside `element`. The canvas fills the element, so give t
 | Option | Default | What it does |
 |---|---|---|
 | `maxPixelRatio` | `2` | The highest device pixel ratio to draw at. A `quality` setting can cap it further. |
-| `maxPixels` | `4147200` (1920×1080×2) | The most pixels to draw. Above this, the canvas draws at a lower resolution. A `quality` setting can cap this further. |
+| `maxPixels` | `4147200` (1920×1080×2) | The most pixels to draw. Above this, the canvas draws at a lower resolution. A `quality` setting can cap this further. `Infinity` removes the limit. |
+| `maxFps` | `0` | The most frames to draw each second, such as `30` on a phone. `0` draws on every display frame. |
+| `powerPreference` | `'low-power'` on a phone, else `'default'` | The GPU the WebGL context asks for: `'default'`, `'low-power'` or `'high-performance'`. A background that must stay light can ask for `'low-power'` everywhere. |
 | `forceWebGL1` | `false` | Skip WebGL2. Useful for testing. |
+
+`setOptions` changes `maxPixelRatio`, `maxPixels` and `maxFps` later, for example on a resize.
 
 ### Web component: `<topographic-view>`
 
@@ -94,7 +101,7 @@ import { Topography, useTopography } from 'topographic-react';
 />
 ```
 
-- Props: `look`, `shape`, `location`, `seed`, `lines`, `terrain`, `motion`, `layout`, `theme`, `mode`, `elevation`, `extent`, `detail`, `quality`, `camera`, `view2d`, `options`, `onReady`, plus any `div` props. Children are drawn on top.
+- Props: `look`, `shape`, `location`, `seed`, `lines`, `terrain`, `motion`, `layout`, `theme`, `mode`, `elevation`, `extent`, `detail`, `quality`, `camera`, `view2d`, `scenes`, `scene`, `column`, `options`, `onReady`, plus any `div` props. Children are drawn on top.
 - `style` is React's normal inline style. The land shape is the `shape` prop.
 - `TopographyInstance` is the type of the instance.
 - Each group of settings updates only when its values change. A new object with the same values does nothing.
@@ -152,8 +159,13 @@ The settings are in groups. Pass only the values you want to change:
   layout:  { anchor, fade },
   theme:   { mode, ink, paper },
   quality: 'auto',
+  column: 300,
+  scenes: [],
+  scene: 0,
 }
 ```
+
+`column`, `scenes` and `scene` are described in [Layout](#layout) and [Scenes](#scenes).
 
 `look` is a named design, described in [Looks](#looks). The other settings override its values.
 
@@ -193,6 +205,7 @@ A value outside its range is moved to the nearest limit. Whole-number settings a
 |---|---|---|---|---|
 | `layout.anchor` | `anchor` | 0–1 | 0 | 0 keeps the summit to the side. 1 puts it in the centre. |
 | `layout.fade` | `fade` | 0–1 | 0.7 | Fades the lines behind a text column in the centre. |
+| `column` | `column` | 0–4000 px, whole | 300 | Half the width of that faded centre column, in CSS pixels. The column is never wider than the view. It is a top-level setting, not part of `layout`. |
 
 ### Three dimensions
 
@@ -204,7 +217,7 @@ A value outside its range is moved to the nearest limit. Whole-number settings a
 | `elevation` | `elevation` | 0–1 | 0.62 | How tall the 3D terrain is. 0 is flat, like the map. Higher values make it taller, with a rounded top. |
 | `extent` | `extent` | `endless`, `block` | `endless` | `endless` is a plane that fades into the background colour. `block` is a solid slab. Its sides fade softly into the background colour. |
 | `detail` | `detail` | 0–1 | 0.5 | How many points the 3D surface has, from a 32² grid to a 160² grid. |
-| `quality` | `quality` | `auto`, `low`, `medium`, `high` | `auto` | Graphics budget. `auto` follows the device and steps down if frames miss 60 Hz, or 120 Hz once that refresh has been seen. `low`, `medium` and `high` stay put. The budget caps the pixel ratio, the pixel count and the mesh size. |
+| `quality` | `quality` | `auto`, `low`, `medium`, `high`, `full` | `auto` | Graphics budget. `auto` follows the device and steps down if frames miss 60 Hz, or 120 Hz once that refresh has been seen. `low`, `medium` and `high` stay put. The budget caps the pixel ratio, the pixel count and the mesh size. `full` is `high` without the pixel caps, so only the renderer options limit the canvas. |
 | `camera.azimuth` | `azimuth` | any finite number | 349.7 | The camera's angle around the terrain, in degrees. |
 | `camera.elevation` | `camera-elevation` | 2–80 | 33.6 | The camera's angle above the horizon, in degrees. The camera never goes below the terrain. |
 | `camera.radius` | `radius` | 0.4–6.5 | 1.92 | The camera's distance from the centre of the terrain. |
@@ -376,6 +389,7 @@ A `shape` next to a look draws the look's values on that shape.
 
 In `update()`, a look replaces the design and keeps the view.
 The view is `mode`, `elevation`, `extent`, `detail`, `quality`, `view2d`, and the camera motion and pan.
+The look also keeps `column`, `scenes` and `scene`.
 The other values in the same update apply on top of the look.
 In React, a new `look` prop applies the other props again on top of the new look.
 
@@ -423,6 +437,78 @@ To make the image again, run `node scripts/looks-grid.mjs`.
 Survey map and Rocky set no colours, so they follow the page's light or dark theme and the CSS variables.
 The image shows them in dark mode.
 
+## Scenes
+
+A background can blend between scenes.
+Each scene has its own shape and line colour, and shares every other setting.
+`scenes` is the list, and `scene` is the index of the target scene.
+When `scene` changes, the target fades in and the other scenes fade out.
+Each frame, every weight moves toward 1 for the target and toward 0 for the others, by `1 - exp(-dt × 4.5)`, where `dt` is the frame time in seconds, at most 0.05.
+The shader draws each scene with a weight above 0.002, and divides the colour sum by the weight sum.
+
+```js
+const topography = createTopography(el, {
+  scenes: [
+    { shape: 'drifting-lobes' },                    // no ink: the theme's ink
+    { shape: 'long-ridge', ink: 'rgb(98% 50% 13%)' }, // orange lines
+    { shape: 'dunes' },
+  ],
+  scene: 0,
+});
+
+topography.update({ scene: 1 });                     // fades to the long ridge
+topography.update({ scene: 2 }, { instant: true });  // jumps to the dunes
+```
+
+- `scenes` holds at most 8 scenes. An unknown shape uses the default shape and logs one warning. An empty list, the default, draws `shape` alone.
+- `ink` is any CSS colour. Without it, the scene uses the theme's ink.
+- A shape's own defaults, such as the lighter fade of dunes, do not apply to a scene. Set the shared values yourself.
+- While scenes are set, a theme mode change fades too. The **dark amount** goes from 0 (light) to 1 (dark) and moves toward its target by `1 - exp(-dt × 6)`. The paper and the theme's ink are mixed between the light and dark colours by that amount. `update(patch, { instant: true })` sets the scene weights and the dark amount at once. A new renderer always starts on its targets.
+- `blend` reads the weights and the dark amount drawn now.
+- While scenes are set, the animation time also takes at most 0.05 s a frame, so a slow frame does not jump the terrain ahead.
+- A new `look` keeps the scenes, the target scene and `column`.
+- With reduced motion, the terrain holds still, but a fade still runs to its end. Then drawing stops on a still frame.
+- Scenes apply to the 2D view. 3D draws `shape`, with the faded theme colours.
+- `snapshot` draws the scenes as they are now. With `patch`, it draws the patched settings at rest: the target scene alone, in the theme's own colours.
+- The web component takes `scenes` as JSON and `scene` as a number: `<topographic-view scenes='[{"shape":"dunes"}]' scene="0">`. Scenes set with `update()` stay until one of those attributes is used. The React component takes `scenes`, `scene` and `column` props.
+
+### A full-page background
+
+This setup draws the background of yahyapak.dev, pixel for pixel.
+`scripts/blend-check.mjs` compares the two in a browser.
+
+```js
+const coarse = matchMedia('(pointer: coarse)').matches;
+const ratio = () => (innerWidth < 600 || coarse ? 1 : 1.5);
+const sized = () => ({
+  lines: { count: innerWidth < 600 ? 36 : innerWidth < 1024 ? 30 : 24 },
+  layout: { fade: 0.7 * (innerWidth < 720 ? 0.4 : 1) },
+});
+const topography = createTopography(document.getElementById('bg'), {
+  scenes: [
+    { shape: 'drifting-lobes' },
+    { shape: 'long-ridge', ink: 'rgb(98% 50% 13%)' },
+    { shape: 'five-petals', ink: 'rgb(16% 66% 40%)' },
+    { shape: 'seed-pod', ink: 'rgb(47% 38% 98%)' },
+    { shape: 'gentle-summit' },
+    { shape: 'dunes' },
+  ],
+  column: 332, quality: 'full', theme: { mode: 'light' },
+  lines: { width: 0.9 / 3.5 }, motion: { warp: 0.7 / 1.5 }, ...sized(),
+}, { maxPixelRatio: ratio(), maxPixels: Infinity, maxFps: coarse ? 30 : 0, powerPreference: 'low-power' });
+addEventListener('resize', () => { topography.setOptions({ maxPixelRatio: ratio() }); topography.update(sized()); });
+
+// On a page change, and when the theme changes:
+topography.update({ scene: 2 });
+topography.update({ theme: { mode: 'dark' } });
+```
+
+- `powerPreference: 'low-power'` asks for the same GPU as the old background did.
+- `quality: 'full'` leaves the pixel ratio and the pixel count to the options, so a large screen is not drawn smaller.
+- `lines.width` and `motion.warp` are set so the shader receives a line width of 1.4 and a warp of 0.7.
+- Leave `theme.ink` and `--topographic-ink` unset: the neutral scenes then follow the dark amount between the light and dark default inks.
+- The renderer sizes its canvas from the element. On a page with classic scrollbars, `innerWidth` includes the scrollbar and the element does not, so give the element the whole viewport.
+
 ## Colours, CSS variables and dark mode
 
 There are two colours. `ink` is the line colour. `paper` is the background colour. Each colour comes from the first of these that is set: the settings, then the CSS variables, then the light or dark defaults.
@@ -466,9 +552,10 @@ The playground's PNG export uses this. The sizes are 2× the window, a phone siz
 
 - **Paused when hidden:** drawing stops when the element is off-screen or the tab is hidden. It starts again when it is visible.
 - **Still when nothing moves:** when `motion.speed` is 0, there is no animation loop. It draws again only when something changes.
-- **Reduced motion:** when the system asks for reduced motion, it draws one still frame and ignores speed.
+- **Reduced motion:** when the system asks for reduced motion, it draws one still frame and ignores speed. A [scene](#scenes) fade still runs to its end, on a still terrain.
+- **Frame rate cap:** the `maxFps` option draws at most that many frames each second. A skipped display frame adds its time to the next drawn frame.
 - **Pixel limit:** the pixel ratio is at most 2, and `quality` can cap it lower. Very large canvases draw at a lower resolution above `maxPixels`. The GPU code smooths the lines, so they stay sharp.
-- **Graphics budget:** `quality: 'auto'` starts a phone at low and a desktop at high, then steps down when frames miss the refresh period. It does not step back up. Set `low`, `medium` or `high` to keep one tier.
+- **Graphics budget:** `quality: 'auto'` starts a phone at low and a desktop at high, then steps down when frames miss the refresh period. It does not step back up. Set `low`, `medium` or `high` to keep one tier. `full` draws like `high` without its pixel caps: only `maxPixelRatio` and `maxPixels` limit the canvas.
 - **Screen readers:** the canvas is `aria-hidden`, because it is only decoration. Put real content on top of it.
 - **Readability:** `layout.fade` makes the lines softer behind a text column in the centre. `layout.anchor` moves the main summit from the side (0) to the centre (1).
 

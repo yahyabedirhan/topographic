@@ -31,8 +31,8 @@ export const COMMON_FRAG = /* glsl */ `
 float granite(vec2 p){ return .55*fbm(p*9.)+.25*fbm(p*38.)+.2*hash(floor(gl_FragCoord.xy*.7)); }
 float colMask(vec2 p){ return mix(1., smoothstep(uCol*.75, uCol*1.5, abs(p.x)), uFade*(1.-uCenter)); }
 
-vec4 paint(vec3 c, float a){
-  a=clamp(a,0.,1.)*uInk.a;
+// a is the line's cover, already clamped and multiplied by the ink's alpha.
+vec4 paintCover(vec3 c, float a){
   if(uPaper.a>.999){
     vec3 light=mix(uPaper.rgb,c,a); vec3 dark=uPaper.rgb+c*a*.62;
     return vec4(mix(light,dark,uDark),1.);
@@ -40,6 +40,7 @@ vec4 paint(vec3 c, float a){
   float oa=a+uPaper.a*(1.-a);
   return vec4((c*a+uPaper.rgb*uPaper.a*(1.-a))/max(oa,1e-4),oa);
 }
+vec4 paint(vec3 c, float a){ return paintCover(c, clamp(a,0.,1.)*uInk.a); }
 `;
 
 export const COMMON = COMMON_UNIFORMS + COMMON_MATH + COMMON_FRAG;
