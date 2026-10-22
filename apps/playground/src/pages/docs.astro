@@ -1,0 +1,9 @@
+---
+// The docs page. Its text renders to HTML at build time; the page hydrates for its live figures and code tabs.
+import { Docs } from '../docs-page/Docs';
+import Base from '../layouts/Base.astro';
+import { PAGES } from '../meta';
+---
+<Base page={PAGES.docs}>
+  <Docs client:load home={import.meta.env.BASE_URL} />
+</Base>

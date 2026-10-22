@@ -9,15 +9,17 @@
 //
 // The elevation and map tiles come from the network.
 import { chromium } from 'playwright-core';
+import { dev } from 'astro';
 import { createServer } from 'vite';
 import { writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../apps/playground/', import.meta.url));
 const out = new URL('../apps/playground/src/assets/map-looks/', import.meta.url);
-const server = await createServer({ root, configFile: `${root}vite.config.ts`, server: { port: 0, strictPort: false }, logLevel: 'warn' });
-await server.listen();
-const base = server.resolvedUrls.local[0];
+// The page comes from Astro's dev server; the lists come from the playground's own modules, through Vite.
+const site = await dev({ root, server: { port: 0 }, logLevel: 'warn' });
+const base = `http://localhost:${site.address.port}/`;
+const server = await createServer({ root, configFile: false, define: { __APP_VERSION__: '"dev"' }, server: { middlewareMode: true }, appType: 'custom', logLevel: 'warn' });
 const browser = await chromium.launch({
   executablePath: process.env.CHROME ?? '/usr/bin/google-chrome',
   args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'],
@@ -67,4 +69,5 @@ try {
 } finally {
   await browser.close();
   await server.close();
+  await site.stop();
 }

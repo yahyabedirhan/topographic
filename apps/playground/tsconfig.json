@@ -1,1 +1,6 @@
-{ "extends": "../../tsconfig.base.json", "compilerOptions": { "noEmit": true, "emitDeclarationOnly": false, "declaration": false, "resolveJsonModule": true }, "include": ["src"] }
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": { "noEmit": true, "emitDeclarationOnly": false, "declaration": false, "resolveJsonModule": true },
+  "include": [".astro/types.d.ts", "src", "llms.ts", "astro.config.ts"],
+  "exclude": ["dist", "node_modules"]
+}

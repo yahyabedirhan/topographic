@@ -1,4 +1,5 @@
-import type { Plugin } from 'vite';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import type { AstroIntegration } from 'astro';
 import { LOOKS, PARAMS, RADIUS_MAX, RADIUS_MIN, SHAPES, defaultSettings } from 'topographic';
 import { AREA_LIMITS, LOCATIONS } from 'topographic/locations';
 import { INSTALL, TAGLINE } from './src/content';
@@ -7,13 +8,13 @@ import { AGENT_NAMES, PURPOSES } from './src/actor';
 import { PLACES, catalogPlaces, type CatalogRow } from './src/region/places';
 import CATALOG_ROWS from './src/region/catalog.json';
 import { REGION_TOOL_DEFS } from './src/region/tools';
-import { DOCS_META } from './src/docs-page/copy';
 import { HOME_QUERY, REGION_ONLY_QUERY } from './src/share-url';
+import { SITE } from './src/docs-page/copy';
 
 /** The Map menu's place catalog: the ten built-in places and the playground's own. */
 const CATALOG = catalogPlaces(CATALOG_ROWS as unknown as CatalogRow[]);
 
-export const SITE_URL = 'https://topographic.yahyapak.dev/';
+export const SITE_URL = SITE;
 export const WEBMCP_SPEC = 'https://github.com/webmachinelearning/webmcp/blob/d0e4e0e0f039358cc9d93f90074116622bfebd53/index.bs';
 
 const NAME_LIST = () => AGENT_NAMES.map((n) => `\`${n}\``).join(', ');
@@ -342,64 +343,32 @@ export function buildDocs(): Record<string, string> {
   return files;
 }
 
-const attr = (text: string) => text.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
-
 /**
- * The playground's index.html with the head of /docs: its title, description, canonical address and share image,
- * and the font weights the docs page uses. The host serves /docs from the docs.html this makes.
+ * Serves the plain-text docs (llms.txt, llms-full.txt and docs/*.md): from memory in `astro dev`, and as files
+ * beside the pages in the build. This file is not named docs.ts, because the dev server would answer /docs with it.
  */
-export function docsHead(html: string): string {
-  const m = DOCS_META;
-  const meta = (key: 'name' | 'property', name: string, content: string) => (h: string) =>
-    h.replace(new RegExp(`(<meta ${key}="${name}" content=")[^"]*(")`), `$1${attr(content)}$2`);
-  const steps = [
-    (h: string) => h.replace(/<title>[^<]*<\/title>/, `<title>${attr(m.title)}</title>`),
-    meta('name', 'description', m.description),
-    meta('property', 'og:title', m.title),
-    meta('property', 'og:description', m.description),
-    meta('property', 'og:url', m.url),
-    meta('property', 'og:image', m.image),
-    meta('property', 'og:image:alt', m.imageAlt),
-    meta('name', 'twitter:title', m.title),
-    meta('name', 'twitter:description', m.description),
-    meta('name', 'twitter:image', m.image),
-    meta('name', 'twitter:image:alt', m.imageAlt),
-    (h: string) => h.replace(/(<link rel="canonical" href=")[^"]*(")/, `$1${m.url}$2`),
-    (h: string) => h.replace('family=Inter:wght@400;500&', 'family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&'),
-  ];
-  return steps.reduce((h, step) => step(h), html);
-}
-
-export function docsPlugin(): Plugin {
+export function docsIntegration(): AstroIntegration {
   return {
     name: 'topographic-docs',
-    enforce: 'post',
-    // In development every page is served from index.html, so /docs gets its head here.
-    transformIndexHtml: {
-      order: 'post',
-      handler(html, ctx) {
-        const path = (ctx.originalUrl ?? ctx.path).split('?')[0];
-        return /\/docs\/?$/.test(path) ? docsHead(html) : html;
+    hooks: {
+      'astro:server:setup': ({ server }) => {
+        server.middlewares.use((req, res, next) => {
+          const base = server.config.base.startsWith('/') ? server.config.base : '/';
+          const url = (req.url ?? '').split('?')[0];
+          const path = (url.startsWith(base) ? url.slice(base.length) : url).replace(/^\//, '');
+          const body = buildDocs()[path];
+          if (body === undefined) return next();
+          res.setHeader('content-type', `${path.endsWith('.md') ? 'text/markdown' : 'text/plain'}; charset=utf-8`);
+          res.end(body);
+        });
       },
-    },
-    configureServer(server) {
-      server.middlewares.use((req, res, next) => {
-        const base = server.config.base.startsWith('/') ? server.config.base : '/';
-        const url = (req.url ?? '').split('?')[0];
-        const path = (url.startsWith(base) ? url.slice(base.length) : url).replace(/^\//, '');
-        // The docs page. Without this, Vite would answer /docs with this plugin's own docs.ts.
-        if (path === 'docs' || path === 'docs/') { req.url = `${base}index.html`; return next(); }
-        const body = buildDocs()[path];
-        if (body === undefined) return next();
-        res.setHeader('content-type', `${path.endsWith('.md') ? 'text/markdown' : 'text/plain'}; charset=utf-8`);
-        res.end(body);
-      });
-    },
-    generateBundle(_options, bundle) {
-      for (const [fileName, source] of Object.entries(buildDocs())) this.emitFile({ type: 'asset', fileName, source });
-      const index = bundle['index.html'];
-      if (index?.type !== 'asset') throw new Error('topographic-docs: no index.html in the bundle to make docs.html from');
-      this.emitFile({ type: 'asset', fileName: 'docs.html', source: docsHead(String(index.source)) });
+      'astro:build:done': ({ dir }) => {
+        for (const [fileName, source] of Object.entries(buildDocs())) {
+          const file = new URL(fileName, dir);
+          mkdirSync(new URL('.', file), { recursive: true });
+          writeFileSync(file, source);
+        }
+      },
     },
   };
 }

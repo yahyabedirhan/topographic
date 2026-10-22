@@ -635,7 +635,7 @@ The playground (`apps/playground`) is the project's live demo page.
 
 To run it, use `npm install && npm run dev`.
 
-A public build does not include the debug heartbeat. Set `VITE_TOPOGRAPHIC_DEBUG=1` for that build to include it. The heartbeat records errors, WebGL context loss, how many contexts are alive, canvas size and memory. It shows a small on-screen log and posts batches to `./__debug`. `vite` and `vite preview` print those batches. A static host has no such path, and the page ignores the failed post. A URL cannot turn the heartbeat on.
+A public build does not include the debug heartbeat. Set `VITE_TOPOGRAPHIC_DEBUG=1` for that build to include it. The heartbeat records errors, WebGL context loss, how many contexts are alive, canvas size and memory. It shows a small on-screen log and posts batches to `./__debug`. `astro dev` prints those batches. A static host has no such path, and the page ignores the failed post. A URL cannot turn the heartbeat on.
 
 ### Analytics and error reports
 
@@ -673,14 +673,21 @@ The playground is a Cloudflare Worker with static assets. With Workers Builds, a
 
 ### Hosting
 
-`wrangler.jsonc` at the repo root describes the Worker `topographic`. It serves `apps/playground/dist` as static assets, with `_headers` from `apps/playground/public` for caching. The build also writes the page as `about.html`, so `/about` is a real file.
+The playground site is built with [Astro](https://astro.build) as static files in `apps/playground/dist`.
+
+- `/` is the playground. It is a React island that renders only in the browser (`client:only`), from `index.html`.
+- `/about` and `/docs` are HTML pages, `about.html` and `docs.html`, with their text in the HTML. Each page has its own title, description and share image, from `apps/playground/src/meta.ts`. On `/about`, only the opt-out row runs in the browser. `/docs` hydrates for its live figures and code tabs.
+- Astro's client router moves between the three pages without a full load, with an animation. A browser without the View Transition API gets Astro's own animation. Each page change sends one pageleave for the page left and one pageview for the page shown.
+- The build also writes `llms.txt`, `llms-full.txt` and `docs/*.md`, from `apps/playground/llms.ts`.
+
+`wrangler.jsonc` at the repo root describes the Worker `topographic`. It serves `apps/playground/dist` as static assets, with `_headers` from `apps/playground/public` for caching. `/about` and `/docs` are served from `about.html` and `docs.html`.
 
 - A browser that navigates to an unknown path gets `index.html`, since the playground keeps its state in the query string. The page then goes home and keeps the query.
 - Any other request for an unknown path, such as `curl` or `fetch` for `/.well-known/mcp.json`, reaches the small script `worker/index.js` and gets a plain-text 404 that points to `llms.txt`.
 - `robots.txt` allows every crawler and points to `llms.txt` and `sitemap.xml`.
 
 - `npm run deploy` builds the playground and runs `wrangler deploy`.
-- Workers Builds, connected to this repo, uses the build command `npm run build`, the deploy command `npx wrangler deploy` and `NODE_VERSION=20`.
+- Workers Builds, connected to this repo, uses the build command `npm run build`, the deploy command `npx wrangler deploy` and `NODE_VERSION=22`. Astro needs Node.js 22.23.4 or later.
 
 ## WebMCP tools
 

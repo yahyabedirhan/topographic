@@ -1,7 +1,7 @@
 // Cloudflare Worker that serves the built playground as static assets.
-// Files come from apps/playground/dist, and apps/playground/public/_headers
-// (copied into dist) sets their headers. worker/index.js answers only the
-// requests that match no file and are not a browser navigation, with a 404.
+// Files come from apps/playground/dist, Astro's static build, and apps/playground/public/_headers
+// (copied into dist) sets their headers. /about and /docs are served from about.html and docs.html.
+// worker/index.js answers only the requests that match no file and are not a browser navigation, with a 404.
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "topographic",

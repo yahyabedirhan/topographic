@@ -168,7 +168,7 @@ function BrandLinks({ home }: { home: string }) {
     <div className="blinks-rows">
       {rows.map((row, i) => (
         <ul className="blinks" key={i}>
-          {row.map(([label, href, out]) => <li key={label}><a href={href} {...(out ? { target: '_blank', rel: 'noreferrer' } : {})}>{label}</a></li>)}
+          {row.map(([label, href, out]) => <li key={label}><a href={href} {...(out ? { target: '_blank', rel: 'noreferrer' } : { 'data-astro-prefetch': '' })}>{label}</a></li>)}
         </ul>
       ))}
     </div>
@@ -257,7 +257,7 @@ export function Docs({ home }: { home: string }) {
     r.classList.add('moving');
   }, [current]);
 
-  // The page renders after a lazy import, so jump to a #section once it exists.
+  // Figures change height as they hydrate, so jump to the #section again once the page runs.
   useEffect(() => {
     const id = decodeURIComponent(location.hash.slice(1));
     if (id) document.getElementById(id)?.scrollIntoView();
@@ -317,7 +317,7 @@ export function Docs({ home }: { home: string }) {
               <p className="coda"><span className="wm-inline">topographic</span> runs wherever JavaScript runs. Put it in a website, a video, a game, a slide, or something nobody has made&nbsp;yet.</p>
               <footer className="foot">
                 <div><h3>Project</h3><ul>
-                  <li><a href={home}>Playground</a></li>
+                  <li><a href={home} data-astro-prefetch>Playground</a></li>
                   <li><a href={REPO} target="_blank" rel="noreferrer">GitHub</a></li>
                   <li><a href={NPM} target="_blank" rel="noreferrer">topographic on npm</a></li>
                   <li><a href={NPM_REACT} target="_blank" rel="noreferrer">topographic-react on npm</a></li>

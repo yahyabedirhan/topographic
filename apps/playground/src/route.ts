@@ -12,3 +12,13 @@ export function resolveRoute(pathname: string, search: string, hash: string, bas
   if (pathname === `${root}docs` || pathname === `${root}docs/` || pathname === `${root}docs.html`) return { page: 'docs' };
   return { page: 'redirect', to: `${root}${search}${hash}` };
 }
+
+/**
+ * The inline script of the home page. The Worker answers a browser's request for an unknown path with index.html,
+ * so this sends it home in place, before anything reads the address, keeping the query string, the hash and the
+ * history entry's state. It is `resolveRoute` itself, so the rule has one source.
+ */
+export function homeScript(base = '/'): string {
+  return `(function(){var r=(${resolveRoute.toString()})(location.pathname,location.search,location.hash,${JSON.stringify(base)});`
+    + `if(r.page==='redirect')history.replaceState(history.state,'',r.to);})();`;
+}

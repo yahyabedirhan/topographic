@@ -60,7 +60,8 @@ export function reportMessage(message: string, context?: Record<string, string>)
 
 /** Starts the early buffer now and loads Sentry once the page is idle after the first paint. */
 export function startErrorReporting(): void {
-  if (!DSN) return;
+  // The DSN is replaced at build time, so a build without one drops the Sentry import below.
+  if (!import.meta.env.VITE_SENTRY_DSN || !DSN) return;
   const dsn = DSN;
   let loaded = false;
   const onError = (e: ErrorEvent) => { if (!loaded) reportError(e.error ?? e.message, { source: 'window.error' }); };

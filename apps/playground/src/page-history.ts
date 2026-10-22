@@ -9,7 +9,7 @@
  * Every URL update calls `schedulePageUrl`. Camera drags, the 2D anchor drag, sliders, quality,
  * the dock and the region query all get here through the settings effect or the region effect.
  * The live graphics tier, the loading flag and the dock's own scroll do not write the URL.
- * There is no `pushState` call.
+ * There is no `pushState` call. A write keeps the entry's state, which belongs to Astro's client router.
  *
  * Writes are coalesced: a trailing wait of 300 ms from the first change in a burst, and never
  * more than one write per 250 ms (about four a second). `flushPageUrl` runs on pointerup,
@@ -70,7 +70,8 @@ function commit(force: boolean): void {
     return;
   }
   try {
-    globalThis.history.replaceState(null, '', next);
+    // The client router keeps its own index and scroll in the entry's state; dropping it would break Back.
+    globalThis.history.replaceState(globalThis.history.state, '', next);
     pending = null;
     dirtyAt = -1;
     lastWrite = now();

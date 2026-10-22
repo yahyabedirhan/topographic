@@ -13,7 +13,8 @@ export const OPENING = {
 /** The one-line description from the writing desk, for search results and link previews. */
 export const LINE = 'Topographic terrain rendered with WebGL. Generate a land or turn a real place into a topographic terrain.';
 
-const SITE = 'https://topographic.yahyapak.dev/';
+/** The site's address, with a trailing slash. */
+export const SITE = 'https://topographic.yahyapak.dev/';
 
 /** The head of /docs: the browser tab, search results and link previews. */
 export const DOCS_META = {

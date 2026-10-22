@@ -32,7 +32,7 @@ const topography = createTopography(el, { shape: 'dunes', lines: { count: 30 } }
 - **Theme**: resolves `ink` and `paper` from settings, then CSS variables (`--topographic-ink`, `--topographic-paper`), then light/dark defaults.
 - **`<topographic-view>`**: a custom element. Attributes become Settings, and it holds one Renderer.
 - **React `<Topography>`** and **`useTopography`**: props become Settings, and they hold one Renderer.
-- **Playground**: a React app. Its state is Settings, mirrored in the URL. Export uses `snapshot`, `record` and the embed serializer. The place picker turns a map region into a heightfield and hands it to `setHeightfield`. A built-in place's grid comes from the library. A catalog place's grid is a static 16-bit PNG in `public/places/`, made by `scripts/places.mjs` with the library's pipeline and decoded with `decodeGrid16`; if the file fails, the worker reads the elevation tiles with `fetchLocation`. Any other region always reads the tiles.
+- **Playground**: a React app, the client-only island of an Astro site that also renders /about and /docs as HTML. Its state is Settings, mirrored in the URL. Export uses `snapshot`, `record` and the embed serializer. The place picker turns a map region into a heightfield and hands it to `setHeightfield`. A built-in place's grid comes from the library. A catalog place's grid is a static 16-bit PNG in `public/places/`, made by `scripts/places.mjs` with the library's pipeline and decoded with `decodeGrid16`; if the file fails, the worker reads the elevation tiles with `fetchLocation`. Any other region always reads the tiles.
 
 Flow: wrapper → Settings (via the params table) → Renderer → uniforms → shader.
 
@@ -50,8 +50,15 @@ packages/core/src/
   shader/topographic.glsl.ts  combined height field, branch per shape
   element.ts             <topographic-view> custom element
 packages/react/src/Topography.tsx   <Topography>, useTopography
+apps/playground/
+  astro.config.ts        the Astro site: static output, React islands, the client router
+  llms.ts                llms.txt, llms-full.txt and docs/*.md, written by the build
 apps/playground/src/
-  main.tsx               mounts App
+  pages/                 index.astro (the playground island), about.astro, docs.astro
+  layouts/Base.astro     every page's head, the client router and the start-up script
+  meta.ts                each page's title, description and share image
+  boot.ts                error reporting, analytics and the pageview of each page change
+  Playground.tsx         the playground island: App inside its error boundary
   App.tsx                the page: the glass frame, the tune strip and the export menu
   ui.tsx                 the dock, the top-right buttons, the tune sliders and the 3D view settings
   shared.tsx             usePlayground: Settings state, the live instance, colours
@@ -63,6 +70,13 @@ apps/playground/src/
                          and the place catalog (catalog.json, loaded when the Map opens) with its search
 ```
 `params.ts` is the single source of truth. Types, element attributes, React props, playground sliders and docs are all derived from it.
+
+## Copied modules
+The privacy, analytics and error modules in `apps/playground/src` are copied on purpose in two other sites.
+They are `consent.ts`, `actor.ts`, `visitor.ts`, `analytics.ts`, `posthog.ts`, `sentry.ts` and `errors.ts`.
+`yahyabedirhan/shipyard` keeps them in `site/src`, with the same file names.
+`yahyabedirhan/personal-website` keeps an equivalent in `src/privacy.js`, `src/analytics.js` and `src/errors.js`, with the levels full, pageviews and off and keys without a prefix.
+A change to one of them is made in all three.
 
 ## Public API
 ```ts

@@ -1,0 +1,11 @@
+---
+// The playground. It keeps its state in the address bar and draws with WebGL, so it renders only in the browser.
+import Base from '../layouts/Base.astro';
+import { PAGES } from '../meta';
+import { Playground } from '../Playground';
+import { homeScript } from '../route';
+---
+<Base page={PAGES.home}>
+  <script slot="head" is:inline set:html={homeScript(import.meta.env.BASE_URL)} />
+  <Playground client:only="react" />
+</Base>
