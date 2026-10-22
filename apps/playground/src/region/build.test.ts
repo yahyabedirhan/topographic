@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { areaSpan as spanOf, type BBox } from 'topographic/locations';
-// @ts-expect-error The script is plain JavaScript without declarations.
+// @ts-ignore The script is plain JavaScript; `astro check` reads it, plain tsc finds no declarations.
 import { encodeGrid16 } from '../../../../scripts/png16.mjs';
 import { build, type BuildRequest, type BuildSources } from './build';
 

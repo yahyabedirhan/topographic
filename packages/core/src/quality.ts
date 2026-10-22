@@ -1,7 +1,8 @@
-export type QualityName = 'auto' | 'low' | 'medium' | 'high';
-export type TierId = Exclude<QualityName, 'auto'>;
+/** `full` draws like `high` with no pixel caps of its own: only the renderer's `maxPixelRatio` and `maxPixels` apply. */
+export type QualityName = 'auto' | 'low' | 'medium' | 'high' | 'full';
+export type TierId = Exclude<QualityName, 'auto' | 'full'>;
 
-export const QUALITIES: readonly QualityName[] = ['auto', 'low', 'medium', 'high'];
+export const QUALITIES: readonly QualityName[] = ['auto', 'low', 'medium', 'high', 'full'];
 
 /** One step of the ladder. Pixel caps are the iPhone 14 Pro CSS frame (393×852) times the DPR. */
 export interface QualityTier {
@@ -63,7 +64,11 @@ export function detectTier(signals: DeviceSignals): TierId {
   return 'high';
 }
 
+/** The `full` quality: the high tier's mesh, with no pixel ratio or pixel count cap. */
+const FULL_TIER: QualityTier = { ...QUALITY_TIERS.high, maxPixelRatio: Infinity, maxPixels: Infinity };
+
 export function tierFor(quality: QualityName, signals: DeviceSignals, stepped: TierId): QualityTier {
+  if (quality === 'full') return FULL_TIER;
   const id = quality === 'auto' ? stepped : quality;
   return QUALITY_TIERS[id];
 }

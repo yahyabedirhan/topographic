@@ -1,4 +1,5 @@
-import type { Plugin } from 'vite';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import type { AstroIntegration } from 'astro';
 import { LOOKS, PARAMS, RADIUS_MAX, RADIUS_MIN, SHAPES, defaultSettings } from 'topographic';
 import { AREA_LIMITS, LOCATIONS } from 'topographic/locations';
 import { INSTALL, TAGLINE } from './src/content';
@@ -7,13 +8,13 @@ import { AGENT_NAMES, PURPOSES } from './src/actor';
 import { PLACES, catalogPlaces, type CatalogRow } from './src/region/places';
 import CATALOG_ROWS from './src/region/catalog.json';
 import { REGION_TOOL_DEFS } from './src/region/tools';
-import { DOCS_META } from './src/docs-page/copy';
 import { HOME_QUERY, REGION_ONLY_QUERY } from './src/share-url';
+import { SITE } from './src/docs-page/copy';
 
 /** The Map menu's place catalog: the ten built-in places and the playground's own. */
 const CATALOG = catalogPlaces(CATALOG_ROWS as unknown as CatalogRow[]);
 
-export const SITE_URL = 'https://topographic.yahyapak.dev/';
+export const SITE_URL = SITE;
 export const WEBMCP_SPEC = 'https://github.com/webmachinelearning/webmcp/blob/d0e4e0e0f039358cc9d93f90074116622bfebd53/index.bs';
 
 const NAME_LIST = () => AGENT_NAMES.map((n) => `\`${n}\``).join(', ');
@@ -96,7 +97,7 @@ ${rows.join('\n')}
 
 Other settings:
 
-- \`look\` (attribute \`look\`, React prop \`look\`): one of the looks below, by id. It sets the shape, seed, groups, colours and camera pose. The other settings next to it override its values. An unknown look is ignored with one console warning. In \`update()\`, a look replaces the design and keeps the view: \`mode\`, \`elevation\`, \`extent\`, \`detail\`, \`quality\`, \`view2d\`, and the camera motion and pan.
+- \`look\` (attribute \`look\`, React prop \`look\`): one of the looks below, by id. It sets the shape, seed, groups, colours and camera pose. The other settings next to it override its values. An unknown look is ignored with one console warning. In \`update()\`, a look replaces the design and keeps the view: \`mode\`, \`elevation\`, \`extent\`, \`detail\`, \`quality\`, \`view2d\`, and the camera motion and pan. It also keeps \`column\`, \`scenes\` and \`scene\`.
 - \`shape\` (attribute \`shape\`, React prop \`shape\`): one of the shapes below. Unknown shapes fall back to \`${defaultSettings().shape}\` with one console warning.
 - \`location\` (attribute \`location\`, React prop \`location\`): a real place instead of the generated terrain. A built-in id (${LOCATIONS.map((l) => `\`${l.id}\``).join(', ')}), or a height grid \`{ samples, size, aspect }\` such as one from \`fetchLocation()\`. A built-in id also sets \`camera.azimuth\`, \`camera.elevation\`, \`camera.radius\`, \`elevation\`, \`extent: 'block'\`, \`lines\` (\`{ count: 36, width: 0, opacity: 0.9, indexEvery: 4 }\`) and \`layout.fade: 0.15\`, under the values you set. It does not set \`mode\`. Default \`null\`, the generated terrain. Unknown ids fall back to \`null\` with one console warning. See [api.md](api.md).
 - \`seed\` (attribute \`seed\`): integer 0 to 999999. The same seed gives the same terrain; 0 is the original look.
@@ -174,12 +175,16 @@ function apiMd(): string {
 
 Mounts a canvas inside \`element\` (it fills the element) and returns an instance.
 
-- \`settings\`: partial settings, see [params.md](params.md). Fields: \`{ look, shape, location, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera }\`. \`mode\` is \`'2d' | '3d'\` and defaults to \`'2d'\`. \`quality\` is \`'auto' | 'low' | 'medium' | 'high'\` and defaults to \`'auto'\`. \`auto\` starts a phone at low and a desktop at high, then steps down if presented frames miss 60 Hz, or 120 Hz once a frame under 12 ms has been seen. It does not step back up.
-- \`options\`: \`{ maxPixelRatio = 2, maxPixels = 4147200, forceWebGL1 = false, benchmark = false }\`. \`benchmark\` keeps a 3D view drawing while it is visible so \`stats\` can be read.
+- \`settings\`: partial settings, see [params.md](params.md). Fields: \`{ look, shape, location, seed, lines, terrain, motion, layout, theme, mode, elevation, extent, detail, quality, camera, column, scenes, scene }\`. \`mode\` is \`'2d' | '3d'\` and defaults to \`'2d'\`. \`quality\` is \`'auto' | 'low' | 'medium' | 'high' | 'full'\` and defaults to \`'auto'\`. \`full\` is high without its pixel caps. \`auto\` starts a phone at low and a desktop at high, then steps down if presented frames miss 60 Hz, or 120 Hz once a frame under 12 ms has been seen. It does not step back up.
+- \`column\`: half the width of the faded centre column in CSS px, default 300.
+- \`scenes\`: up to 8 \`{ shape, ink? }\` scenes that blend in 2D, each with its own line colour. \`scene\` is the target's index. A new target fades in by \`1 - exp(-dt * 4.5)\` a frame (dt at most 0.05 s). With scenes set, a theme mode change fades the dark amount by \`1 - exp(-dt * 6)\`.
+- \`options\`: \`{ maxPixelRatio = 2, maxPixels = 4147200, maxFps = 0, powerPreference, forceWebGL1 = false, benchmark = false }\`. \`powerPreference\` is passed to the WebGL context; without it a phone asks for \`low-power\` and other devices for \`default\`. \`maxFps\` caps the frame rate; 0 draws every display frame. \`benchmark\` keeps a 3D view drawing while it is visible so \`stats\` can be read.
 
 Instance:
 
-- \`update(partialSettings)\`: merges, clamps and applies live. Only changed uniforms reach the GPU.
+- \`update(partialSettings, { instant? })\`: merges, clamps and applies live. Only changed uniforms reach the GPU. \`instant: true\` jumps to the target scene and dark amount instead of fading.
+- \`setOptions({ maxPixelRatio?, maxPixels?, maxFps? })\`: changes those options live.
+- \`blend\`: \`{ weights, dark }\`, the scene weights and the dark amount drawn now.
 - \`snapshot({ frame?, width?, height?, region?, motion?, patch?, field? }) => Promise<Blob>\`: renders one PNG off-screen. \`frame\` is the animation time in ms. Give one side to keep the aspect ratio. \`region\` (\`{ x, y, width, height }\`, fractions from the top-left) keeps only that slice of the view, drawn at full detail. \`motion\` draws the 3D view along that camera path at its pose for \`frame\`, like that moment of \`record\`. \`patch\` and \`field\` draw this image from temporary settings and a temporary height grid, then put the live view back, so the page does not flash and a second WebGL context is not required. The live canvas is not resized. Rejects without WebGL. In 3D it includes the current camera.
 - \`record({ seconds?, fps?, width?, height?, frame?, format?, motion? }) => Promise<Blob>\`: renders a 3D clip with a moving camera. \`format\` is \`'mp4'\` (default) or \`'webm'\`. \`motion\` is \`orbit\`, \`push\`, \`flyover\`, \`drone\` or \`still\`. The live canvas is not resized. Rejects without WebGL or when the browser cannot encode that format.
 - \`setHeightfield({ samples, size, aspect } | null)\`: draws your own height grid until the \`location\` setting changes. \`null\` brings back the generated terrain.
@@ -195,13 +200,13 @@ Instance:
 Behaviour:
 
 - Uses WebGL2, then WebGL1. Without either, or while the context is lost, the element shows the paper colour. A restored context resumes. If the browser never restores it, the canvas is replaced and the view comes back on its own. Drawing does not call \`gl.finish\`, and the backing store is left alone when a resize reports the same size.
-- \`prefers-reduced-motion: reduce\` renders a single still frame.
+- \`prefers-reduced-motion: reduce\` renders a single still frame. A scene or dark fade still runs to its end first.
 - Animation pauses when the element is off-screen or the tab is hidden.
 - Pixel budget: \`quality\` caps the device pixel ratio, the pixel count and the mesh. \`maxPixelRatio\` and \`maxPixels\` are the ceiling above that.
 
 ## <topographic-view>
 
-\`import 'topographic/element'\` registers the element. Attributes: \`look\`, \`shape\`, \`location\`, \`seed\`, \`theme\`, \`ink\`, \`paper\`, \`mode\`, \`elevation\`, \`extent\`, \`detail\`, \`quality\`, \`azimuth\`, \`camera-elevation\`, \`radius\`, \`camera-motion\`, \`camera-speed\`, \`pan-x\`, \`pan-z\`, plus one per numeric setting (see [params.md](params.md)). Attribute changes apply live, and a removed attribute returns to its default. \`element.topographic\` is the instance, and \`element.snapshot(opts)\` is a shortcut.
+\`import 'topographic/element'\` registers the element. Attributes: \`look\`, \`shape\`, \`location\`, \`seed\`, \`theme\`, \`ink\`, \`paper\`, \`mode\`, \`elevation\`, \`extent\`, \`detail\`, \`quality\`, \`azimuth\`, \`camera-elevation\`, \`radius\`, \`camera-motion\`, \`camera-speed\`, \`pan-x\`, \`pan-z\`, \`column\`, \`scenes\` (JSON), \`scene\`, plus one per numeric setting (see [params.md](params.md)). Attribute changes apply live, and a removed attribute returns to its default. \`element.topographic\` is the instance, and \`element.snapshot(opts)\` is a shortcut.
 
 ## React: <Topography> and useTopography
 
@@ -338,64 +343,32 @@ export function buildDocs(): Record<string, string> {
   return files;
 }
 
-const attr = (text: string) => text.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
-
 /**
- * The playground's index.html with the head of /docs: its title, description, canonical address and share image,
- * and the font weights the docs page uses. The host serves /docs from the docs.html this makes.
+ * Serves the plain-text docs (llms.txt, llms-full.txt and docs/*.md): from memory in `astro dev`, and as files
+ * beside the pages in the build. This file is not named docs.ts, because the dev server would answer /docs with it.
  */
-export function docsHead(html: string): string {
-  const m = DOCS_META;
-  const meta = (key: 'name' | 'property', name: string, content: string) => (h: string) =>
-    h.replace(new RegExp(`(<meta ${key}="${name}" content=")[^"]*(")`), `$1${attr(content)}$2`);
-  const steps = [
-    (h: string) => h.replace(/<title>[^<]*<\/title>/, `<title>${attr(m.title)}</title>`),
-    meta('name', 'description', m.description),
-    meta('property', 'og:title', m.title),
-    meta('property', 'og:description', m.description),
-    meta('property', 'og:url', m.url),
-    meta('property', 'og:image', m.image),
-    meta('property', 'og:image:alt', m.imageAlt),
-    meta('name', 'twitter:title', m.title),
-    meta('name', 'twitter:description', m.description),
-    meta('name', 'twitter:image', m.image),
-    meta('name', 'twitter:image:alt', m.imageAlt),
-    (h: string) => h.replace(/(<link rel="canonical" href=")[^"]*(")/, `$1${m.url}$2`),
-    (h: string) => h.replace('family=Inter:wght@400;500&', 'family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&'),
-  ];
-  return steps.reduce((h, step) => step(h), html);
-}
-
-export function docsPlugin(): Plugin {
+export function docsIntegration(): AstroIntegration {
   return {
     name: 'topographic-docs',
-    enforce: 'post',
-    // In development every page is served from index.html, so /docs gets its head here.
-    transformIndexHtml: {
-      order: 'post',
-      handler(html, ctx) {
-        const path = (ctx.originalUrl ?? ctx.path).split('?')[0];
-        return /\/docs\/?$/.test(path) ? docsHead(html) : html;
+    hooks: {
+      'astro:server:setup': ({ server }) => {
+        server.middlewares.use((req, res, next) => {
+          const base = server.config.base.startsWith('/') ? server.config.base : '/';
+          const url = (req.url ?? '').split('?')[0];
+          const path = (url.startsWith(base) ? url.slice(base.length) : url).replace(/^\//, '');
+          const body = buildDocs()[path];
+          if (body === undefined) return next();
+          res.setHeader('content-type', `${path.endsWith('.md') ? 'text/markdown' : 'text/plain'}; charset=utf-8`);
+          res.end(body);
+        });
       },
-    },
-    configureServer(server) {
-      server.middlewares.use((req, res, next) => {
-        const base = server.config.base.startsWith('/') ? server.config.base : '/';
-        const url = (req.url ?? '').split('?')[0];
-        const path = (url.startsWith(base) ? url.slice(base.length) : url).replace(/^\//, '');
-        // The docs page. Without this, Vite would answer /docs with this plugin's own docs.ts.
-        if (path === 'docs' || path === 'docs/') { req.url = `${base}index.html`; return next(); }
-        const body = buildDocs()[path];
-        if (body === undefined) return next();
-        res.setHeader('content-type', `${path.endsWith('.md') ? 'text/markdown' : 'text/plain'}; charset=utf-8`);
-        res.end(body);
-      });
-    },
-    generateBundle(_options, bundle) {
-      for (const [fileName, source] of Object.entries(buildDocs())) this.emitFile({ type: 'asset', fileName, source });
-      const index = bundle['index.html'];
-      if (index?.type !== 'asset') throw new Error('topographic-docs: no index.html in the bundle to make docs.html from');
-      this.emitFile({ type: 'asset', fileName: 'docs.html', source: docsHead(String(index.source)) });
+      'astro:build:done': ({ dir }) => {
+        for (const [fileName, source] of Object.entries(buildDocs())) {
+          const file = new URL(fileName, dir);
+          mkdirSync(new URL('.', file), { recursive: true });
+          writeFileSync(file, source);
+        }
+      },
     },
   };
 }

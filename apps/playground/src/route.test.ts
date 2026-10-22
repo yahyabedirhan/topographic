@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { resolveRoute } from './route';
+import { homeScript, resolveRoute } from './route';
 
 describe('resolveRoute', () => {
   it('serves home and /about', () => {
@@ -30,5 +30,25 @@ describe('resolveRoute', () => {
     expect(resolveRoute('/topographic/', '', '', '/topographic/')).toEqual({ page: 'home' });
     expect(resolveRoute('/topographic/about', '', '', '/topographic/')).toEqual({ page: 'about' });
     expect(resolveRoute('/topographic/old', '?analytics_optout', '', '/topographic/')).toEqual({ page: 'redirect', to: '/topographic/?analytics_optout' });
+  });
+});
+
+describe('homeScript', () => {
+  const run = (pathname: string, search: string, hash: string, base = '/') => {
+    const writes: [unknown, string][] = [];
+    const location = { pathname, search, hash };
+    const history = { state: { index: 0 }, replaceState: (s: unknown, _t: string, url: string) => { writes.push([s, url]); } };
+    new Function('location', 'history', homeScript(base))(location, history);
+    return writes;
+  };
+
+  it('sends an unknown path home in place, keeping the query, the hash and the history state', () => {
+    expect(run('/nope/deep', '?analytics_optout=all', '#a')).toEqual([[{ index: 0 }, '/?analytics_optout=all#a']]);
+    expect(run('/topographic/old', '?s=dunes', '', '/topographic/')).toEqual([[{ index: 0 }, '/topographic/?s=dunes']]);
+  });
+
+  it('leaves the home page alone', () => {
+    expect(run('/', '?s=dunes', '')).toEqual([]);
+    expect(run('/index.html', '', '')).toEqual([]);
   });
 });

@@ -1,6 +1,6 @@
 {
   "name": "topographic",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Topographic terrain rendered with WebGL. Generate a land or turn a real place into a topographic terrain.",
   "license": "Apache-2.0",
   "repository": {

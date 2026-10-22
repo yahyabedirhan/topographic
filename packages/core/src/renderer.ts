@@ -1,7 +1,8 @@
 import { blockLift, cameraPose, clampPan, pathPose, terrainHalfSize, viewShift, type Pose, type ViewInsets } from './camera.js';
 import type { Heightfield } from './heightfield.js';
-import { mergeSettings, resolveSettings, toUniforms, type CameraMotion, type Settings, type SettingsInput } from './settings.js';
-import { resolveTheme, rgbaToCss, type ResolvedTheme } from './theme.js';
+import { MAX_SCENES, SCENE_SETTLED, mergeSettings, resolveSettings, toUniforms, type CameraMotion, type Settings, type SettingsInput } from './settings.js';
+import { mixTheme, parseColor, resolveTheme, rgbaToCss, type RGBA, type ResolvedTheme, type ThemeColours } from './theme.js';
+import { findShape } from './shapes.js';
 import { VERTEX_100, VERTEX_300, wrapFragment } from './shader/common.glsl.js';
 import { TOPOGRAPHIC_FRAGMENT } from './shader/topographic.glsl.js';
 import { detectTier, readDeviceSignals, stepTier, tierFor, type TierId } from './quality.js';
@@ -19,6 +20,26 @@ export interface RendererOptions {
   forceWebGL1?: boolean;
   /** Keep drawing while a 3D view is visible, so fps can be read. */
   benchmark?: boolean;
+  /** The most frames to draw each second, such as 30 on a phone. Omit it, or pass 0, to draw on every display frame. */
+  maxFps?: number;
+  /** The GPU the WebGL context asks for. Omit it for `low-power` on a phone and `default` elsewhere. */
+  powerPreference?: WebGLPowerPreference;
+}
+
+/** The options `setOptions` can change while the renderer runs. */
+export type LiveRendererOptions = Pick<RendererOptions, 'maxPixelRatio' | 'maxPixels' | 'maxFps'>;
+
+export interface UpdateOptions {
+  /** Jump to the target scene and the theme's dark amount at once, instead of fading. */
+  instant?: boolean;
+}
+
+/** Where a blended background is now. */
+export interface BlendState {
+  /** The weight of each scene, from 0 to 1, in the order of `scenes`. */
+  weights: number[];
+  /** 0 is the light theme and 1 the dark theme. Between, the colours are mixed. */
+  dark: number;
 }
 
 export interface SnapshotOptions {
@@ -71,8 +92,15 @@ export interface RecordOptions {
 }
 
 export interface Topography {
-  /** Merges, clamps and applies new settings; only changed uniforms are sent to the GPU. */
-  update(patch: SettingsInput): void;
+  /**
+   * Merges, clamps and applies new settings; only changed uniforms are sent to the GPU. With `scenes`
+   * set, a new target scene and a new theme mode fade in, unless `instant` is true.
+   */
+  update(patch: SettingsInput, opts?: UpdateOptions): void;
+  /** Changes the pixel budget or the frame rate cap while the renderer runs. Values you leave out stay. */
+  setOptions(options: LiveRendererOptions): void;
+  /** The scene weights and the dark amount drawn now. */
+  readonly blend: BlendState;
   /** Renders one frame off-screen and returns a PNG. The live canvas is not resized. */
   snapshot(opts?: SnapshotOptions): Promise<Blob>;
   /** Renders a 3D clip with a moving camera. The live canvas is not resized. */
@@ -107,9 +135,35 @@ export interface Topography {
 }
 
 type GL = WebGLRenderingContext | WebGL2RenderingContext;
-const DEFAULTS: Required<Omit<RendererOptions, 'forceWebGL1' | 'benchmark'>> = { maxPixelRatio: 2, maxPixels: 1920 * 1080 * 2 };
-const TEXT_COLUMN_HALF_WIDTH_PX = 300;
+const DEFAULTS: Required<Omit<RendererOptions, 'forceWebGL1' | 'benchmark' | 'powerPreference'>> = { maxPixelRatio: 2, maxPixels: 1920 * 1080 * 2, maxFps: 0 };
+/** Scene weights move toward their target by 1 - exp(-dt * rate) each frame, dt in seconds. */
+const SCENE_RATE = 4.5;
+/** The dark amount moves toward its target the same way, at this rate. */
+const DARK_RATE = 6;
+/** The longest frame step a fade takes, in seconds, so a slow frame does not jump. */
+const BLEND_STEP_MAX = 0.05;
+
+/** True while any weight or the dark amount is further than SCENE_SETTLED from its target. */
+function blendMoving(state: BlendState, target: number, darkTarget: number): boolean {
+  return state.weights.some((w, i) => Math.abs((i === target ? 1 : 0) - w) > SCENE_SETTLED)
+    || Math.abs(darkTarget - state.dark) > SCENE_SETTLED;
+}
+
+/**
+ * One frame of fading: moves weights and the dark amount toward their targets. Returns true while any
+ * still moved, judged before the step, as the reference loop does: the frame that settles is drawn last.
+ */
+export function stepBlend(state: BlendState, target: number, darkTarget: number, dtSeconds: number): boolean {
+  const moving = blendMoving(state, target, darkTarget);
+  const dt = Math.min(BLEND_STEP_MAX, Math.max(0, dtSeconds));
+  const k = 1 - Math.exp(-dt * SCENE_RATE);
+  for (let i = 0; i < state.weights.length; i++) state.weights[i] += ((i === target ? 1 : 0) - state.weights[i]) * k;
+  state.dark += (darkTarget - state.dark) * (1 - Math.exp(-dt * DARK_RATE));
+  return moving;
+}
 const QUAD = new Float32Array([-1, -1, 3, -1, -1, 3]);
+/** Uniform arrays, sent from a Float32Array, by the size of one element. Other values are single vectors. */
+const ARRAY_UNIFORMS: Record<string, 1 | 4> = { uParams: 1, uSceneWeight: 1, uSceneShape: 1, uSceneInk: 4 };
 
 export function createTopography(el: HTMLElement, input: SettingsInput = {}, options: RendererOptions = {}): Topography {
   const opts = { ...DEFAULTS, ...options };
@@ -144,7 +198,19 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
   let inView = true;
   let held = false;
   let theme: ResolvedTheme;
+  /** The theme in light and in dark mode, for the colours between them while the dark amount fades. */
+  let lightTheme: ResolvedTheme;
+  let darkTheme: ResolvedTheme;
   let col = 0.3;
+  /** Scene weights and the dark amount. They start settled on their targets. */
+  const blend: BlendState = { weights: [], dark: 0 };
+  /** True while a weight or the dark amount has not reached its target. */
+  let fading = false;
+  /** When the last frame was drawn, for the frame rate cap. */
+  let lastDraw = 0;
+  const sceneWeights = new Float32Array(MAX_SCENES);
+  const sceneShapes = new Float32Array(MAX_SCENES);
+  const sceneInks = new Float32Array(MAX_SCENES * 4);
   let insets: ViewInsets = { top: 0, right: 0, bottom: 0, left: 0 };
   let recoveryTimer = 0;
   const signals = readDeviceSignals(view);
@@ -173,9 +239,40 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
   };
   const refreshTheme = () => {
     const cs = view.getComputedStyle(el);
-    theme = resolveTheme(settings.theme, { cssVar: (n) => cs.getPropertyValue(n), computeColor, prefersDark: !!darkScheme?.matches });
+    const env = { cssVar: (n: string) => cs.getPropertyValue(n), computeColor, prefersDark: !!darkScheme?.matches };
+    theme = resolveTheme(settings.theme, env);
+    lightTheme = resolveTheme({ ...settings.theme, mode: 'light' }, env);
+    darkTheme = resolveTheme({ ...settings.theme, mode: 'dark' }, env);
     canvas.style.background = rgbaToCss(theme.paper);
+    // A scene ink can name a CSS colour that depends on the page, so read it again.
+    inkCache.clear();
   };
+  /** The colours to draw with now: the theme, or a mix while the dark amount fades. */
+  const colours = (): ThemeColours => (blend.dark === theme.dark ? theme : mixTheme(lightTheme, darkTheme, blend.dark));
+  /** A scene's own ink, parsed once per colour string. */
+  const inkCache = new Map<string, RGBA | null>();
+  const sceneInk = (css: string): RGBA | null => {
+    if (!inkCache.has(css)) {
+      const parsed = parseColor(css) ?? parseColor(computeColor(css) ?? '');
+      if (!parsed) console.warn(`[topographic] scene ink "${css}" is not a colour, using the theme ink`);
+      inkCache.set(css, parsed);
+    }
+    return inkCache.get(css)!;
+  };
+
+  /** Fits the weights to the scene list. With `instant`, or with no weights yet, they jump to the target. */
+  function syncBlend(instant: boolean): void {
+    const n = settings.scenes.length;
+    const fresh = blend.weights.length === 0;
+    blend.weights.length = n;
+    for (let i = 0; i < n; i++) {
+      if (instant || fresh) blend.weights[i] = i === settings.scene ? 1 : 0;
+      else blend.weights[i] ??= 0;
+    }
+    // A plain renderer switches its theme at once; only a blended background fades it.
+    if (instant || n === 0) blend.dark = theme.dark;
+    fading = n > 0 && blendMoving(blend, settings.scene, theme.dark);
+  }
 
   function compile(type: number, src: string): WebGLShader | null {
     const sh = gl!.createShader(type)!;
@@ -192,7 +289,7 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
     const attrs: WebGLContextAttributes = {
       alpha: true, premultipliedAlpha: false, antialias: false, depth: true, stencil: false,
       // A phone already has one full-screen context. High-performance asks iOS for a bigger GPU pool.
-      powerPreference: signals.mobile ? 'low-power' : 'default',
+      powerPreference: opts.powerPreference ?? (signals.mobile ? 'low-power' : 'default'),
     };
     let webgl2 = false;
     if (!gl) {
@@ -236,7 +333,10 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
     const loc = locations.get(name)!;
     if (loc === null) return;
     if (typeof value === 'number') gl.uniform1f(loc, value);
-    else if (name === 'uParams') gl.uniform1fv(loc, value as Float32Array);
+    else if (value instanceof Float32Array) {
+      if (ARRAY_UNIFORMS[name] === 4) gl.uniform4fv(loc, value);
+      else gl.uniform1fv(loc, value);
+    }
     else if (value.length === 2) gl.uniform2f(loc, value[0], value[1]);
     else if (value.length === 3) gl.uniform3f(loc, value[0], value[1], value[2]);
     else gl.uniform4f(loc, value[0], value[1], value[2], value[3]);
@@ -249,14 +349,28 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
 
   function applySettings(): void {
     const u = toUniforms(settings, paramsBuf);
+    const c = colours();
     set('uParams', u.uParams);
     set('uStyle', u.uStyle);
     set('uSeed', u.uSeed);
     set('uCenter', u.uCenter);
     set('uFade', u.uFade);
-    set('uDark', theme.dark);
-    set('uInk', theme.ink);
-    set('uPaper', theme.paper);
+    set('uDark', c.dark);
+    set('uInk', c.ink);
+    set('uPaper', c.paper);
+    const n = settings.scenes.length;
+    set('uSceneCount', n);
+    if (n === 0) return;
+    for (let i = 0; i < n; i++) {
+      const scene = settings.scenes[i];
+      const ink = (scene.ink ? sceneInk(scene.ink) : null) ?? c.ink;
+      sceneWeights[i] = blend.weights[i];
+      sceneShapes[i] = findShape(scene.shape)!.index;
+      sceneInks.set(ink, i * 4);
+    }
+    set('uSceneWeight', sceneWeights);
+    set('uSceneShape', sceneShapes);
+    set('uSceneInk', sceneInks);
   }
 
   let cssW = 0, cssH = 0;
@@ -270,7 +384,6 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
     if (budget < 1) ratio *= budget;
     const bw = Math.max(1, Math.round(cssW * ratio));
     const bh = Math.max(1, Math.round(cssH * ratio));
-    col = Math.min(TEXT_COLUMN_HALF_WIDTH_PX, cssW / 2) / cssH;
     // Assigning canvas width drops the drawing buffer and allocates a new one.
     // iOS does not reliably free the previous buffer, so a dock resize that
     // reports the same size must not touch it.
@@ -330,6 +443,7 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
     gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
     set('uRes', [w, h]);
     set('uTime', frameMs / 1000);
+    col = columnOf();
     set('uCol', col);
     set('uHasHeight', heightField ? 1 : 0);
     set('uHeightAspect', heightField?.aspect || 1);
@@ -337,6 +451,11 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
     applySettings();
     bindHeightSampler();
     gl.drawArrays(gl.TRIANGLES, 0, 3);
+  }
+
+  /** The faded centre column's half-width, as a fraction of the view height. */
+  function columnOf(): number {
+    return Math.min(settings.column, cssW / 2) / cssH;
   }
 
   /** The pose with its pan kept over the terrain drawn at this aspect ratio. */
@@ -360,7 +479,7 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
       const block = terrainHalfSize(aspect, 'block', heightField ? heightField.aspect : null);
       const [sx, sy] = live ? viewShift(insets, cssW, cssH) : [0, 0];
       terrain.draw(gl, status === 'webgl2', {
-        width: w, height: h, settings, theme, frameMs, col,
+        width: w, height: h, settings, theme: colours(), frameMs, col: columnOf(),
         pose: at,
         field: heightField,
         heightVersion,
@@ -377,7 +496,10 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
   }
 
   const shouldAnimate = () => {
-    if (held || (status !== 'webgl2' && status !== 'webgl1') || !inView || doc.visibilityState === 'hidden' || reducedMotion?.matches) return false;
+    if (held || (status !== 'webgl2' && status !== 'webgl1') || !inView || doc.visibilityState === 'hidden') return false;
+    // A fade runs to its end even with reduced motion; the terrain itself holds still.
+    if (fading) return true;
+    if (reducedMotion?.matches) return false;
     if (opts.benchmark && settings.mode === '3d') return true;
     if (settings.motion.speed > 0) return true;
     return settings.mode === '3d' && settings.camera.motion !== 'still';
@@ -393,6 +515,9 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
       scheduleRecovery();
       return;
     }
+    // The frame rate cap skips display frames; the next drawn frame takes the whole step.
+    if (opts.maxFps > 0 && now - lastDraw < 1000 / opts.maxFps - 2) { schedule(); return; }
+    lastDraw = now;
     const dt = lastNow ? Math.min(100, Math.max(0, now - lastNow)) : 0;
     lastNow = now;
     if (dt > 0) {
@@ -408,7 +533,10 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
         if (next !== tierId) { tierId = next; gaps.length = 0; resize(); }
       }
     }
-    frameMs += dt;
+    // Like the fade's own loop, the weights keep closing in on the target after they have settled.
+    if (settings.scenes.length) fading = stepBlend(blend, settings.scene, theme.dark, dt / 1000);
+    // A blended background takes the fade's 50 ms step for time too, so a slow frame keeps the same pace.
+    if (!reducedMotion?.matches) frameMs += settings.scenes.length ? Math.min(dt, BLEND_STEP_MAX * 1000) : dt;
     if (settings.mode === '3d') pathMs += dt * settings.camera.speed;
     draw();
     schedule();
@@ -422,7 +550,7 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
   const resizeObserver = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => resize()) : null;
   const intersection = typeof IntersectionObserver !== 'undefined'
     ? new IntersectionObserver(([entry]) => { inView = entry?.isIntersecting ?? true; schedule(); }) : null;
-  const onSchemeChange = () => { refreshTheme(); draw(); };
+  const onSchemeChange = () => { refreshTheme(); syncBlend(false); draw(); schedule(); };
   function dropGpu(): void {
     if (gl && !gl.isContextLost()) {
       if (program) gl.deleteProgram(program);
@@ -560,6 +688,7 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
     ).finally(() => { if (token === locationToken) locationLoad = null; });
   }
 
+  syncBlend(true);
   resize();
   schedule();
   syncLocation();
@@ -574,6 +703,7 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
       return [p.panX ?? 0, p.panZ ?? 0];
     },
     get canvas() { return canvas; },
+    get blend() { return { weights: [...blend.weights], dark: blend.dark }; },
     get stats() {
       return {
         fps: Math.round(statFps),
@@ -582,14 +712,25 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
         quality: tierFor(settings.quality, signals, tierId).id,
       };
     },
-    update(patch) {
+    update(patch, o = {}) {
       if (status === 'destroyed') return;
       settings = mergeSettings(settings, patch);
       if (patch.theme) refreshTheme();
+      syncBlend(Boolean(o.instant));
       if (patch.quality !== undefined) resize();
       else draw();
       schedule();
       syncLocation();
+    },
+    setOptions(next) {
+      if (status === 'destroyed') return;
+      // A ratio or pixel count must be above 0; a frame cap of 0 means no cap.
+      for (const key of ['maxPixelRatio', 'maxPixels', 'maxFps'] as const) {
+        const v = next[key];
+        if (typeof v === 'number' && !Number.isNaN(v) && (v > 0 || (key === 'maxFps' && v === 0))) opts[key] = v;
+      }
+      resize();
+      schedule();
     },
     setHeightfield(field) {
       if (status === 'destroyed') return;
@@ -630,8 +771,10 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
       const savedSettings = settings;
       const savedField = heightField;
       const savedVersion = heightVersion;
+      const savedBlend = { weights: [...blend.weights], dark: blend.dark };
       if (o.frame !== undefined) frameMs = o.frame;
-      if (o.patch) { settings = mergeSettings(settings, o.patch); refreshTheme(); }
+      // A patched image draws its own settings settled: its scene in full and its theme's colours.
+      if (o.patch) { settings = mergeSettings(settings, o.patch); refreshTheme(); syncBlend(true); }
       if (o.field !== undefined) { heightField = o.field; heightVersion += 1; }
       const pose = o.motion ? cameraPose({ ...settings.camera, motion: o.motion }, frameMs / 1000)
         : o.frame !== undefined ? cameraPose(settings.camera, o.frame / 1000) : undefined;
@@ -641,7 +784,7 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
       finally {
         frameMs = savedFrame;
         settings = savedSettings;
-        if (o.patch) refreshTheme();
+        if (o.patch) { refreshTheme(); blend.weights = savedBlend.weights; blend.dark = savedBlend.dark; syncBlend(false); }
         if (o.field !== undefined) { heightField = savedField; heightVersion = savedVersion; uploadedVersion = -1; }
         draw();
       }

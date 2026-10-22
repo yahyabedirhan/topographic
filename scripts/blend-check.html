@@ -1,0 +1,88 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<style>html,body{margin:0;height:100%} #bg,#host{position:fixed;inset:0;width:100vw;height:100vh;display:block}</style>
+<canvas id="bg"></canvas>
+<div id="host"></div>
+<script>
+  // One shared, hand-driven clock: frame(now) runs every queued animation frame with the same time,
+  // so the reference and the library step through exactly the same frames.
+  const queue = new Map();
+  let nextId = 1;
+  window.requestAnimationFrame = (f) => { const id = nextId++; queue.set(id, f); return id; };
+  window.cancelAnimationFrame = (id) => { queue.delete(id); };
+  window.frame = (now) => { const run = [...queue.values()]; queue.clear(); for (const f of run) f(now); };
+  window.pending = () => queue.size;
+</script>
+<script type="module">
+  import { createBackground } from './blend-reference/bg.js';
+  import { createTopography } from '../packages/core/dist/index.js';
+
+  const query = new URLSearchParams(location.search);
+  const dark = query.get('dark') === '1';
+
+  // The reference: personal-website's own background, unchanged.
+  const reference = createBackground(document.getElementById('bg'));
+  reference.setDark(dark, true);
+
+  // The library, set up the way docs/guide.md > 'Scenes' shows for that background.
+  const coarse = matchMedia('(pointer: coarse)').matches;
+  const scenes = [
+    { shape: 'drifting-lobes' },
+    { shape: 'long-ridge', ink: 'rgb(98% 50% 13%)' },
+    { shape: 'five-petals', ink: 'rgb(16% 66% 40%)' },
+    { shape: 'seed-pod', ink: 'rgb(47% 38% 98%)' },
+    { shape: 'gentle-summit' },
+    { shape: 'dunes' },
+  ];
+  const ratio = () => (innerWidth < 600 || coarse ? 1 : 1.5);
+  const sized = () => ({
+    lines: { count: innerWidth < 600 ? 36 : innerWidth < 1024 ? 30 : 24 },
+    layout: { fade: 0.7 * (innerWidth < 720 ? 0.4 : 1) },
+  });
+  const library = createTopography(document.getElementById('host'), {
+    scenes, scene: 0, column: 332, quality: 'full', theme: { mode: dark ? 'dark' : 'light' },
+    lines: { width: 0.9 / 3.5 }, motion: { warp: 0.7 / 1.5 }, ...sized(),
+  }, { maxPixelRatio: ratio(), maxPixels: Infinity, maxFps: coarse ? 30 : 0, powerPreference: 'low-power', forceWebGL1: query.get('gl1') === '1' });
+  addEventListener('resize', () => { library.setOptions({ maxPixelRatio: ratio() }); library.update(sized()); });
+
+  window.setScene = (i) => { reference.setState(i); library.update({ scene: i }); };
+  window.setDark = (d, instant) => { reference.setDark(d, instant); library.update({ theme: { mode: d ? 'dark' : 'light' } }, { instant }); };
+  window.library = library;
+
+  const pixels = (canvas, type) => {
+    const gl = canvas.getContext(type);
+    const out = new Uint8Array(gl.drawingBufferWidth * gl.drawingBufferHeight * 4);
+    gl.readPixels(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight, gl.RGBA, gl.UNSIGNED_BYTE, out);
+    return { w: gl.drawingBufferWidth, h: gl.drawingBufferHeight, data: out };
+  };
+  const png = ({ w, h, data }) => {
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const img = new ImageData(w, h);
+    for (let y = 0; y < h; y++) img.data.set(data.subarray((h - 1 - y) * w * 4, (h - y) * w * 4), y * w * 4);
+    c.getContext('2d').putImageData(img, 0, 0);
+    return c.toDataURL('image/png');
+  };
+  // Reads both canvases in the task that drew them, and compares the colour channels.
+  window.compare = (withImages) => {
+    const a = pixels(document.getElementById('bg'), 'webgl');
+    const b = pixels(library.canvas, library.status === 'webgl1' ? 'webgl' : 'webgl2');
+    if (a.w !== b.w || a.h !== b.h) return { size: [a.w, a.h, b.w, b.h] };
+    // range is how far the reference's brightest and darkest green channel lie apart, so a blank frame cannot pass.
+    let max = 0, sum = 0, over1 = 0, lo = 255, hi = 0;
+    for (let i = 0; i < a.data.length; i += 4) {
+      let px = 0;
+      for (let c = 0; c < 3; c++) { const d = Math.abs(a.data[i + c] - b.data[i + c]); sum += d; if (d > px) px = d; }
+      if (px > max) max = px;
+      if (px > 1) over1++;
+      lo = Math.min(lo, a.data[i + 1]); hi = Math.max(hi, a.data[i + 1]);
+    }
+    const n = a.data.length / 4;
+    return {
+      size: [a.w, a.h], max, mean: sum / (n * 3), over1, range: hi - lo, status: library.status, blend: library.blend,
+      ...(withImages ? { images: [png(a), png(b)] } : {}),
+    };
+  };
+  window.ready = true;
+</script>

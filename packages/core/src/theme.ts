@@ -67,6 +67,19 @@ export function resolveTheme(theme: Settings['theme'], env: ThemeEnv = {}): Reso
   return { ink: pick(theme.ink, '--topographic-ink', d.ink), paper: pick(theme.paper, '--topographic-paper', d.paper), dark: mode === 'dark' ? 1 : 0 };
 }
 
+/** The colours one frame draws with. `dark` is the amount from 0 to 1, between two resolved themes. */
+export interface ThemeColours {
+  ink: RGBA;
+  paper: RGBA;
+  dark: number;
+}
+
+/** The light and dark themes mixed by `amount`, the way the shader's mix() does. */
+export function mixTheme(light: ResolvedTheme, dark: ResolvedTheme, amount: number): ThemeColours {
+  const mix = (a: RGBA, b: RGBA) => a.map((v, i) => v * (1 - amount) + b[i] * amount) as RGBA;
+  return { ink: mix(light.ink, dark.ink), paper: mix(light.paper, dark.paper), dark: amount };
+}
+
 export function rgbaToCss([r, g, b, a]: RGBA): string {
   const c = (v: number) => Math.round(v * 255);
   return `rgba(${c(r)}, ${c(g)}, ${c(b)}, ${+a.toFixed(3)})`;

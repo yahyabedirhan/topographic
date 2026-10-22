@@ -47,6 +47,22 @@ export interface View2dSettings {
   zoom: number;
 }
 
+/** One scene of a blended background: a shape and its line colour. */
+export interface SceneSettings {
+  shape: ShapeId;
+  /** Any CSS colour. Omit it to use the theme's ink, which follows the dark amount. */
+  ink?: string;
+}
+
+/** The most scenes one background can blend between. */
+export const MAX_SCENES = 8;
+/** A scene weight at or below this is not drawn, and a fade this close to its target has settled. */
+export const SCENE_SETTLED = 0.002;
+/** The default half-width of the faded centre column, in CSS pixels. */
+export const DEFAULT_COLUMN = 300;
+/** The widest centre column half-width, in CSS pixels. */
+export const COLUMN_MAX = 4000;
+
 export const CAMERA_MOTIONS: readonly CameraMotion[] = ['still', 'orbit', 'push', 'flyover', 'drone'];
 export const DEFAULT_ELEVATION = 0.62;
 export const DEFAULT_DETAIL = 0.5;
@@ -83,10 +99,21 @@ export interface Settings {
    * and centre fade, under the values you set. null is the generated terrain.
    */
   location: LocationId | Heightfield | null;
+  /**
+   * Scenes to blend between in 2D. Each scene has its own shape and line colour, and shares every other
+   * setting. The scene named by `scene` fades in, and the others fade out. While scenes are set, a
+   * theme change also fades. An empty list draws `shape` alone.
+   */
+  scenes: SceneSettings[];
+  /** The target scene: an index into `scenes`. */
+  scene: number;
+  /** Half the width of the faded centre column, in CSS pixels. The column is never wider than the view. */
+  column: number;
 }
 
-export type SettingsInput = Omit<DeepPartialSettings, 'shape' | 'location'> & {
+export type SettingsInput = Omit<DeepPartialSettings, 'shape' | 'location' | 'scenes'> & {
   shape?: string;
+  scenes?: ReadonlyArray<{ shape: string; ink?: string }>;
   /** A built-in look by id, such as 'survey-map'. The other settings next to it override its values. */
   look?: string;
   location?: LocationId | (string & {}) | Heightfield | null;
@@ -188,6 +215,23 @@ function applyView(into: Settings, input: SettingsInput | undefined): void {
   }
   if (input.camera) into.camera = clampCamera(input.camera, into.camera);
   if (input.view2d) into.view2d = clampView2d(input.view2d, into.view2d);
+  if (input.column !== undefined) into.column = stepped(input.column, 0, COLUMN_MAX, into.column, 1);
+}
+
+/** Sets the scene list and the target scene. The target stays inside the list. */
+function applyScenes(into: Settings, input: SettingsInput | undefined): void {
+  if (!input) return;
+  if (input.scenes !== undefined) {
+    if (Array.isArray(input.scenes)) {
+      if (input.scenes.length > MAX_SCENES) warnOnce(`at most ${MAX_SCENES} scenes blend; using the first ${MAX_SCENES}`);
+      into.scenes = input.scenes.slice(0, MAX_SCENES).map((scene) => {
+        const shape = resolveShape(typeof scene?.shape === 'string' ? scene.shape : String(scene?.shape));
+        return typeof scene?.ink === 'string' && scene.ink.trim() ? { shape, ink: scene.ink } : { shape };
+      });
+    } else warnOnce('scenes must be a list of { shape, ink }; keeping the current scenes');
+  }
+  if (input.scene !== undefined) into.scene = stepped(input.scene, 0, MAX_SCENES - 1, into.scene, 1);
+  into.scene = Math.min(into.scene, Math.max(0, into.scenes.length - 1));
 }
 
 export function defaultSettings(): Settings {
@@ -201,6 +245,7 @@ export function defaultSettings(): Settings {
     camera: { ...DEFAULT_CAMERA },
     view2d: { ...DEFAULT_VIEW2D },
     location: null,
+    scenes: [], scene: 0, column: DEFAULT_COLUMN,
   };
 }
 
@@ -284,6 +329,7 @@ export function resolveSettings(input: SettingsInput = {}): Settings {
   applyLocation(out, input);
   applyGroups(out, input);
   applyView(out, input);
+  applyScenes(out, input);
   return out;
 }
 
@@ -291,6 +337,7 @@ export function resolveSettings(input: SettingsInput = {}): Settings {
  * Merges a partial update into resolved settings. Changing the shape does not reset other values.
  * A look replaces the design (shape, seed, lines, terrain, motion, layout, colours and camera pose)
  * and keeps the view: mode, elevation, extent, detail, quality, the 2D view, camera motion and pan.
+ * It also keeps the page's blend: the centre column, the scenes and the target scene.
  * The other values in the patch then apply on top.
  */
 export function mergeSettings(current: Settings, patch: SettingsInput): Settings {
@@ -302,7 +349,7 @@ export function mergeSettings(current: Settings, patch: SettingsInput): Settings
       ...base,
       mode: out.mode, elevation: out.elevation, extent: out.extent, detail: out.detail, quality: out.quality, view2d: out.view2d,
       camera: { ...out.camera, azimuth: base.camera.azimuth, elevation: base.camera.elevation, radius: base.camera.radius },
-      location: out.location,
+      location: out.location, column: out.column, scenes: out.scenes, scene: out.scene,
     };
     // The place's own view stays on top of the new look.
     if (patch.location === undefined) applyPlaceDefaults(out, out.location);
@@ -310,6 +357,7 @@ export function mergeSettings(current: Settings, patch: SettingsInput): Settings
   applyLocation(out, patch);
   applyGroups(out, patch);
   applyView(out, patch);
+  applyScenes(out, patch);
   return out;
 }
 
@@ -366,6 +414,13 @@ export function fromAttributes(get: (name: string) => string | null): SettingsIn
       ...(has(speed) ? { speed: Number(speed) } : {}),
     };
   }
+  const column = get('column'); if (has(column)) input.column = Number(column);
+  const scene = get('scene'); if (has(scene)) input.scene = Number(scene);
+  const scenes = get('scenes');
+  if (scenes !== null) {
+    try { input.scenes = scenes.trim() ? JSON.parse(scenes) : []; }
+    catch { warnOnce('the scenes attribute must be JSON, such as [{"shape":"dunes","ink":"#f80"}]'); }
+  }
   const viewX = get('view-x');
   const viewY = get('view-y');
   const viewZoom = get('view-zoom');
@@ -407,6 +462,9 @@ export function toAttributes(s: Settings): Record<string, string> {
   if (s.view2d.x !== d.view2d.x) out['view-x'] = String(s.view2d.x);
   if (s.view2d.y !== d.view2d.y) out['view-y'] = String(s.view2d.y);
   if (s.view2d.zoom !== d.view2d.zoom) out['view-zoom'] = String(s.view2d.zoom);
+  if (s.column !== d.column) out.column = String(s.column);
+  if (s.scenes.length) out.scenes = JSON.stringify(s.scenes);
+  if (s.scene !== d.scene) out.scene = String(s.scene);
   return out;
 }
 

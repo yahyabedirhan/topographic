@@ -9,7 +9,9 @@ const save = (lang: Lang) => { try { localStorage.setItem(STORE, lang); } catch 
 const LangContext = createContext<{ lang: Lang; pick: (lang: Lang) => void }>({ lang: 'js', pick: () => {} });
 
 export function LangProvider({ children }: { children: ReactNode }) {
-  const [lang, setLang] = useState<Lang>(() => read() ?? 'js');
+  // The page is HTML from the build, which cannot know this browser's pick, so the saved pick is applied after hydration.
+  const [lang, setLang] = useState<Lang>('js');
+  useEffect(() => { const saved = read(); if (saved) setLang(saved); }, []);
   const pick = (next: Lang) => { setLang(next); save(next); };
   return <LangContext.Provider value={{ lang, pick }}>{children}</LangContext.Provider>;
 }

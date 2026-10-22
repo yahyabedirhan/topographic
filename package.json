@@ -16,7 +16,8 @@
     "build:packages": "node scripts/build.mjs",
     "test": "vitest run",
     "typecheck": "tsc -p packages/core && tsc -p packages/react",
-    "smoke": "node scripts/smoke.mjs && node scripts/playground-check.mjs",
+    "smoke": "node scripts/smoke.mjs && node scripts/blend-check.mjs && node scripts/playground-check.mjs",
+    "blend-check": "node scripts/blend-check.mjs",
     "dev": "npm run build:packages && npm run dev -w apps/playground",
     "deploy": "npm run build && wrangler deploy"
   },

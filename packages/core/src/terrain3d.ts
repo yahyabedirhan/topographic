@@ -2,7 +2,7 @@ import { ENDLESS_REACH, viewProjection, type Pose } from './camera.js';
 import { sampleGrid, type Heightfield } from './heightfield.js';
 import { terrainSegments, toUniforms, type Settings } from './settings.js';
 import { terrainFragmentSource, terrainVertexSource } from './shader/terrain.glsl.js';
-import type { ResolvedTheme } from './theme.js';
+import type { ThemeColours } from './theme.js';
 
 type GL = WebGLRenderingContext | WebGL2RenderingContext;
 
@@ -10,7 +10,7 @@ export interface TerrainFrame {
   width: number;
   height: number;
   settings: Settings;
-  theme: ResolvedTheme;
+  theme: ThemeColours;
   frameMs: number;
   col: number;
   pose: Pose;

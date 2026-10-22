@@ -47,3 +47,13 @@ export function setActor(props: object): void {
   for (const k of ACTOR_KEYS) posthog.unregister(k);
   posthog.register(props as Record<string, unknown>);
 }
+
+/** A pageleave for the page being left by a client-side navigation. */
+export function capturePageLeave(): void {
+  posthog.capture('$pageleave');
+}
+
+/** A pageview for the page a client-side navigation arrived at. PostHog reads the new address itself. */
+export function capturePageView(): void {
+  posthog.capture('$pageview');
+}

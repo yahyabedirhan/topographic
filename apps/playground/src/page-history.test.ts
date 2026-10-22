@@ -42,6 +42,19 @@ describe('page history', () => {
     expect(search).toBe('?mode=3d&az=999&ce=20');
   });
 
+  it("keeps the history entry's state, so the client router can still go back to this page", () => {
+    const states: unknown[] = [];
+    const routerState = { index: 3, scrollX: 0, scrollY: 0 };
+    vi.stubGlobal('history', {
+      state: routerState,
+      replaceState: (state: unknown, _title: string, url: string) => { states.push(state); calls.push(url); },
+    });
+    schedulePageUrl('/?s=dunes');
+    flushPageUrl();
+    expect(calls).toEqual(['/?s=dunes']);
+    expect(states).toEqual([routerState]);
+  });
+
   it('skips a write when the url is already current', () => {
     search = '?mode=3d&az=4&ce=20';
     schedulePageUrl('/?mode=3d&az=4&ce=20');

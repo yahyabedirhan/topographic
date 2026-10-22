@@ -20,7 +20,7 @@ export type ImageVariant = 'screen' | 'phone' | '1080p';
 export type VideoMotion = 'orbit' | 'push' | 'flyover' | 'drone';
 export type VideoContainer = 'mp4' | 'webm';
 export type ColourSlot = 'paper' | 'ink';
-export type QualityLevel = 'auto' | 'low' | 'medium' | 'high';
+export type QualityLevel = 'auto' | 'low' | 'medium' | 'high' | 'full';
 
 interface VideoProps {
   motion: VideoMotion;
@@ -171,7 +171,8 @@ function doNotTrack(): boolean {
 const KEY = import.meta.env.VITE_POSTHOG_KEY || undefined;
 const HOST = import.meta.env.VITE_POSTHOG_HOST || DEFAULT_HOST;
 
-let posthogLoaded = false;
+/** The PostHog module once it has loaded, so a page change can reach it at once. */
+let posthog: typeof import('./posthog') | null = null;
 
 // `?analytics_agent=<name>&analytics_purpose=<purpose>` on the first load: saved for this tab when valid, and always removed from the address bar.
 if (typeof window !== 'undefined') {
@@ -198,11 +199,13 @@ let pageAgentId: string | null = null;
 // With `?analytics_optout=all` saved, the client is never loaded.
 const tracker = createTracker(consent() === 'none' ? undefined : KEY, HOST, async (key, host) => {
   if (doNotTrack()) return null;
-  const { startPostHog } = await import('./posthog');
-  posthogLoaded = true;
+  // The key is replaced at build time, so a build without one drops this import and posthog-js with it.
+  if (!import.meta.env.VITE_POSTHOG_KEY) return null;
+  const mod = await import('./posthog');
+  posthog = mod;
   const props: SuperProperties = superProperties();
   if (consent() === 'all') Object.assign(props, actorProps());
-  return startPostHog(key, host, props);
+  return mod.startPostHog(key, host, props);
 });
 
 /** Sends one event. Does nothing in a build without a key. */
@@ -227,7 +230,7 @@ export function optOut(to: 'pageviews' | 'none' = 'none'): void {
   } else if (KEY && to === 'none') tracker.stop();
   setConsent(to);
   // Pageviews only keeps PostHog running on this page, so it must stop sending the deleted id too.
-  if (posthogLoaded && to === 'pageviews') import('./posthog').then((m) => m.dropVisitorId()).catch(() => {});
+  if (posthog && to === 'pageviews') posthog.dropVisitorId();
 }
 
 /** The agent names and purposes `identify_agent` and `?agent` accept. */
@@ -240,7 +243,7 @@ export const AGENT_CHOICES = { names: AGENT_NAMES, purposes: PURPOSES };
 export function identifyAgent(identity: AgentIdentity): boolean {
   if (!KEY || consent() !== 'all') return false;
   saveAgent(safeSession(), identity);
-  if (posthogLoaded) { const props = actorProps(); import('./posthog').then((m) => m.setActor(props)).catch(() => {}); }
+  if (posthog) posthog.setActor(actorProps());
   return true;
 }
 
@@ -269,4 +272,17 @@ export function startAnalytics(): void {
   const later = () => (idle ? idle(go, { timeout: 4000 }) : window.setTimeout(go, 1500));
   if (document.readyState === 'complete') later();
   else window.addEventListener('load', later, { once: true });
+}
+
+/**
+ * The client router moves between pages without a full load, so PostHog sees no new page of its own.
+ * Call `pageLeft` before the router swaps the page, while the address is still the old page's, and `pageShown` after.
+ * Before PostHog has loaded there is nothing to send: its own first pageview, when it loads, is of the page shown then.
+ */
+export function pageLeft(): void {
+  if (posthog && consent() !== 'none') posthog.capturePageLeave();
+}
+
+export function pageShown(): void {
+  if (posthog && consent() !== 'none') posthog.capturePageView();
 }
