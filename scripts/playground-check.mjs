@@ -448,10 +448,10 @@ try {
   check(await savedCount() === 2 && await savedItems.getByRole('button', { name: 'Matterhorn & Zermatt map' }).count() === 0, 'a deleted item stays gone after a reload');
   await p.close();
 
-  // Storage blocked: the page, Apply and the dock still work.
+  // Storage blocked: the page, Apply and the dock still work. A bare URL already shows Istanbul, so start on the generated terrain.
   const blocked = await browser.newPage({ viewport: { width: 1280, height: 800 } }); watch(blocked);
   await blocked.addInitScript(() => Object.defineProperty(window, 'localStorage', { get() { throw new Error('blocked'); } }));
-  await blocked.goto(base); await blocked.waitForSelector('.pt-stage canvas');
+  await blocked.goto(base + '?mode=3d'); await blocked.waitForSelector('.pt-stage canvas');
   await blocked.getByRole('button', { name: 'Map', exact: true }).click();
   await blocked.locator('.pt-pop-wide .pt-map-host canvas').waitFor({ timeout: 30000 });
   await blocked.waitForFunction(() => /[\d.] × [\d.]+ km/.test(document.querySelector('.pt-map-span')?.textContent ?? ''), null, { timeout: 30000 });
