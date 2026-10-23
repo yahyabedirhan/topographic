@@ -16,3 +16,10 @@ Local and preview builds without `VITE_POSTHOG_KEY` send nothing.
 
 The events and their properties are typed in `apps/playground/src/analytics.ts`.
 `PRIVACY.md` and `docs/guide.md` > 'Analytics and error reports' describe what is sent, for people and for agents, and every opt-out level.
+
+## Agent skills
+
+### Releases
+
+The version lives in `packages/core/package.json` and `packages/react/package.json`, and both packages publish to npm.
+Before a release, and after merging a version bump, follow `docs/agents/releasing.md`.
