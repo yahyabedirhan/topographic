@@ -264,6 +264,28 @@ describe('location setting', () => {
     const s = mergeSettings(resolveSettings({ location: grid }), { seed: 3 });
     expect(s.location).toBe(grid);
   });
+  it('merges when structuredClone is missing', () => {
+    const real = globalThis.structuredClone;
+    vi.stubGlobal('structuredClone', undefined);
+    try {
+      expect(globalThis.structuredClone).toBeUndefined();
+      const start = resolveSettings({ location: grid, lines: { count: 18 }, seed: 2 });
+      const next = mergeSettings(start, { seed: 9 });
+      expect(next.seed).toBe(9);
+      expect(next.lines.count).toBe(18);
+      expect(next.lines).not.toBe(start.lines);
+      expect(next.terrain).not.toBe(start.terrain);
+      expect(next.location).toBe(grid);
+      expect(start.seed).toBe(2);
+      delete (start as { scenes?: unknown }).scenes;
+      const clamped = mergeSettings(start, { scene: 4 });
+      expect(clamped.scenes).toEqual([]);
+      expect(clamped.scene).toBe(0);
+      expect(clamped.location).toBe(grid);
+    } finally {
+      vi.stubGlobal('structuredClone', real);
+    }
+  });
   it('reads and writes the location attribute', () => {
     expect(fromAttributes((n) => (n === 'location' ? 'fuji' : null)).location).toBe('fuji');
     expect(fromAttributes((n) => (n === 'location' ? '' : null)).location).toBeNull();
