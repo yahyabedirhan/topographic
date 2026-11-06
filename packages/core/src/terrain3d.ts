@@ -11,7 +11,8 @@ export interface TerrainFrame {
   height: number;
   settings: Settings;
   theme: ThemeColours;
-  frameMs: number;
+  /** The contour animation time in milliseconds, already scaled by motion.speed. */
+  motionMs: number;
   col: number;
   pose: Pose;
   field: Heightfield | null;
@@ -205,7 +206,7 @@ export function createTerrainPass(): TerrainPass {
       setv(gl, 'uInk', theme.ink);
       setv(gl, 'uPaper', theme.paper);
       setv(gl, 'uRes', [frame.width, frame.height]);
-      set1(gl, 'uTime', frame.frameMs / 1000);
+      set1(gl, 'uTime', frame.motionMs / 1000);
       set1(gl, 'uCol', frame.col);
       set1(gl, 'uHeight', settings.elevation);
       set1(gl, 'uHasHeight', frame.field ? 1 : 0);

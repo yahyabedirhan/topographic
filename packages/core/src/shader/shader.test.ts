@@ -10,6 +10,10 @@ describe('topographic shader source', () => {
     for (const u of ['uRes', 'uTime', 'uDark', 'uParams', 'uFade', 'uCol', 'uCenter', 'uStyle', 'uSeed', 'uInk', 'uPaper', 'uHasHeight', 'uHeightAspect', 'uHeightTex'])
       expect(TOPOGRAPHIC_FRAGMENT).toMatch(new RegExp(`uniform \\w+ ${u}\\b`));
   });
+  it('takes the animation time as it is, so a speed change does not move the lines', () => {
+    expect(TOPOGRAPHIC_FRAGMENT).toContain('float t=uTime*.08;');
+    expect(TOPOGRAPHIC_FRAGMENT).not.toMatch(/uTime\*[^;]*uParams/);
+  });
   it('reads every numeric param slot', () => {
     for (const p of PARAMS) if (typeof p.slot === 'number') expect(TOPOGRAPHIC_FRAGMENT).toContain(`uParams[${p.slot}]`);
   });

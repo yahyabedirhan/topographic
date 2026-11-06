@@ -17,8 +17,8 @@ export interface ParamDef {
   attr: string;
   /** Short key used in shareable URLs. */
   short: string;
-  /** Shader slot: an index into uParams[16], or a named uniform. */
-  slot: number | 'uCenter' | 'uFade';
+  /** Shader slot: an index into uParams[16], or a named uniform. null: not sent to the shader. */
+  slot: number | 'uCenter' | 'uFade' | null;
   /** Public value -> shader value. Identity when omitted. */
   toUniform?: (v: number) => number;
 }
@@ -47,7 +47,7 @@ export const PARAMS = [
   { group: 'terrain', key: 'variant', label: 'Variant', description: 'A knob that depends on the shape (for drifting lobes: three lobes to four).',
     min: 0, max: 1, step: 0.01, default: 0.5, attr: 'variant', short: 'va', slot: 6 },
   { group: 'motion', key: 'speed', label: 'Speed', description: 'Animation speed. 0 holds a still frame.',
-    min: 0, max: 3, step: 0.05, default: 1, attr: 'speed', short: 'sd', slot: 3 },
+    min: 0, max: 3, step: 0.05, default: 1, attr: 'speed', short: 'sd', slot: null },
   { group: 'motion', key: 'warp', label: 'Warp', description: 'How much the lines wobble with the flow.',
     min: 0, max: 1, step: 0.01, default: 0.47, attr: 'warp', short: 'wp', slot: 5, toUniform: (v: number) => v * 1.5 },
   { group: 'motion', key: 'sparkle', label: 'Sparkle', description: 'Small bright dots travelling along the lines.',

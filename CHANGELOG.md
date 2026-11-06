@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- A `motion.speed` change continues the animation from the current lines, at the new speed. Before, the shader multiplied the total elapsed time by the speed, so the lines jumped to another point in time. The renderer now adds each frame's step times the speed.
+- `snapshot({ frame })` draws the lines at that animation time whatever `motion.speed` is, so two frames at speed 0 differ. `record()` advances the lines at `motion.speed`, starting from `frame`.
+
 ## 0.7.0 (2026-10-22)
 
 - New `scenes` and `scene` settings: a background blends between up to 8 scenes, each a shape with its own line colour. A new target scene fades in, by `1 - exp(-dt × 4.5)` each frame. They are the element attributes `scenes` (JSON) and `scene`, and React props. The guide's Scenes section shows the setup that draws the yahyapak.dev background.

@@ -369,6 +369,8 @@ export function toUniforms(s: Settings, into?: Float32Array): ParamUniforms {
   if (into) into.fill(0);
   const out: ParamUniforms = { uParams, uCenter: 0, uFade: 0, uStyle: findShape(s.shape)!.index, uSeed: s.seed };
   for (const def of PARAMS as readonly ParamDef[]) {
+    // motion.speed scales the renderer's animation clock instead of a uniform.
+    if (def.slot === null) continue;
     const raw = (s[def.group] as Record<string, number>)[def.key];
     const v = def.toUniform ? def.toUniform(raw) : raw;
     if (typeof def.slot === 'number') out.uParams[def.slot] = v;

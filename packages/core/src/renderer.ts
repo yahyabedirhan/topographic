@@ -191,6 +191,8 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
   let ema = 0;
 
   let frameMs = 0;
+  /** The contour animation's time in milliseconds: each frame adds its step times motion.speed, so a speed change keeps the lines in place. */
+  let motionMs = 0;
   /** How far the camera has gone along its path, in milliseconds at the path's own pace. A speed change keeps the pose. */
   let pathMs = 0;
   let lastNow = 0;
@@ -442,7 +444,7 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
     gl.enableVertexAttribArray(0);
     gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
     set('uRes', [w, h]);
-    set('uTime', frameMs / 1000);
+    set('uTime', motionMs / 1000);
     col = columnOf();
     set('uCol', col);
     set('uHasHeight', heightField ? 1 : 0);
@@ -479,7 +481,7 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
       const block = terrainHalfSize(aspect, 'block', heightField ? heightField.aspect : null);
       const [sx, sy] = live ? viewShift(insets, cssW, cssH) : [0, 0];
       terrain.draw(gl, status === 'webgl2', {
-        width: w, height: h, settings, theme: colours(), frameMs, col: columnOf(),
+        width: w, height: h, settings, theme: colours(), motionMs, col: columnOf(),
         pose: at,
         field: heightField,
         heightVersion,
@@ -536,7 +538,11 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
     // Like the fade's own loop, the weights keep closing in on the target after they have settled.
     if (settings.scenes.length) fading = stepBlend(blend, settings.scene, theme.dark, dt / 1000);
     // A blended background takes the fade's 50 ms step for time too, so a slow frame keeps the same pace.
-    if (!reducedMotion?.matches) frameMs += settings.scenes.length ? Math.min(dt, BLEND_STEP_MAX * 1000) : dt;
+    if (!reducedMotion?.matches) {
+      const step = settings.scenes.length ? Math.min(dt, BLEND_STEP_MAX * 1000) : dt;
+      frameMs += step;
+      motionMs += step * settings.motion.speed;
+    }
     if (settings.mode === '3d') pathMs += dt * settings.camera.speed;
     draw();
     schedule();
@@ -768,11 +774,13 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
       const max = gl.getParameter(gl.MAX_RENDERBUFFER_SIZE) as number;
       if (w < 1 || h < 1 || f.frameWidth > max || f.frameHeight > max) throw new Error(`[topographic] snapshot size must be 1..${max}px`);
       const savedFrame = frameMs;
+      const savedMotion = motionMs;
       const savedSettings = settings;
       const savedField = heightField;
       const savedVersion = heightVersion;
       const savedBlend = { weights: [...blend.weights], dark: blend.dark };
-      if (o.frame !== undefined) frameMs = o.frame;
+      // `frame` is the animation time itself, whatever motion.speed is.
+      if (o.frame !== undefined) { frameMs = o.frame; motionMs = o.frame; }
       // A patched image draws its own settings settled: its scene in full and its theme's colours.
       if (o.patch) { settings = mergeSettings(settings, o.patch); refreshTheme(); syncBlend(true); }
       if (o.field !== undefined) { heightField = o.field; heightVersion += 1; }
@@ -783,6 +791,7 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
       try { readback(f.frameWidth, f.frameHeight, pixels, pose, Boolean(o.motion), rect); }
       finally {
         frameMs = savedFrame;
+        motionMs = savedMotion;
         settings = savedSettings;
         if (o.patch) { refreshTheme(); blend.weights = savedBlend.weights; blend.dark = savedBlend.dark; syncBlend(false); }
         if (o.field !== undefined) { heightField = savedField; heightVersion = savedVersion; uploadedVersion = -1; }
@@ -815,6 +824,7 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
       // The camera's own path keeps its speed; any other path runs at its own pace.
       const camera = { ...settings.camera, motion, speed: motion === settings.camera.motion ? settings.camera.speed : 1 };
       const saved = frameMs;
+      const savedMotion = motionMs;
       const start = o.frame ?? 0;
       const surface = doc.createElement('canvas');
       surface.width = w; surface.height = h;
@@ -829,6 +839,7 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
           renderFrame: (i) => {
             const t = i / fps;
             frameMs = start + t * 1000;
+            motionMs = start + t * 1000 * settings.motion.speed;
             readback(w, h, pixels, cameraPose(camera, t), true);
             for (let y = 0; y < h; y++) img.data.set(pixels.subarray((h - 1 - y) * row, (h - y) * row), y * row);
             ctx.putImageData(img, 0, 0);
@@ -836,6 +847,7 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
         });
       } finally {
         frameMs = saved;
+        motionMs = savedMotion;
         draw();
         schedule();
       }
