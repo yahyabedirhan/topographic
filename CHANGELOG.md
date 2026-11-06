@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- A missing `scenes` list counts as empty while `scene` is clamped, so `update({ scene })` keeps running when the list was never set.
+- Settings merge uses `structuredClone` where the browser has it, and a JSON copy of the plain settings where it does not. The height grid stays shared either way.
+- When `createProgram` returns nothing, or the program fails to link, setup stops and the view shows the paper colour. It no longer calls `attachShader` on an empty program.
+
 ## 0.7.0 (2026-10-22)
 
 - New `scenes` and `scene` settings: a background blends between up to 8 scenes, each a shape with its own line colour. A new target scene fades in, by `1 - exp(-dt × 4.5)` each frame. They are the element attributes `scenes` (JSON) and `scene`, and React props. The guide's Scenes section shows the setup that draws the yahyapak.dev background.
