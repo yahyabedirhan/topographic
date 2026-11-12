@@ -220,6 +220,8 @@ function applyView(into: Settings, input: SettingsInput | undefined): void {
 
 /** Sets the scene list and the target scene. The target stays inside the list. */
 function applyScenes(into: Settings, input: SettingsInput | undefined): void {
+  // A missing list draws the shape on its own, and clamping scene stays inside it.
+  if (!Array.isArray(into.scenes)) into.scenes = [];
   if (!input) return;
   if (input.scenes !== undefined) {
     if (Array.isArray(input.scenes)) {
@@ -231,6 +233,7 @@ function applyScenes(into: Settings, input: SettingsInput | undefined): void {
     } else warnOnce('scenes must be a list of { shape, ink }; keeping the current scenes');
   }
   if (input.scene !== undefined) into.scene = stepped(input.scene, 0, MAX_SCENES - 1, into.scene, 1);
+  if (!Number.isFinite(into.scene)) into.scene = 0;
   into.scene = Math.min(into.scene, Math.max(0, into.scenes.length - 1));
 }
 
@@ -334,6 +337,17 @@ export function resolveSettings(input: SettingsInput = {}): Settings {
 }
 
 /**
+ * Copies plain settings. `structuredClone` is missing in some older browsers, so those take a JSON copy.
+ * The height grid is not part of the copy: it can be large, and the renderer only reads it.
+ */
+function cloneSettings(current: Settings): Settings {
+  const plain = { ...current, location: null };
+  const clone = globalThis.structuredClone;
+  const copy = typeof clone === 'function' ? clone(plain) : JSON.parse(JSON.stringify(plain)) as typeof plain;
+  return { ...copy, location: current.location };
+}
+
+/**
  * Merges a partial update into resolved settings. Changing the shape does not reset other values.
  * A look replaces the design (shape, seed, lines, terrain, motion, layout, colours and camera pose)
  * and keeps the view: mode, elevation, extent, detail, quality, the 2D view, camera motion and pan.
@@ -341,8 +355,7 @@ export function resolveSettings(input: SettingsInput = {}): Settings {
  * The other values in the patch then apply on top.
  */
 export function mergeSettings(current: Settings, patch: SettingsInput): Settings {
-  // A height grid is shared, not copied: it can be large, and the renderer only reads it.
-  let out: Settings = { ...structuredClone({ ...current, location: null }), location: current.location };
+  let out: Settings = cloneSettings(current);
   if (patch.look !== undefined && resolveLook(patch.look)) {
     const base = resolveSettings({ look: patch.look, shape: patch.shape });
     out = {
@@ -463,7 +476,7 @@ export function toAttributes(s: Settings): Record<string, string> {
   if (s.view2d.y !== d.view2d.y) out['view-y'] = String(s.view2d.y);
   if (s.view2d.zoom !== d.view2d.zoom) out['view-zoom'] = String(s.view2d.zoom);
   if (s.column !== d.column) out.column = String(s.column);
-  if (s.scenes.length) out.scenes = JSON.stringify(s.scenes);
+  if (Array.isArray(s.scenes) && s.scenes.length) out.scenes = JSON.stringify(s.scenes);
   if (s.scene !== d.scene) out.scene = String(s.scene);
   return out;
 }
