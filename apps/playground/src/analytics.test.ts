@@ -60,6 +60,21 @@ describe('error reporting', () => {
     q.push({ kind: 'message', message: 'late' });
     expect(got).toEqual(['m0', 'm1', 'm2']);
   });
+
+  it('does not buffer an aborted view transition, and does not let it use the cap', () => {
+    const q = createErrorQueue(true, 2);
+    const skipped = Object.assign(new Error('Transition was skipped'), { name: 'InvalidStateError' });
+    const aborted = Object.assign(new Error('Transition was aborted'), { name: 'AbortError' });
+    q.push({ kind: 'error', error: skipped });
+    q.push({ kind: 'error', error: aborted });
+    q.push({ kind: 'error', error: 'AbortError: the view transition was skipped' });
+    q.push({ kind: 'error', error: Object.assign(new Error('The object is in an invalid state'), { name: 'InvalidStateError' }) });
+    q.push({ kind: 'error', error: new Error('render failed') });
+    expect(q.pending).toBe(2);
+    const got: string[] = [];
+    q.attach({ report: (r) => { if (r.kind === 'error') got.push(r.error instanceof Error ? r.error.message : String(r.error)); } });
+    expect(got).toEqual(['The object is in an invalid state', 'render failed']);
+  });
 });
 
 describe('performance sample helpers', () => {
