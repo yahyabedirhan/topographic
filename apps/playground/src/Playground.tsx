@@ -1,3 +1,4 @@
+import './polyfills';
 import { App } from './App';
 import { TerrainBoundary } from './boundary';
 

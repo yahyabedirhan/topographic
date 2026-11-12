@@ -1,6 +1,7 @@
 import type { Settings, SettingsInput } from 'topographic';
 import { useSyncExternalStore } from 'react';
 import { LOCATIONS, type BBox, type LocationId, type LocationInfo } from 'topographic/locations';
+import { copyPlain } from '../copy';
 
 /** The kinds of landscape the place catalog holds. */
 export type PlaceKind =
@@ -192,6 +193,8 @@ export function restoredKeys(placeId: string | null): (keyof Settings)[] {
 /** Picks the given keys from the settings before the first place, for Clear. */
 export function beforePlace(s: Settings, keys: (keyof Settings)[] = restoredKeys(null)): BeforePlace {
   const out: Record<string, unknown> = {};
-  for (const key of keys) out[key] = structuredClone(s[key]);
+  // Clear restores plain settings (numbers, strings and plain objects). A height grid is not among
+  // those keys; if one is asked for, it stays the same object, as settings merge does.
+  for (const key of keys) out[key] = key === 'location' ? s.location : copyPlain(s[key]);
   return out as BeforePlace;
 }

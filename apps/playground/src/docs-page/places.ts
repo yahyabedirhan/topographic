@@ -3,8 +3,9 @@
 // They are the library's built-in grids from `topographic/locations`, the same ones the playground's places load,
 // so a figure draws what the playground draws.
 import type { Heightfield, SettingsInput } from 'topographic';
-import { PLACES, terrainDefaults, type Place } from '../region/places';
 import { loadLocation } from 'topographic/locations';
+import { copyPlain } from '../copy';
+import { PLACES, terrainDefaults, type Place } from '../region/places';
 
 export interface LoadedPlace {
   place: Place;
@@ -35,7 +36,7 @@ export function loadPlace(id: string): Promise<LoadedPlace> {
     place,
     field: { samples: ok.samples, size: ok.size, aspect: ok.aspect },
     // Every place uses the shared place camera with its own angle and elevation, Cyprus too.
-    defaults: structuredClone(terrainDefaults(id)),
+    defaults: copyPlain(terrainDefaults(id)),
   }));
   promise.catch(() => cache.delete(id));
   cache.set(id, promise);
