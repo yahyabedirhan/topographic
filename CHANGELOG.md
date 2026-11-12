@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Playground: browsers without `Object.hasOwn` can open the docs page. It is defined when missing, and plain settings are copied with `structuredClone` or a JSON copy.
 - A missing `scenes` list counts as empty while `scene` is clamped, so `update({ scene })` keeps running when the list was never set.
 - Settings merge uses `structuredClone` where the browser has it, and a JSON copy of the plain settings where it does not. The height grid stays shared either way.
 - When `createProgram` returns nothing, or the program fails to link, setup stops and the view shows the paper colour. It no longer calls `attachShader` on an empty program.
