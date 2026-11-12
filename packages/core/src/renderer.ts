@@ -260,9 +260,14 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
     return inkCache.get(css)!;
   };
 
+  /** The scenes to draw. A missing list counts as none, which draws the shape on its own. */
+  function sceneList(): Settings['scenes'] {
+    return Array.isArray(settings.scenes) ? settings.scenes : [];
+  }
+
   /** Fits the weights to the scene list. With `instant`, or with no weights yet, they jump to the target. */
   function syncBlend(instant: boolean): void {
-    const n = settings.scenes.length;
+    const n = sceneList().length;
     const fresh = blend.weights.length === 0;
     blend.weights.length = n;
     for (let i = 0; i < n; i++) {
@@ -302,13 +307,16 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
     const vs = compile(gl.VERTEX_SHADER, webgl2 ? VERTEX_300 : VERTEX_100);
     const fs = compile(gl.FRAGMENT_SHADER, wrapFragment(TOPOGRAPHIC_FRAGMENT, webgl2));
     if (!vs || !fs) return false;
-    program = gl.createProgram()!;
+    // createProgram is null when the context cannot start another program. attachShader would throw.
+    program = gl.createProgram();
+    if (!program) return false;
     gl.attachShader(program, vs);
     gl.attachShader(program, fs);
     gl.bindAttribLocation(program, 0, 'aPos');
     gl.linkProgram(program);
     if (!gl.getProgramParameter(program, gl.LINK_STATUS) && !gl.isContextLost()) {
       console.error('[topographic] program link failed:', gl.getProgramInfoLog(program));
+      program = null;
       return false;
     }
     gl.useProgram(program);
@@ -358,11 +366,12 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
     set('uDark', c.dark);
     set('uInk', c.ink);
     set('uPaper', c.paper);
-    const n = settings.scenes.length;
+    const scenes = sceneList();
+    const n = scenes.length;
     set('uSceneCount', n);
     if (n === 0) return;
     for (let i = 0; i < n; i++) {
-      const scene = settings.scenes[i];
+      const scene = scenes[i];
       const ink = (scene.ink ? sceneInk(scene.ink) : null) ?? c.ink;
       sceneWeights[i] = blend.weights[i];
       sceneShapes[i] = findShape(scene.shape)!.index;
@@ -534,9 +543,10 @@ export function createTopography(el: HTMLElement, input: SettingsInput = {}, opt
       }
     }
     // Like the fade's own loop, the weights keep closing in on the target after they have settled.
-    if (settings.scenes.length) fading = stepBlend(blend, settings.scene, theme.dark, dt / 1000);
+    const sceneCount = sceneList().length;
+    if (sceneCount) fading = stepBlend(blend, settings.scene, theme.dark, dt / 1000);
     // A blended background takes the fade's 50 ms step for time too, so a slow frame keeps the same pace.
-    if (!reducedMotion?.matches) frameMs += settings.scenes.length ? Math.min(dt, BLEND_STEP_MAX * 1000) : dt;
+    if (!reducedMotion?.matches) frameMs += sceneCount ? Math.min(dt, BLEND_STEP_MAX * 1000) : dt;
     if (settings.mode === '3d') pathMs += dt * settings.camera.speed;
     draw();
     schedule();
