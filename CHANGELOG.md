@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- A `motion.speed` change continues the animation from the current lines, at the new speed. Before, the shader multiplied the total elapsed time by the speed, so the lines jumped to another point in time. The renderer now adds each frame's step times the speed.
+- `snapshot({ frame })` draws the lines at that animation time whatever `motion.speed` is, so two frames at speed 0 differ. `record()` advances the lines at `motion.speed`, starting from `frame`.
 - Playground: browsers without `Object.hasOwn` can open the docs page. It is defined when missing, and plain settings are copied with `structuredClone` or a JSON copy.
 - Playground: an aborted view transition is not reported, including while error reporting is still loading. Reports stay limited to the playground's own scripts under `/_astro/`.
 - A missing `scenes` list counts as empty while `scene` is clamped, so `update({ scene })` keeps running when the list was never set.

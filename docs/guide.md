@@ -195,7 +195,7 @@ A value outside its range is moved to the nearest limit. Whole-number settings a
 
 | Setting | Attribute | Range | Default | What it does |
 |---|---|---|---|---|
-| `motion.speed` | `speed` | 0–3 | 1 | Animation speed. 0 stops the animation. |
+| `motion.speed` | `speed` | 0–3 | 1 | Animation speed. 0 stops the animation. A new speed continues from the current lines. |
 | `motion.warp` | `warp` | 0–1 | 0.47 | How much the lines wobble as they move. |
 | `motion.sparkle` | `sparkle` | 0–1 | 0.6 | Small bright dots that travel along the lines. |
 
@@ -539,7 +539,7 @@ const blob = await topography.snapshot({ width: 1920, height: 1080, frame: 4000 
 - It draws in the background. The live canvas keeps its size and keeps animating.
 - `patch` and `field` draw that image from temporary settings and a temporary height grid. The live view is put back before the call returns, so the page does not flash and a second WebGL context is not required.
 - To keep the on-screen shape, give only `width` or only `height`. If you give neither, you get the current drawing size.
-- `frame` is the animation time in milliseconds. The same settings and the same frame always give the same image.
+- `frame` is the animation time in milliseconds, whatever `motion.speed` is. The same settings and the same frame always give the same image.
 - `region` keeps only part of the view: `{ x, y, width, height }`, as fractions measured from the top-left corner. The image is exactly that part of the screen, at `width` × `height` pixels. For example, you can take a phone-shaped strip from a wide window.
 - `motion` draws the 3D view at a point on a camera path (`'orbit'`, `'push'` and so on). The point is the camera's position at `frame`. You get the same picture as that moment of `record`.
 - It always centres the terrain in the image and ignores `setInsets`, because an image has no toolbar. A `region` is a part of that centred image. `record` works the same way.

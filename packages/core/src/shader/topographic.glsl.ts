@@ -11,7 +11,7 @@ ${STYLE_DEFINES}
 struct Field { float f; float r; float ang; };
 
 Field contourField(int s, vec2 p){
-  float t=uTime*.08*uParams[3]; float n=uParams[0]; float W=uParams[5];
+  float t=uTime*.08; float n=uParams[0]; float W=uParams[5];
   vec2 w=vec2(fbm(p*1.4+vec2(t,0.)),fbm(p*1.4+vec2(0.,t)+5.))-.5;
   bool petal=s==STYLE_DRIFTING_LOBES||s==STYLE_GRANITE||s==STYLE_FIVE_PETALS||s==STYLE_SEED_POD;
   vec2 q=p; float r=length(p); float ang=0.; float f=0.;
@@ -82,7 +82,7 @@ float regionSample(vec2 uv){
   return dot(hl, vec2(65280., 255.)/65535.);
 }
 vec4 contourPaintInk(int s, vec2 p, vec2 screen, vec4 inkColor){
-  float t=uTime*.08*uParams[3]; vec3 c=inkColor.rgb; float n=uParams[0]; float px=uParams[1]; float a=1.;
+  float t=uTime*.08; vec3 c=inkColor.rgb; float n=uParams[0]; float px=uParams[1]; float a=1.;
   bool petal=s==STYLE_DRIFTING_LOBES||s==STYLE_GRANITE||s==STYLE_FIVE_PETALS||s==STYLE_SEED_POD;
   if(s==STYLE_DRIFTING_LOBES) a=.95;
   if(s==STYLE_GRANITE){ px*=1.2; c*=mix(.7,1.3,granite(p)); }
