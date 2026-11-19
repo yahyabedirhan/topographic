@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.8.0 (2026-11-19)
 
 - A `motion.speed` change continues the animation from the current lines, at the new speed. Before, the shader multiplied the total elapsed time by the speed, so the lines jumped to another point in time. The renderer now adds each frame's step times the speed.
 - `snapshot({ frame })` draws the lines at that animation time whatever `motion.speed` is, so two frames at speed 0 differ. `record()` advances the lines at `motion.speed`, starting from `frame`.
