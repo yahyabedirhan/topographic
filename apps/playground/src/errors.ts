@@ -3,10 +3,12 @@
  * does nothing and @sentry/browser is not part of the build.
  *
  * Until Sentry loads, a small buffer keeps the first few window errors and rejections, then hands
- * them over. At most `MAX_EVENTS` reports leave one page, so a failing device cannot flood the quota.
+ * them over. An aborted view transition is not buffered. At most `MAX_EVENTS` reports leave one
+ * page, so a failing device cannot flood the quota.
  */
 import { gpuName, qualityTier } from './device';
 import { consent } from './consent';
+import { isTransitionAborted } from './report-filter';
 
 export const MAX_EVENTS = 10;
 
@@ -18,7 +20,10 @@ export interface Reporter {
   report(r: Report): void;
 }
 
-/** Holds reports until a reporter arrives, capped at `max`, and counts every report against `max`. */
+/**
+ * Holds reports until a reporter arrives, capped at `max`.
+ * An aborted view transition is not kept and does not count.
+ */
 export function createErrorQueue(enabled: boolean, max = MAX_EVENTS) {
   let sink: Reporter | null = null;
   const early: Report[] = [];
@@ -26,6 +31,7 @@ export function createErrorQueue(enabled: boolean, max = MAX_EVENTS) {
   return {
     push(r: Report): void {
       if (!enabled || sent >= max) return;
+      if (r.kind === 'error' && isTransitionAborted(r.error)) return;
       sent += 1;
       if (sink) { try { sink.report(r); } catch { /* never throw from reporting */ } }
       else early.push(r);
