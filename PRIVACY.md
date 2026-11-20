@@ -19,7 +19,7 @@ The `topographic` and `topographic-react` npm packages collect nothing. They con
 ## What the playground never collects
 
 - The playground never sets cookies and never fingerprints your browser.
-- It never stores your IP address, and never collects your name, email or any account.
+- It never stores your IP address or a location derived from it, and never collects your name, email or any account.
 - It never collects text you type, colours, hex values, the coordinates of your own areas, or the settings in a link.
 - It never collects the images or videos you export.
 - It never records sessions, heatmaps or clicks on its own.
@@ -92,7 +92,7 @@ Every event also carries: site and app name, app version, a coarse screen class 
 
 ## Error reports
 
-Sentry receives crash reports: the error message and stack trace, browser and OS, the page path without the query string, the graphics tier and GPU name. Lost WebGL contexts are reported the same way. There is no user data, cookies, headers, tracing or replay, and one page sends at most 10 reports.
+Sentry receives crash reports from the playground's own scripts: the error message and stack trace, browser and OS, the page path without the query string, the graphics tier and GPU name. Lost WebGL contexts are reported the same way. Reports do not include an IP address or a location derived from one, and there is no user data, cookies, headers, tracing or replay. One page sends at most 10 reports. A view transition the browser aborts is not reported, and neither is an error from a translation tool, a browser extension or an in-app browser.
 
 ## Where it goes
 

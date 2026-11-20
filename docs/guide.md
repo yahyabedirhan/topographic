@@ -195,7 +195,7 @@ A value outside its range is moved to the nearest limit. Whole-number settings a
 
 | Setting | Attribute | Range | Default | What it does |
 |---|---|---|---|---|
-| `motion.speed` | `speed` | 0–3 | 1 | Animation speed. 0 stops the animation. |
+| `motion.speed` | `speed` | 0–3 | 1 | Animation speed. 0 stops the animation. A new speed continues from the current lines. |
 | `motion.warp` | `warp` | 0–1 | 0.47 | How much the lines wobble as they move. |
 | `motion.sparkle` | `sparkle` | 0–1 | 0.6 | Small bright dots that travel along the lines. |
 
@@ -539,7 +539,7 @@ const blob = await topography.snapshot({ width: 1920, height: 1080, frame: 4000 
 - It draws in the background. The live canvas keeps its size and keeps animating.
 - `patch` and `field` draw that image from temporary settings and a temporary height grid. The live view is put back before the call returns, so the page does not flash and a second WebGL context is not required.
 - To keep the on-screen shape, give only `width` or only `height`. If you give neither, you get the current drawing size.
-- `frame` is the animation time in milliseconds. The same settings and the same frame always give the same image.
+- `frame` is the animation time in milliseconds, whatever `motion.speed` is. The same settings and the same frame always give the same image.
 - `region` keeps only part of the view: `{ x, y, width, height }`, as fractions measured from the top-left corner. The image is exactly that part of the screen, at `width` × `height` pixels. For example, you can take a phone-shaped strip from a wide window.
 - `motion` draws the 3D view at a point on a camera path (`'orbit'`, `'push'` and so on). The point is the camera's position at `frame`. You get the same picture as that moment of `record`.
 - It always centres the terrain in the image and ignores `setInsets`, because an image has no toolbar. A `region` is a part of that centred image. `record` works the same way.
@@ -665,7 +665,7 @@ Each client loads in its own chunk when the page is idle after the first paint.
   - `agent_tool_called` is sent by the page after every WebMCP tool call, with the tool name, whether it worked and a duration range. It never carries the tool's input, output or error message.
 
   PostHog's distinct id stays the server's daily hash. posthog-js starts with `__preview_capture_bot_pageviews`, so WebDriver browsers are sent instead of dropped; their pageviews arrive as `$bot_pageview`. Either opt out deletes the visitor id and the tab's agent id and stops sending them. Properties never hold free text, colours or the query string.
-- **Sentry** reports errors only, with no tracing or replay and no user data, cookies, headers or query string. It reports error-boundary crashes and lost WebGL contexts, tagged with the quality tier and GPU. A small buffer keeps errors from before it loads, and one page sends at most 10 reports.
+- **Sentry** reports errors only, with no tracing or replay. The client sets `dataCollection.userInfo` to false, so each event goes out with `infer_ip: never` and carries no IP address or location, and no user data, cookies, headers or query string. `allowUrls` keeps only the playground's own built scripts, under `/_astro/` on the current origin (production is topographic.yahyapak.dev). GitHub Pages only redirects there and does not serve those scripts. An aborted view transition is ignored, including in the buffer that holds errors from before the client loads. It reports error-boundary crashes and lost WebGL contexts, tagged with the quality tier and GPU. One page sends at most 10 reports.
 
 Visitors can opt out with `?analytics_optout` (pageviews only, no error reports), `?analytics_optout=all` (nothing; neither client loads) or `?analytics_optin`, or with the button on `/about#analytics`. The choice is kept in local storage under `topographic:analytics`, per browser. [PRIVACY.md](../PRIVACY.md) lists every event, and a test checks that it names each one. The Analytics section of `/about` is a short summary that links to it.
 

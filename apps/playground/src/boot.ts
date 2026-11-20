@@ -1,5 +1,6 @@
 // Runs once per full page load, from src/layouts/Base.astro, and keeps working across the client router's page
 // changes: error reporting, analytics, the frame-health watch and the pageviews of client-side navigations.
+import './polyfills';
 import { pageLeft, pageShown, startAnalytics } from './analytics';
 import { consent } from './consent';
 import { watchFrameHealth } from './device';

@@ -1,3 +1,4 @@
+import '../polyfills';
 import { useCallback, useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react';
 import { Tooltip } from '@base-ui-components/react/tooltip';
 import { EMAIL, SOCIALS } from '../contact';

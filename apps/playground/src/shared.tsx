@@ -12,6 +12,7 @@ import { withQuery, writeSettings } from './share-url';
 import { keepShape } from './shape';
 import { smoothGrid } from 'topographic/locations';
 import { track } from './analytics';
+import { copyPlain } from './copy';
 
 export interface Playground {
   settings: Settings;
@@ -79,9 +80,12 @@ function rollSettings(): Settings {
   return resolveSettings(input);
 }
 
-function glide(from: Settings, goal: Settings, t: number): Settings {
+/** Settings partway from `from` to `goal`. Group numbers move; the height grid stays the same object. */
+export function glide(from: Settings, goal: Settings, t: number): Settings {
   const e = t * t * (3 - 2 * t);
-  const next = structuredClone(goal);
+  // Samples are a typed array, which a JSON copy cannot keep. Share the grid, as settings merge does.
+  const { location, ...plain } = goal;
+  const next: Settings = { ...copyPlain(plain), location };
   for (const g of GROUPS) {
     for (const p of paramsIn(g)) {
       const a = (from[g] as Record<string, number>)[p.key];

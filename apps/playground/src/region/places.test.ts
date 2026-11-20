@@ -1,6 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import { resolveSettings } from 'topographic';
 import { LOCATIONS, areaProblem as limitProblem, areaSpan as spanOf } from 'topographic/locations';
-import { MAP_TERRAIN_DEFAULTS, PLACE_GROUPS, PLACES, restoredKeys, sameBox, terrainDefaults } from './places';
+import { MAP_TERRAIN_DEFAULTS, PLACE_GROUPS, PLACES, beforePlace, restoredKeys, sameBox, terrainDefaults } from './places';
 
 const LANDSCAPES = PLACES.filter((place) => place.id !== 'istanbul' && place.id !== 'cyprus');
 /** Every place but Istanbul brings its own camera angle and elevation on the shared map terrain view. */
@@ -79,6 +80,34 @@ describe('example places', () => {
   it('lets Clear restore only the map view after any place', () => {
     expect(restoredKeys('istanbul').sort()).toEqual(['camera', 'elevation', 'extent', 'lines']);
     for (const place of OWN_VIEW) expect(restoredKeys(place.id).sort()).toEqual(['camera', 'elevation', 'extent', 'lines', 'mode']);
+  });
+});
+
+describe('beforePlace', () => {
+  it('copies when structuredClone is missing', () => {
+    const real = globalThis.structuredClone;
+    vi.stubGlobal('structuredClone', undefined);
+    try {
+      expect(globalThis.structuredClone).toBeUndefined();
+      const start = resolveSettings({ lines: { count: 18 }, camera: { azimuth: 12 }, seed: 2 });
+      const copy = beforePlace(start);
+      expect(copy.lines).toEqual(start.lines);
+      expect(copy.camera).toEqual(start.camera);
+      expect(copy.extent).toBe(start.extent);
+      expect(copy.elevation).toBe(start.elevation);
+      expect(copy.lines).not.toBe(start.lines);
+      expect(copy.camera).not.toBe(start.camera);
+      expect(start.lines.count).toBe(18);
+      expect(start.seed).toBe(2);
+      const grid = { samples: new Float32Array([0, 0.2, 0.4, 1]), size: 2, aspect: 1 };
+      const placed = resolveSettings({ location: grid, lines: { count: 22 } });
+      const kept = beforePlace(placed, ['location', 'lines']);
+      expect(kept.location).toBe(grid);
+      expect(kept.lines).toEqual(placed.lines);
+      expect(kept.lines).not.toBe(placed.lines);
+    } finally {
+      vi.stubGlobal('structuredClone', real);
+    }
   });
 });
 

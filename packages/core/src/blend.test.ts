@@ -42,6 +42,16 @@ describe('scenes settings', () => {
     expect(next.scene).toBe(1);
     expect(mergeSettings(s, { scene: 0 }).scene).toBe(0);
   });
+  it('clamps a scene update when scenes is missing', () => {
+    const current = resolveSettings({ seed: 4 });
+    delete (current as { scenes?: unknown }).scenes;
+    const next = mergeSettings(current, { scene: 3 });
+    expect(next.scenes).toEqual([]);
+    expect(next.scene).toBe(0);
+    expect(next.seed).toBe(4);
+    expect(current.seed).toBe(4);
+    expect(toAttributes(current)).not.toHaveProperty('scenes');
+  });
   it('keeps the scenes and the target when a look changes', () => {
     const s = resolveSettings({ scenes: [{ shape: 'dunes' }, { shape: 'granite', ink: '#f80' }], scene: 1 });
     const next = mergeSettings(s, { look: 'survey-map' });
