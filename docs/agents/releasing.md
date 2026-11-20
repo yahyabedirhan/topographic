@@ -21,13 +21,15 @@ This section lists the steps of every release, in order, so that npm never gets 
    Before 1.0, a feature or a breaking change raises the middle number, and anything else raises the last number.
 2. Merge it once the maintainer approves.
 3. Tag the merged commit as `v<version>` and make its GitHub release, with the changelog section as the notes.
-4. Publish both packages to npm, `topographic` first, as 'Roles in a release' below says.
+4. Publishing the GitHub release starts `.github/workflows/publish.yml`, which publishes `topographic` and then `topographic-react` to npm once the maintainer approves its run in the `npm` environment.
+   It uses npm trusted publishing, so there is no npm token, and it skips a version npm already has, so a failed run can be re-run.
+   To publish an existing release again, run the workflow by hand with its tag.
 5. Check again that every part names the new version.
 
 ## Roles in a release
 
 This section names who does each step.
 
-- The agent picks the version, writes the changelog, opens the release pull request, makes the tag and the GitHub release, and prepares a clean, built checkout of the tag for the publish.
-- The maintainer approves the version and the merge, and runs `npm login` and `npm publish` himself, because npm asks for his two-factor code.
-  An agent never runs either command.
+- The agent picks the version, writes the changelog, opens the release pull request, makes the tag and publishes the GitHub release, then checks that npm shows the new version once the workflow is done.
+- The maintainer approves the version, the merge and the workflow's `npm` environment run.
+  An agent never runs `npm login` or `npm publish` itself.

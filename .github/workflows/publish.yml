@@ -1,0 +1,102 @@
+name: publish
+
+# Publishes topographic, then topographic-react, to npm with trusted publishing (OIDC).
+# There is no npm token: npm trusts this workflow file, in the `npm` environment,
+# for both packages. A version that npm already has is skipped, so a re-run is safe.
+# See docs/agents/releasing.md.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to publish, such as v0.8.0. Empty means the latest release.
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Pick the tag
+        id: tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          tag="${RELEASE_TAG:-$INPUT_TAG}"
+          if [ -z "$tag" ]; then
+            tag="$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName --jq .tagName)"
+          fi
+          case "$tag" in
+            v[0-9]*) ;;
+            *) echo "::error::'$tag' is not a v<version> tag"; exit 1 ;;
+          esac
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "Publishing $tag"
+
+      - uses: actions/checkout@v6
+        with:
+          ref: refs/tags/${{ steps.tag.outputs.tag }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false
+
+      - name: Check npm supports trusted publishing
+        run: |
+          ok="$(node -e '
+            const [a, b, c] = process.argv[1].split(".").map(Number);
+            console.log(a > 11 || (a === 11 && (b > 5 || (b === 5 && c >= 1))));
+          ' "$(npm --version)")"
+          if [ "$ok" != true ]; then npm install --global npm@11; fi
+          npm --version
+
+      - name: Check the tag matches both package versions
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          for dir in packages/core packages/react; do
+            version="$(node -p "require('./$dir/package.json').version")"
+            if [ "v$version" != "$TAG" ]; then
+              echo "::error::$dir is at $version, but the tag is $TAG"
+              exit 1
+            fi
+          done
+
+      - run: npm ci
+      - run: npm run build:packages
+      - run: npm test
+
+      - name: Publish topographic, then topographic-react
+        run: |
+          for dir in packages/core packages/react; do
+            name="$(node -p "require('./$dir/package.json').name")"
+            version="$(node -p "require('./$dir/package.json').version")"
+            if npm view "$name@$version" version --registry https://registry.npmjs.org >/dev/null 2>&1; then
+              echo "$name@$version is already on npm, skipping"
+              continue
+            fi
+            case "$version" in
+              *-*) dist_tag=next ;;
+              *) dist_tag=latest ;;
+            esac
+            echo "Publishing $name@$version with dist-tag $dist_tag"
+            (cd "$dir" && npm publish --access public --tag "$dist_tag")
+          done
